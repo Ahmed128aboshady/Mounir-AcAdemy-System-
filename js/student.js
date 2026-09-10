@@ -20,7 +20,7 @@ if (urlParams.has('id')) {
     currentStudentId = parseInt(urlParams.get('id')) || currentStudentId;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initStudentPage() {
     const sel = document.getElementById('studentSelectDropdown');
     if (sel) sel.value = currentStudentId;
 
@@ -55,7 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStudentProfile();
     loadNotifications();
     loadSupportTickets();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStudentPage);
+} else {
+    initStudentPage();
+}
 
 function switchStudent(newId) {
     currentStudentId = parseInt(newId);
