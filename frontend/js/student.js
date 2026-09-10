@@ -521,7 +521,7 @@ async function loadSelectedCourseLectures() {
         
         const currentCourseInfo = enrolledCoursesList.find(c => c.course_name === selectedCourseName) || enrolledCoursesList[0] || {};
         if (currentCourseInfo) {
-            document.getElementById('presentCount').innerText = currentCourseInfo.present_count || 2;
+            document.getElementById('presentCount').innerText = (currentCourseInfo.present_count !== undefined) ? currentCourseInfo.present_count : 0;
             document.getElementById('absentCount').innerText = currentCourseInfo.absent_count || 0;
             document.getElementById('renewalCountBadge').innerText = currentCourseInfo.renewal_count > 0 
                 ? currentCourseInfo.renewal_count + ' مرة' 
