@@ -12,12 +12,10 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
     <!-- Top Simple Bar -->
-    <header class="py-4 px-6 border-b border-slate-800">
+    <header class="py-4 px-6 border-b border-[#2D396E] bg-[#1F274B]">
         <div class="max-w-5xl mx-auto flex justify-between items-center">
             <a href="index.html" class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm">
-                    M
-                </div>
+                <img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-9 w-auto object-contain">
                 <div>
                     <h1 class="font-extrabold text-sm text-white leading-tight">أكاديمية منير الذكية</h1>
                     <p class="text-[11px] text-slate-400">بوابة الدخول الموحدة للطلاب والمعلمين</p>
@@ -70,7 +68,7 @@
                 </div>
 
                 <div class="pt-2">
-                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-blue-600/20 text-sm">
+                    <button type="submit" id="submitBtn" class="w-full bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-lg shadow-[#41519C]/20 text-sm">
                         دخول بوابة الطالب
                     </button>
                 </div>
@@ -94,7 +92,7 @@
             <div class="mt-5 text-center" id="registerPromptBox">
                 <p class="text-xs text-slate-400">
                     طالب جديد وليس لديك كود أو حساب؟  
-                    <a href="register.html" class="text-blue-400 hover:text-blue-300 font-extrabold underline mr-1">سجل الآن بنفسك فوراً</a>
+                    <a href="register.html" class="text-[#57BA9E] hover:text-[#73C8AF] font-extrabold underline mr-1">سجل الآن بنفسك فوراً</a>
                 </p>
             </div>
 
@@ -125,12 +123,12 @@
             const demoContainer = document.getElementById('demoButtonsContainer');
 
             if (role === 'student') {
-                tabStudent.className = 'py-2.5 rounded-lg transition bg-blue-600 text-white shadow-sm';
+                tabStudent.className = 'py-2.5 rounded-lg transition bg-[#41519C] text-white shadow-sm';
                 tabTeacher.className = 'py-2.5 rounded-lg transition text-slate-400 hover:text-white';
                 usernameLabel.innerText = 'اسم المستخدم أو كود الطالب:';
                 usernameInput.placeholder = 'مثال: abdelrahman أو MNR-2026-1042';
                 submitBtn.innerText = 'دخول بوابة الطالب';
-                submitBtn.className = 'w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-blue-600/20 text-sm';
+                submitBtn.className = 'w-full bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-lg shadow-[#41519C]/20 text-sm';
                 registerPromptBox.classList.remove('hidden');
 
                 demoContainer.innerHTML = 
@@ -142,12 +140,12 @@
                     </button>
                 ;
             } else {
-                tabTeacher.className = 'py-2.5 rounded-lg transition bg-emerald-600 text-white shadow-sm';
+                tabTeacher.className = 'py-2.5 rounded-lg transition bg-[#57BA9E] text-slate-950 font-bold shadow-sm';
                 tabStudent.className = 'py-2.5 rounded-lg transition text-slate-400 hover:text-white';
                 usernameLabel.innerText = 'اسم مستخدم المعلم أو البريد الإلكتروني:';
                 usernameInput.placeholder = 'مثال: eman.naggar أو eman.naggar@monir-academy.edu.eg';
                 submitBtn.innerText = 'دخول بوابة المعلمين';
-                submitBtn.className = 'w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm';
+                submitBtn.className = 'w-full bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black py-3 rounded-xl transition shadow-lg shadow-[#57BA9E]/20 text-sm';
                 registerPromptBox.classList.add('hidden');
 
                 demoContainer.innerHTML = 

@@ -1,13 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
 
 :root {
-    --primary: #1E3A8A;
-    --primary-light: #3B82F6;
-    --secondary: #0D9488;
-    --accent: #F59E0B;
+    --primary: #41519C;
+    --primary-dark: #2D396E;
+    --primary-light: #5A6AB5;
+    --primary-soft: #EEF2FF;
+    --secondary: #57BA9E;
+    --secondary-dark: #43A68A;
+    --secondary-light: #E8F8F4;
+    --accent: #57BA9E;
     --danger: #EF4444;
-    --success: #10B981;
-    --dark: #0F172A;
+    --success: #57BA9E;
+    --dark: #1F274B;
     --card-bg: #FFFFFF;
     --bg-main: #F8FAFC;
     --border: #E2E8F0;
@@ -27,6 +31,31 @@ body {
     min-height: 100vh;
 }
 
+/* Brand Utility Classes */
+.bg-brand-primary { background-color: var(--primary) !important; }
+.bg-brand-primary-dark { background-color: var(--primary-dark) !important; }
+.bg-brand-primary-soft { background-color: var(--primary-soft) !important; }
+.hover\:bg-brand-primary-dark:hover { background-color: var(--primary-dark) !important; }
+
+.text-brand-primary { color: var(--primary) !important; }
+.border-brand-primary { border-color: var(--primary) !important; }
+
+.bg-brand-secondary { background-color: var(--secondary) !important; }
+.bg-brand-secondary-dark { background-color: var(--secondary-dark) !important; }
+.bg-brand-secondary-soft { background-color: var(--secondary-light) !important; }
+.hover\:bg-brand-secondary-dark:hover { background-color: var(--secondary-dark) !important; }
+
+.text-brand-secondary { color: #236E58 !important; }
+.border-brand-secondary { border-color: var(--secondary) !important; }
+
+/* Header Brand Logo */
+.header-logo-img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
 /* Glassmorphism & Cards */
 .glass-card {
     background: rgba(255, 255, 255, 0.95);
@@ -37,13 +66,13 @@ body {
 }
 
 .student-id-card {
-    background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%);
+    background: linear-gradient(135deg, #41519C 0%, #1F274B 100%);
     color: #FFFFFF;
     border-radius: 24px;
     padding: 24px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 15px 35px -5px rgba(30, 58, 138, 0.35);
+    box-shadow: 0 15px 35px -5px rgba(65, 81, 156, 0.35);
 }
 
 .student-id-card::after {
@@ -53,7 +82,7 @@ body {
     right: -20%;
     width: 250px;
     height: 250px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(87, 186, 158, 0.28) 0%, transparent 70%);
     border-radius: 50%;
 }
 
@@ -67,8 +96,8 @@ body {
 }
 
 .lecture-card.unlocked {
-    border-color: #93C5FD;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.06);
+    border-color: #BBE7DC;
+    box-shadow: 0 4px 12px rgba(87, 186, 158, 0.1);
 }
 
 .lecture-card.locked {
@@ -78,15 +107,15 @@ body {
 }
 
 .lecture-card.live-now {
-    border: 2px solid #10B981;
-    background: #F0FDF4;
+    border: 2px solid #57BA9E;
+    background: #E8F8F4;
     animation: pulse-border 2s infinite;
 }
 
 @keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(87, 186, 158, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(87, 186, 158, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(87, 186, 158, 0); }
 }
 
 /* Badges */
@@ -100,8 +129,8 @@ body {
     gap: 4px;
 }
 
-.badge-live { background: #DCFCE7; color: #15803D; }
-.badge-completed { background: #E0E7FF; color: #3730A3; }
+.badge-live { background: #E8F8F4; color: #206E58; }
+.badge-completed { background: #EEF2FF; color: #41519C; }
 .badge-postponed { background: #FEF3C7; color: #B45309; }
 .badge-locked { background: #E2E8F0; color: #475569; }
 

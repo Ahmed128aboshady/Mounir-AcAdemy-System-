@@ -1580,6 +1580,12 @@ def get_admin_overview(course: Optional[str] = None):
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend")
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+    images_dir = os.path.join(FRONTEND_DIR, "images")
+    if os.path.exists(images_dir):
+        app.mount("/images", StaticFiles(directory=images_dir), name="images")
+    css_dir = os.path.join(FRONTEND_DIR, "css")
+    if os.path.exists(css_dir):
+        app.mount("/css", StaticFiles(directory=css_dir), name="css")
 
 @app.get("/")
 @app.get("/index.html")
