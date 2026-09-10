@@ -73,7 +73,7 @@
                     <div class="flex items-center justify-between gap-3 mb-2">
                         <div class="flex items-center gap-2">
                             <span class="bg-[#57BA9E] text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">كارت الطالب الرقمي</span>
-                            <span class="bg-white/10 text-[#57BA9E] border border-[#57BA9E]/30 text-[11px] font-bold px-2 py-0.5 rounded-full">اشتراك ساري</span>
+                            <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full" id="accountStatusBadge">اشتراك ساري (نشط)</span>
                         </div>
                         <img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-6 w-auto object-contain opacity-95">
                     </div>
@@ -86,11 +86,15 @@
                             <strong class="font-mono text-sm tracking-wider text-amber-300" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></strong>
                         </div>
                         <div>
+                            <span class="text-slate-400 block text-[10px]">معرف الجروب (Group ID)</span>
+                            <strong class="font-mono text-sm tracking-wider text-emerald-300" id="groupCode">---</strong>
+                        </div>
+                        <div>
                             <span class="text-slate-400 block text-[10px]">ولي الأمر</span>
                             <strong id="parentName"><script>(function(){const u=window.__PRELOADED_USER__;if(u&&u.full_name){const p=u.full_name.split(' ');document.write(p.length>=2?('أ. '+p.slice(1).join(' ')+' (ولي الأمر)'):('ولي أمر '+u.full_name));}else{document.write('---');}})();</script></strong>
                         </div>
                         <div>
-                            <span class="text-slate-400 block text-[10px]">إجمالي الكورسات المشترك بها</span>
+                            <span class="text-slate-400 block text-[10px]">إجمالي الكورسات</span>
                             <strong class="text-emerald-400 text-sm" id="enrolledCoursesCount"><script>(function(){const u=window.__PRELOADED_USER__;document.write(u?'1 مسار تدريبي':'---');})();</script></strong>
                         </div>
                     </div>

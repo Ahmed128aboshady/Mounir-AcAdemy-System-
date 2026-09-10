@@ -198,9 +198,19 @@ async function loadStudentProfile() {
             const finalName = s.name || fallbackName;
 
             const safeId = s.id || currentStudentId;
+            const firstEnr = (data.enrolled_courses && data.enrolled_courses[0]) ? data.enrolled_courses[0] : {};
+            const grpId = s.group_id || firstEnr.group_id || 'G001';
+
             document.getElementById('studentName').innerText = finalName;
-            document.getElementById('studentDetails').innerText = (s.age ? (s.age + ' سنة • ') : '') + 'تليفون ولي الأمر: ' + (s.parent_phone || s.phone || '---');
+            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 10) + ' سنة • رقم التواصل / ولي الأمر: ' + (s.parent_phone || s.phone || '---');
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
+            
+            const groupCodeEl = document.getElementById('groupCode');
+            if (groupCodeEl) groupCodeEl.innerText = grpId;
+
+            const accBadgeEl = document.getElementById('accountStatusBadge');
+            if (accBadgeEl) accBadgeEl.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
+
             document.getElementById('parentName').innerText = s.parent_name || ('ولي أمر ' + finalName);
             document.getElementById('enrolledCoursesCount').innerText = ((data && data.enrolled_courses_count) || (enrolledCoursesList ? enrolledCoursesList.length : 1)) + ' مسار تدريبي';
         }
@@ -265,30 +275,44 @@ function renderEnrolledCoursesTabs(courses) {
         const card = document.createElement('div');
         
         const activeClass = isSelected 
-            ? 'border-2 border-blue-600 bg-blue-50/70 shadow-md transform scale-[1.01]' 
+            ? 'border-2 border-blue-600 bg-blue-50/90 shadow-md transform scale-[1.01]' 
             : 'border border-slate-200 bg-white hover:border-slate-300 shadow-sm';
             
-        let renewalStatusText = '';
-        if (c.course_name.includes('القرآن')) {
-            renewalStatusText = '<span class="bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full text-[10px]">رصيد حصص: ' + (c.remaining_credits || 0) + '</span>';
-        } else if (c.renewal_count > 0) {
-            renewalStatusText = '<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">المرحلة 2 مفعلة</span>';
-        } else {
-            renewalStatusText = '<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full text-[10px]">المرحلة 1 (4 محاضرات)</span>';
-        }
-            
-        card.className = 'p-4 rounded-2xl cursor-pointer transition ' + activeClass;
+        card.className = 'p-4 rounded-2xl cursor-pointer transition space-y-2.5 ' + activeClass;
         card.onclick = () => selectCourseTab(c.course_name);
         
+        const teacherText = c.teacher_name ? ('المعلم المشرف: أ. ' + c.teacher_name) : 'المعلم المشرف: أ. أحمد طارق';
+        const groupIdText = c.group_id ? ('معرف الجروب: ' + c.group_id) : 'كود الجروب: G001';
+        const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 4;
+        const daysText = c.subscription_days || 'أيام الاشتراك محددة';
+        const timeText = c.lecture_time || (c.raw_time ? ('ساعة ' + c.raw_time) : 'وقت المحاضرة محدد');
+        const statusText = c.account_status || 'نشط';
+
         card.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
+            <div class="flex justify-between items-start">
                 <div>
-                    <h4 class="font-extrabold text-sm text-slate-900">${c.course_name}</h4>
-                    <span class="text-slate-500 text-[11px]">${c.track_name || 'مسار تفاعلي'}</span>
+                    <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                        <span class="bg-blue-900 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-md">${groupIdText}</span>
+                        <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">حالة الحساب: ${statusText}</span>
+                    </div>
+                    <h4 class="font-black text-base text-slate-900">${c.course_name}</h4>
+                    <p class="text-xs font-bold text-blue-800 mt-0.5">${teacherText}</p>
                 </div>
-                <div>${renewalStatusText}</div>
+                <div class="text-right">
+                    <span class="bg-amber-100 border border-amber-300 text-amber-950 font-black px-2.5 py-1 rounded-xl text-xs block whitespace-nowrap shadow-sm">
+                        المتبقي: ${remCredits} حصة
+                    </span>
+                </div>
             </div>
-            <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-100 text-slate-600 mt-2">
+
+            <div class="bg-slate-100/90 p-2.5 rounded-xl text-xs space-y-1 border border-slate-200/60">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-slate-700 font-semibold">
+                    <span>📅 أيام الاشتراك: <strong class="text-slate-900 font-bold">${daysText}</strong></span>
+                    <span>⏰ موعد المحاضرة: <strong class="text-blue-900 font-bold">${timeText}</strong></span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs pt-1 text-slate-600">
                 <span>المحاضرات المفعلة: <strong class="text-blue-900">${c.total_lectures_unlocked || 4} / 8</strong></span>
                 <span>نسبة الحضور: <strong class="text-emerald-700">${c.attendance_rate || 100}% (${c.present_count || 0} حصص)</strong></span>
             </div>
