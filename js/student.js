@@ -205,7 +205,7 @@ async function loadStudentProfile() {
             const safeId = s.id || currentStudentId;
             const firstEnr = (data.enrolled_courses && data.enrolled_courses[0]) ? data.enrolled_courses[0] : {};
             const grpId = s.group_id || firstEnr.group_id || 'G182';
-            const phoneVal = s.parent_phone || s.phone || (initialUser && (initialUser.parent_phone || initialUser.phone)) || '905524182786';
+            const phoneVal = s.parent_phone || s.phone || (initialUser && (initialUser.parent_phone || initialUser.phone)) || 'غير مسجل';
 
             document.getElementById('studentName').innerText = finalName;
             document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 12) + ' سنة • رقم التواصل / ولي الأمر: ' + phoneVal;
@@ -325,7 +325,7 @@ function renderEnrolledCoursesTabs(courses) {
     container.innerHTML = '';
     
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
-    const parentPhoneNum = curStudent.parent_phone || curStudent.phone || '905524182786';
+    const parentPhoneNum = curStudent.parent_phone || curStudent.phone || (initialUser && (initialUser.parent_phone || initialUser.phone)) || 'غير مسجل';
 
     const safeCourses = (Array.isArray(courses) && courses.length > 0) ? courses : [{
         course_name: "الاثنين 8",

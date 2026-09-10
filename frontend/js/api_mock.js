@@ -133,21 +133,29 @@
             }
 
             const token = 'token_' + user.role + '_' + user.id + '_' + Math.random().toString(36).substring(2, 10);
-            const stObj = (user.role === 'student') ? (dbStudents.find(st => st.id === user.related_id) || dbStudents.find(st => st.student_code === user.username) || {}) : {};
+            const stObj = (user.role === 'student') ? (
+                dbStudents.find(st => st.id === user.related_id) || 
+                dbStudents.find(st => st.student_code === user.username) || 
+                dbStudents.find(st => st.student_code && st.student_code.toLowerCase() === (user.username || '').toLowerCase()) || 
+                {}
+            ) : {};
             return jsonResponse({
                 success: true,
                 token: token,
                 user: {
                     id: user.id,
                     username: user.username,
-                    full_name: user.full_name || stObj.name || user.username,
+                    full_name: stObj.name || user.full_name || user.username,
                     role: user.role,
-                    related_id: user.related_id || stObj.id,
-                    student_id: user.role === 'student' ? (user.related_id || stObj.id) : null,
+                    related_id: stObj.id || user.related_id,
+                    student_id: user.role === 'student' ? (stObj.id || user.related_id) : null,
                     teacher_id: user.role === 'teacher' ? user.related_id : null,
-                    parent_phone: stObj.parent_phone || stObj.phone || user.parent_phone || user.phone || '905524182786',
-                    phone: stObj.phone || user.phone || '905524182786',
-                    group_id: stObj.group_id || 'G182'
+                    parent_name: stObj.parent_name || 'ولي أمر الطالب',
+                    parent_phone: stObj.parent_phone || stObj.phone || 'غير مسجل',
+                    phone: stObj.phone || stObj.parent_phone || 'غير مسجل',
+                    group_id: stObj.group_id || 'G182',
+                    age: stObj.age || 10,
+                    account_status: stObj.account_status || 'نشط'
                 }
             });
         }
@@ -571,7 +579,7 @@
             }
 
             return jsonResponse({
-                student: student || { id: realSid, name: "معتصم بالله وليد", student_code: rawId, phone: "905524182786", parent_phone: "905524182786", group_id: "G182", account_status: "نشط" },
+                student: student || { id: realSid, name: "طالب الأكاديمية", student_code: rawId, phone: "غير مسجل", parent_name: "ولي أمر الطالب", parent_phone: "غير مسجل", group_id: "G182", account_status: "نشط" },
                 enrolled_courses: enrs,
                 enrolled_courses_count: enrs.length,
                 unread_notifications: 0
