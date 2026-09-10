@@ -74,11 +74,24 @@ async function loadStudentProfile() {
         // Read viewer role
         let viewerRole = 'student';
         const uStr = localStorage.getItem('monir_current_user');
+        let initialUser = null;
         if (uStr) {
             try {
-                const u = JSON.parse(uStr);
-                viewerRole = u.role || 'student';
+                initialUser = JSON.parse(uStr);
+                viewerRole = initialUser.role || 'student';
             } catch(e) {}
+        }
+
+        // Fast immediate UI population from active session
+        if (initialUser && viewerRole === 'student') {
+            const nameEl = document.getElementById('studentName');
+            if (nameEl) nameEl.innerText = initialUser.full_name || initialUser.username;
+            
+            const codeEl = document.getElementById('studentCode');
+            if (codeEl) codeEl.innerText = initialUser.username || 'ST0001';
+
+            const qrImg = document.getElementById('studentQrImg');
+            if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(initialUser.username || 'ST0001');
         }
 
         const res = await fetch('/api/student/' + currentStudentId);

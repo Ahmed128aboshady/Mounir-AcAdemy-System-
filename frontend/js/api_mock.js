@@ -1,43 +1,46 @@
 // Smart API Mock Engine for GitHub Pages Live Demo & Offline Testing
 (function() {
-    const DB_KEY = 'monir_smart_lms_db_v9';
     let DB = null;
+    let dbFetchPromise = null;
 
     async function ensureDbLoaded() {
         if (DB && DB.users && DB.users.length >= 50 && DB.students && DB.students.length >= 50) {
             return DB;
         }
-        const stored = localStorage.getItem(DB_KEY);
-        if (stored) {
+
+        if (dbFetchPromise) {
+            return await dbFetchPromise;
+        }
+
+        dbFetchPromise = (async () => {
             try {
-                DB = JSON.parse(stored);
-                if (DB && DB.users && DB.users.length >= 50 && DB.students && DB.students.length >= 50) {
-                    return DB;
+                const isFrontendDir = (typeof window !== 'undefined' && window.location && window.location.pathname.includes('/frontend/'));
+                const relPath = isFrontendDir ? '../js/db_seed.json' : 'js/db_seed.json';
+                const fetchFn = (typeof realFetch === 'function' && realFetch) ? realFetch : window.fetch;
+                
+                const res = await fetchFn(relPath + '?v=20260910_seed10');
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data && data.users && data.students) {
+                        DB = data;
+                        console.log('[Mock DB] Loaded ' + DB.students.length + ' students into memory.');
+                        return DB;
+                    }
                 }
-            } catch(e) {}
-        }
-        try {
-            const relPath = window.location.pathname.includes('/frontend/') ? '../js/db_seed.json' : 'js/db_seed.json';
-            const res = await fetch(relPath + '?v=20260910_seed9');
-            const data = await res.json();
-            if (data && data.users && data.students) {
-                DB = data;
-                try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
-                return DB;
+            } catch(e) {
+                console.warn('[Mock DB] Failed to load db_seed.json:', e);
             }
-        } catch(e) {
-            console.warn('[Mock DB] Async fetch warning:', e);
-        }
-        return DB;
+            return DB;
+        })();
+
+        return await dbFetchPromise;
     }
 
     function initDb() {
         ensureDbLoaded();
     }
 
-    function saveDb() {
-        try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
-    }
+    function saveDb() {}
 
     initDb();
 
