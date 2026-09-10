@@ -95,16 +95,20 @@ async function loadStudentProfile() {
             } catch(e) {}
         }
 
-        // Fast immediate UI population from active session
-        if (initialUser && viewerRole === 'student') {
-            const nameEl = document.getElementById('studentName');
-            if (nameEl) nameEl.innerText = initialUser.full_name || initialUser.username;
-            
-            const codeEl = document.getElementById('studentCode');
-            if (codeEl) codeEl.innerText = initialUser.username || 'ST0001';
+        // Fast immediate UI population from active session or URL ID
+        const nameEl = document.getElementById('studentName');
+        const codeEl = document.getElementById('studentCode');
+        const qrImg = document.getElementById('studentQrImg');
 
-            const qrImg = document.getElementById('studentQrImg');
-            if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(initialUser.username || 'ST0001');
+        if (initialUser && viewerRole === 'student') {
+            if (nameEl) nameEl.innerText = initialUser.full_name || initialUser.username;
+            if (codeEl) codeEl.innerText = initialUser.username || ('ST' + String(currentStudentId).padStart(4, '0'));
+            if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(initialUser.username || ('ST' + String(currentStudentId).padStart(4, '0')));
+        } else {
+            const fallbackCode = 'ST' + String(currentStudentId).padStart(4, '0');
+            if (nameEl && nameEl.innerText.includes('جاري')) nameEl.innerText = 'طالب الأكاديمية';
+            if (codeEl && (codeEl.innerText === '---' || !codeEl.innerText)) codeEl.innerText = fallbackCode;
+            if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(fallbackCode);
         }
 
         const res = await fetch('/api/student/' + currentStudentId);

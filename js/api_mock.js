@@ -67,7 +67,8 @@
             return DB;
         })();
 
-        return dbFetchPromise;
+        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(DB), 500));
+        return Promise.race([dbFetchPromise, timeoutPromise]);
     }
 
     function initDb() {
