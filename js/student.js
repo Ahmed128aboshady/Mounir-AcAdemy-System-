@@ -324,8 +324,14 @@ function renderEnrolledCoursesTabs(courses) {
     if (!container) return;
     container.innerHTML = '';
     
+    let activeSessUser = null;
+    const uStr = localStorage.getItem('monir_current_user');
+    if (uStr) {
+        try { activeSessUser = JSON.parse(uStr); } catch(e) {}
+    }
+
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
-    const parentPhoneNum = curStudent.parent_phone || curStudent.phone || (initialUser && (initialUser.parent_phone || initialUser.phone)) || 'غير مسجل';
+    const parentPhoneNum = curStudent.parent_phone || curStudent.phone || (activeSessUser && (activeSessUser.parent_phone || activeSessUser.phone)) || 'غير مسجل';
 
     const safeCourses = (Array.isArray(courses) && courses.length > 0) ? courses : [{
         course_name: "الاثنين 8",
