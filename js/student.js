@@ -10,14 +10,21 @@ const userStr = localStorage.getItem('monir_current_user');
 if (userStr) {
     try {
         const u = JSON.parse(userStr);
-        if (u.role === 'student' && u.student_id && !urlParams.has('id')) {
-            currentStudentId = u.student_id;
+        if (u.role === 'student') {
+            const sid = u.student_id || u.related_id;
+            if (sid && !urlParams.has('id')) {
+                currentStudentId = sid;
+            }
         }
     } catch(e) {}
 }
 
 if (urlParams.has('id')) {
     currentStudentId = parseInt(urlParams.get('id')) || currentStudentId;
+}
+
+if (!userStr && !urlParams.has('id')) {
+    window.location.replace('login.html');
 }
 
 function initStudentPage() {
