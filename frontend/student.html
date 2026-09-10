@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوابة الطالب وولي الأمر — أكاديمية منير الذكية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-800 pb-20">
+
+    <!-- Top Navigation -->
+    <header class="bg-white border-b border-slate-200 py-3 px-4 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <a href="/" class="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center text-amber-400 font-bold text-sm">M</a>
+                <div>
+                    <h1 class="font-bold text-sm text-slate-900 leading-tight">بوابة الطالب وولي الأمر</h1>
+                    <p class="text-[11px] text-slate-500" id="headerCourseSubtitle">أكاديمية منير الذكية</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Switch Student Dropdown -->
+                <div class="relative">
+                    <select id="studentSelectDropdown" onchange="switchStudent(this.value)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-slate-300 outline-none cursor-pointer">
+                        <option value="1">عمر أحمد (كتالوج الشباب & وعي وأمان)</option>
+                        <option value="2">مريم حسام (وعي وأمان & مسار القرآن)</option>
+                        <option value="3">يوسف محمود (قصص الأنبياء)</option>
+                        <option value="4">عبدالرحمن خالد (مسار القرآن الكريم)</option>
+                    </select>
+                </div>
+
+                <!-- Support & Tickets Button -->
+                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1">
+                    <span>الدعم والشكاوى</span>
+                </button>
+
+                <!-- Notifications Bell -->
+                <button onclick="toggleNotifications()" class="relative p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-full transition border border-slate-200">
+                    <span class="text-xs font-bold">الإشعارات</span>
+                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">1</span>
+                </button>
+                <a href="/teacher.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200">المعلم</a>
+                <a href="/admin.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200">الإدارة</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Top Notification Banner -->
+        <div id="topNotificationBanner" class="hidden bg-amber-50 border-r-4 border-amber-500 rounded-xl p-4 shadow-sm flex items-start justify-between gap-3">
+            <div>
+                <h4 class="font-bold text-sm text-amber-900" id="topNotifTitle">تنبيه بخصوص موعد المحاضرة</h4>
+                <p class="text-xs text-amber-800 mt-0.5" id="topNotifMsg">تفاصيل الإشعار...</p>
+            </div>
+            <button onclick="closeTopBanner()" class="text-amber-700 hover:text-amber-900 text-xs font-bold px-2 py-1 bg-amber-100 rounded-md">حسناً</button>
+        </div>
+
+        <!-- 1. Digital Student ID Smart Card -->
+        <section class="student-id-card">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-amber-400 text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">كارت الطالب الرقمي</span>
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold px-2 py-0.5 rounded-full">اشتراك ساري</span>
+                    </div>
+                    <h2 class="text-2xl font-black mb-1" id="studentName">عمر أحمد علي</h2>
+                    <p class="text-xs text-blue-200" id="studentDetails">14 سنة • تليفون ولي الأمر: 01002530197</p>
+                    
+                    <div class="mt-4 flex flex-wrap gap-4 text-xs text-slate-200">
+                        <div>
+                            <span class="text-slate-400 block text-[10px]">كود الطالب (ID)</span>
+                            <strong class="font-mono text-sm tracking-wider text-amber-300" id="studentCode">MNR-2026-1042</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px]">ولي الأمر</span>
+                            <strong id="parentName">أحمد علي حسن</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px]">إجمالي الكورسات المشترك بها</span>
+                            <strong class="text-emerald-400 text-sm" id="enrolledCoursesCount">2 مسار تدريبي</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code Box -->
+                <div class="bg-white p-3 rounded-2xl shadow-xl flex flex-col items-center justify-center self-center sm:self-auto">
+                    <img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=MNR-2026-1042" alt="QR Code" class="w-24 h-24 rounded-lg">
+                    <span class="text-[10px] text-slate-500 font-bold mt-1.5">باركود الحضور والمتابعة</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quran Specific Engine Widget (Displays if enrolled in Quran track) -->
+        <section id="quranCreditSection" class="hidden bg-emerald-950 text-white rounded-2xl p-5 shadow-md border border-emerald-800 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-emerald-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 bg-emerald-700 text-emerald-100 rounded-lg flex items-center justify-center font-black text-sm">ق</div>
+                    <div>
+                        <h3 class="font-black text-sm text-emerald-100">رصيد حصص القرآن الكريم الفردية ومتابعة الحفظ</h3>
+                        <p class="text-[11px] text-emerald-300">نظام الخصم الفردي (4 حصص/تجديد) مع مراعاة العذر الأول المجاني</p>
+                    </div>
+                </div>
+                <div id="quranRenewalAlertBadge" class="hidden bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full animate-pulse">
+                    تنبيه: اقترب انتهاء الرصيد (متبقي حصة أو أقل)
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div class="bg-emerald-900/60 p-3.5 rounded-xl border border-emerald-700/50">
+                    <span class="text-emerald-300 block text-[11px]">رصيد الحصص المتبقي</span>
+                    <div class="text-xl font-black text-emerald-100 mt-0.5" id="quranRemainingCredits">3 من 4 حصص</div>
+                    <span class="text-[10px] text-emerald-400" id="quranExcusesNote">الأعذار المسجلة: 0</span>
+                </div>
+                <div class="bg-emerald-900/60 p-3.5 rounded-xl border border-emerald-700/50">
+                    <span class="text-emerald-300 block text-[11px]">السورة وموضع التلاوة</span>
+                    <div class="text-lg font-black text-amber-300 mt-0.5" id="quranCurrentSurah">سورة المطففين</div>
+                    <span class="text-[10px] text-emerald-300" id="quranCurrentAya">الآية رقم: 18</span>
+                </div>
+                <div class="bg-emerald-900/60 p-3.5 rounded-xl border border-emerald-700/50">
+                    <span class="text-emerald-300 block text-[11px]">المعلم المشرف المباشر</span>
+                    <div class="text-base font-bold text-white mt-0.5" id="quranTeacherName">أ. إيمان النجار</div>
+                    <span class="text-[10px] text-emerald-300">جلسات فردية مباشرة</span>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-1">
+                <button onclick="openPaymobModal()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-sm">
+                    شحن وتجديد 4 حصص جديدة عبر Paymob
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. Enrolled Courses Tabs (Interactive Course Switcher for Student) -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-extrabold text-slate-900">
+                    الكورسات والمسارات المشترك بها الطالب:
+                </h3>
+                <span class="text-xs text-slate-500">اضغط على أي كورس لعرض جدول محاضراته وتفاصيل الحضور والتجديد</span>
+            </div>
+
+            <!-- Dynamic Courses Pills -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="enrolledCoursesTabs">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- Course Action Toolbar (Quizzes & Drive & Stats) -->
+        <section class="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <div class="grid grid-cols-3 gap-2 flex-1 min-w-[280px]">
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] font-semibold text-slate-500">حضور مؤكد</div>
+                    <div class="text-base font-extrabold text-emerald-600 mt-0.5" id="presentCount">2</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] font-semibold text-slate-500">غياب</div>
+                    <div class="text-base font-extrabold text-red-600 mt-0.5" id="absentCount">0</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
+                    <div class="text-[10px] font-semibold text-slate-500">مرات التجديد</div>
+                    <div class="text-base font-extrabold text-amber-600 mt-0.5" id="renewalCountBadge">1 مرة</div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Quizzes Button -->
+                <button onclick="openQuizzesModal()" class="bg-blue-900 hover:bg-blue-800 text-white text-xs font-extrabold px-4 py-3 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                    <span>الاختبارات والتقييمات</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. Course Lectures & 4-Lecture Block System for Selected Course -->
+        <section class="space-y-4">
+            
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900" id="selectedCourseTitle">جدول المحاضرات</h3>
+                    <p class="text-xs text-slate-500" id="selectedCourseSubtitle">نظام البلوك الرباعي (أول 4 محاضرات مفعلة تلقائياً)</p>
+                </div>
+                <button onclick="refreshData()" class="text-xs text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">تحديث</button>
+            </div>
+
+            <!-- Block 1 Header -->
+            <div class="bg-blue-900 text-white px-4 py-2.5 rounded-xl flex justify-between items-center text-xs font-bold shadow-sm">
+                <span class="flex items-center gap-2">
+                    <span>المرحلة الأولى: المحاضرات (1 إلى 4)</span>
+                    <span class="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">مفعلة بالكامل</span>
+                </span>
+                <span class="text-blue-200 text-[11px]">4 محاضرات</span>
+            </div>
+
+            <!-- Lectures 1 to 4 Container -->
+            <div id="block1Lectures" class="space-y-3">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Block 2 Header (Paymob Renewal Trigger) -->
+            <div class="bg-slate-800 text-white px-4 py-2.5 rounded-xl flex justify-between items-center text-xs font-bold shadow-sm mt-6">
+                <span class="flex items-center gap-2">
+                    <span id="block2Title">المرحلة الثانية: المحاضرات (5 إلى 8)</span>
+                    <span id="block2Badge" class="bg-amber-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black">مغلقة • تتطلب التجديد</span>
+                </span>
+                <span class="text-slate-300 text-[11px]">4 محاضرات</span>
+            </div>
+
+            <!-- Block 2 Lectures Container (5 to 8) -->
+            <div id="block2Lectures" class="space-y-3">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Paymob Renewal Callout Banner -->
+            <div id="renewalBanner" class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+                <div>
+                    <span class="bg-slate-950 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">تجديد الاشتراك عبر Paymob</span>
+                    <h4 class="text-lg font-black mt-1" id="renewalBannerTitle">جاهز للانطلاق للمرحلة القادمة؟ (المحاضرات 5 إلى 8)</h4>
+                    <p class="text-xs text-amber-950 font-semibold mt-0.5" id="renewalBannerSubtitle">جدد اشتراكك بـ 450 ج.م بضغطة زر وسيتم فتح المحاضرات الأربعة القادمة فوراً.</p>
+                </div>
+                <button onclick="openPaymobModal()" class="w-full sm:w-auto bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-xs px-6 py-3 rounded-xl shadow-md whitespace-nowrap transition transform hover:scale-105">
+                    تجديد الآن عبر Paymob
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal: Notifications List -->
+    <div id="notificationsModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">
+                    مركز الإشعارات والتنبيهات
+                </h3>
+                <button onclick="toggleNotifications()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+            </div>
+            <div id="notificationsList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Support & Complaints Ticketing System -->
+    <div id="supportModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <div>
+                    <h3 class="font-extrabold text-base text-slate-900">منظومة الدعم الفني والمقترحات والشكاوى</h3>
+                    <p class="text-[11px] text-slate-500">فريق الأكاديمية يرد خلال 24 ساعة مباشرة</p>
+                </div>
+                <button onclick="closeSupportModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <!-- Support Tabs -->
+            <div class="flex border-b border-slate-200 mb-4 text-xs font-bold">
+                <button onclick="switchSupportTab('new')" id="tabSupportNew" class="py-2 px-4 border-b-2 border-blue-900 text-blue-900">
+                    تقديم تذكرة جديدة
+                </button>
+                <button onclick="switchSupportTab('list')" id="tabSupportList" class="py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+                    متابعة التذاكر والردود (<span id="ticketCountBadge">0</span>)
+                </button>
+            </div>
+
+            <!-- Tab 1: New Ticket Form -->
+            <div id="supportFormTab" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">نوع الاستفسار / الشكوى:</label>
+                    <select id="ticketCategory" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                        <option value="تسجيل ودفع">الدفع ورسوم التجديد (Paymob)</option>
+                        <option value="مواعيد وغياب">مواعيد المحاضرات والأعذار</option>
+                        <option value="تقني">مشكلة تقنية في Google Meet أو الروابط</option>
+                        <option value="اقتراح">اقتراح لتطوير المحتوى</option>
+                        <option value="عام">استفسار عام</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">الموضوع باختصار:</label>
+                    <input type="text" id="ticketSubject" placeholder="مثال: استفسار عن موعد الحصة القادمة" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-medium">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">التفاصيل الكاملة:</label>
+                    <textarea id="ticketMessage" rows="4" placeholder="اكتب تفاصيل طلبك هنا..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-normal"></textarea>
+                </div>
+
+                <button onclick="submitSupportTicket()" id="btnSubmitTicket" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-xs py-3 rounded-xl shadow-md transition">
+                    إرسال التذكرة الآن
+                </button>
+            </div>
+
+            <!-- Tab 2: Tickets History List -->
+            <div id="supportListTab" class="hidden space-y-3 max-h-80 overflow-y-auto pr-1 text-xs">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Quizzes & Assessment System -->
+    <div id="quizzesModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <div>
+                    <h3 class="font-extrabold text-base text-slate-900" id="quizModalTitle">الاختبارات والتقييمات</h3>
+                    <p class="text-[11px] text-slate-500" id="quizModalSubtitle">اختبارات تحصيلية فورية لكل بلوك تعليمي</p>
+                </div>
+                <button onclick="closeQuizzesModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <!-- Quiz Selection View -->
+            <div id="quizSelectionView" class="space-y-3">
+                <div id="quizzesListContainer" class="space-y-2.5">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- Quiz Questions Interactive Active View -->
+            <div id="quizActiveView" class="hidden space-y-4 text-xs">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <strong class="text-slate-900 font-black text-sm" id="activeQuizTitle">اختبار المرحلة</strong>
+                    <span class="text-slate-500 text-[11px]" id="activeQuizMeta">عدد الأسئلة: 2 • درجة النجاح: 70%</span>
+                </div>
+
+                <div id="quizQuestionsContainer" class="space-y-4 max-h-96 overflow-y-auto pr-1">
+                    <!-- Injected questions -->
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button onclick="submitActiveQuiz()" id="btnSubmitQuiz" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl shadow-md transition">
+                        تسجيل الإجابات واعتماد النتيجة
+                    </button>
+                    <button onclick="backToQuizList()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition">
+                        رجوع
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Result View -->
+            <div id="quizResultView" class="hidden text-center py-6 space-y-4 text-xs">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-xl font-black" id="quizResultIcon">
+                    100%
+                </div>
+                <div>
+                    <h4 class="text-lg font-black text-slate-900" id="quizResultTitle">أحسنت! تم اجتياز الاختبار بنجاح</h4>
+                    <p class="text-slate-500 mt-1" id="quizResultScore">حصلت على 2 من 2 درجات (100%)</p>
+                </div>
+                <div class="pt-2">
+                    <button onclick="backToQuizList()" class="bg-blue-900 text-white font-bold px-6 py-2.5 rounded-xl transition">
+                        العودة لقائمة الاختبارات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Paymob Simulated Checkout -->
+    <div id="paymobModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black text-xs">P</span>
+                    <h3 class="font-extrabold text-base text-slate-900">بوابة الدفع الإلكتروني (Paymob)</h3>
+                </div>
+                <button onclick="closePaymobModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-4 text-xs space-y-1">
+                <div class="flex justify-between text-slate-600">
+                    <span>الخدمة:</span>
+                    <strong class="text-slate-900" id="paymobServiceName">تجديد مسار كتالوج الشباب (المحاضرات 5-8)</strong>
+                </div>
+                <div class="flex justify-between text-slate-600">
+                    <span>الطالب:</span>
+                    <strong class="text-slate-900" id="paymobStudentInfo">عمر أحمد علي</strong>
+                </div>
+                <div class="flex justify-between text-slate-900 text-sm font-black pt-2 border-t border-slate-200">
+                    <span>المبلغ الإجمالي:</span>
+                    <span class="text-emerald-700" id="paymobAmountText">450.00 ج.م</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 mb-5 text-xs">
+                <label class="block font-bold text-slate-700">اختر وسيلة الدفع المفضلة:</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="border border-blue-500 bg-blue-50/50 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-blue-900">
+                        <input type="radio" name="payMethod" value="card" checked class="hidden">
+                        <span>بطاقة بنكية / ميزة</span>
+                    </label>
+                    <label class="border border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700">
+                        <input type="radio" name="payMethod" value="vodafone_cash" class="hidden">
+                        <span>فودافون كاش</span>
+                    </label>
+                    <label class="border border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700">
+                        <input type="radio" name="payMethod" value="instapay" class="hidden">
+                        <span>انستاباي</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Demo Simulate Pay Button -->
+            <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                <span>تأكيد ودفع الرسوم الآن</span>
+            </button>
+            <p class="text-[11px] text-center text-slate-400 mt-2">معاملة مشفرة وآمنة عبر Paymob Payment Gateway</p>
+        </div>
+    </div>
+
+    <!-- Modal: Official Digital Payment Receipt & WhatsApp Share -->
+    <div id="receiptModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-black text-xs">M</span>
+                    <h3 class="font-extrabold text-base text-slate-900">إيصال السداد المالي الرسمي</h3>
+                </div>
+                <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 mb-4 font-mono text-slate-700">
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">رقم الإيصال:</span>
+                    <strong class="text-slate-950 font-bold" id="receiptNumber">RCT-2026-PAY-8821</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">اسم الطالب:</span>
+                    <strong class="text-slate-950 font-bold font-sans" id="receiptStudentName">عمر أحمد</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">كود الطالب:</span>
+                    <strong class="text-slate-950" id="receiptStudentCode">MNR-2026-1042</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">المسار التدريبي:</span>
+                    <strong class="text-slate-950 font-sans" id="receiptCourseName">كتالوج الشباب 2.0</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">المبلغ المسدد:</span>
+                    <strong class="text-emerald-700 font-bold text-sm" id="receiptAmount">450.00 ج.م</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">تاريخ المعاملة:</span>
+                    <span class="text-slate-600" id="receiptDate">2026-09-08</span>
+                </div>
+                <div class="flex justify-between pt-2 border-t border-slate-200">
+                    <span class="font-sans text-slate-500">حالة السداد:</span>
+                    <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px] font-sans">معتمد ومؤكد (Paymob)</span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <a id="btnWhatsAppReceipt" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
+                    <span>مشاركة الإيصال عبر WhatsApp إلى ولي الأمر</span>
+                </a>
+                <button onclick="closeReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/student.js"></script>
+</body>
+</html>

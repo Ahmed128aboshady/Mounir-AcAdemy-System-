@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الإدارة الشاملة — أكاديمية منير الذكية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 text-slate-800 pb-20">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-40 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="/" class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-lg">M</a>
+                <div>
+                    <h1 class="font-extrabold text-base leading-tight">لوحة تحكم الإدارة الشاملة</h1>
+                    <p class="text-xs text-slate-400">إدارة المسارات، توزيع المعلمين، تصدير Excel، محاسبة الرواتب، وسعة المجموعات</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/teacher.html" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <span>بوابة المعلمين</span>
+                </a>
+                <a href="/student.html" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <span>بروفايل الطالب</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+        <!-- Top Stats Row -->
+        <section class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="text-xs text-slate-500 font-semibold">المسارات المفعلة</div>
+                <div class="text-2xl font-black text-blue-600 mt-1" id="statCoursesCount">4 مسارات</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="text-xs text-slate-500 font-semibold">إجمالي المحاضرات</div>
+                <div class="text-2xl font-black text-slate-900 mt-1" id="statTotalLectures">32 محاضرة</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="text-xs text-slate-500 font-semibold">الطلاب النشطين</div>
+                <div class="text-2xl font-black text-emerald-600 mt-1" id="statTotalStudents">4 طلاب</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="text-xs text-slate-500 font-semibold">الطلاب المتوقفين</div>
+                <div class="text-2xl font-black text-red-600 mt-1" id="statPausedStudents">0</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="text-xs text-slate-500 font-semibold">تذاكر الدعم المفتوحة</div>
+                <div class="text-2xl font-black text-amber-600 mt-1" id="statPendingTickets">0</div>
+            </div>
+        </section>
+
+        <!-- Admin Super Tools Bar: Bulk Reschedule & Excel Export -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h3 class="font-black text-base text-slate-900">أدوات الإدارة السريعة والمزامنة</h3>
+                <p class="text-xs text-slate-500">التعديل الجماعي لمواعيد الكورسات، تصدير ملفات Excel المباشرة، وإدارة التعيينات</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2.5">
+                <button onclick="openBulkRescheduleModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow-sm transition">
+                    تعديل موعد كورس كامل (تأجيل جماعي)
+                </button>
+                <a href="/api/admin/export/attendance-excel" download class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <span>تصدير شيت الحضور (Excel)</span>
+                </a>
+                <a href="/api/admin/export/students-excel" download class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <span>تصدير قائمة الطلاب (Excel)</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- 1. Groups Capacity & Ages Hub (سعة المجموعات والأعمار والمقاعد الشاغرة) -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">سعة المجموعات وتوزيع الأعمار والمقاعد الشاغرة</h2>
+                    <p class="text-xs text-slate-500">متابعة الفئات العمرية المستهدفة والأعمار الحقيقية للطلاب المسجلين والمقاعد المتبقية لاكتمال كل جروب</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="filterCourseAnalytics('all')" id="btnCapacityAll" class="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg">كافة المجموعات</button>
+                    <button onclick="filterCourseAnalytics('incomplete')" id="btnCapacityIncomplete" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg">المجموعات الشاغرة فقط</button>
+                </div>
+            </div>
+
+            <!-- Groups Analytics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="coursesAnalyticsGrid">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- 2. Teacher Payroll & Financial Settlements Engine (محاسبة المعلمين والمستحقات) -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">محرك محاسبة المعلمين والمستحقات المالية</h2>
+                    <p class="text-xs text-slate-500">احتساب مستحقات الحصص المنفذة آلياً، تسوية الرواتب، وتوثيق أرقام التحويلات</p>
+                </div>
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="bg-slate-100 px-3 py-1.5 rounded-lg font-bold text-slate-700">المتبقي للصرف: <strong class="text-emerald-700" id="totalPayrollBalance">0.0 ج.م</strong></span>
+                    <button onclick="loadPayrollData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition">تحديث الرواتب</button>
+                </div>
+            </div>
+
+            <!-- Payroll Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
+                            <th class="p-3">المعلم</th>
+                            <th class="p-3">المسار المشرف عليه</th>
+                            <th class="p-3">تسعيرة الحصة</th>
+                            <th class="p-3">الحصص المنفذة</th>
+                            <th class="p-3">إجمالي المستحق</th>
+                            <th class="p-3">المسدد سابقاً</th>
+                            <th class="p-3">الرصيد المتبقي</th>
+                            <th class="p-3 text-center">إجراءات التسوية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payrollTableBody" class="divide-y divide-slate-100">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. Teacher Accountability & Performance Scorecard (تقرير أداء والتزام المعلمين) -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">تقرير التزام وأداء المعلمين ومعدلات تسرب الطلاب</h2>
+                    <p class="text-xs text-slate-500">رصد الحصص المؤجلة، مرات التأخير، الطلاب المتوقفين تحت كل معلم، ومؤشر الجودة الكلي</p>
+                </div>
+                <button onclick="loadPerformanceReport()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition">تحديث التقرير</button>
+            </div>
+
+            <!-- Performance Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
+                            <th class="p-3">المعلم</th>
+                            <th class="p-3">الطلاب المسندين</th>
+                            <th class="p-3">الحصص المؤجلة</th>
+                            <th class="p-3">مرات التأخير</th>
+                            <th class="p-3">تسرب الطلاب</th>
+                            <th class="p-3">معدل التسرب</th>
+                            <th class="p-3">مؤشر الالتزام والجودة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="performanceTableBody" class="divide-y divide-slate-100">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. Paused & Dropout Students Monitor (الطلاب المتوقفين والمراسلة الفورية) -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4" id="sectionPausedStudents">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">متابعة الطلاب المتوقفين وفرص استعادة الاشتراكات</h2>
+                    <p class="text-xs text-slate-500">حصر الطلاب الذين نفد رصيدهم أو انقطعوا عن الحضور، مع إمكانية مراسلة ولي الأمر مباشرة عبر WhatsApp</p>
+                </div>
+                <button onclick="loadStudentsStatusSummary()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition">تحديث القائمة</button>
+            </div>
+
+            <!-- Paused Students Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
+                            <th class="p-3">الطالب</th>
+                            <th class="p-3">الكود</th>
+                            <th class="p-3">المسار</th>
+                            <th class="p-3">حالة التوقف</th>
+                            <th class="p-3">ولي الأمر والهاتف</th>
+                            <th class="p-3 text-center">التواصل والاستعادة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pausedStudentsTableBody" class="divide-y divide-slate-100">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. Teacher Assignment & Supervised Courses Hub -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">إشراف وتوزيع المعلمين على المسارات</h2>
+                    <p class="text-xs text-slate-500">تحديد المعلم المشرف على كل كورس مع إمكانية إعادة التعيين الفوري</p>
+                </div>
+                <span class="bg-slate-100 text-slate-700 font-bold text-xs px-3 py-1 rounded-lg">4 معلمين معتمدين</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="teacherCourseGrid">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- 6. Support Tickets Management Inbox -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">صندوق تذاكر الدعم والشكاوى الواردة</h2>
+                    <p class="text-xs text-slate-500">متابعة شكاوى واستفسارات أولياء الأمور والرد الفوري عليها</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="filterTickets('all')" id="btnTicketAll" class="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg">الكل</button>
+                    <button onclick="filterTickets('open')" id="btnTicketOpen" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg">بانتظار الرد</button>
+                </div>
+            </div>
+
+            <div class="space-y-3 max-h-72 overflow-y-auto pr-1" id="adminTicketsList">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- 7. Master Lectures Table & Duration Management -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900" id="tableTitle">جدول المحاضرات المفعلة وإدارة المدة الزمنية</h2>
+                    <p class="text-xs text-slate-500">التحكم في مواعيد الحصص، تعديل المدة المحددة (30 - 120 دقيقة)، وتأجيل المواعيد الفردية</p>
+                </div>
+                <button onclick="loadAdminData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg">تحديث البيانات</button>
+            </div>
+
+            <div class="flex flex-wrap gap-2 text-xs mb-4" id="courseFilterPills">
+                <button onclick="filterByCourse('all')" id="btn-all" class="filter-btn active bg-blue-900 text-white font-bold px-3.5 py-1.5 rounded-xl shadow-sm">
+                    كافة المسارات
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
+                            <th class="p-3">#</th>
+                            <th class="p-3">الكورس والمسار</th>
+                            <th class="p-3">عنوان المحاضرة</th>
+                            <th class="p-3">المرحلة</th>
+                            <th class="p-3">الموعد المحدد</th>
+                            <th class="p-3">المدة الزمنية</th>
+                            <th class="p-3">الحالة</th>
+                            <th class="p-3 text-center">إجراءات الحصة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lecturesTableBody" class="divide-y divide-slate-100">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Edit Group Capacity & Ages (سعة الجروب والفئة العمرية) -->
+    <div id="editLimitsModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">تعديل سعة الجروب والفئة العمرية</h3>
+                <button onclick="closeEditLimitsModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <span class="text-slate-500 block mb-1">المسار / الجروب:</span>
+                    <strong class="text-slate-900 text-sm" id="modalCourseName">كتالوج الشباب 2.0</strong>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">أدنى سن مسموح (سنة):</label>
+                        <input type="number" id="modalMinAgeInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">أعلى سن مسموح (سنة):</label>
+                        <input type="number" id="modalMaxAgeInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">السعة القصوى للجروب (عدد الطلاب):</label>
+                    <input type="number" id="modalMaxCapacityInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المدة القياسية للحصة (دقيقة):</label>
+                    <select id="modalDurationInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                        <option value="30">30 دقيقة (تأسيسي)</option>
+                        <option value="45">45 دقيقة (قرآن فردي)</option>
+                        <option value="60">60 دقيقة (قياسي للمجموعات)</option>
+                        <option value="90">90 دقيقة (ورش عمل)</option>
+                        <option value="120">120 دقيقة (مكثف)</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button onclick="submitCourseLimits()" class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl transition">
+                        حفظ التعديلات
+                    </button>
+                    <button onclick="closeEditLimitsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Teacher Financial Settlement (تسوية مستحقات المعلم) -->
+    <div id="settlePayoutModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">تسوية وصرف مستحقات المعلم</h3>
+                <button onclick="closeSettlePayoutModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">المعلم:</span>
+                        <strong class="text-slate-900" id="settleTeacherName">الشيخ أحمد منصور</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">الرصيد المستحق الحالي:</span>
+                        <strong class="text-emerald-700 font-bold text-sm" id="settleBalanceDue">0.0 ج.م</strong>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المبلغ المراد صرفه وتسويته (ج.م):</label>
+                    <input type="number" id="settleAmountInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold text-sm text-emerald-800">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">شهر الاستحقاق:</label>
+                    <input type="text" id="settleMonthInput" value="2026-09" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-mono">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">طريقة الصرف والتحويل:</label>
+                    <select id="settleMethodSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                        <option value="instapay">انستاباي (InstaPay)</option>
+                        <option value="vodafone_cash">فودافون كاش (محفظة ذكية)</option>
+                        <option value="bank_transfer">تحويل بنكي مباشر</option>
+                        <option value="cash">نقداً بالإيصال</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">رقم مرجعي / رقم التحويل:</label>
+                    <input type="text" id="settleRefInput" placeholder="مثال: REF-994201" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-mono">
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button onclick="submitTeacherSettlement()" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl transition">
+                        اعتماد وتسجيل الصرف
+                    </button>
+                    <button onclick="closeSettlePayoutModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Bulk Course Reschedule -->
+    <div id="bulkRescheduleModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">تعديل موعد كورس كامل (تأجيل جماعي)</h3>
+                <button onclick="closeBulkRescheduleModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">اختر الكورس المراد تغيير موعده:</label>
+                    <select id="bulkCourseSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                        <option value="كتالوج الشباب 2.0">كتالوج الشباب 2.0</option>
+                        <option value="وعي وأمان (للبنات)">وعي وأمان (للبنات)</option>
+                        <option value="قصص الأنبياء (سر الحاج إسماعيل)">قصص الأنبياء (سر الحاج إسماعيل)</option>
+                        <option value="مسار القرآن الكريم والتدبر">مسار القرآن الكريم والتدبر</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">الموعد الأسبوعي الجديد الثابت:</label>
+                    <input type="text" id="bulkNewTimeInput" placeholder="مثال: الجمعة 06:00 م أسبوعياً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">سبب التعديل (سيظهر كإشعار لكافة الطلاب):</label>
+                    <input type="text" id="bulkReasonInput" value="تنسيق الجداول الأسبوعية بناءً على طلب أولياء الأمور" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none">
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button onclick="submitBulkReschedule()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-xl shadow-md transition">
+                        تحديث كافة المحاضرات وإرسال الإشعارات
+                    </button>
+                    <button onclick="closeBulkRescheduleModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Reply to Support Ticket -->
+    <div id="replyTicketModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">الرد على تذكرة الدعم</h3>
+                <button onclick="closeReplyTicketModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-3 space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">الطالب:</span>
+                    <strong class="text-slate-900" id="replyModalStudent">عمر أحمد</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">الموضوع:</span>
+                    <strong class="text-slate-900" id="replyModalSubject">استفسار</strong>
+                </div>
+                <div class="pt-1 text-slate-600 text-[11px] border-t border-slate-200 mt-1" id="replyModalMsg">
+                    نص الرسالة...
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">نص رد الإدارة الرسمي:</label>
+                    <textarea id="replyModalText" rows="4" placeholder="اكتب رد الأكاديمية هنا..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-normal"></textarea>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="submitTicketReply()" class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-black py-2.5 rounded-xl transition">
+                        إرسال الرد للطالب
+                    </button>
+                    <button onclick="closeReplyTicketModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        let allLectures = [];
+        let allTeachers = [];
+        let allTickets = [];
+        let allCoursesAnalytics = [];
+        let activeFilterCapacity = 'all';
+        let currentFilter = 'all';
+        let activeReplyTicketId = null;
+        let activeSettleTeacherId = null;
+        let activeEditCourseName = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminData();
+            loadCoursesAnalytics();
+            loadPayrollData();
+            loadPerformanceReport();
+            loadStudentsStatusSummary();
+            loadTeachersData();
+            loadAdminTickets();
+        });
+
+        async function loadAdminData() {
+            try {
+                const res = await fetch('/api/admin/overview');
+                const data = await res.json();
+                
+                allLectures = data.lectures;
+                
+                document.getElementById('statCoursesCount').innerText = (data.available_courses ? data.available_courses.length : 4) + ' مسارات';
+                document.getElementById('statTotalLectures').innerText = (data.total_active_lectures || 32) + ' محاضرة';
+                document.getElementById('statTotalStudents').innerText = (data.total_students || 4) + ' طلاب';
+                document.getElementById('statPendingTickets').innerText = (data.open_tickets_count || 0) + ' تذكرة';
+                
+                renderLecturesTable(allLectures);
+            } catch (err) {
+                console.error("Error loading admin overview:", err);
+            }
+        }
+
+        // ---------------- 1. Groups Analytics & Ages ----------------
+        async function loadCoursesAnalytics() {
+            try {
+                const res = await fetch('/api/courses/analytics');
+                allCoursesAnalytics = await res.json();
+                renderCoursesAnalytics(allCoursesAnalytics);
+            } catch (err) {
+                console.error("Error loading courses analytics:", err);
+            }
+        }
+
+        function renderCoursesAnalytics(courses) {
+            const container = document.getElementById('coursesAnalyticsGrid');
+            container.innerHTML = '';
+
+            const filtered = (activeFilterCapacity === 'incomplete') 
+                ? courses.filter(c => c.is_incomplete) 
+                : courses;
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-center py-6 text-slate-400 text-xs col-span-2">لا توجد مجموعات في هذا التصنيف.</p>';
+                return;
+            }
+
+            filtered.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3';
+                
+                const percent = Math.min(100, Math.round((c.enrolled_count / Math.max(c.max_capacity, 1)) * 100));
+                
+                let capacityBadge = '';
+                if (c.vacant_seats === 0) {
+                    capacityBadge = '<span class="bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px]">مكتمل (' + c.enrolled_count + '/' + c.max_capacity + ')</span>';
+                } else {
+                    capacityBadge = '<span class="bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded text-[10px]">شاغر: متبقي ' + c.vacant_seats + ' مقاعد (' + c.enrolled_count + '/' + c.max_capacity + ')</span>';
+                }
+
+                let agesText = 'لا يوجد طلاب مسجلين بعد';
+                if (c.enrolled_ages && c.enrolled_ages.length > 0) {
+                    agesText = 'أعمار المسجلين: ' + c.enrolled_ages.join('، ') + ' سنة (متوسط: ' + c.average_age + ' سنة)';
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px]">${c.track_name}</span>
+                            <h4 class="font-extrabold text-sm text-slate-900 mt-1">${c.course_name}</h4>
+                            <span class="text-[11px] text-slate-500">الفئة العمرية المعتمدة: <strong>${c.target_age}</strong></span>
+                        </div>
+                        <div>${capacityBadge}</div>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px] text-slate-600">
+                            <span>نسبة الإشغال: <strong>${percent}%</strong></span>
+                            <span>المدة القياسية: <strong>${c.default_duration_minutes} دقيقة</strong></span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                            <div class="bg-emerald-600 h-2 rounded-full transition-all" style="width: ${percent}%;"></div>
+                        </div>
+                        <div class="text-[10px] text-slate-500 pt-0.5">${agesText}</div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-200 flex justify-end">
+                        <button onclick="openEditLimitsModal('${c.course_name}', ${c.min_age}, ${c.max_age}, ${c.max_capacity}, ${c.default_duration_minutes})" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-[11px] px-3 py-1.5 rounded-lg transition">
+                            تعديل سعة الجروب والفئة العمرية
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterCourseAnalytics(type) {
+            activeFilterCapacity = type;
+            document.getElementById('btnCapacityAll').className = (type === 'all') ? 'bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg';
+            document.getElementById('btnCapacityIncomplete').className = (type === 'incomplete') ? 'bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg';
+            renderCoursesAnalytics(allCoursesAnalytics);
+        }
+
+        function openEditLimitsModal(courseName, minAge, maxAge, maxCap, duration) {
+            activeEditCourseName = courseName;
+            document.getElementById('modalCourseName').innerText = courseName;
+            document.getElementById('modalMinAgeInput').value = minAge || 10;
+            document.getElementById('modalMaxAgeInput').value = maxAge || 16;
+            document.getElementById('modalMaxCapacityInput').value = maxCap || 8;
+            document.getElementById('modalDurationInput').value = duration || 60;
+            document.getElementById('editLimitsModal').classList.remove('hidden');
+        }
+
+        function closeEditLimitsModal() {
+            document.getElementById('editLimitsModal').classList.add('hidden');
+        }
+
+        async function submitCourseLimits() {
+            if (!activeEditCourseName) return;
+            const minAge = parseInt(document.getElementById('modalMinAgeInput').value);
+            const maxAge = parseInt(document.getElementById('modalMaxAgeInput').value);
+            const maxCap = parseInt(document.getElementById('modalMaxCapacityInput').value);
+            const duration = parseInt(document.getElementById('modalDurationInput').value);
+
+            try {
+                const res = await fetch('/api/courses/' + encodeURIComponent(activeEditCourseName) + '/update-limits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        min_age: minAge,
+                        max_age: maxAge,
+                        max_capacity: maxCap,
+                        default_duration_minutes: duration
+                    })
+                });
+                const data = await res.json();
+                alert(data.message);
+                closeEditLimitsModal();
+                loadCoursesAnalytics();
+            } catch (err) {
+                console.error("Error updating limits:", err);
+            }
+        }
+
+        // ---------------- 2. Teacher Payroll Engine ----------------
+        async function loadPayrollData() {
+            try {
+                const res = await fetch('/api/admin/teachers/payroll');
+                const data = await res.json();
+                
+                document.getElementById('totalPayrollBalance').innerText = data.summary.total_balance_due + ' ج.م';
+                
+                const tbody = document.getElementById('payrollTableBody');
+                tbody.innerHTML = '';
+
+                data.teachers_payroll.forEach(t => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+
+                    tr.innerHTML = `
+                        <td class="p-3">
+                            <strong class="text-slate-900 block">${t.name}</strong>
+                            <span class="text-slate-400 font-mono text-[10px]">${t.phone}</span>
+                        </td>
+                        <td class="p-3 font-medium text-slate-700">${t.courses_supervised.join('، ') || 'مسار عام'}</td>
+                        <td class="p-3 font-bold text-slate-800">${t.rate_per_session} ج.م</td>
+                        <td class="p-3 font-black text-blue-900">${t.completed_sessions} حصة</td>
+                        <td class="p-3 font-bold text-slate-900">${t.total_earned} ج.م</td>
+                        <td class="p-3 text-slate-600">${t.total_paid} ج.م</td>
+                        <td class="p-3 font-black text-emerald-700">${t.balance_due} ج.م</td>
+                        <td class="p-3 text-center">
+                            <button onclick="openSettleModal(${t.teacher_id}, '${t.name}', ${t.balance_due}, ${t.completed_sessions})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2.5 py-1 rounded-lg text-[11px] transition">
+                                تسوية المستحقات
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading payroll:", err);
+            }
+        }
+
+        function openSettleModal(teacherId, teacherName, balanceDue, sessionsCount) {
+            activeSettleTeacherId = teacherId;
+            document.getElementById('settleTeacherName').innerText = teacherName;
+            document.getElementById('settleBalanceDue').innerText = balanceDue + ' ج.م';
+            document.getElementById('settleAmountInput').value = balanceDue;
+            document.getElementById('settleRefInput').value = 'PAY-' + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('settlePayoutModal').classList.remove('hidden');
+        }
+
+        function closeSettlePayoutModal() {
+            document.getElementById('settlePayoutModal').classList.add('hidden');
+        }
+
+        async function submitTeacherSettlement() {
+            if (!activeSettleTeacherId) return;
+            const amt = parseFloat(document.getElementById('settleAmountInput').value);
+            const period = document.getElementById('settleMonthInput').value.trim();
+            const method = document.getElementById('settleMethodSelect').value;
+            const ref = document.getElementById('settleRefInput').value.trim();
+
+            if (!amt || amt <= 0) {
+                alert("يرجى إدخال مبلغ صحيح للصرف.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/teachers/' + activeSettleTeacherId + '/settle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: amt,
+                        sessions_count: 1,
+                        period_month: period,
+                        payment_method: method,
+                        reference_number: ref
+                    })
+                });
+                const data = await res.json();
+                alert(data.message);
+                closeSettlePayoutModal();
+                loadPayrollData();
+            } catch (err) {
+                console.error("Error settling payout:", err);
+            }
+        }
+
+        // ---------------- 3. Teacher Performance Report ----------------
+        async function loadPerformanceReport() {
+            try {
+                const res = await fetch('/api/admin/teachers/performance-report');
+                const teachers = await res.json();
+                
+                const tbody = document.getElementById('performanceTableBody');
+                tbody.innerHTML = '';
+
+                teachers.forEach(t => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+
+                    let scoreBadge = '';
+                    if (t.commitment_score >= 90) {
+                        scoreBadge = '<span class="bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded text-[10px]">ممتاز (' + t.commitment_score + '%)</span>';
+                    } else if (t.commitment_score >= 75) {
+                        scoreBadge = '<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px]">جيد جداً (' + t.commitment_score + '%)</span>';
+                    } else {
+                        scoreBadge = '<span class="bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded text-[10px]">يحتاج متابعة (' + t.commitment_score + '%)</span>';
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-3">
+                            <strong class="text-slate-900 block">${t.name}</strong>
+                            <span class="text-slate-500 text-[10px]">${t.specialty}</span>
+                        </td>
+                        <td class="p-3 font-bold text-slate-800">${t.total_assigned_students} طالب</td>
+                        <td class="p-3 text-slate-700">${t.cancellations_count + t.postponed_lectures_count} حصة</td>
+                        <td class="p-3 text-slate-700">${t.late_starts_count} مرة</td>
+                        <td class="p-3 font-bold text-red-600">${t.dropouts_count} طالب</td>
+                        <td class="p-3 font-bold text-slate-700">${t.dropout_rate_pct}%</td>
+                        <td class="p-3">${scoreBadge}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading performance report:", err);
+            }
+        }
+
+        // ---------------- 4. Paused Students Monitor ----------------
+        async function loadStudentsStatusSummary() {
+            try {
+                const res = await fetch('/api/admin/students/status-summary');
+                const data = await res.json();
+                
+                document.getElementById('statPausedStudents').innerText = data.summary.total_paused + ' طالب';
+
+                const tbody = document.getElementById('pausedStudentsTableBody');
+                tbody.innerHTML = '';
+
+                const pausedList = data.students.filter(s => s.status !== 'active');
+
+                if (pausedList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">لا يوجد طلاب متوقفين حالياً، كافة الاشتراكات سارية بنجاح.</td></tr>';
+                    return;
+                }
+
+                pausedList.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+
+                    let statusBadge = '';
+                    if (s.status === 'expired') {
+                        statusBadge = '<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded text-[10px]">متوقف (انتهاء الرصيد)</span>';
+                    } else {
+                        statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px]">انقطاع عن الحضور</span>';
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold text-slate-900">${s.name} (${s.age} سنة)</td>
+                        <td class="p-3 font-mono text-slate-500">${s.student_code}</td>
+                        <td class="p-3 font-medium text-blue-900">${s.courses_str}</td>
+                        <td class="p-3">${statusBadge}</td>
+                        <td class="p-3">
+                            <span class="block text-slate-800">${s.parent_name}</span>
+                            <span class="text-slate-400 font-mono text-[10px]">${s.parent_phone}</span>
+                        </td>
+                        <td class="p-3 text-center">
+                            <a href="${s.whatsapp_reactivation_url}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition inline-block">
+                                تذكير عبر WhatsApp
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Error loading paused students:", err);
+            }
+        }
+
+        // ---------------- 5. Teacher Assignment Hub ----------------
+        async function loadTeachersData() {
+            try {
+                const res = await fetch('/api/teachers');
+                allTeachers = await res.json();
+                renderTeacherCourseGrid(allTeachers);
+            } catch (err) {
+                console.error("Error loading teachers:", err);
+            }
+        }
+
+        function renderTeacherCourseGrid(teachers) {
+            const container = document.getElementById('teacherCourseGrid');
+            container.innerHTML = '';
+
+            teachers.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3';
+                
+                let coursesList = (t.assigned_courses || []).map(c => `<span class="bg-blue-100 text-blue-900 text-[10px] font-bold px-2 py-0.5 rounded-md">${c}</span>`).join(' ');
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">${t.specialty}</span>
+                            <h4 class="font-black text-sm text-slate-900 mt-1">${t.name}</h4>
+                            <p class="text-[11px] text-slate-500">${t.phone}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block mb-1">المسارات المشرف عليها:</span>
+                        <div class="flex flex-wrap gap-1">
+                            ${coursesList || '<span class="text-[10px] text-slate-400">لا يوجد</span>'}
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                        <a href="/teacher.html?id=${t.id}" target="_blank" class="text-blue-700 hover:underline font-bold text-[11px]">بوابة المعلم ←</a>
+                        <button onclick="promptReassignTeacher(${t.id}, '${t.name}')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-[10px] px-2 py-1 rounded">إعادة تعيين</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function promptReassignTeacher(teacherId, teacherName) {
+            const courseName = prompt(`اختر الكورس لتعيين (${teacherName}) مشرفاً عليه:\n1. كتالوج الشباب 2.0\n2. وعي وأمان (للبنات)\n3. قصص الأنبياء (سر الحاج إسماعيل)\n4. مسار القرآن الكريم والتدبر`, 'كتالوج الشباب 2.0');
+            if (!courseName) return;
+
+            try {
+                const res = await fetch('/api/admin/reassign-teacher', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        teacher_id: teacherId,
+                        course_name: courseName
+                    })
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadTeachersData();
+            } catch (err) {
+                console.error("Error reassigning teacher:", err);
+            }
+        }
+
+        // ---------------- 6. Support Tickets ----------------
+        async function loadAdminTickets() {
+            try {
+                const res = await fetch('/api/admin/support/tickets');
+                allTickets = await res.json();
+                
+                const pending = allTickets.filter(t => t.status === 'open').length;
+                document.getElementById('statPendingTickets').innerText = pending + ' تذكرة';
+                
+                renderAdminTickets(allTickets);
+            } catch (err) {
+                console.error("Error loading admin tickets:", err);
+            }
+        }
+
+        function renderAdminTickets(tickets) {
+            const container = document.getElementById('adminTicketsList');
+            container.innerHTML = '';
+
+            if (tickets.length === 0) {
+                container.innerHTML = '<p class="text-center py-6 text-slate-400 text-xs">لا توجد تذاكر دعم في هذا التصنيف.</p>';
+                return;
+            }
+
+            tickets.forEach(t => {
+                const div = document.createElement('div');
+                const isOpen = (t.status === 'open');
+                div.className = 'p-3.5 rounded-xl border text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ' + (isOpen ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-50 border-slate-200');
+                
+                div.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded text-[10px]">${t.category}</span>
+                            <span class="font-extrabold text-slate-900">${t.subject}</span>
+                            <span class="text-slate-500 text-[11px] font-medium">— الطالب: <strong>${t.student_name}</strong></span>
+                        </div>
+                        <p class="text-slate-600 text-[11px]">${t.message}</p>
+                        ${t.admin_reply ? '<div class="text-[10px] text-blue-900 bg-blue-100/60 p-1.5 rounded mt-1"><strong>الرد:</strong> ' + t.admin_reply + '</div>' : ''}
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-center">
+                        <span class="text-[10px] text-slate-400 font-mono">${t.created_at.slice(0, 10)}</span>
+                        <button onclick="openReplyModal(${t.id}, '${t.student_name}', '${t.subject}', '${t.message}')" class="bg-blue-900 hover:bg-blue-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap">
+                            ${isOpen ? 'الرد الآن' : 'تعديل الرد'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterTickets(status) {
+            document.getElementById('btnTicketAll').className = status === 'all' ? 'bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg';
+            document.getElementById('btnTicketOpen').className = status === 'open' ? 'bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg';
+            
+            if (status === 'all') {
+                renderAdminTickets(allTickets);
+            } else {
+                renderAdminTickets(allTickets.filter(t => t.status === 'open'));
+            }
+        }
+
+        function openReplyModal(id, student, subject, msg) {
+            activeReplyTicketId = id;
+            document.getElementById('replyModalStudent').innerText = student;
+            document.getElementById('replyModalSubject').innerText = subject;
+            document.getElementById('replyModalMsg').innerText = msg;
+            document.getElementById('replyModalText').value = '';
+            document.getElementById('replyTicketModal').classList.remove('hidden');
+        }
+
+        function closeReplyTicketModal() {
+            document.getElementById('replyTicketModal').classList.add('hidden');
+        }
+
+        async function submitTicketReply() {
+            const reply = document.getElementById('replyModalText').value.trim();
+            if (!reply) {
+                alert("يرجى إدخال نص الرد.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/support/tickets/' + activeReplyTicketId + '/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_reply: reply })
+                });
+                const data = await res.json();
+                alert(data.message);
+                closeReplyTicketModal();
+                loadAdminTickets();
+            } catch (err) {
+                console.error("Error replying ticket:", err);
+            }
+        }
+
+        // ---------------- 7. Lectures & Duration ----------------
+        function filterByCourse(course) {
+            currentFilter = course;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = 'filter-btn bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-1.5 rounded-xl';
+            });
+            
+            const btnAll = document.getElementById('btn-all');
+            if (course === 'all' && btnAll) {
+                btnAll.className = 'filter-btn active bg-blue-900 text-white font-bold px-3.5 py-1.5 rounded-xl shadow-sm';
+            }
+
+            if (course === 'all') {
+                renderLecturesTable(allLectures);
+            } else {
+                renderLecturesTable(allLectures.filter(l => l.course_name === course));
+            }
+        }
+
+        function renderLecturesTable(lectures) {
+            const tbody = document.getElementById('lecturesTableBody');
+            tbody.innerHTML = '';
+
+            if (lectures.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-slate-400">لا توجد محاضرات في هذا التصنيف.</td></tr>';
+                return;
+            }
+
+            lectures.forEach((l, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+
+                let statusBadge = '<span class="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded">مجدولة</span>';
+                if (l.status === 'live') {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded animate-pulse">جارية الآن</span>';
+                } else if (l.status === 'completed') {
+                    statusBadge = '<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded">مكتملة</span>';
+                } else if (l.status === 'postponed') {
+                    statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">مؤجلة</span>';
+                }
+
+                const duration = l.duration_minutes || 60;
+
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-400 font-mono">${idx + 1}</td>
+                    <td class="p-3 font-bold text-slate-900">${l.course_name}</td>
+                    <td class="p-3 font-medium">حصة #${l.lecture_number}: ${l.title}</td>
+                    <td class="p-3 font-bold text-blue-900">المرحلة #${l.block_number}</td>
+                    <td class="p-3 text-slate-600">${l.rescheduled_to || l.scheduled_time}</td>
+                    <td class="p-3 font-mono text-slate-700">
+                        <span>${duration} دقيقة</span>
+                        <button onclick="promptChangeDuration(${l.id}, ${duration})" class="text-blue-700 hover:underline mr-1 font-bold text-[10px]">تعديل</button>
+                    </td>
+                    <td class="p-3">${statusBadge}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="promptPostponeSingle(${l.id}, '${l.title}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2.5 py-1 rounded-lg text-[11px] border border-slate-300">
+                            تأجيل الحصة
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function promptChangeDuration(lectureId, currentDuration) {
+            const options = "اختر مدة الحصة الجديدة بالدقائق:\n30 (تأسيسي)\n45 (قرآن)\n60 (قياسي)\n90 (ورشة)\n120 (مكثف)";
+            const newDur = prompt(options, currentDuration);
+            if (!newDur) return;
+
+            try {
+                const res = await fetch('/api/lectures/' + lectureId + '/duration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ duration_minutes: parseInt(newDur) })
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadAdminData();
+            } catch (err) {
+                console.error("Error updating lecture duration:", err);
+            }
+        }
+
+        async function promptPostponeSingle(id, title) {
+            const newTime = prompt(`أدخل الموعد الجديد لمحاضرة (${title}):`, 'السبت 05:00 م');
+            if (!newTime) return;
+
+            const reason = prompt('سبب التأجيل:', 'تنسيق المواعيد بناءً على رغبة أولياء الأمور');
+
+            try {
+                const res = await fetch('/api/lectures/' + id + '/postpone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        new_scheduled_time: newTime,
+                        reason: reason || 'تنسيق المواعيد'
+                    })
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadAdminData();
+            } catch (err) {
+                console.error("Error postponing lecture:", err);
+            }
+        }
+
+        // ---------------- Bulk Reschedule ----------------
+        function openBulkRescheduleModal() {
+            document.getElementById('bulkRescheduleModal').classList.remove('hidden');
+        }
+
+        function closeBulkRescheduleModal() {
+            document.getElementById('bulkRescheduleModal').classList.add('hidden');
+        }
+
+        async function submitBulkReschedule() {
+            const course = document.getElementById('bulkCourseSelect').value;
+            const newTime = document.getElementById('bulkNewTimeInput').value.trim();
+            const reason = document.getElementById('bulkReasonInput').value.trim();
+
+            if (!newTime) {
+                alert("يرجى إدخال الموعد الجديد.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/courses/' + encodeURIComponent(course) + '/reschedule-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        new_scheduled_time: newTime,
+                        reason: reason
+                    })
+                });
+                const data = await res.json();
+                alert(`تم بنجاح: ${data.message}\nتم تحديث المحاضرات وإرسال الإشعارات.`);
+                closeBulkRescheduleModal();
+                loadAdminData();
+            } catch (err) {
+                console.error("Error in bulk reschedule:", err);
+            }
+        }
+    </script>
+</body>
+</html>

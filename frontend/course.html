@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الكورس والطلاب — أكاديمية منير الذكية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 text-slate-800 pb-20">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-4 px-6 sticky top-0 z-40 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="/admin.html" class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-lg">M</a>
+                <div>
+                    <h1 class="font-extrabold text-base leading-tight" id="headerCourseTitle">تفاصيل الكورس</h1>
+                    <p class="text-xs text-slate-400" id="headerCourseTrack">أكاديمية منير • إدارة المسار والطلاب</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/admin.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition border border-slate-700">
+                    ← العودة للوحة الإدارة
+                </a>
+                <a href="/student.html" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition">
+                    بوابة الطالب
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+        <!-- Course Hero Card -->
+        <section class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-amber-400 text-slate-950 text-xs font-black px-3 py-0.5 rounded-full uppercase" id="courseTrackBadge">مسار البنين</span>
+                        <span class="bg-white/10 text-white text-xs font-semibold px-3 py-0.5 rounded-full" id="courseAgeBadge">10 - 18 سنة</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black mb-2" id="courseName">كتالوج الشباب 2.0</h2>
+                    <p class="text-xs sm:text-sm text-blue-200 max-w-2xl leading-relaxed" id="courseDesc">
+                        بناء الشخصية القيادية والذكاء المالي والتعامل مع الضغوط والتغيرات النفسية للمراهقين.
+                    </p>
+                </div>
+
+                <!-- Course KPIs Grid -->
+                <div class="grid grid-cols-3 gap-3 w-full md:w-auto text-center">
+                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                        <div class="text-[11px] text-blue-200">الطلاب المسجلين</div>
+                        <div class="text-xl font-black text-white mt-0.5" id="kpiStudents">1</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                        <div class="text-[11px] text-blue-200">نسبة الحضور</div>
+                        <div class="text-xl font-black text-emerald-400 mt-0.5" id="kpiAttendance">100%</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
+                        <div class="text-[11px] text-blue-200">عمليات التجديد</div>
+                        <div class="text-xl font-black text-amber-300 mt-0.5" id="kpiRenewals">1</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Enrolled Students Table in this Course -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900">
+                        قائمة الطلاب المشتركين في هذا الكورس
+                    </h3>
+                    <p class="text-xs text-slate-500">متابعة تفعيل البلوكات، مرات التجديد، ونسبة حضور كل طالب في هذا المسار</p>
+                </div>
+                <button onclick="loadCourseData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg border border-slate-200">تحديث</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
+                            <th class="p-3">#</th>
+                            <th class="p-3">اسم الطالب والكود</th>
+                            <th class="p-3">السن وتليفون ولي الأمر</th>
+                            <th class="p-3">المحاضرات المفعلة</th>
+                            <th class="p-3">مرات التجديد</th>
+                            <th class="p-3">نسبة الحضور بالمسار</th>
+                            <th class="p-3 text-center">الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody" class="divide-y divide-slate-100">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 8-Lectures Schedule for this Course -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900">
+                        جدول المحاضرات الـ 8 وتأكيد الحضور
+                    </h3>
+                    <p class="text-xs text-slate-500">حالة كل محاضرة (جارية الآن / مكتملة / مجدولة / مؤجلة) وروابط Google Meet</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
+                            <th class="p-3">#</th>
+                            <th class="p-3">عنوان المحاضرة</th>
+                            <th class="p-3">المرحلة (البلوك)</th>
+                            <th class="p-3">الموعد المحدد</th>
+                            <th class="p-3">الحالة</th>
+                            <th class="p-3 text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lecturesTableBody" class="divide-y divide-slate-100">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Paymob Renewals Log for this Course -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <h3 class="text-base font-extrabold text-slate-900 mb-1">
+                سجل عمليات التجديد والدفع الإلكتروني (Paymob) لهذا الكورس
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">المعاملات والتجديدات التلقائية التي تمت لفتح المرحلة الثانية</p>
+            
+            <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1" id="paymentsList">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Postpone Lecture -->
+    <div id="postponeModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">تأجيل المحاضرة وتحديد موعد جديد</h3>
+                <button onclick="closePostponeModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <input type="hidden" id="postponeLecId">
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المحاضرة المراد تأجيلها:</label>
+                    <div id="postponeLecTitle" class="bg-slate-50 p-2.5 rounded-xl font-extrabold text-slate-900 border border-slate-200">المحاضرة 3: فن إدارة الوقت</div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">الموعد الجديد للمحاضرة:</label>
+                    <input type="text" id="postponeNewTime" value="2026-09-28 19:00" class="w-full p-3 rounded-xl border border-slate-300 focus:border-blue-600 outline-none font-bold">
+                    <p class="text-[11px] text-slate-400 mt-1">مثال: 2026-09-28 19:00</p>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">سبب التأجيل (يصل للطلاب المسجلين):</label>
+                    <textarea id="postponeReason" rows="2" class="w-full p-3 rounded-xl border border-slate-300 focus:border-blue-600 outline-none font-semibold">تنسيق مواعيد مع المحاضر لضمان التفاعل الكامل مع جميع الطلاب.</textarea>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl text-blue-900 text-[11px] leading-relaxed">
+                    <strong>ملاحظة:</strong> لن يتم خصم المحاضرة ولن يتم احتساب أي غياب على الطلاب.
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button onclick="submitPostpone()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs py-3 rounded-xl shadow-md transition">
+                    تأكيد التأجيل وإرسال الإشعار
+                </button>
+                <button onclick="closePostponeModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let courseName = urlParams.get('name') || 'كتالوج الشباب 2.0';
+    let allLectures = [];
+
+    document.addEventListener('DOMContentLoaded', loadCourseData);
+
+    async function loadCourseData() {
+        try {
+            const res = await fetch(`/api/course/${encodeURIComponent(courseName)}`);
+            const data = await res.json();
+            
+            const c = data.course;
+            document.title = `${c.name} — أكاديمية منير الذكية`;
+            document.getElementById('headerCourseTitle').innerText = c.name;
+            document.getElementById('headerCourseTrack').innerText = `أكاديمية منير • ${c.track_name}`;
+            document.getElementById('courseName').innerText = c.name;
+            document.getElementById('courseTrackBadge').innerText = c.track_name;
+            document.getElementById('courseAgeBadge').innerText = c.target_age;
+            document.getElementById('courseDesc').innerText = c.description || '';
+            
+            document.getElementById('kpiStudents').innerText = data.enrolled_students.length;
+            document.getElementById('kpiAttendance').innerText = `${data.attendance_rate}%`;
+            document.getElementById('kpiRenewals').innerText = data.payments.length;
+            
+            allLectures = data.lectures;
+            renderStudentsTable(data.enrolled_students);
+            renderLecturesTable(data.lectures);
+            renderPaymentsList(data.payments);
+        } catch (err) {
+            console.error("Error loading course details:", err);
+        }
+    }
+
+    function renderStudentsTable(students) {
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '';
+        
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-slate-400">لا يوجد طلاب مسجلين في هذا الكورس حالياً.</td></tr>';
+            return;
+        }
+        
+        students.forEach((s, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition';
+            
+            const renewalBadge = s.renewal_count > 0 
+                ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">تم التجديد (${s.renewal_count} مرة)</span>`
+                : `<span class="bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full text-[10px]">المرحلة الأولى</span>`;
+                
+            tr.innerHTML = `
+                <td class="p-3 font-mono font-bold">${idx + 1}</td>
+                <td class="p-3">
+                    <strong class="text-slate-900 block">${s.name}</strong>
+                    <span class="text-slate-400 text-[10px] font-mono">${s.student_code}</span>
+                </td>
+                <td class="p-3">
+                    <span class="text-slate-700 block">${s.age} سنة</span>
+                    <span class="text-slate-400 text-[10px] font-mono">${s.parent_phone}</span>
+                </td>
+                <td class="p-3">
+                    <strong class="text-emerald-700">${s.total_lectures_unlocked} من 8 محاضرات</strong>
+                </td>
+                <td class="p-3">${renewalBadge}</td>
+                <td class="p-3">
+                    <span class="bg-blue-100 text-blue-900 font-black px-2 py-0.5 rounded-md text-[11px]">${s.attendance_rate}% (${s.present_count} حصص)</span>
+                </td>
+                <td class="p-3 text-center">
+                    <a href="/student.html?id=${s.student_id}" target="_blank" class="text-blue-600 hover:underline font-bold text-xs">
+                        عرض البروفايل ↗
+                    </a>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderLecturesTable(lectures) {
+        const tbody = document.getElementById('lecturesTableBody');
+        tbody.innerHTML = '';
+        
+        lectures.forEach(l => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition';
+            
+            let statusBadge = '';
+            if (l.status === 'live') statusBadge = '<span class="bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full text-[10px]">جارية الآن</span>';
+            else if (l.status === 'completed') statusBadge = '<span class="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full text-[10px]">مكتملة</span>';
+            else if (l.status === 'postponed') statusBadge = '<span class="bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded-full text-[10px]">مؤجلة</span>';
+            else statusBadge = '<span class="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded-full text-[10px]">مجدولة</span>';
+            
+            const blockBadge = (l.block_number === 1)
+                ? '<span class="text-emerald-700 font-bold">المرحلة 1 (مفعلة)</span>'
+                : '<span class="text-slate-500 font-semibold">المرحلة 2 (تجديد)</span>';
+                
+            tr.innerHTML = `
+                <td class="p-3 font-mono font-bold">${l.lecture_number}</td>
+                <td class="p-3">
+                    <strong class="text-slate-900 block">${l.title}</strong>
+                    <span class="text-slate-400 text-[11px]">${l.description || ''}</span>
+                </td>
+                <td class="p-3">${blockBadge}</td>
+                <td class="p-3 font-mono font-bold text-slate-700">${l.scheduled_time}</td>
+                <td class="p-3">${statusBadge}</td>
+                <td class="p-3 text-center">
+                    <button onclick="openPostponeModal(${l.id})" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-lg text-xs transition">
+                        تأجيل / تعديل
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderPaymentsList(payments) {
+        const container = document.getElementById('paymentsList');
+        container.innerHTML = '';
+        
+        if (payments.length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">لا توجد عمليات تجديد مسجلة لهذا الكورس بعد.</p>';
+            return;
+        }
+        
+        payments.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'p-3 rounded-xl border border-emerald-200 bg-emerald-50 text-xs flex justify-between items-center';
+            div.innerHTML = `
+                <div>
+                    <strong class="text-emerald-950 block">${p.student_name} (${p.student_code})</strong>
+                    <span class="text-emerald-700 text-[11px]">معاملة Paymob #${p.transaction_id} • فتح المرحلة ${p.block_unlocked}</span>
+                </div>
+                <div class="text-left">
+                    <span class="font-extrabold text-sm text-emerald-800">${p.amount} ج.م</span>
+                    <span class="block text-[10px] text-emerald-600">ناجحة</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function openPostponeModal(lecId) {
+        const lec = allLectures.find(l => l.id === lecId);
+        if (!lec) return;
+        
+        document.getElementById('postponeLecId').value = lec.id;
+        document.getElementById('postponeLecTitle').innerText = `${lec.title} (الموعد: ${lec.scheduled_time})`;
+        document.getElementById('postponeModal').classList.remove('hidden');
+    }
+
+    function closePostponeModal() {
+        document.getElementById('postponeModal').classList.add('hidden');
+    }
+
+    async function submitPostpone() {
+        const lecId = document.getElementById('postponeLecId').value;
+        const newTime = document.getElementById('postponeNewTime').value;
+        const reason = document.getElementById('postponeReason').value;
+        
+        try {
+            const res = await fetch('/api/lectures/postpone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lecture_id: parseInt(lecId),
+                    new_scheduled_time: newTime,
+                    reason: reason
+                })
+            });
+            const data = await res.json();
+            
+            closePostponeModal();
+            alert(data.message);
+            loadCourseData();
+        } catch (err) {
+            console.error("Error postponing lecture:", err);
+            alert("حدث خطأ أثناء تأجيل المحاضرة.");
+        }
+    }
+    </script>
+</body>
+</html>
