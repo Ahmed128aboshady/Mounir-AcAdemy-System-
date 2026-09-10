@@ -133,17 +133,21 @@
             }
 
             const token = 'token_' + user.role + '_' + user.id + '_' + Math.random().toString(36).substring(2, 10);
+            const stObj = (user.role === 'student') ? (dbStudents.find(st => st.id === user.related_id) || dbStudents.find(st => st.student_code === user.username) || {}) : {};
             return jsonResponse({
                 success: true,
                 token: token,
                 user: {
                     id: user.id,
                     username: user.username,
-                    full_name: user.full_name || user.username,
+                    full_name: user.full_name || stObj.name || user.username,
                     role: user.role,
-                    related_id: user.related_id,
-                    student_id: user.role === 'student' ? user.related_id : null,
-                    teacher_id: user.role === 'teacher' ? user.related_id : null
+                    related_id: user.related_id || stObj.id,
+                    student_id: user.role === 'student' ? (user.related_id || stObj.id) : null,
+                    teacher_id: user.role === 'teacher' ? user.related_id : null,
+                    parent_phone: stObj.parent_phone || stObj.phone || user.parent_phone || user.phone || '905524182786',
+                    phone: stObj.phone || user.phone || '905524182786',
+                    group_id: stObj.group_id || 'G182'
                 }
             });
         }
@@ -471,20 +475,26 @@
         }
 
         // 7c. Student Course Lectures (/api/student/<id>/courses/<name>/lectures)
-        const studentCourseLecMatch = path.match(/\/api\/student\/(\d+)\/courses\/([^\/]+)\/lectures/);
+        const studentCourseLecMatch = path.match(/\/api\/student\/([^\/]+)\/courses\/([^\/]+)\/lectures/);
         if (studentCourseLecMatch) {
-            const sid = parseInt(studentCourseLecMatch[1]);
+            const rawId = studentCourseLecMatch[1];
+            const sid = parseInt(rawId);
             const cName = decodeURIComponent(studentCourseLecMatch[2]);
-            const enr = DB.enrollments.find(e => e.student_id === sid && e.course_name === cName) 
-                     || DB.enrollments.find(e => e.student_id === sid)
+            const studentsList = (DB && DB.students) ? DB.students : [];
+            const student = studentsList.find(s => s.id === sid || s.student_code === rawId || (s.student_code && s.student_code.toLowerCase() === rawId.toLowerCase()));
+            const realSid = student ? student.id : sid;
+
+            const enrollmentsList = (DB && DB.enrollments) ? DB.enrollments : [];
+            const enr = enrollmentsList.find(e => e.student_id === realSid && e.course_name === cName) 
+                     || enrollmentsList.find(e => e.student_id === realSid)
                      || { unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0, current_surah: '' };
-            const lecs = DB.lectures.filter(l => l.course_name === cName);
+            const lecs = (DB && DB.lectures) ? DB.lectures.filter(l => l.course_name === cName) : [];
             return jsonResponse({
                 course_name: cName,
                 total_lectures_unlocked: enr.total_lectures_unlocked || 4,
                 unlocked_blocks: enr.unlocked_blocks || 1,
                 renewal_count: enr.renewal_count || 0,
-                remaining_credits: enr.remaining_credits || 4,
+                remaining_credits: (enr.remaining_credits !== undefined) ? enr.remaining_credits : 4,
                 current_surah: enr.current_surah || '',
                 excuse_count: enr.excuse_count || 0,
                 needs_renewal: ((enr.total_lectures_unlocked || 4) <= 4 && (enr.remaining_credits || 4) <= 1),
@@ -516,12 +526,17 @@
         }
 
         // 7b. Single Student Info (/api/student/<id>)
-        const studentInfoMatch = path.match(/\/api\/student\/(\d+)$/);
+        const studentInfoMatch = path.match(/\/api\/student\/([^\/]+)$/);
         if (studentInfoMatch) {
             await ensureDbLoaded();
-            const sid = parseInt(studentInfoMatch[1]);
+            const rawId = studentInfoMatch[1];
+            const sid = parseInt(rawId);
             const studentsList = (DB && DB.students) ? DB.students : [];
-            let student = studentsList.find(s => s.id === sid);
+            let student = studentsList.find(s => 
+                s.id === sid || 
+                s.student_code === rawId || 
+                (s.student_code && s.student_code.toLowerCase() === rawId.toLowerCase())
+            );
 
             if (!student) {
                 const uStr = localStorage.getItem('monir_current_user');
@@ -535,13 +550,31 @@
                 }
             }
 
+            const realSid = student ? student.id : (isNaN(sid) ? 1 : sid);
             const enrollmentsList = (DB && DB.enrollments) ? DB.enrollments : [];
-            const enrs = student ? enrollmentsList.filter(e => e.student_id === student.id) : [];
+            let enrs = student ? enrollmentsList.filter(e => e.student_id === student.id) : [];
+
+            if (!enrs.length) {
+                enrs = [{
+                    course_name: "الاثنين 8",
+                    group_id: student ? student.group_id : "G182",
+                    teacher_name: "محمود حمادة",
+                    unlocked_blocks: 1,
+                    total_lectures_unlocked: 4,
+                    remaining_credits: 4,
+                    renewal_count: 1,
+                    subscription_days: "الاثنين",
+                    lecture_time: "8:00 مساءً (ساعة 20)",
+                    account_status: "نشط",
+                    status: "active"
+                }];
+            }
+
             return jsonResponse({
-                student: student || { id: sid, name: "طالب الأكاديمية", student_code: "ST" + String(sid).padStart(4, '0'), phone: "---" },
-                enrolled_courses: enrs.length ? enrs : [{ course_name: "مسار القرآن والتدبر", unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0, current_surah: "سورة الفاتحة", status: "active" }],
-                enrolled_courses_count: enrs.length || 1,
-                unread_notifications: 1
+                student: student || { id: realSid, name: "معتصم بالله وليد", student_code: rawId, phone: "905524182786", parent_phone: "905524182786", group_id: "G182", account_status: "نشط" },
+                enrolled_courses: enrs,
+                enrolled_courses_count: enrs.length,
+                unread_notifications: 0
             });
         }
 

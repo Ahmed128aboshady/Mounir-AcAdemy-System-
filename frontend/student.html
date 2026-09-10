@@ -115,11 +115,8 @@
                                 const u = window.__PRELOADED_USER__;
                                 if (u && (u.parent_phone || u.phone)) {
                                     document.write(u.parent_phone || u.phone);
-                                } else if (window.DEFAULT_DB && u && u.username) {
-                                    const st = window.DEFAULT_DB.students.find(s => s.student_code === u.username);
-                                    document.write(st ? (st.parent_phone || st.phone) : '905524182786');
                                 } else {
-                                    document.write('---');
+                                    document.write('905524182786');
                                 }
                             })();</script></strong>
                         </div>
@@ -506,7 +503,7 @@
         </div>
     </div>
 
-    <script src="js/api_mock.js?v=20260910_v5"></script>
-    <script src="js/student.js?v=20260910_v5"></script>
+    <script src="js/api_mock.js?v=20260911_v1"></script>
+    <script src="js/student.js?v=20260911_v1"></script>
 </body>
 </html>
