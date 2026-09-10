@@ -129,6 +129,7 @@ async function loadStudentProfile() {
         }
         
         const s = data.student || {};
+        window.currentStudentData = data;
 
         // Privacy Shield for Teachers
         if (viewerRole === 'teacher') {
@@ -162,6 +163,8 @@ async function loadStudentProfile() {
             document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: محجوب عن المعلم لحماية الخصوصية';
             document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
             document.getElementById('parentName').innerText = 'ولي أمر معتمد (محجوب)';
+            const parentPhoneEl = document.getElementById('parentPhone');
+            if (parentPhoneEl) parentPhoneEl.innerText = 'محجوب للخصوصية';
             document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
         } else if (viewerRole === 'admin') {
             // Admin sees EVERYTHING unmasked + supervisor badge
@@ -182,6 +185,8 @@ async function loadStudentProfile() {
             document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: ' + (s.parent_phone || '0100000000');
             document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
             document.getElementById('parentName').innerText = s.parent_name || 'ولي أمر الطالب';
+            const parentPhoneEl = document.getElementById('parentPhone');
+            if (parentPhoneEl) parentPhoneEl.innerText = s.parent_phone || s.phone || '0100000000';
             document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
         } else {
             // Normal Student View
@@ -241,6 +246,8 @@ async function loadStudentProfile() {
             }
 
             document.getElementById('parentName').innerText = safeParentName;
+            const parentPhoneEl = document.getElementById('parentPhone');
+            if (parentPhoneEl) parentPhoneEl.innerText = s.parent_phone || s.phone || '---';
             document.getElementById('enrolledCoursesCount').innerText = ((data && data.enrolled_courses_count) || (enrolledCoursesList ? enrolledCoursesList.length : 1)) + ' مسار تدريبي';
         }
         
@@ -274,21 +281,25 @@ async function loadStudentProfile() {
 }
 
 function checkAndRenderQuranWidget(courses) {
-    const quranCourse = courses.find(c => c.course_name.includes("القرآن"));
+    const quranCourse = (courses && courses.find(c => c.course_name.includes("القرآن"))) || (courses && courses[0] ? courses[0] : null);
     const sec = document.getElementById('quranCreditSection');
+    if (!sec) return;
     
     if (quranCourse) {
         sec.classList.remove('hidden');
-        document.getElementById('quranRemainingCredits').innerText = (quranCourse.remaining_credits || 0) + ' من ' + (quranCourse.total_credits_purchased || 4) + ' حصص';
+        const rem = (quranCourse.remaining_credits !== undefined) ? quranCourse.remaining_credits : 4;
+        document.getElementById('quranRemainingCredits').innerText = rem + ' حصص متبقية (من الشيت)';
         document.getElementById('quranExcusesNote').innerText = 'الأعذار المسجلة: ' + (quranCourse.excuse_count || 0) + ' (الأول مجاني)';
-        document.getElementById('quranCurrentSurah').innerText = quranCourse.current_surah || 'سورة الفاتحة';
-        document.getElementById('quranCurrentAya').innerText = 'الآية رقم: ' + (quranCourse.current_aya || 1);
+        document.getElementById('quranCurrentSurah').innerText = quranCourse.current_surah || 'مسار القرآن الكريم والتدبر';
+        document.getElementById('quranCurrentAya').innerText = 'المعلم المشرف: أ. ' + (quranCourse.teacher_name || 'حمزه العدوي');
         
         const renewalAlert = document.getElementById('quranRenewalAlertBadge');
-        if (quranCourse.remaining_credits <= 1) {
-            renewalAlert.classList.remove('hidden');
-        } else {
-            renewalAlert.classList.add('hidden');
+        if (renewalAlert) {
+            if (rem <= 1) {
+                renewalAlert.classList.remove('hidden');
+            } else {
+                renewalAlert.classList.add('hidden');
+            }
         }
     } else {
         sec.classList.add('hidden');
@@ -297,53 +308,83 @@ function checkAndRenderQuranWidget(courses) {
 
 function renderEnrolledCoursesTabs(courses) {
     const container = document.getElementById('enrolledCoursesTabs');
+    if (!container) return;
     container.innerHTML = '';
     
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const parentPhoneNum = curStudent.parent_phone || curStudent.phone || 'غير مسجل';
+
     courses.forEach(c => {
         const isSelected = (c.course_name === selectedCourseName);
         const card = document.createElement('div');
         
         const activeClass = isSelected 
-            ? 'border-2 border-blue-600 bg-blue-50/90 shadow-md transform scale-[1.01]' 
+            ? 'border-2 border-emerald-600 bg-emerald-50/70 shadow-md transform scale-[1.01]' 
             : 'border border-slate-200 bg-white hover:border-slate-300 shadow-sm';
             
-        card.className = 'p-4 rounded-2xl cursor-pointer transition space-y-2.5 ' + activeClass;
+        card.className = 'p-4 rounded-2xl cursor-pointer transition space-y-3 ' + activeClass;
         card.onclick = () => selectCourseTab(c.course_name);
         
-        const teacherText = c.teacher_name ? ('المعلم المشرف: أ. ' + c.teacher_name) : 'المعلم المشرف: أ. أحمد طارق';
-        const groupIdText = c.group_id ? ('معرف الجروب: ' + c.group_id) : 'كود الجروب: G001';
+        const teacherName = c.teacher_name || 'حمزه العدوي';
+        const groupId = c.group_id || curStudent.group_id || 'G001';
         const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 4;
         const daysText = c.subscription_days || 'أيام الاشتراك محددة';
         const timeText = c.lecture_time || (c.raw_time ? ('ساعة ' + c.raw_time) : 'وقت المحاضرة محدد');
-        const statusText = c.account_status || 'نشط';
+        const statusText = c.account_status || curStudent.account_status || 'نشط';
+        const statusColor = (statusText === 'نشط' || statusText.includes('ساري')) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
+
+        let durationText = "60 دقيقة (ساعة كاملة)";
+        if (c.course_name.includes("برايفت") || c.course_name.includes("نصف") || c.course_name.includes("30")) {
+            durationText = "30-45 دقيقة (جلسة فردية برايفت)";
+        }
 
         card.innerHTML = `
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start flex-wrap gap-2">
                 <div>
-                    <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span class="bg-blue-900 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-md">${groupIdText}</span>
-                        <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">حالة الحساب: ${statusText}</span>
+                    <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                        <span class="bg-slate-900 text-amber-300 font-mono text-[11px] font-extrabold px-2.5 py-0.5 rounded-md border border-slate-700">معرف الجروب: ${groupId}</span>
+                        <span class="${statusColor} border font-black px-2.5 py-0.5 rounded-full text-[10px]">🟢 حالة الحساب: ${statusText}</span>
+                        <span class="bg-emerald-800 text-emerald-100 font-bold px-2.5 py-0.5 rounded-full text-[10px]">📖 مسار القرآن الكريم والتدبر</span>
                     </div>
-                    <h4 class="font-black text-base text-slate-900">${c.course_name}</h4>
-                    <p class="text-xs font-bold text-blue-800 mt-0.5">${teacherText}</p>
+                    <h4 class="font-black text-lg text-slate-900 flex items-center gap-2">
+                        <span>${c.course_name}</span>
+                    </h4>
+                    <p class="text-xs font-black text-blue-900 mt-1 flex items-center gap-1">
+                        <span>👨‍🏫 المعلم المشرف:</span>
+                        <span class="underline decoration-blue-400">أ. ${teacherName}</span>
+                    </p>
                 </div>
                 <div class="text-right">
-                    <span class="bg-amber-100 border border-amber-300 text-amber-950 font-black px-2.5 py-1 rounded-xl text-xs block whitespace-nowrap shadow-sm">
-                        المتبقي: ${remCredits} حصة
+                    <span class="bg-amber-400 border border-amber-500 text-slate-950 font-black px-3.5 py-1.5 rounded-xl text-xs block whitespace-nowrap shadow-md">
+                        📊 المتبقي من الشيت: ${remCredits} حصة
                     </span>
                 </div>
             </div>
 
-            <div class="bg-slate-100/90 p-2.5 rounded-xl text-xs space-y-1 border border-slate-200/60">
-                <div class="flex flex-wrap items-center justify-between gap-2 text-slate-700 font-semibold">
-                    <span>📅 أيام الاشتراك: <strong class="text-slate-900 font-bold">${daysText}</strong></span>
-                    <span>⏰ موعد المحاضرة: <strong class="text-blue-900 font-bold">${timeText}</strong></span>
+            <div class="bg-slate-100/90 p-3 rounded-xl text-xs border border-slate-200/80 space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-800 font-bold">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">⏰ موعد المحاضرة:</span>
+                        <strong class="text-blue-900 font-extrabold">${timeText}</strong>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">⏱️ مدة السيشن:</span>
+                        <strong class="text-emerald-800 font-extrabold">${durationText}</strong>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">📅 أيام الاشتراك:</span>
+                        <strong class="text-slate-950 font-extrabold">${daysText}</strong>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">📞 تليفون ولي الأمر:</span>
+                        <strong class="text-slate-900 font-mono font-extrabold">${parentPhoneNum}</strong>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center text-xs pt-1 text-slate-600">
-                <span>المحاضرات المفعلة: <strong class="text-blue-900">${c.total_lectures_unlocked || 4} / 8</strong></span>
-                <span>نسبة الحضور: <strong class="text-emerald-700">${c.attendance_rate || 100}% (${c.present_count || 0} حصص)</strong></span>
+            <div class="flex justify-between items-center text-xs pt-1 text-slate-600 font-semibold">
+                <span>المحاضرات المفعلة بالسيستم: <strong class="text-blue-900">${c.total_lectures_unlocked || 4} / 8</strong></span>
+                <span>حالة الحضور والمتابعة: <strong class="text-emerald-700">100% منتظم</strong></span>
             </div>
         `;
         container.appendChild(card);
