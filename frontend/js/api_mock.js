@@ -8,17 +8,28 @@
             { id: 91, username: "ST0001", password_hash: "Mn4620", role: "student", related_id: 1, full_name: "يونس بيجاد محسن عبدالفتاح" }
         ],
         students: [
-            { id: 1, name: "يونس بيجاد محسن عبدالفتاح", student_code: "ST0001", age: 6.5, phone: "01222709574", parent_name: "ولي أمر يونس بيجاد", parent_phone: "01222709574" }
+            { id: 1, name: "يونس بيجاد محسن عبدالفتاح", student_code: "ST0001", age: 6.5, phone: "01222709574", parent_name: "ولي أمر يونس بيجاد محسن عبدالفتاح", parent_phone: "01222709574" }
         ],
-        teachers: [],
-        courses: [],
+        teachers: [
+            { id: 28, full_name: "حمزة العدوي", email: "hamza@monir.edu.eg", phone: "01222709574" }
+        ],
+        courses: [
+            { id: 1, name: "السبت 12", track_name: "مسار القرآن والتدبر", target_age: "6 - 16 سنة", description: "مجموعة السبت 12", price_per_block: 450.0, total_lectures: 8 }
+        ],
         enrollments: [
-            { id: 1, student_id: 1, course_name: "السبت 12", track_name: "مسار القرآن والتدبر", unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0 }
+            { id: 24, student_id: 1, course_name: "السبت 12", teacher_id: 28, unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 7, renewal_count: 0, current_surah: "سورة الرحمن - المرحلة الأولى", status: "active" }
         ],
-        lectures: [],
+        lectures: [
+            { id: 1, course_name: "السبت 12", lecture_number: 1, title: "المحاضرة الأولى: مقدمة والتهيئة", drive_url: "https://drive.google.com", meeting_url: "https://zoom.us" },
+            { id: 2, course_name: "السبت 12", lecture_number: 2, title: "المحاضرة الثانية: التلاوة والتجويد", drive_url: "https://drive.google.com", meeting_url: "https://zoom.us" },
+            { id: 3, course_name: "السبت 12", lecture_number: 3, title: "المحاضرة الثالثة: التطبيق العملي", drive_url: "https://drive.google.com", meeting_url: "https://zoom.us" },
+            { id: 4, course_name: "السبت 12", lecture_number: 4, title: "المحاضرة الرابعة: التقييم والمراجعة", drive_url: "https://drive.google.com", meeting_url: "https://zoom.us" }
+        ],
         support_tickets: [],
         quiz_submissions: [],
-        notifications: [],
+        notifications: [
+            { id: 1, title: "مرحباً بك في أكاديمية منير", message: "أهلاً بك يا يونس في بوابة الطالب الذكية. نتمنى لك رحلة ممتعة في مسار القرآن والتدبر.", created_at: "2026-09-10" }
+        ],
         payments: [],
         attendance: []
     };
@@ -41,7 +52,7 @@
                 const relPath = isFrontendDir ? '../js/db_seed.json' : 'js/db_seed.json';
                 const fetchFn = (typeof realFetch === 'function' && realFetch) ? realFetch : window.fetch;
                 
-                const res = await fetchFn(relPath + '?v=20260910_seed11');
+                const res = await fetchFn(relPath + '?v=20260910_seed12');
                 if (res && res.ok) {
                     const data = await res.json();
                     if (data && data.users && data.students) {
@@ -56,7 +67,7 @@
             return DB;
         })();
 
-        return await dbFetchPromise;
+        return dbFetchPromise;
     }
 
     function initDb() {
@@ -75,7 +86,8 @@
     }
 
     async function handleMock(url, options = {}) {
-        await ensureDbLoaded();
+        // Background async load full DB without blocking immediate response
+        ensureDbLoaded();
 
         const dbUsers = (DB && DB.users) ? DB.users : DEFAULT_DB.users;
         const dbStudents = (DB && DB.students) ? DB.students : DEFAULT_DB.students;
