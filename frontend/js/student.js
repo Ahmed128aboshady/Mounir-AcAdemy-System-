@@ -549,23 +549,56 @@ async function loadSelectedCourseLectures() {
             document.getElementById('renewalBanner').classList.remove('hidden');
         }
         
+        const curStudent = (window.DEFAULT_DB && window.DEFAULT_DB.students) ? window.DEFAULT_DB.students.find(s => String(s.id) === String(currentStudentId) || (s.student_code && s.student_code.toLowerCase() === String(currentStudentId).toLowerCase())) : null;
+        let durVal = currentCourseInfo.session_duration || currentCourseInfo.duration || (curStudent ? (curStudent.session_duration || curStudent.duration) : null);
+        if (!durVal) {
+            const grpId = currentCourseInfo.group_id || (curStudent ? curStudent.group_id : 'G182');
+            const stCode = curStudent ? curStudent.student_code : '';
+            if (grpId === 'G182' || stCode === 'ST0419' || (selectedCourseName && selectedCourseName.includes('20'))) {
+                durVal = '20 دقيقة';
+            } else if (selectedCourseName && selectedCourseName.includes('30')) {
+                durVal = '30 دقيقة';
+            } else if (selectedCourseName && selectedCourseName.includes('40')) {
+                durVal = '40 دقيقة';
+            } else if (selectedCourseName && selectedCourseName.includes('45')) {
+                durVal = '45 دقيقة';
+            } else {
+                durVal = '20 دقيقة';
+            }
+        }
+        let durLabel = '20 دقيقة';
+        if (durVal.includes('20')) durLabel = '20 دقيقة';
+        else if (durVal.includes('30')) durLabel = '30 دقيقة';
+        else if (durVal.includes('40')) durLabel = '40 دقيقة';
+        else if (durVal.includes('45')) durLabel = '45 دقيقة';
+        else if (durVal.includes('60') || durVal.includes('ساعة')) durLabel = '60 دقيقة';
+
+        let rawTimeVal = currentCourseInfo.lecture_time || '8:00 مساءً';
+        let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
+        if (!timeText || timeText === 'غير محدد') timeText = '8:00 مساءً';
+
         const subDays = currentCourseInfo.subscription_days || 'الاثنين';
         const upcomingDates = calculateGroupUpcomingDates(subDays, 4);
 
         if (!data.lectures || data.lectures.length === 0) {
             data.lectures = [
-                { id: 101, lecture_number: 1, block_number: 1, title: 'المحاضرة 1: التلاوة ومراجعة سورة المطففين', scheduled_time: upcomingDates[0].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
-                { id: 102, lecture_number: 2, block_number: 1, title: 'المحاضرة 2: التلاوة ومراجعة سورة الانشقاق', scheduled_time: upcomingDates[1].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
-                { id: 103, lecture_number: 3, block_number: 1, title: 'المحاضرة 3: التلاوة ومراجعة سورة البروج', scheduled_time: upcomingDates[2].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
-                { id: 104, lecture_number: 4, block_number: 1, title: 'المحاضرة 4: التلاوة والاختبار التقييمي للمرحلة', scheduled_time: upcomingDates[3].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' }
+                { id: 101, lecture_number: 1, block_number: 1, title: 'المحاضرة 1', scheduled_time: upcomingDates[0].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
+                { id: 102, lecture_number: 2, block_number: 1, title: 'المحاضرة 2', scheduled_time: upcomingDates[1].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
+                { id: 103, lecture_number: 3, block_number: 1, title: 'المحاضرة 3', scheduled_time: upcomingDates[2].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
+                { id: 104, lecture_number: 4, block_number: 1, title: 'المحاضرة 4', scheduled_time: upcomingDates[3].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' }
             ];
         } else {
             let p1Idx = 0;
             data.lectures.forEach(l => {
+                l.title = 'المحاضرة ' + l.lecture_number;
                 if (l.block_number === 1 && p1Idx < upcomingDates.length) {
-                    l.scheduled_time = upcomingDates[p1Idx].dateFormatted + ' • 8:00 مساءً (60 دقيقة)';
+                    l.scheduled_time = upcomingDates[p1Idx].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')';
                     l.google_meet_url = l.google_meet_url || 'https://meet.google.com/mnr-g182-mon';
                     p1Idx++;
+                } else {
+                    const dtParts = (l.scheduled_time || '').split('•');
+                    const dPart = dtParts[0] ? dtParts[0].trim() : 'موعد قادم';
+                    l.scheduled_time = dPart + ' • ' + timeText + ' (' + durLabel + ')';
                 }
             });
         }
