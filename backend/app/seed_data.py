@@ -236,10 +236,32 @@ def seed_all():
         INSERT INTO notifications (student_id, title, message, type, action_url)
         VALUES (?, 'مرحباً بك في المنصة المطورة (v3.0)', 'تم تفعيل مساراتك التدريبية، وبوابات المعلمين، والاختبارات التفاعلية، وإيصالات الدفع الرقمية بنجاح.', 'general', '/student.html')
         ''', (s[0],))
+
+    # 11. Seed Users (Admins, Teachers, Students)
+    users_data = [
+        # Admin
+        (1, 'admin', 'admin2026', 'admin', None, 'إدارة أكاديمية منير', 'admin@monir-academy.edu.eg', '01000000000', 'active'),
+        # Teachers
+        (2, 'eman.naggar', '123456', 'teacher', 1, 'أ. إيمان النجار', 'eman.naggar@monir-academy.edu.eg', '01001112233', 'active'),
+        (3, 'sara.abdelmonem', '123456', 'teacher', 2, 'د. سارة عبد المنعم', 'sara.abdelmonem@monir-academy.edu.eg', '01002223344', 'active'),
+        (4, 'omar.hossam', '123456', 'teacher', 3, 'م. عمر حسام', 'omar.hossam@monir-academy.edu.eg', '01003334455', 'active'),
+        (5, 'youssef.hani', '123456', 'teacher', 4, 'م. يوسف هاني', 'youssef.hani@monir-academy.edu.eg', '01004445566', 'active'),
+        # Students
+        (6, 'abdelrahman', '123456', 'student', 1, 'عبدالرحمن خالد محمود', 'abdelrahman@student.monir.edu.eg', '01012345678', 'active'),
+        (7, 'mariam', '123456', 'student', 2, 'مريم إبراهيم الدسوقي', 'mariam@student.monir.edu.eg', '01023456789', 'active'),
+        (8, 'ziad', '123456', 'student', 3, 'زياد أحمد الشناوي', 'ziad@student.monir.edu.eg', '01034567890', 'active'),
+        (9, 'jana', '123456', 'student', 4, 'جنى تامر الفقي', 'jana@student.monir.edu.eg', '01045678901', 'active'),
+        (10, 'hamza', '123456', 'student', 5, 'حمزة عادل توفيق', 'hamza@student.monir.edu.eg', '01055566778', 'active'),
+    ]
+    for u in users_data:
+        cursor.execute('''
+        INSERT OR REPLACE INTO users (id, username, password_hash, role, related_id, full_name, email, phone, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', u)
         
     conn.commit()
     conn.close()
-    print("Seeded Enterprise Multi-Course System with Teachers, Quran Credits, Quizzes, Tickets & Receipts successfully!")
+    print("Seeded Enterprise Multi-Course System with Users, Teachers, Quran Credits, Quizzes, Tickets & Receipts successfully!")
 
 if __name__ == "__main__":
     seed_all()

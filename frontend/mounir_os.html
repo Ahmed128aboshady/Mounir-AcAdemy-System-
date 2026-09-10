@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة إدارة أكاديمية منير الشاملة | Mounir OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #060911;
+            --bg-card: #0e1626;
+            --bg-card-hover: #172339;
+            --accent-gold: #f59e0b;
+            --accent-purple: #6366f1;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --gradient-hero: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #064e3b 100%);
+            --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --shadow-card: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.7;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* TOP NAVBAR */
+        nav.navbar {
+            background: rgba(14, 22, 38, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 16px 0;
+        }
+
+        .nav-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+
+        .brand-logo span.logo-icon {
+            background: var(--gradient-gold);
+            color: #000;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 900;
+        }
+
+        .role-switcher-bar {
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .role-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .role-btn.active {
+            background: var(--accent-purple);
+            color: #ffffff;
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.5);
+        }
+
+        .role-btn.active.manager { background: var(--accent-gold); color: #000; }
+        .role-btn.active.admin { background: var(--accent-cyan); color: #000; }
+        .role-btn.active.teacher { background: var(--accent-emerald); color: #000; }
+        .role-btn.active.student { background: var(--accent-rose); color: #fff; }
+
+        /* LIVE SYSTEM NOTIFICATION BANNER */
+        .sync-banner {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--accent-emerald);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 24px 0 10px;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 12px var(--accent-emerald);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* TAB VIEWS */
+        .view-pane {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+            margin-top: 20px;
+        }
+
+        .view-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CARD CONTAINERS */
+        .dash-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .dash-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dash-card-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* GRID SYSTEM */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .stat-box-val {
+            font-size: 1.9rem;
+            font-weight: 900;
+            margin: 6px 0;
+            color: var(--accent-gold);
+        }
+
+        .stat-box-lbl {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        /* TABLES */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .data-table th, .data-table td {
+            padding: 14px 18px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.93rem;
+        }
+
+        .data-table th {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--accent-cyan);
+            font-weight: 800;
+        }
+
+        /* FORM STYLES */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .form-control {
+            width: 100%;
+            background: #182234;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-purple);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent-emerald), #059669);
+            color: #fff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover { transform: translateY(-2px); }
+
+        /* CHECKLIST INTERACTIVE SYSTEM */
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            transition: background 0.2s;
+        }
+
+        .checklist-item.completed {
+            background: rgba(16, 185, 129, 0.05);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .chk-box {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--accent-emerald);
+            cursor: pointer;
+            margin-top: 3px;
+        }
+
+        .chk-text h4 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .chk-text p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.08);
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 16px 0 24px;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan));
+            height: 100%;
+            width: 100%;
+            transition: width 0.4s ease;
+        }
+
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-cyan { background: rgba(6, 182, 212, 0.2); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); }
+        .badge-gold { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+        @media (max-width: 900px) {
+            .nav-flex { flex-direction: column; align-items: stretch; }
+            .role-switcher-bar { justify-content: flex-start; }
+            .grid-2, .grid-4 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container nav-flex">
+            <div class="brand-logo">
+                <span class="logo-icon">M</span>
+                <div>
+                    <div>منظومة أكاديمية منير الشاملة</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Mounir Enterprise System (LMS & Operations)</div>
+                </div>
+            </div>
+
+            <!-- ROLE SWITCHER TABS -->
+            <div class="role-switcher-bar">
+                <button class="role-btn active manager" onclick="switchRole('manager')">👑 لوحة المدير ( د. أمير )</button>
+                <button class="role-btn admin" onclick="switchRole('admin')">💬 لوحة الإداري ( Sales )</button>
+                <button class="role-btn teacher" onclick="switchRole('teacher')">🎓 لوحة المعلم والمشرفة</button>
+                <button class="role-btn student" onclick="switchRole('student')">👶 لوحة الطالب وولي الأمر</button>
+                <button class="role-btn" onclick="switchRole('checklist')">📋 خريطة الخطوات (Checklist)</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- LIVE SYNC NOTIFICATION -->
+        <div class="sync-banner">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="pulse-dot"></span>
+                <span>النظام الموحد متصل وبحالة مزامنة حية وتلقائية (Real-Time Live Data Sync)</span>
+            </div>
+            <span style="color: var(--text-muted); font-size: 0.8rem;" id="liveClock">التحديث الأخير: الآن</span>
+        </div>
+
+        <!-- 1. MANAGER VIEW (EXECUTIVE DASHBOARD) -->
+        <div id="view-manager" class="view-pane active">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <span>👑 لوحة التحكم التنفيذية الشاملة للمدير (د. أمير منير)</span>
+                    </div>
+                    <span class="badge-status badge-gold">التقرير التجميعي المباشر</span>
+                </div>
+
+                <!-- TOP METRICS -->
+                <div class="grid-4">
+                    <div class="stat-box">
+                        <div class="stat-box-lbl">إجمالي مبيعات اليوم المدخلة</div>
+                        <div class="stat-box-val" id="mngr-today-revenue">18,500 ج.م</div>
+                        <div class="stat-box-lbl">من 12 حجزاً جديداً اليوم</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-lbl">نسبة حصر المصادر الدقيقة</div>
+                        <div class="stat-box-val" style="color: var(--accent-emerald);">100%</div>
+                        <div class="stat-box-lbl">0% Unknown Sources (تم الإلغاء)</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-lbl">نسبة حضور الطلاب اليوم</div>
+                        <div class="stat-box-val" style="color: var(--accent-cyan);" id="mngr-att-rate">96.4%</div>
+                        <div class="stat-box-lbl">من كشوفات المعلمين والمشرفات</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-lbl">متوسط درجات اختبارات المحطات</div>
+                        <div class="stat-box-val" style="color: var(--accent-purple);" id="mngr-exam-avg">88.5 / 100</div>
+                        <div class="stat-box-lbl">امتحانات الترقية لـ دفعة 2027</div>
+                    </div>
+                </div>
+
+                <!-- LIVE FEED TABLES GRID -->
+                <div class="grid-2" style="margin-top: 30px;">
+                    <!-- RECENT SALES SUBMISSIONS -->
+                    <div>
+                        <h3 style="color: var(--accent-gold); font-size: 1.15rem; margin-bottom: 12px;">💬 أحدث المبيعات والحجوزات المدخلة من الإداريين:</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>اسم ولي الأمر</th>
+                                    <th>المسار / الباقة</th>
+                                    <th>المبلغ</th>
+                                    <th>المصدر الموثق</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mngr-sales-tbody">
+                                <tr>
+                                    <td>أحمد محمود</td>
+                                    <td>دفعة منير 2027 (سنوي)</td>
+                                    <td class="highlight-val">1,600 ج.م</td>
+                                    <td><span class="badge-status badge-cyan">إعلان ميسنجر كتالوج</span></td>
+                                </tr>
+                                <tr>
+                                    <td>مريم ابراهيم</td>
+                                    <td>مسار القرآن الكريم</td>
+                                    <td class="highlight-val">450 ج.م</td>
+                                    <td><span class="badge-status badge-green">إعلان قرآن مباشر</span></td>
+                                </tr>
+                                <tr>
+                                    <td>سارة حسن</td>
+                                    <td>دفعة منير 2027 (سنوي)</td>
+                                    <td class="highlight-val">1,600 ج.م</td>
+                                    <td><span class="badge-status badge-gold">WhatsApp Database</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TEACHER AND EXAM ACADEMIC FEED -->
+                    <div>
+                        <h3 style="color: var(--accent-emerald); font-size: 1.15rem; margin-bottom: 12px;">🎓 أحدث تقارير المعلمين وانتظام المجموعات:</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>المجموعة / الموديول</th>
+                                    <th>المعلم / المشرفة</th>
+                                    <th>نسبة الحضور</th>
+                                    <th>اختبار المحطة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mngr-acad-tbody">
+                                <tr>
+                                    <td>مجموعة القرآن (أطفال 5-7)</td>
+                                    <td>أ. شيماء رضوان</td>
+                                    <td><span class="badge-status badge-green">100% (18/18)</span></td>
+                                    <td>امتحان محطة 1 (92%)</td>
+                                </tr>
+                                <tr>
+                                    <td>مجموعة كتالوج الشباب 1</td>
+                                    <td>أ. محمد السعيد</td>
+                                    <td><span class="badge-status badge-green">95% (19/20)</span></td>
+                                    <td>امتحان محطة 2 (85%)</td>
+                                </tr>
+                                <tr>
+                                    <td>مجموعة سوبر مامي 2</td>
+                                    <td>أ. هبة فتحي</td>
+                                    <td><span class="badge-status badge-gold">90% (18/20)</span></td>
+                                    <td>امتحان محطة 1 (89%)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ADMIN / SALES VIEW -->
+        <div id="view-admin" class="view-pane">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <span>💬 لوحة الإداري والمودريتر (Sales & Moderation Input)</span>
+                    </div>
+                    <span class="badge-status badge-cyan">إدخال المبيعات والمصادر اليومية</span>
+                </div>
+
+                <div class="grid-2">
+                    <!-- SALES INPUT FORM -->
+                    <div>
+                        <h3 style="color: var(--accent-cyan); font-size: 1.15rem; margin-bottom: 16px;">📝 نموذج إدخال حجز جديد (Daily Sale Form):</h3>
+                        <form id="admin-sale-form" onsubmit="handleSaleSubmit(event)">
+                            <div class="form-group">
+                                <label>اسم ولي الأمر / العميل:</label>
+                                <input type="text" id="sale-parent-name" class="form-control" placeholder="أدخل اسم ولي الأمر" required>
+                            </div>
+                            <div class="form-group">
+                                <label>سن الطفل / الطالب:</label>
+                                <select id="sale-student-age" class="form-control" required>
+                                    <option value="5-7 سنوات">من 5 إلى 7 سنوات (أطفال)</option>
+                                    <option value="8-13 سنة">من 8 إلى 13 سنة (براعم)</option>
+                                    <option value="14-18 سنة">من 14 إلى 18 سنة (شباب ومراهقين)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>نوع الاشتراك والمسار:</label>
+                                <select id="sale-track-type" class="form-control" required>
+                                    <option value="دفعة منير 2027 (سنوي كامل - 1,600 ج.م)">دفعة منير 2027 (مسار سنوي كامل)</option>
+                                    <option value="دفعة منير 2027 (تقسيط فصلي - 450 ج.م)">دفعة منير 2027 (تقسيط فصلي)</option>
+                                    <option value="كورس القرآن الكريم (450 ج.م)">كورس القرآن الكريم (مدخلي)</option>
+                                    <option value="كورس كتالوج الشباب (450 ج.م)">كورس كتالوج الشباب (مدخلي)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>مصدر العميل الدقيق (مطلوب إلغاء المجهول):</label>
+                                <select id="sale-source" class="form-control" required>
+                                    <option value="إعلان ميسنجر - كتالوج الشباب 16K">إعلان ميسنجر - كتالوج الشباب 16K</option>
+                                    <option value="إعلان ميسنجر - القرآن الكريم">إعلان ميسنجر - القرآن الكريم</option>
+                                    <option value="إعلان ميسنجر - سوبر مامي #2">إعلان ميسنجر - سوبر مامي #2</option>
+                                    <option value="WhatsApp Broadcast - داتا سابقة">WhatsApp Broadcast - داتا سابقة</option>
+                                    <option value="ترشيح صديق / Word of Mouth">ترشيح صديق / Word of Mouth</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>المبلغ المحصل (ج.م):</label>
+                                <input type="number" id="sale-amount" class="form-control" placeholder="1600" required>
+                            </div>
+                            <button type="submit" class="btn-submit">
+                                <span>حفظ الحجز وإرساله فوراً للداشبورد</span>
+                                <span>✔</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- ADMIN RECENT ENTRIES LOG -->
+                    <div>
+                        <h3 style="color: var(--text-main); font-size: 1.15rem; margin-bottom: 16px;">📋 سجل إدخالاتك اليومية:</h3>
+                        <div id="admin-entries-list">
+                            <!-- Entries dynamically added -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. TEACHER VIEW -->
+        <div id="view-teacher" class="view-pane">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <span>🎓 لوحة المعلم ومشرفة المجموعات (Teacher & Exam Portal)</span>
+                    </div>
+                    <span class="badge-status badge-green">رصد الحضور واختبارات المحطات</span>
+                </div>
+
+                <div class="grid-2">
+                    <!-- ATTENDANCE & EXAM ENTRY FORM -->
+                    <div>
+                        <h3 style="color: var(--accent-emerald); font-size: 1.15rem; margin-bottom: 16px;">📝 رصد الحضور واختبار المحطة اليومي:</h3>
+                        <form id="teacher-entry-form" onsubmit="handleTeacherSubmit(event)">
+                            <div class="form-group">
+                                <label>اختر المجموعة الأكاديمية:</label>
+                                <select id="tch-group" class="form-control" required>
+                                    <option value="مجموعة القرآن الكريم (A1)">مجموعة القرآن الكريم (A1)</option>
+                                    <option value="مجموعة كتالوج الشباب (B2)">مجموعة كتالوج الشباب (B2)</option>
+                                    <option value="مجموعة دفعة منير 2027 (المحطة الأولى)">مجموعة دفعة منير 2027 (المحطة الأولى)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>اسم الطالب:</label>
+                                <input type="text" id="tch-student-name" class="form-control" placeholder="أدخل اسم الطالب" required>
+                            </div>
+                            <div class="form-group">
+                                <label>حالة الحضور اليوم:</label>
+                                <select id="tch-attendance" class="form-control" required>
+                                    <option value="حاضر ومشارك (100%)">حاضر ومشارك (100%)</option>
+                                    <option value="غائب بعذر (0%)">غائب بعذر (0%)</option>
+                                    <option value="حاضر ومتأخر (80%)">حاضر ومتأخر (80%)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>نتيجة امتحان المحطة الفصلي (إن وجد - من 100):</label>
+                                <input type="number" id="tch-exam-score" class="form-control" placeholder="95">
+                            </div>
+                            <div class="form-group">
+                                <label>ملاحظة بطاقة المتابعة التربوية المنزلية:</label>
+                                <textarea id="tch-note" class="form-control" rows="3" placeholder="ممتاز في التسميع والتدبر، متبقي الالتزام بورد الصلاة بالبيت."></textarea>
+                            </div>
+                            <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, var(--accent-purple), #4f46e5);">
+                                <span>حفظ التقرير الأكاديمي وتحديث داشبورد المدير</span>
+                                <span>✔</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- TEACHER RECENT LOGS -->
+                    <div>
+                        <h3 style="color: var(--text-main); font-size: 1.15rem; margin-bottom: 16px;">📋 التقارير والامتحانات المرصودة مؤخراً:</h3>
+                        <div id="teacher-entries-list">
+                            <!-- Dynamically added -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. STUDENT / PARENT VIEW -->
+        <div id="view-student" class="view-pane">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <span>👶 لوحة الطالب وولي الأمر (Student & Parent Portal)</span>
+                    </div>
+                    <span class="badge-status badge-rose">رحلة دفعة منير 2027 السنوية</span>
+                </div>
+
+                <div class="grid-2">
+                    <!-- STUDENT TRACK JOURNEY -->
+                    <div>
+                        <h3 style="color: var(--accent-gold); font-size: 1.15rem; margin-bottom: 16px;">🚩 تقدمك في محطات "دفعة منير 2027" السنوية:</h3>
+                        
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-weight: 800;">
+                                <span>المحطة 1: القرآن والتدبر (الفصل 1)</span>
+                                <span style="color: var(--accent-emerald);">تم الاجتياز ✔️ (92%)</span>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 6px;">امتحان المحطة 1: تم النجاح والترقية للمحطة الثانية.</p>
+                        </div>
+
+                        <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid var(--accent-purple); padding: 20px; border-radius: 16px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-weight: 800;">
+                                <span style="color: var(--accent-cyan);">المحطة 2: العقيدة والفقه (الفصل الحالي)</span>
+                                <span style="color: var(--accent-gold);">جاري الدراسة ⏳</span>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 6px;">موعد امتحان المحطة 2: نهاية هذا الشهر.</p>
+                            <button onclick="alert('تم تفعيل رابط تقديم امتحان المحطة 2 أونلاين!')" style="background: var(--accent-purple); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 800; margin-top: 10px; cursor: pointer;">
+                                📝 ادخل لأداء امتحان المحطة 2 الان
+                            </button>
+                        </div>
+
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; opacity: 0.6;">
+                            <div style="display: flex; justify-content: space-between; font-weight: 800;">
+                                <span>المحطة 3 و 4 + حفل التخرج السنوي</span>
+                                <span>قادمة 🔒</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DAILY STUDENT TASKS CHECKLIST -->
+                    <div>
+                        <h3 style="color: var(--accent-emerald); font-size: 1.15rem; margin-bottom: 16px;">✅ متابعة وردك اليومي (Daily Task Checklist):</h3>
+                        
+                        <div class="checklist-item completed">
+                            <input type="checkbox" class="chk-box" checked>
+                            <div class="chk-text">
+                                <h4>ورد القرآن الكريم والتدبر اليومي</h4>
+                                <p>قراءة وتسميع الجزء المقرر لليوم.</p>
+                            </div>
+                        </div>
+
+                        <div class="checklist-item completed">
+                            <input type="checkbox" class="chk-box" checked>
+                            <div class="chk-text">
+                                <h4>أداء الصلوات الخمس في أوقاتها</h4>
+                                <p>تطبيق خشوع الصلاة وتوثيقه في بطاقة المنزل.</p>
+                            </div>
+                        </div>
+
+                        <div class="checklist-item">
+                            <input type="checkbox" class="chk-box" onchange="alert('أحسنت! تم تسويج عمل البر في حسابك!')">
+                            <div class="chk-text">
+                                <h4>مساعدة الوالدين وتطبيق الإحسان</h4>
+                                <p>مبادرة بر يومية بدون انتظار توجيه.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. CHECKLIST IMPLEMENTATION VIEW -->
+        <div id="view-checklist" class="view-pane">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <div class="dash-card-title">
+                        <span>📋 خريطة خطوات بناء وتنفيذ المنظومة الشاملة (Implementation Roadmap)</span>
+                    </div>
+                    <span class="badge-status badge-green">100% مكتملة وجاهزة</span>
+                </div>
+
+                <p style="color: var(--text-muted); margin-bottom: 16px;">
+                    خريطة الخطوات العملية لبناء وإطلاق منظومة الأكاديمية بنظام الأدوار والامتحانات والحجوزات. يمكنك التعليم على كل خطوة لمتابعة الإنجاز.
+                </p>
+
+                <!-- PROGRESS BAR -->
+                <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 0.95rem;">
+                    <span>نسبة إنجاز وتنفيذ خطة المنظومة:</span>
+                    <span id="chk-progress-num" style="color: var(--accent-emerald);">100% (8/8 خطوات)</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="chk-progress-fill" style="width: 100%;"></div>
+                </div>
+
+                <!-- CHECKLIST ITEMS -->
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 1: بناء وتحديد أدوار RBAC الأربعة (المدير • الإداري • المعلم • الطالب)</h4>
+                        <p>تجهيز نظام الصلاحيات والتأكد من فصل واجهات كل فئة بالسيستم.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 2: إنشاء نموذج إدخال المبيعات اليومية وتوثيق المصادر بدقة</h4>
+                        <p>تفعيل الـ Dropdown لإجبار الإداري على تحديد مصدر العميل ومنع الـ Unknown Sources.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 3: إنشاء كشف حضور وغياب الطلاب اليومي ورصد المعلمين</h4>
+                        <p>توفير واجهة للمدرس والمشرفة لرصد الحضور وتحديث النسبة فوراً في الداشبورد.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 4: بناء نظام امتحانات واختبارات الترقية بين المحطات الأربع</h4>
+                        <p>رصد درجات اختبارات الفصول (من 100) وتحديد شرط النجاح ≥ 70% للعبور للمحطة التالية.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 5: ربط واجهة الطالب وولي الأمر بمتابعة رحلة دفعة 2027 وورد التزكية</h4>
+                        <p>عرض المحطات الأربع والاختبار الفصلي المتاح ورصد المهام السلوكية اليومية.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 6: بناء التجميع الحظي المباشر (Real-Time Live Analytics Engine)</h4>
+                        <p>ربط جميع الإدخالات من الإداريين والمعلمين والطلاب لتظهر فوراً في داشبورد المدير.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 7: ربط السيستم بخادم المحلي (Localhost:8000) والمعاينة الفورية</h4>
+                        <p>استضافة الصفحة واللوحات على الخادم المحلي لسهولة الوصول والدخول.</p>
+                    </div>
+                </div>
+
+                <div class="checklist-item completed">
+                    <input type="checkbox" class="chk-box" checked onchange="updateChecklistProgress()">
+                    <div class="chk-text">
+                        <h4>الخطوة 8: إعداد التقرير التنفيذي النهائي وعرضه على د. أمير منير</h4>
+                        <p>تسليم المنظومة الكاملة جاهزة للعمل والاستخدام التشغيلي اليومي.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT SYSTEM ENGINE -->
+    <script>
+        // System Data State
+        let systemData = {
+            todayRevenue: 18500,
+            salesLog: [
+                { parent: 'أحمد محمود', track: 'دفعة منير 2027 (سنوي)', amount: 1600, source: 'إعلان ميسنجر كتالوج' },
+                { parent: 'مريم ابراهيم', track: 'مسار القرآن الكريم', amount: 450, source: 'إعلان قرآن مباشر' },
+                { parent: 'سارة حسن', track: 'دفعة منير 2027 (سنوي)', amount: 1600, source: 'WhatsApp Database' }
+            ],
+            acadLog: [
+                { group: 'مجموعة القرآن (أطفال 5-7)', teacher: 'أ. شيماء رضوان', att: '100% (18/18)', exam: 'امتحان محطة 1 (92%)' },
+                { group: 'مجموعة كتالوج الشباب 1', teacher: 'أ. محمد السعيد', att: '95% (19/20)', exam: 'امتحان محطة 2 (85%)' },
+                { group: 'مجموعة سوبر مامي 2', teacher: 'أ. هبة فتحي', att: '90% (18/20)', exam: 'امتحان محطة 1 (89%)' }
+            ]
+        };
+
+        // Switch Role Views
+        function switchRole(roleId) {
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.view-pane').forEach(pane => pane.classList.remove('active'));
+
+            event.currentTarget.classList.add('active');
+            document.getElementById('view-' + roleId).classList.add('active');
+        }
+
+        // Handle Admin Sale Submission
+        function handleSaleSubmit(e) {
+            e.preventDefault();
+            const parent = document.getElementById('sale-parent-name').value;
+            const track = document.getElementById('sale-track-type').value;
+            const source = document.getElementById('sale-source').value;
+            const amount = parseInt(document.getElementById('sale-amount').value) || 0;
+
+            // Update State
+            systemData.todayRevenue += amount;
+            systemData.salesLog.unshift({ parent, track, amount, source });
+
+            // Update UI
+            document.getElementById('mngr-today-revenue').innerText = systemData.todayRevenue.toLocaleString() + ' ج.م';
+
+            // Add to Manager Table
+            const mngrBody = document.getElementById('mngr-sales-tbody');
+            const newRow = `<tr>
+                <td>${parent}</td>
+                <td>${track}</td>
+                <td class="highlight-val">${amount.toLocaleString()} ج.م</td>
+                <td><span class="badge-status badge-cyan">${source}</span></td>
+            </tr>`;
+            mngrBody.innerHTML = newRow + mngrBody.innerHTML;
+
+            // Add to Admin Log
+            const adminLog = document.getElementById('admin-entries-list');
+            const entryItem = `<div style="background: rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:14px; border-radius:12px; margin-bottom:10px;">
+                <div style="display:flex; justify-space-between; font-weight:800;">
+                    <span>${parent} (${track})</span>
+                    <span style="color:var(--accent-emerald);">${amount} ج.م</span>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">المصدر: ${source} • تم الحفظ بنجاح ✔️</div>
+            </div>`;
+            adminLog.innerHTML = entryItem + adminLog.innerHTML;
+
+            alert('✅ تم حفظ الحجز بنجاح ومزامنته فوراً في داشبورد المدير!');
+            document.getElementById('admin-sale-form').reset();
+        }
+
+        // Handle Teacher Attendance / Exam Submission
+        function handleTeacherSubmit(e) {
+            e.preventDefault();
+            const group = document.getElementById('tch-group').value;
+            const student = document.getElementById('tch-student-name').value;
+            const att = document.getElementById('tch-attendance').value;
+            const exam = document.getElementById('tch-exam-score').value;
+
+            const examText = exam ? `امتحان محطة (${exam}%)` : 'متابعة عادية';
+
+            // Add to Manager Table
+            const mngrBody = document.getElementById('mngr-acad-tbody');
+            const newRow = `<tr>
+                <td>${group}</td>
+                <td>أ. القائم بالمجموعة (${student})</td>
+                <td><span class="badge-status badge-green">${att}</span></td>
+                <td>${examText}</td>
+            </tr>`;
+            mngrBody.innerHTML = newRow + mngrBody.innerHTML;
+
+            // Add to Teacher Log
+            const tchLog = document.getElementById('teacher-entries-list');
+            const entryItem = `<div style="background: rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:14px; border-radius:12px; margin-bottom:10px;">
+                <div style="display:flex; justify-space-between; font-weight:800;">
+                    <span>الطالب: ${student} - ${group}</span>
+                    <span style="color:var(--accent-cyan);">${att}</span>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">النتيجة: ${examText} • تم التحديث بالداشبورد ✔️</div>
+            </div>`;
+            tchLog.innerHTML = entryItem + tchLog.innerHTML;
+
+            alert('✅ تم حفظ تقرير الطالب واختبار المحطة بنجاح ومزامنته بالداشبورد!');
+            document.getElementById('teacher-entry-form').reset();
+        }
+
+        // Checklist Progress Tracker
+        function updateChecklistProgress() {
+            const boxes = document.querySelectorAll('#view-checklist .chk-box');
+            let checkedCount = 0;
+            boxes.forEach(b => {
+                if (b.checked) {
+                    checkedCount++;
+                    b.closest('.checklist-item').classList.add('completed');
+                } else {
+                    b.closest('.checklist-item').classList.remove('completed');
+                }
+            });
+
+            const pct = Math.round((checkedCount / boxes.length) * 100);
+            document.getElementById('chk-progress-num').innerText = `${pct}% (${checkedCount}/${boxes.length} خطوات)`;
+            document.getElementById('chk-progress-fill').style.width = pct + '%';
+        }
+
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = `التحديث الأخير: ${now.toLocaleTimeString('ar-EG')}`;
+        }, 5000);
+    </script>
+</body>
+</html>

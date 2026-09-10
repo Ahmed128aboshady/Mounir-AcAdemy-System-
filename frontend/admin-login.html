@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الإدارة المركزية — أكاديمية منير الذكية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/api_mock.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- Top Admin Header -->
+    <header class="py-4 px-6 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center text-slate-950 font-black text-base shadow-sm">
+                    AD
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm text-white leading-tight">بوابة إدارة أكاديمية منير</h1>
+                    <p class="text-[11px] text-amber-400 font-mono">Restricted Administrative Access Only</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <a href="index.html" class="text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700">الرئيسية</a>
+                <a href="login.html" class="text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700">بوابة الطلاب والمعلمين</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Card -->
+    <main class="max-w-md w-full mx-auto px-4 py-12 flex-1 flex flex-col justify-center">
+        
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+            <div class="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600"></div>
+
+            <div class="text-center mb-6 pt-2">
+                <span class="bg-amber-950/80 text-amber-400 border border-amber-700/60 text-[10px] font-black px-3 py-1 rounded-full inline-block mb-3">
+                    نظام الحماية المشددة (Admin Access Guard)
+                </span>
+                <h2 class="text-2xl font-black text-white">تسجيل دخول المشرفين</h2>
+                <p class="text-xs text-slate-400 mt-1">يرجى إدخال بيانات حساب المشرف المعتمد لإدارة المجموعات والرواتب</p>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="adminAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-bold border"></div>
+
+            <!-- Login Form -->
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4 text-xs">
+                
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1.5">اسم مستخدم المشرف:</label>
+                    <input type="text" id="adminUsername" required class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none font-mono transition" placeholder="admin">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block font-bold text-slate-300">كلمة المرور الأمنية:</label>
+                        <span class="text-[10px] text-slate-500 font-mono">الافتراضية: admin2026</span>
+                    </div>
+                    <input type="password" id="adminPassword" required class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none font-mono transition" placeholder="أدخل كلمة المرور">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="adminSubmitBtn" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition shadow-lg shadow-amber-500/20 text-sm">
+                        دخول لوحة الإدارة الشاملة
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Quick Auto Fill for Demo -->
+            <div class="mt-6 pt-5 border-t border-slate-800 flex justify-between items-center text-[11px]">
+                <span class="text-slate-400 font-bold">تجربة سريعة للإدارة:</span>
+                <button type="button" onclick="fillAdminDemo()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1 rounded-lg border border-slate-700 font-bold transition">
+                    تعبئة بيانات الإدارة (admin / admin2026)
+                </button>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-6 text-xs text-slate-600">
+            ملاحظة أمنية: يتم تسجيل محاولات الدخول غير المصرح بها وربطها بسجلات الأمان.
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-xs text-slate-600 border-t border-slate-900">
+        أكاديمية منير الذكية • منظومة الإدارة المركزية وحسابات المشرفين (2026)
+    </footer>
+
+    <script>
+        // Check if user was redirected because of unauthorized access
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('error') === 'unauthorized') {
+                const alertBox = document.getElementById('adminAlert');
+                alertBox.innerText = 'تنبيه أمني: صفحة الإدارة مخصصة للمشرفين فقط. يرجى تسجيل الدخول بحساب الإدارة للمتابعة.';
+                alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-amber-950/40 border-amber-600 text-amber-300 block';
+            }
+        });
+
+        function fillAdminDemo() {
+            document.getElementById('adminUsername').value = 'admin';
+            document.getElementById('adminPassword').value = 'admin2026';
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            const alertBox = document.getElementById('adminAlert');
+            const btn = document.getElementById('adminSubmitBtn');
+            alertBox.classList.add('hidden');
+
+            btn.disabled = true;
+            btn.innerText = 'جاري التحقق من الصلاحيات...';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        expected_role: 'admin'
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alertBox.innerText = data.detail || 'بيانات الدخول غير صحيحة أو غير مصرح لك كمسؤول.';
+                    alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-red-900/40 border-red-700 text-red-300 block';
+                    btn.disabled = false;
+                    btn.innerText = 'دخول لوحة الإدارة الشاملة';
+                    return;
+                }
+
+                // Save session in localStorage
+                localStorage.setItem('monir_current_user', JSON.stringify(data.user));
+                localStorage.setItem('monir_auth_token', data.token);
+
+                alertBox.innerText = 'تم التحقق بنجاح! جاري تحويلك إلى لوحة الإدارة...';
+                alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-emerald-950/40 border-emerald-600 text-emerald-300 block';
+
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 700);
+
+            } catch (err) {
+                console.error(err);
+                alertBox.innerText = 'حدث خطأ في الاتصال، يرجى إعادة المحاولة.';
+                alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-red-900/40 border-red-700 text-red-300 block';
+                btn.disabled = false;
+                btn.innerText = 'دخول لوحة الإدارة الشاملة';
+            }
+        }
+    </script>
+</body>
+</html>

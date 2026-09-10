@@ -246,6 +246,22 @@ def init_db():
     )
     ''')
 
+    # 14. Users Table (Authentication & Access Control)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL, -- 'admin', 'teacher', 'student'
+        related_id INTEGER, -- student_id or teacher_id
+        full_name TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        status TEXT DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
     # Run safe migrations for existing databases
     def safe_add_col(table, col_def):
         try:

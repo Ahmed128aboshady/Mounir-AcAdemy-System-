@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول — أكاديمية منير الذكية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/api_mock.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+    <!-- Top Simple Bar -->
+    <header class="py-4 px-6 border-b border-slate-800">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm">
+                    M
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm text-white leading-tight">أكاديمية منير الذكية</h1>
+                    <p class="text-[11px] text-slate-400">بوابة الدخول الموحدة للطلاب والمعلمين</p>
+                </div>
+            </a>
+            <div class="flex items-center gap-2 text-xs">
+                <a href="index.html" class="text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700">الرئيسية</a>
+                <a href="admin-login.html" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700 transition">بوابة الإدارة</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Login Card Container -->
+    <main class="max-w-md w-full mx-auto px-4 py-10 flex-1 flex flex-col justify-center">
+        
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-white">تسجيل الدخول</h2>
+                <p class="text-xs text-slate-400 mt-1">اختر نوع حسابك للمتابعة إلى بوابتك التعليمية</p>
+            </div>
+
+            <!-- Role Tabs Selector -->
+            <div class="grid grid-cols-2 gap-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-700/60 mb-6 text-xs font-extrabold">
+                <button type="button" id="tabStudent" onclick="switchLoginRole('student')" class="py-2.5 rounded-lg transition bg-blue-600 text-white shadow-sm">
+                    طالب / ولي أمر
+                </button>
+                <button type="button" id="tabTeacher" onclick="switchLoginRole('teacher')" class="py-2.5 rounded-lg transition text-slate-400 hover:text-white">
+                    معلم / مدرب
+                </button>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="loginAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-bold border"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs">
+                
+                <div>
+                    <label id="usernameLabel" class="block font-bold text-slate-300 mb-1.5">اسم المستخدم أو كود الطالب:</label>
+                    <input type="text" id="loginUsername" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none transition" placeholder="مثال: abdelrahman أو MNR-2026-1042">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block font-bold text-slate-300">كلمة المرور:</label>
+                        <span class="text-[10px] text-slate-500">الافتراضية: 123456</span>
+                    </div>
+                    <input type="password" id="loginPassword" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none transition" placeholder="أدخل كلمة المرور">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-blue-600/20 text-sm">
+                        دخول بوابة الطالب
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Quick Demo Credentials Box -->
+            <div class="mt-6 pt-5 border-t border-slate-700/60">
+                <span class="block text-[11px] font-bold text-slate-400 mb-2">تجربة سريعة (حسابات جاهزة بنقرة واحدة):</span>
+                <div class="grid grid-cols-2 gap-2 text-[11px]" id="demoButtonsContainer">
+                    <button type="button" onclick="fillDemo('abdelrahman', '123456', 'student')" class="bg-slate-900/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700 py-1.5 px-2 rounded-lg font-bold transition text-right truncate">
+                        طالب: عبدالرحمن (123456)
+                    </button>
+                    <button type="button" onclick="fillDemo('mariam', '123456', 'student')" class="bg-slate-900/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700 py-1.5 px-2 rounded-lg font-bold transition text-right truncate">
+                        طالبة: مريم (123456)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Self Registration Link for Students -->
+            <div class="mt-5 text-center" id="registerPromptBox">
+                <p class="text-xs text-slate-400">
+                    طالب جديد وليس لديك كود أو حساب؟  
+                    <a href="register.html" class="text-blue-400 hover:text-blue-300 font-extrabold underline mr-1">سجل الآن بنفسك فوراً</a>
+                </p>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-6 text-xs text-slate-500">
+            أكاديمية منير الذكية • منصة التعليم وإدارة الجلسات والمسارات (2026)
+        </div>
+
+    </main>
+
+    <!-- Footer Simple -->
+    <footer class="py-4 text-center text-xs text-slate-500 border-t border-slate-800">
+        هل تواجه صعوبة في الدخول؟ تواصل مع إدارة الأكاديمية عبر واتساب الدعم الفني.
+    </footer>
+
+    <script>
+        let currentRole = 'student';
+
+        function switchLoginRole(role) {
+            currentRole = role;
+            const tabStudent = document.getElementById('tabStudent');
+            const tabTeacher = document.getElementById('tabTeacher');
+            const usernameLabel = document.getElementById('usernameLabel');
+            const usernameInput = document.getElementById('loginUsername');
+            const submitBtn = document.getElementById('submitBtn');
+            const registerPromptBox = document.getElementById('registerPromptBox');
+            const demoContainer = document.getElementById('demoButtonsContainer');
+
+            if (role === 'student') {
+                tabStudent.className = 'py-2.5 rounded-lg transition bg-blue-600 text-white shadow-sm';
+                tabTeacher.className = 'py-2.5 rounded-lg transition text-slate-400 hover:text-white';
+                usernameLabel.innerText = 'اسم المستخدم أو كود الطالب:';
+                usernameInput.placeholder = 'مثال: abdelrahman أو MNR-2026-1042';
+                submitBtn.innerText = 'دخول بوابة الطالب';
+                submitBtn.className = 'w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-blue-600/20 text-sm';
+                registerPromptBox.classList.remove('hidden');
+
+                demoContainer.innerHTML = 
+                    <button type="button" onclick="fillDemo('abdelrahman', '123456', 'student')" class="bg-slate-900/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700 py-1.5 px-2 rounded-lg font-bold transition text-right truncate">
+                        طالب: عبدالرحمن (123456)
+                    </button>
+                    <button type="button" onclick="fillDemo('mariam', '123456', 'student')" class="bg-slate-900/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700 py-1.5 px-2 rounded-lg font-bold transition text-right truncate">
+                        طالبة: مريم (123456)
+                    </button>
+                ;
+            } else {
+                tabTeacher.className = 'py-2.5 rounded-lg transition bg-emerald-600 text-white shadow-sm';
+                tabStudent.className = 'py-2.5 rounded-lg transition text-slate-400 hover:text-white';
+                usernameLabel.innerText = 'اسم مستخدم المعلم أو البريد الإلكتروني:';
+                usernameInput.placeholder = 'مثال: eman.naggar أو eman.naggar@monir-academy.edu.eg';
+                submitBtn.innerText = 'دخول بوابة المعلمين';
+                submitBtn.className = 'w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm';
+                registerPromptBox.classList.add('hidden');
+
+                demoContainer.innerHTML = 
+                    <button type="button" onclick="fillDemo('eman.naggar', '123456', 'teacher')" class="bg-slate-900/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700 py-1.5 px-2 rounded-lg font-bold transition text-right truncate">
+                        معلم: أ. إيمان النجار (123456)
+                    </button>
+                    <button type="button" onclick="fillDemo('omar.hossam', '123456', 'teacher')" class="bg-slate-900/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700 py-1.5 px-2 rounded-lg font-bold transition text-right truncate">
+                        معلم: م. عمر حسام (123456)
+                    </button>
+                ;
+            }
+        }
+
+        function fillDemo(user, pass, role) {
+            if (role !== currentRole) switchLoginRole(role);
+            document.getElementById('loginUsername').value = user;
+            document.getElementById('loginPassword').value = pass;
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const alertBox = document.getElementById('loginAlert');
+            alertBox.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        expected_role: currentRole
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alertBox.innerText = data.detail || 'بيانات الدخول غير صحيحة، يرجى التأكد وإعادة المحاولة.';
+                    alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-red-900/30 border-red-700 text-red-300 block';
+                    return;
+                }
+
+                // Save user session in localStorage
+                localStorage.setItem('monir_current_user', JSON.stringify(data.user));
+                localStorage.setItem('monir_auth_token', data.token);
+
+                alertBox.innerText = 'تم تسجيل الدخول بنجاح! جاري تحويلك...';
+                alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-emerald-900/30 border-emerald-700 text-emerald-300 block';
+
+                setTimeout(() => {
+                    if (data.user.role === 'student') {
+                        const sid = data.user.student_id || data.user.related_id || 1;
+                        window.location.href = 'student.html?id=' + sid;
+                    } else if (data.user.role === 'teacher') {
+                        const tid = data.user.teacher_id || data.user.related_id || 1;
+                        window.location.href = 'teacher.html?id=' + tid;
+                    } else if (data.user.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    }
+                }, 800);
+
+            } catch (err) {
+                console.error(err);
+                alertBox.innerText = 'حدث خطأ في الاتصال، يرجى المحاولة لاحقاً.';
+                alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-red-900/30 border-red-700 text-red-300 block';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -24,9 +24,11 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <a href="mounir_os.html" class="text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-lg transition border border-amber-200">منظومة Mounir OS</a>
-                <a href="teacher.html" class="text-xs font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition border border-emerald-200">بوابة المعلمين</a>
-                <a href="admin.html" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition border border-slate-200">لوحة الإدارة</a>
+                <a href="login.html" id="indexAuthBtn" class="text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition border border-blue-200">تسجيل الدخول</a>
+                <a href="register.html" class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg transition shadow-sm">حساب طالب جديد</a>
+                <a href="mounir_os.html" class="text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-lg transition border border-amber-200 hidden sm:inline-block">Mounir OS</a>
+                <a href="teacher.html" class="text-xs font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition border border-emerald-200">المعلمين</a>
+                <a href="admin.html" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition border border-slate-200">الإدارة</a>
             </div>
         </div>
     </header>
@@ -146,5 +148,23 @@
         منصة أكاديمية منير التعليمية الذكية • تم التطوير كقاعدة برمجية متكاملة وقابلة للتوسع (v3.0)
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('monir_current_user');
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    const btn = document.getElementById('indexAuthBtn');
+                    if (btn) {
+                        btn.innerText = 'حسابي: ' + (u.full_name ? u.full_name.split(' ')[0] : u.username);
+                        btn.className = 'text-xs font-bold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition border border-emerald-200';
+                        if (u.role === 'student') btn.href = 'student.html?id=' + (u.student_id || 1);
+                        else if (u.role === 'teacher') btn.href = 'teacher.html?id=' + (u.teacher_id || 1);
+                        else if (u.role === 'admin') btn.href = 'admin.html';
+                    }
+                } catch(e) {}
+            }
+        });
+    </script>
 </body>
 </html>

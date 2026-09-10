@@ -33,6 +33,7 @@
                     </select>
                 </div>
                 
+                <a href="login.html" id="teacherAuthBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-700">تسجيل الدخول</a>
                 <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-700">لوحة الإدارة</a>
                 <a href="index.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-700">الرئيسية</a>
             </div>
@@ -214,8 +215,31 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
+            const userStr = localStorage.getItem('monir_current_user');
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.role === 'teacher' && u.teacher_id && !urlParams.has('id')) {
+                        currentTeacherId = u.teacher_id;
+                    }
+                    const btn = document.getElementById('teacherAuthBtn');
+                    if (btn) {
+                        btn.innerText = 'تسجيل الخروج (' + (u.full_name ? u.full_name.split(' ')[0] : u.username) + ')';
+                        btn.className = 'text-xs bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700 px-3 py-1.5 rounded-lg font-bold transition';
+                        btn.onclick = (e) => {
+                            e.preventDefault();
+                            if (confirm('هل ترغب في تسجيل الخروج؟')) {
+                                localStorage.removeItem('monir_current_user');
+                                localStorage.removeItem('monir_auth_token');
+                                window.location.href = 'login.html';
+                            }
+                        };
+                    }
+                } catch(e) {}
+            }
+
             if (urlParams.has('id')) {
-                currentTeacherId = parseInt(urlParams.get('id')) || 1;
+                currentTeacherId = parseInt(urlParams.get('id')) || currentTeacherId;
             }
             document.getElementById('teacherSelect').value = currentTeacherId;
             loadTeacherDashboard();

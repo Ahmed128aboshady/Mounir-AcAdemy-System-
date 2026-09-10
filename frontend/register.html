@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل طالب جديد — أكاديمية منير الذكية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/api_mock.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+    <!-- Top Bar -->
+    <header class="py-4 px-6 border-b border-slate-800">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-base shadow-sm">
+                    M
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm text-white leading-tight">أكاديمية منير الذكية</h1>
+                    <p class="text-[11px] text-slate-400">بوابة تسجيل واشتراك الطلاب الذاتي</p>
+                </div>
+            </a>
+            <div class="flex items-center gap-2 text-xs">
+                <a href="login.html" class="text-slate-300 hover:text-white transition px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700">لديك حساب؟ تسجيل الدخول</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Registration Box -->
+    <main class="max-w-xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center">
+        
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            
+            <div class="text-center mb-6">
+                <span class="bg-blue-900/60 text-blue-300 border border-blue-700/50 text-[11px] font-black px-3 py-1 rounded-full inline-block mb-2">
+                    التحاق فوري ومباشر
+                </span>
+                <h2 class="text-2xl font-black text-white">إنشاء حساب طالب جديد</h2>
+                <p class="text-xs text-slate-400 mt-1">سجل بياناتك للانضمام الفوري للمسار والحصول على كود الطالب وبطاقتك الرقمية</p>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="regAlert" class="hidden mb-5 p-3.5 rounded-xl text-xs font-bold border"></div>
+
+            <!-- Registration Form -->
+            <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-4 text-xs">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">اسم الطالب رباعي:</label>
+                        <input type="text" id="regName" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="مثال: يوسف محمود حسن علي">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">عمر الطالب (سنوات):</label>
+                        <input type="number" id="regAge" min="5" max="25" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="مثال: 14">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">اسم ولي الأمر:</label>
+                        <input type="text" id="regParentName" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="مثال: محمود حسن علي">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">رقم هاتف ولي الأمر (واتساب):</label>
+                        <input type="tel" id="regParentPhone" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none font-mono" placeholder="مثال: 01012345678">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">رقم هاتف الطالب (اختياري):</label>
+                        <input type="tel" id="regPhone" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none font-mono" placeholder="مثال: 01099887766">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">المسار التدريبي المطلوب:</label>
+                        <select id="regCourse" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none">
+                            <option value="كتالوج الشباب 2.0">كتالوج الشباب 2.0 (11 - 17 سنة)</option>
+                            <option value="وعي وأمان (بنين)">وعي وأمان (بنين) (11 - 15 سنة)</option>
+                            <option value="وعي وأمان (فتيات وأمهات)">وعي وأمان (فتيات وأمهات) (8 - 12 سنة)</option>
+                            <option value="مسار القرآن الكريم والتدبر">مسار القرآن الكريم والتدبر (فردي)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-700/60">
+                    <span class="block font-bold text-slate-300 mb-2">بيانات الدخول لحسابك:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1 font-bold">اسم المستخدم المختار (بالإنجليزية):</label>
+                            <input type="text" id="regUsername" required pattern="[a-zA-Z0-9_\.]+" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none font-mono" placeholder="مثال: yusuf_2026">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1 font-bold">كلمة المرور:</label>
+                            <input type="password" id="regPassword" minlength="4" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="أدخل كلمة المرور">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <button type="submit" id="regSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-blue-600/20 text-sm">
+                        إتمام التسجيل والدخول الفوري للمنصة
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Success Container Modal View -->
+            <div id="successBox" class="hidden text-center py-4 space-y-4">
+                <div class="w-14 h-14 bg-emerald-600/20 text-emerald-400 border border-emerald-500/40 rounded-2xl flex items-center justify-center mx-auto text-2xl font-black">
+                    OK
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-white">مرحباً بك في أكاديمية منير!</h3>
+                    <p class="text-xs text-slate-300 mt-1">تم تفعيل حسابك وإنشاء كارت الطالب والمسار التعليمي بنجاح.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 text-right space-y-1.5 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-bold">اسم الطالب:</span>
+                        <strong class="text-white" id="resStudentName">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-bold">كود الطالب الرقمي:</span>
+                        <strong class="text-amber-400 font-mono" id="resStudentCode">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-bold">اسم المستخدم:</span>
+                        <strong class="text-blue-400 font-mono" id="resUsername">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-bold">رصيد الحصص الترحيبي:</span>
+                        <span class="bg-emerald-900/40 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded font-black text-[10px]">4 حصص مفعلة (البلوك 1)</span>
+                    </div>
+                </div>
+                <a id="goToDashboardBtn" href="student.html" class="block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm">
+                    الانتقال المباشر لبوابة الطالب
+                </a>
+            </div>
+
+            <div class="mt-5 text-center">
+                <p class="text-xs text-slate-400">
+                    لديك حساب مسجل بالفعل؟  
+                    <a href="login.html" class="text-blue-400 hover:text-blue-300 font-extrabold underline mr-1">تسجيل الدخول من هنا</a>
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer Simple -->
+    <footer class="py-4 text-center text-xs text-slate-500 border-t border-slate-800">
+        أكاديمية منير الذكية • منصة التعليم وإدارة الجلسات والمسارات (2026)
+    </footer>
+
+    <script>
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('regSubmitBtn');
+            const alertBox = document.getElementById('regAlert');
+            alertBox.classList.add('hidden');
+
+            const payload = {
+                name: document.getElementById('regName').value.trim(),
+                age: parseInt(document.getElementById('regAge').value) || 12,
+                parent_name: document.getElementById('regParentName').value.trim(),
+                parent_phone: document.getElementById('regParentPhone').value.trim(),
+                phone: document.getElementById('regPhone').value.trim() || document.getElementById('regParentPhone').value.trim(),
+                course_name: document.getElementById('regCourse').value,
+                username: document.getElementById('regUsername').value.trim(),
+                password: document.getElementById('regPassword').value.trim()
+            };
+
+            btn.disabled = true;
+            btn.innerText = 'جاري تسجيل الحساب...';
+
+            try {
+                const res = await fetch('/api/auth/register-student', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alertBox.innerText = data.detail || 'حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى.';
+                    alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-bold border bg-red-900/30 border-red-700 text-red-300 block';
+                    btn.disabled = false;
+                    btn.innerText = 'إتمام التسجيل والدخول الفوري للمنصة';
+                    return;
+                }
+
+                // Save session in localStorage
+                localStorage.setItem('monir_current_user', JSON.stringify(data.user));
+                localStorage.setItem('monir_auth_token', data.token);
+
+                // Show Success Card
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('resStudentName').innerText = data.user.full_name;
+                document.getElementById('resStudentCode').innerText = data.user.student_code;
+                document.getElementById('resUsername').innerText = data.user.username;
+                document.getElementById('goToDashboardBtn').href = 'student.html?id=' + data.user.student_id;
+                document.getElementById('successBox').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                alertBox.innerText = 'حدث خطأ في الاتصال، يرجى إعادة المحاولة.';
+                alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-bold border bg-red-900/30 border-red-700 text-red-300 block';
+                btn.disabled = false;
+                btn.innerText = 'إتمام التسجيل والدخول الفوري للمنصة';
+            }
+        }
+    </script>
+</body>
+</html>

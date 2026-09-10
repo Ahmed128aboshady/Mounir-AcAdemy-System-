@@ -127,6 +127,120 @@ class TeacherSettlePayoutRequest(BaseModel):
 class UpdateLectureDurationRequest(BaseModel):
     duration_minutes: int
 
+class AuthLoginRequest(BaseModel):
+    username: str
+    password: str
+    expected_role: Optional[str] = None
+
+class StudentSelfRegisterRequest(BaseModel):
+    name: str
+    age: int
+    phone: str
+    parent_name: str
+    parent_phone: str
+    course_name: str
+    username: str
+    password: str
+
+# ========== AUTHENTICATION & ACCESS CONTROL ENDPOINTS ==========
+
+@app.post("/api/auth/login")
+def auth_login(req: AuthLoginRequest):
+    conn = get_db()
+    c = conn.cursor()
+    
+    c.execute("""
+    SELECT u.*, s.student_code, s.id as student_id, t.id as teacher_id
+    FROM users u
+    LEFT JOIN students s ON u.role = 'student' AND (u.related_id = s.id OR u.username = s.student_code)
+    LEFT JOIN teachers t ON u.role = 'teacher' AND u.related_id = t.id
+    WHERE (u.username = ? OR u.email = ? OR s.student_code = ?) AND u.status = 'active'
+    """, (req.username.strip(), req.username.strip(), req.username.strip()))
+    
+    user = c.fetchone()
+    conn.close()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="اسم المستخدم أو كلمة المرور غير صحيحة")
+        
+    if user["password_hash"] != req.password.strip():
+        raise HTTPException(status_code=401, detail="اسم المستخدم أو كلمة المرور غير صحيحة")
+        
+    if req.expected_role and user["role"] != req.expected_role:
+        raise HTTPException(status_code=403, detail=f"هذا الحساب غير مصرح له بالدخول كـ ({req.expected_role})")
+        
+    token = f"token_{user['role']}_{user['id']}_{uuid.uuid4().hex[:12]}"
+    
+    return {
+        "success": True,
+        "token": token,
+        "user": {
+            "id": user["id"],
+            "username": user["username"],
+            "full_name": user["full_name"],
+            "role": user["role"],
+            "related_id": user["related_id"],
+            "student_id": user["student_id"] or (user["related_id"] if user["role"] == "student" else None),
+            "teacher_id": user["teacher_id"] or (user["related_id"] if user["role"] == "teacher" else None),
+            "email": user["email"],
+            "phone": user["phone"]
+        }
+    }
+
+@app.post("/api/auth/register-student")
+def auth_register_student(req: StudentSelfRegisterRequest):
+    conn = get_db()
+    c = conn.cursor()
+    
+    c.execute("SELECT id FROM users WHERE username = ?", (req.username.strip(),))
+    if c.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="اسم المستخدم مستخدم بالفعل، يرجى اختيار اسم مستخدم آخر")
+        
+    code = f"MNR-2026-{uuid.uuid4().hex[:4].upper()}"
+    qr = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={code}"
+    
+    c.execute("""
+    INSERT INTO students (name, student_code, age, phone, parent_name, parent_phone, qr_code)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (req.name.strip(), code, req.age, req.phone.strip(), req.parent_name.strip(), req.parent_phone.strip(), qr))
+    student_id = c.lastrowid
+    
+    c.execute("""
+    INSERT INTO users (username, password_hash, role, related_id, full_name, email, phone, status)
+    VALUES (?, ?, 'student', ?, ?, ?, ?, 'active')
+    """, (req.username.strip(), req.password.strip(), student_id, req.name.strip(), f"{req.username.strip()}@student.monir.edu.eg", req.phone.strip()))
+    user_id = c.lastrowid
+    
+    c.execute("""
+    INSERT INTO enrollments (student_id, course_name, teacher_id, unlocked_blocks, total_lectures_unlocked, remaining_credits, status)
+    VALUES (?, ?, 1, 1, 4, 4, 'active')
+    """, (student_id, req.course_name))
+    
+    c.execute("""
+    INSERT INTO notifications (student_id, course_name, title, message, type, action_url)
+    VALUES (?, ?, 'أهلاً بك في أكاديمية منير الذكية', ?, 'general', 'student.html')
+    """, (student_id, req.course_name, f"تم تفعيل مسارك التعليمي بنجاح! كودك التعليمي هو: {code}"))
+    
+    conn.commit()
+    conn.close()
+    
+    token = f"token_student_{user_id}_{uuid.uuid4().hex[:12]}"
+    return {
+        "success": True,
+        "message": "تم إنشاء حسابك بنجاح! مرحباً بك في أكاديمية منير الذكية.",
+        "token": token,
+        "user": {
+            "id": user_id,
+            "username": req.username.strip(),
+            "full_name": req.name.strip(),
+            "role": "student",
+            "related_id": student_id,
+            "student_id": student_id,
+            "student_code": code
+        }
+    }
+
 # ========== COURSES ENDPOINTS ==========
 
 @app.get("/api/courses")
@@ -1468,6 +1582,7 @@ if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 @app.get("/")
+@app.get("/index.html")
 def serve_index():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
@@ -1486,3 +1601,20 @@ def serve_admin():
 @app.get("/course.html")
 def serve_course():
     return FileResponse(os.path.join(FRONTEND_DIR, "course.html"))
+
+@app.get("/login.html")
+def serve_login():
+    return FileResponse(os.path.join(FRONTEND_DIR, "login.html"))
+
+@app.get("/register.html")
+def serve_register():
+    return FileResponse(os.path.join(FRONTEND_DIR, "register.html"))
+
+@app.get("/admin-login.html")
+def serve_admin_login():
+    return FileResponse(os.path.join(FRONTEND_DIR, "admin-login.html"))
+
+@app.get("/mounir_os.html")
+def serve_mounir_os():
+    return FileResponse(os.path.join(os.path.dirname(FRONTEND_DIR), "mounir_os.html"))
+

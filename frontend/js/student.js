@@ -6,13 +6,42 @@ let activeQuizQuestions = [];
 
 // Parse URL param if exists ?id=2
 const urlParams = new URLSearchParams(window.location.search);
+const userStr = localStorage.getItem('monir_current_user');
+if (userStr) {
+    try {
+        const u = JSON.parse(userStr);
+        if (u.role === 'student' && u.student_id && !urlParams.has('id')) {
+            currentStudentId = u.student_id;
+        }
+    } catch(e) {}
+}
+
 if (urlParams.has('id')) {
-    currentStudentId = parseInt(urlParams.get('id')) || 1;
+    currentStudentId = parseInt(urlParams.get('id')) || currentStudentId;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const sel = document.getElementById('studentSelectDropdown');
     if (sel) sel.value = currentStudentId;
+
+    if (userStr) {
+        try {
+            const u = JSON.parse(userStr);
+            const authBtn = document.getElementById('studentAuthBtn');
+            if (authBtn) {
+                authBtn.innerText = 'خروج (' + (u.full_name ? u.full_name.split(' ')[0] : u.username) + ')';
+                authBtn.className = 'text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg font-bold transition';
+                authBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (confirm('هل ترغب في تسجيل الخروج؟')) {
+                        localStorage.removeItem('monir_current_user');
+                        localStorage.removeItem('monir_auth_token');
+                        window.location.href = 'login.html';
+                    }
+                };
+            }
+        } catch(e) {}
+    }
     
     loadStudentProfile();
     loadNotifications();
