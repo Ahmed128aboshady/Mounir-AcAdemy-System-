@@ -145,13 +145,17 @@ async function loadStudentProfile() {
             if (selDropdown) selDropdown.classList.add('hidden');
 
             document.getElementById('studentName').innerText = s.name || '';
-            document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: ' + (s.parent_phone || '');
-            document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
-            document.getElementById('parentName').innerText = s.parent_name || '';
+            document.getElementById('studentDetails').innerText = (s.age ? (s.age + ' سنة • ') : '') + 'تليفون ولي الأمر: ' + (s.parent_phone || s.phone || '---');
+            document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id).padStart(4, '0'));
+            document.getElementById('parentName').innerText = s.parent_name || ('ولي أمر ' + (s.name || 'الطالب'));
             document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
         }
         
-        document.getElementById('studentQrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=' + encodeURIComponent(s.student_code);
+        const qrCodeData = s.student_code || ('ST' + String(s.id).padStart(4, '0'));
+        const qrImg = document.getElementById('studentQrImg');
+        if (qrImg) {
+            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(qrCodeData);
+        }
         
         enrolledCoursesList = data.enrolled_courses;
         

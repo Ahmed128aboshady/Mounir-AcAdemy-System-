@@ -25,16 +25,6 @@
             </div>
             
             <div class="flex items-center gap-2">
-                <!-- Switch Student Dropdown -->
-                <div class="relative">
-                    <select id="studentSelectDropdown" onchange="switchStudent(this.value)" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-slate-300 outline-none cursor-pointer">
-                        <option value="1">عمر أحمد (كتالوج الشباب & وعي وأمان)</option>
-                        <option value="2">مريم حسام (وعي وأمان & مسار القرآن)</option>
-                        <option value="3">يوسف محمود (قصص الأنبياء)</option>
-                        <option value="4">عبدالرحمن خالد (مسار القرآن الكريم)</option>
-                    </select>
-                </div>
-
                 <!-- Support & Tickets Button -->
                 <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1">
                     <span>الدعم والشكاوى</span>
@@ -46,8 +36,6 @@
                     <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">1</span>
                 </button>
                 <a href="login.html" id="studentAuthBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200">تسجيل الدخول</a>
-                <a href="teacher.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200">المعلم</a>
-                <a href="admin.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200">الإدارة</a>
             </div>
         </div>
     </header>
@@ -75,28 +63,28 @@
                         </div>
                         <img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-6 w-auto object-contain opacity-95">
                     </div>
-                    <h2 class="text-2xl font-black mb-1" id="studentName">عمر أحمد علي</h2>
-                    <p class="text-xs text-blue-200" id="studentDetails">14 سنة • تليفون ولي الأمر: 01002530197</p>
+                    <h2 class="text-2xl font-black mb-1" id="studentName">جاري تحميل حساب الطالب...</h2>
+                    <p class="text-xs text-blue-200" id="studentDetails">أكاديمية منير الذكية</p>
                     
                     <div class="mt-4 flex flex-wrap gap-4 text-xs text-slate-200">
                         <div>
                             <span class="text-slate-400 block text-[10px]">كود الطالب (ID)</span>
-                            <strong class="font-mono text-sm tracking-wider text-amber-300" id="studentCode">MNR-2026-1042</strong>
+                            <strong class="font-mono text-sm tracking-wider text-amber-300" id="studentCode">---</strong>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">ولي الأمر</span>
-                            <strong id="parentName">أحمد علي حسن</strong>
+                            <strong id="parentName">---</strong>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">إجمالي الكورسات المشترك بها</span>
-                            <strong class="text-emerald-400 text-sm" id="enrolledCoursesCount">2 مسار تدريبي</strong>
+                            <strong class="text-emerald-400 text-sm" id="enrolledCoursesCount">---</strong>
                         </div>
                     </div>
                 </div>
 
                 <!-- QR Code Box -->
                 <div class="bg-white p-3 rounded-2xl shadow-xl flex flex-col items-center justify-center self-center sm:self-auto">
-                    <img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=MNR-2026-1042" alt="QR Code" class="w-24 h-24 rounded-lg">
+                    <img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ST0001" alt="QR Code" class="w-24 h-24 rounded-lg">
                     <span class="text-[10px] text-slate-500 font-bold mt-1.5">باركود الحضور والمتابعة</span>
                 </div>
             </div>
