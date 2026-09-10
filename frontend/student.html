@@ -87,11 +87,11 @@
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">ولي الأمر</span>
-                            <strong id="parentName">---</strong>
+                            <strong id="parentName"><script>(function(){const u=window.__PRELOADED_USER__;if(u&&u.full_name){const p=u.full_name.split(' ');document.write(p.length>=2?('أ. '+p.slice(1).join(' ')+' (ولي الأمر)'):('ولي أمر '+u.full_name));}else{document.write('---');}})();</script></strong>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">إجمالي الكورسات المشترك بها</span>
-                            <strong class="text-emerald-400 text-sm" id="enrolledCoursesCount">---</strong>
+                            <strong class="text-emerald-400 text-sm" id="enrolledCoursesCount"><script>(function(){const u=window.__PRELOADED_USER__;document.write(u?'1 مسار تدريبي':'---');})();</script></strong>
                         </div>
                     </div>
                 </div>
@@ -472,7 +472,7 @@
         </div>
     </div>
 
-    <script src="js/api_mock.js?v=20260910_lms_v1"></script>
-    <script src="js/student.js?v=20260910_lms_v1"></script>
+    <script src="js/api_mock.js?v=20260910_v3"></script>
+    <script src="js/student.js?v=20260910_v3"></script>
 </body>
 </html>
