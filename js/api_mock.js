@@ -5547,7 +5547,8 @@
       "parent_phone": "01118599442",
       "account_status": "نشط",
       "qr_code": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ST0419",
-      "status": "active"
+      "status": "active",
+      "remaining_credits": 12
     },
     {
       "id": 277,
@@ -37677,7 +37678,8 @@
       "parent_phone": "01118599442",
       "account_status": "نشط",
       "qr_code": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ST0419",
-      "status": "active"
+      "status": "active",
+      "remaining_credits": 12
     },
     {
       "id": 277,
@@ -68299,7 +68301,8 @@
       "parent_phone": "01118599442",
       "account_status": "نشط",
       "qr_code": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ST0419",
-      "status": "active"
+      "status": "active",
+      "remaining_credits": 12
     },
     {
       "id": 277,
@@ -93932,20 +93935,44 @@
 
             const realSid = student ? student.id : (isNaN(sid) ? 1 : sid);
             const enrollmentsList = (DB && DB.enrollments) ? DB.enrollments : [];
-            let enrs = student ? enrollmentsList.filter(e => e.student_id === student.id) : [];
+            
+            // البحث عن enrollments بالـ student.id أو بالـ student_code
+            let enrs = [];
+            if (student) {
+                // محاولة المطابقة بالـ id
+                enrs = enrollmentsList.filter(e => e.student_id === student.id);
+                // إذا لم نجد، نحاول بالـ student_code
+                if (!enrs.length && student.student_code) {
+                    enrs = enrollmentsList.filter(e => 
+                        e.student_code === student.student_code ||
+                        String(e.student_id) === String(student.student_code).replace('ST', '').replace(/^0+/, '')
+                    );
+                }
+                // إذا لم نجد بعد، نحاول بالـ sequential index في الـ students list
+                if (!enrs.length) {
+                    const studentsList2 = (DB && DB.students) ? DB.students : [];
+                    const seqIdx = studentsList2.findIndex(s => s.id === student.id || s.student_code === student.student_code);
+                    if (seqIdx >= 0) {
+                        const seqId = seqIdx + 1;
+                        enrs = enrollmentsList.filter(e => e.student_id === seqId);
+                    }
+                }
+            }
 
             if (!enrs.length) {
+                // الـ fallback يستخدم remaining_credits من بيانات الطالب نفسه إن وُجد
+                const defCredits = (student && student.remaining_credits !== undefined) ? student.remaining_credits : 12;
                 enrs = [{
-                    course_name: "الاثنين 8",
+                    course_name: student && student.group_id ? (student.group_id === "G182" ? "الاثنين 8" : "الاثنين 8") : "الاثنين 8",
                     group_id: student ? student.group_id : "G182",
                     teacher_name: "محمود حمادة",
-                    unlocked_blocks: 1,
-                    total_lectures_unlocked: 4,
-                    remaining_credits: 4,
-                    renewal_count: 1,
+                    unlocked_blocks: Math.ceil(defCredits / 4),
+                    total_lectures_unlocked: defCredits,
+                    remaining_credits: defCredits,
+                    renewal_count: 0,
                     subscription_days: "الاثنين",
                     lecture_time: "8:00 مساءً",
-                    account_status: "نشط",
+                    account_status: student ? (student.account_status || "نشط") : "نشط",
                     status: "active"
                 }];
             }

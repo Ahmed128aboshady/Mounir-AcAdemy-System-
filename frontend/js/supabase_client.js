@@ -228,7 +228,8 @@
                             subscription_days: e.subscription_days || locE.subscription_days || 'الاثنين',
                             lecture_time: e.lecture_time || locE.lecture_time || '8:00 مساءً',
                             account_status: e.account_status || locE.account_status || stData.account_status || 'نشط',
-                            remaining_credits: (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 4)
+                            remaining_credits: (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 12),
+                            total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 12))
                         };
                     });
                 } else if (localEnrs.length > 0) {

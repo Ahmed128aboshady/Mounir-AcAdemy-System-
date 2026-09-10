@@ -5819,7 +5819,8 @@
       "account_status": "نشط",
       "qr_code": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ST0419",
       "status": "active",
-      "total_lectures_unlocked": 4
+      "remaining_credits": 12,
+      "total_lectures_unlocked": 12
     },
     {
       "id": 277,
