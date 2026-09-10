@@ -1,45 +1,38 @@
 // Smart API Mock Engine for GitHub Pages Live Demo & Offline Testing
 (function() {
-    const DB_KEY = 'monir_smart_lms_db_v8';
+    const DB_KEY = 'monir_smart_lms_db_v9';
     let DB = null;
 
-    function loadSeedSync() {
-        try {
-            const xhr = new XMLHttpRequest();
-            const relPath = window.location.pathname.includes('/frontend/') ? '../js/db_seed.json' : 'js/db_seed.json';
-            xhr.open('GET', relPath + '?v=20260910_seed8', false);
-            xhr.send(null);
-            if (xhr.status === 200) {
-                const data = JSON.parse(xhr.responseText);
-                if (data && data.users && data.users.length > 50) {
-                    DB = data;
-                    try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
-                    return true;
+    async function ensureDbLoaded() {
+        if (DB && DB.users && DB.users.length >= 50 && DB.students && DB.students.length >= 50) {
+            return DB;
+        }
+        const stored = localStorage.getItem(DB_KEY);
+        if (stored) {
+            try {
+                DB = JSON.parse(stored);
+                if (DB && DB.users && DB.users.length >= 50 && DB.students && DB.students.length >= 50) {
+                    return DB;
                 }
+            } catch(e) {}
+        }
+        try {
+            const relPath = window.location.pathname.includes('/frontend/') ? '../js/db_seed.json' : 'js/db_seed.json';
+            const res = await fetch(relPath + '?v=20260910_seed9');
+            const data = await res.json();
+            if (data && data.users && data.students) {
+                DB = data;
+                try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+                return DB;
             }
         } catch(e) {
-            console.warn('[Mock DB] Synchronous seed load warning:', e);
+            console.warn('[Mock DB] Async fetch warning:', e);
         }
-        return false;
+        return DB;
     }
 
     function initDb() {
-        const stored = localStorage.getItem(DB_KEY);
-        if (stored) {
-            try { DB = JSON.parse(stored); } catch(e) {}
-        }
-        if (!DB || !DB.users || DB.users.length < 50) {
-            if (!loadSeedSync()) {
-                fetch('js/db_seed.json?v=' + Date.now())
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.users && data.users.length > 50) {
-                            DB = data;
-                            try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
-                        }
-                    }).catch(e => {});
-            }
-        }
+        ensureDbLoaded();
     }
 
     function saveDb() {
@@ -56,9 +49,7 @@
     }
 
     async function handleMock(url, options = {}) {
-        if (!DB || !DB.users || DB.users.length < 50) {
-            initDb();
-        }
+        await ensureDbLoaded();
         const method = (options.method || 'GET').toUpperCase();
         let body = {};
         if (options.body) {
@@ -506,14 +497,30 @@
             return jsonResponse({ success: true, message: 'تم حفظ المحاضرة بنجاح', lecture: lecData });
         }
 
-        // 7b. Single Student Info (/api/student/<built-in function id>)
+        // 7b. Single Student Info (/api/student/<id>)
         const studentInfoMatch = path.match(/\/api\/student\/(\d+)$/);
         if (studentInfoMatch) {
+            await ensureDbLoaded();
             const sid = parseInt(studentInfoMatch[1]);
-            const student = DB.students.find(s => s.id === sid) || DB.students[0];
-            const enrs = DB.enrollments.filter(e => e.student_id === student.id);
+            const studentsList = (DB && DB.students) ? DB.students : [];
+            let student = studentsList.find(s => s.id === sid);
+
+            if (!student) {
+                const uStr = localStorage.getItem('monir_current_user');
+                if (uStr) {
+                    try {
+                        const u = JSON.parse(uStr);
+                        const relId = u.student_id || u.related_id;
+                        if (relId) student = studentsList.find(s => s.id === relId);
+                    } catch(e) {}
+                }
+            }
+            if (!student && studentsList.length > 0) student = studentsList[0];
+
+            const enrollmentsList = (DB && DB.enrollments) ? DB.enrollments : [];
+            const enrs = student ? enrollmentsList.filter(e => e.student_id === student.id) : [];
             return jsonResponse({
-                student: student,
+                student: student || { id: sid, name: "طالب الأكاديمية", student_code: "ST0001", phone: "---" },
                 enrolled_courses: enrs,
                 enrolled_courses_count: enrs.length,
                 unread_notifications: 1

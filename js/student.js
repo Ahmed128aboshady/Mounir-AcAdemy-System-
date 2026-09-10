@@ -144,11 +144,20 @@ async function loadStudentProfile() {
             const selDropdown = document.getElementById('studentSelectDropdown');
             if (selDropdown) selDropdown.classList.add('hidden');
 
-            document.getElementById('studentName').innerText = s.name || '';
+            let fallbackName = 'طالب الأكاديمية';
+            if (uStr) {
+                try {
+                    const u = JSON.parse(uStr);
+                    if (u.full_name) fallbackName = u.full_name;
+                } catch(e) {}
+            }
+            const finalName = s.name || fallbackName;
+
+            document.getElementById('studentName').innerText = finalName;
             document.getElementById('studentDetails').innerText = (s.age ? (s.age + ' سنة • ') : '') + 'تليفون ولي الأمر: ' + (s.parent_phone || s.phone || '---');
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id).padStart(4, '0'));
-            document.getElementById('parentName').innerText = s.parent_name || ('ولي أمر ' + (s.name || 'الطالب'));
-            document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
+            document.getElementById('parentName').innerText = s.parent_name || ('ولي أمر ' + finalName);
+            document.getElementById('enrolledCoursesCount').innerText = ((data && data.enrolled_courses_count) || (enrolledCoursesList ? enrolledCoursesList.length : 1)) + ' مسار تدريبي';
         }
         
         const qrCodeData = s.student_code || ('ST' + String(s.id).padStart(4, '0'));
