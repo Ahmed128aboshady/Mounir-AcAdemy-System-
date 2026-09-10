@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/popup.js"></script>
     <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
     <script>
@@ -1186,7 +1187,16 @@
         });
 
         function handleAdminLogout() {
-            if (confirm("هل ترغب في تسجيل الخروج من لوحة الإدارة؟")) {
+            if (window.MonirPopup) {
+                window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من لوحة الإدارة المركزية؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
+                    .then(confirmed => {
+                        if (confirmed) {
+                            localStorage.removeItem('monir_current_user');
+                            localStorage.removeItem('monir_auth_token');
+                            window.location.href = 'admin-login.html';
+                        }
+                    });
+            } else if (confirm("هل ترغب في تسجيل الخروج من لوحة الإدارة؟")) {
                 localStorage.removeItem('monir_current_user');
                 localStorage.removeItem('monir_auth_token');
                 window.location.href = 'admin-login.html';

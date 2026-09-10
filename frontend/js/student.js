@@ -33,7 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 authBtn.className = 'text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg font-bold transition';
                 authBtn.onclick = (e) => {
                     e.preventDefault();
-                    if (confirm('هل ترغب في تسجيل الخروج؟')) {
+                    if (window.MonirPopup) {
+                        window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من حسابك؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
+                            .then(confirmed => {
+                                if (confirmed) {
+                                    localStorage.removeItem('monir_current_user');
+                                    localStorage.removeItem('monir_auth_token');
+                                    window.location.href = 'login.html';
+                                }
+                            });
+                    } else if (confirm('هل ترغب في تسجيل الخروج؟')) {
                         localStorage.removeItem('monir_current_user');
                         localStorage.removeItem('monir_auth_token');
                         window.location.href = 'login.html';

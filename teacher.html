@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/popup.js"></script>
     <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
     <script>
@@ -19,8 +20,15 @@
             try {
                 const u = JSON.parse(userStr);
                 if (u.role === 'student') {
-                    alert('عذراً، بوابة المعلمين مخصصة فقط للكادر التعليمي والمشرفين. جاري تحويلك إلى بوابتك كطالب.');
-                    window.location.replace('student.html?id=' + (u.student_id || u.related_id || 1));
+                    if (window.MonirPopup) {
+                        window.MonirPopup.alert('عذراً، بوابة المعلمين مخصصة فقط للكادر التعليمي والمشرفين. جاري تحويلك إلى بوابتك كطالب.', 'تنبيه الصلاحيات', 'warning', 'الانتقال إلى بوابة الطالب')
+                            .then(() => {
+                                window.location.replace('student.html?id=' + (u.student_id || u.related_id || 1));
+                            });
+                    } else {
+                        alert('عذراً، بوابة المعلمين مخصصة فقط للكادر التعليمي والمشرفين. جاري تحويلك إلى بوابتك كطالب.');
+                        window.location.replace('student.html?id=' + (u.student_id || u.related_id || 1));
+                    }
                     return;
                 }
             } catch(e) {
@@ -248,7 +256,16 @@
                         btn.className = 'text-xs bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700 px-3 py-1.5 rounded-lg font-bold transition';
                         btn.onclick = (e) => {
                             e.preventDefault();
-                            if (confirm('هل ترغب في تسجيل الخروج؟')) {
+                            if (window.MonirPopup) {
+                                window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من حساب المعلم؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
+                                    .then(confirmed => {
+                                        if (confirmed) {
+                                            localStorage.removeItem('monir_current_user');
+                                            localStorage.removeItem('monir_auth_token');
+                                            window.location.href = 'login.html';
+                                        }
+                                    });
+                            } else if (confirm('هل ترغب في تسجيل الخروج؟')) {
                                 localStorage.removeItem('monir_current_user');
                                 localStorage.removeItem('monir_auth_token');
                                 window.location.href = 'login.html';
@@ -426,7 +443,12 @@
 
         async function recordSession(studentId, sessionStatus) {
             const labels = { 'present': 'حضور', 'excused': 'عذر مقبول', 'absent': 'غياب' };
-            if (!confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟')) return;
+            if (window.MonirPopup) {
+                const confirmed = await window.MonirPopup.confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟', 'تأكيد تسجيل الجلسة', 'question', 'نعم، تأكيد التسجيل', 'إلغاء');
+                if (!confirmed) return;
+            } else if (!confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟')) {
+                return;
+            }
 
             try {
                 const res = await fetch('/api/quran/record-session', {
