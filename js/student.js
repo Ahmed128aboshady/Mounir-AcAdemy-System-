@@ -398,7 +398,6 @@ function renderEnrolledCoursesTabs(courses) {
                     <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
                         <span class="bg-slate-900 text-amber-300 font-mono text-[11px] font-extrabold px-2.5 py-0.5 rounded-md border border-slate-700">معرف الجروب: ${groupId}</span>
                         <span class="${statusColor} border font-black px-2.5 py-0.5 rounded-full text-[10px]">🟢 حالة الحساب: ${statusText}</span>
-                        <span class="bg-emerald-800 text-emerald-100 font-bold px-2.5 py-0.5 rounded-full text-[10px]">📖 مسار القرآن الكريم والتدبر</span>
                     </div>
                     <h4 class="font-black text-lg text-slate-900 flex items-center gap-2">
                         <span>${cName}</span>
