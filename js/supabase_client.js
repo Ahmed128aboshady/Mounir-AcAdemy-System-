@@ -157,34 +157,47 @@
         getStudentProfile: async function(studentId) {
             const client = this.getClient();
             try {
-                const sid = parseInt(studentId);
-                let stData = null;
-                let enrData = null;
+                let numId = parseInt(studentId);
+                let codeStr = String(studentId);
                 
-                if (client) {
-                    const { data: st, error: stErr } = await client
-                        .from('students')
-                        .select('*')
-                        .eq('id', sid)
-                        .single();
-                    if (!stErr && st) stData = st;
-
-                    const { data: enr } = await client
-                        .from('enrollments')
-                        .select('*')
-                        .eq('student_id', sid);
-                    if (enr) enrData = enr;
-                }
-
-                // Fallback/enrich from window.DEFAULT_DB if available
                 let localSt = null;
                 let localEnrs = [];
+                
                 if (window.DEFAULT_DB) {
                     if (window.DEFAULT_DB.students) {
-                        localSt = window.DEFAULT_DB.students.find(s => s.id === sid || s.student_code === studentId);
+                        localSt = window.DEFAULT_DB.students.find(s => 
+                            s.id === numId || 
+                            s.student_code === codeStr || 
+                            (s.student_code && s.student_code.toLowerCase() === codeStr.toLowerCase())
+                        );
                     }
-                    if (window.DEFAULT_DB.enrollments) {
-                        localEnrs = window.DEFAULT_DB.enrollments.filter(e => e.student_id === sid);
+                }
+                
+                const realSid = localSt ? localSt.id : (!isNaN(numId) ? numId : null);
+                
+                if (window.DEFAULT_DB && window.DEFAULT_DB.enrollments && realSid) {
+                    localEnrs = window.DEFAULT_DB.enrollments.filter(e => e.student_id === realSid);
+                }
+
+                let stData = null;
+                let enrData = null;
+
+                if (client) {
+                    let stQuery = client.from('students').select('*');
+                    if (realSid) {
+                        stQuery = stQuery.eq('id', realSid);
+                    } else {
+                        stQuery = stQuery.eq('student_code', codeStr);
+                    }
+                    const { data: st, error: stErr } = await stQuery.single();
+                    if (!stErr && st) stData = st;
+
+                    if (realSid) {
+                        const { data: enr } = await client
+                            .from('enrollments')
+                            .select('*')
+                            .eq('student_id', realSid);
+                        if (enr) enrData = enr;
                     }
                 }
 
