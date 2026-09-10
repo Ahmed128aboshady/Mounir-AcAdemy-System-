@@ -22963,7 +22963,8 @@
       "subscription_days": "الاثنين",
       "account_status": "نشط",
       "renewal_count": 1,
-      "status": "active"
+      "status": "active",
+      "session_duration": "20 دقيقة"
     },
     {
       "id": 277,
@@ -22979,7 +22980,8 @@
       "subscription_days": "الاثنين",
       "account_status": "نشط",
       "renewal_count": 1,
-      "status": "active"
+      "status": "active",
+      "session_duration": "20 دقيقة"
     },
     {
       "id": 278,

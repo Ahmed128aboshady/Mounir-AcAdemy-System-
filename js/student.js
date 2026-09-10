@@ -373,11 +373,10 @@ function renderEnrolledCoursesTabs(courses) {
 
         let durationText = c.session_duration || c.duration;
         if (!durationText) {
-            durationText = "60 دقيقة";
-            if (cName) {
-                if (cName.includes("20") || cName.includes("20د")) {
-                    durationText = "20 دقيقة (جلسة فردية)";
-                } else if (cName.includes("30") || cName.includes("نصف") || cName.includes("30د")) {
+            if (groupId === "G182" || (curStudent && curStudent.student_code === "ST0419") || (cName && cName.includes("20"))) {
+                durationText = "20 دقيقة (جلسة فردية)";
+            } else if (cName) {
+                if (cName.includes("30") || cName.includes("نصف") || cName.includes("30د")) {
                     durationText = "30 دقيقة (جلسة فردية)";
                 } else if (cName.includes("40") || cName.includes("40د")) {
                     durationText = "40 دقيقة (جلسة فردية)";
@@ -385,7 +384,11 @@ function renderEnrolledCoursesTabs(courses) {
                     durationText = "45 دقيقة (جلسة فردية)";
                 } else if (cName.includes("برايفت") || cName.includes("خاص")) {
                     durationText = "30 - 45 دقيقة (جلسة فردية)";
+                } else {
+                    durationText = "20 - 60 دقيقة";
                 }
+            } else {
+                durationText = "20 دقيقة (جلسة فردية)";
             }
         }
 
