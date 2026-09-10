@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -121,16 +121,19 @@
 
             try {
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    const sbRes = await window.MonirDB.login(username, password, 'admin');
-                    if (sbRes.error) {
-                        throw new Error(sbRes.error);
+                    try {
+                        const sbRes = await window.MonirDB.login(username, password, 'admin');
+                        if (sbRes && sbRes.success && sbRes.user) {
+                            localStorage.setItem('monir_current_user', JSON.stringify(sbRes.user));
+                            if (sbRes.token) localStorage.setItem('monir_auth_token', sbRes.token);
+                            alertBox.innerText = 'تم التحقق بنجاح من قاعدة البيانات السحابية! جاري التوجيه...';
+                            alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-emerald-950/40 border-emerald-600 text-emerald-300 block';
+                            setTimeout(() => { window.location.href = 'admin.html'; }, 600);
+                            return;
+                        }
+                    } catch(sbErr) {
+                        console.warn('[Supabase Admin Login]: Fallback to local API.', sbErr);
                     }
-                    localStorage.setItem('monir_current_user', JSON.stringify(sbRes.user));
-                    if (sbRes.token) localStorage.setItem('monir_auth_token', sbRes.token);
-                    alertBox.innerText = 'تم التحقق بنجاح من قاعدة البيانات السحابية! جاري التوجيه...';
-                    alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-emerald-950/40 border-emerald-600 text-emerald-300 block';
-                    setTimeout(() => { window.location.href = 'admin.html'; }, 600);
-                    return;
                 }
 
                 const res = await fetch('/api/auth/login', {

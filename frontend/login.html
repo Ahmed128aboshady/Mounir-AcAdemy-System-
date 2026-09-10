@@ -160,14 +160,17 @@
             submitBtn.innerHTML = '<span>جاري التحقق من قاعدة البيانات...</span>';
 
             try {
-                // If Supabase is configured, use it first
+                // If Supabase is configured, try cloud login first
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    const sbRes = await window.MonirDB.login(username, password, currentRole);
-                    if (sbRes.error) {
-                        throw new Error(sbRes.error);
+                    try {
+                        const sbRes = await window.MonirDB.login(username, password, currentRole);
+                        if (sbRes && sbRes.success && sbRes.user) {
+                            proceedSuccess(sbRes.user, sbRes.token);
+                            return;
+                        }
+                    } catch(sbErr) {
+                        console.warn('[Supabase Cloud Login]: Fallback to local database.', sbErr);
                     }
-                    proceedSuccess(sbRes.user, sbRes.token);
-                    return;
                 }
 
                 // Fallback to local / backend API

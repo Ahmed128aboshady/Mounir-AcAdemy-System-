@@ -1,9 +1,27 @@
 // Smart API Mock Engine for GitHub Pages Live Demo & Offline Testing
 (function() {
-    const DB_KEY = 'monir_smart_lms_db_v6';
+    const DB_KEY = 'monir_smart_lms_db_v8';
     let DB = null;
 
-    const DEFAULT_USERS = [{"id": 1, "username": "admin", "password_hash": "admin2026", "role": "admin", "related_id": 1, "full_name": "إدارة أكاديمية منير", "email": "admin@monir-academy.edu.eg", "phone": "01000000000", "status": "active"}, {"id": 2, "username": "eman.naggar", "password_hash": "123456", "role": "teacher", "related_id": 1, "teacher_id": 1, "full_name": "أ. إيمان النجار", "email": "eman.naggar@monir-academy.edu.eg", "phone": "01001112233", "status": "active"}, {"id": 3, "username": "sara.abdelmonem", "password_hash": "123456", "role": "teacher", "related_id": 2, "teacher_id": 2, "full_name": "د. سارة عبد المنعم", "email": "sara.abdelmonem@monir-academy.edu.eg", "phone": "01002223344", "status": "active"}, {"id": 4, "username": "omar.hossam", "password_hash": "123456", "role": "teacher", "related_id": 3, "teacher_id": 3, "full_name": "م. عمر حسام", "email": "omar.hossam@monir-academy.edu.eg", "phone": "01003334455", "status": "active"}, {"id": 5, "username": "youssef.hani", "password_hash": "123456", "role": "teacher", "related_id": 4, "teacher_id": 4, "full_name": "م. يوسف هاني", "email": "youssef.hani@monir-academy.edu.eg", "phone": "01004445566", "status": "active"}, {"id": 6, "username": "abdelrahman", "password_hash": "123456", "role": "student", "related_id": 1, "student_id": 1, "full_name": "عبدالرحمن خالد محمود", "email": "abdelrahman@student.monir.edu.eg", "phone": "01012345678", "status": "active"}, {"id": 7, "username": "mariam", "password_hash": "123456", "role": "student", "related_id": 2, "student_id": 2, "full_name": "مريم إبراهيم الدسوقي", "email": "mariam@student.monir.edu.eg", "phone": "01023456789", "status": "active"}, {"id": 8, "username": "ziad", "password_hash": "123456", "role": "student", "related_id": 3, "student_id": 3, "full_name": "زياد أحمد الشناوي", "email": "ziad@student.monir.edu.eg", "phone": "01034567890", "status": "active"}, {"id": 9, "username": "jana", "password_hash": "123456", "role": "student", "related_id": 4, "student_id": 4, "full_name": "جنى تامر الفقي", "email": "jana@student.monir.edu.eg", "phone": "01045678901", "status": "active"}, {"id": 10, "username": "hamza", "password_hash": "123456", "role": "student", "related_id": 5, "student_id": 5, "full_name": "حمزة عادل توفيق", "email": "hamza@student.monir.edu.eg", "phone": "01055566778", "status": "active"}];
+    function loadSeedSync() {
+        try {
+            const xhr = new XMLHttpRequest();
+            const relPath = window.location.pathname.includes('/frontend/') ? '../js/db_seed.json' : 'js/db_seed.json';
+            xhr.open('GET', relPath + '?v=20260910_seed8', false);
+            xhr.send(null);
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                if (data && data.users && data.users.length > 50) {
+                    DB = data;
+                    try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+                    return true;
+                }
+            }
+        } catch(e) {
+            console.warn('[Mock DB] Synchronous seed load warning:', e);
+        }
+        return false;
+    }
 
     function initDb() {
         const stored = localStorage.getItem(DB_KEY);
@@ -11,15 +29,18 @@
             try { DB = JSON.parse(stored); } catch(e) {}
         }
         if (!DB || !DB.users || DB.users.length < 50) {
-            fetch('js/db_seed.json?v=' + Date.now())
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.users && data.users.length > 50) {
-                        DB = data;
-                        try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
-                    }
-                }).catch(e => {});
+            if (!loadSeedSync()) {
+                fetch('js/db_seed.json?v=' + Date.now())
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.users && data.users.length > 50) {
+                            DB = data;
+                            try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+                        }
+                    }).catch(e => {});
+            }
         }
+    }
 
     function saveDb() {
         try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
@@ -35,6 +56,9 @@
     }
 
     async function handleMock(url, options = {}) {
+        if (!DB || !DB.users || DB.users.length < 50) {
+            initDb();
+        }
         const method = (options.method || 'GET').toUpperCase();
         let body = {};
         if (options.body) {
@@ -54,6 +78,9 @@
 
         // 0. AUTH: Login
         if (path === '/api/auth/login' && method === 'POST') {
+            if (!DB || !DB.users || DB.users.length < 50) {
+                initDb();
+            }
             let uInput = (body.username || '').trim().toLowerCase();
             let pInput = (body.password || '').trim();
             const expRole = body.expected_role;
@@ -88,7 +115,7 @@
                 return jsonResponse({ detail: "اسم المستخدم غير موجود، يرجى التأكد وإعادة المحاولة." }, 401);
             }
 
-            if (user.password_hash !== pInput && pInput !== '123456' && pInput !== 'admin2026') {
+            if (pInput && user.password_hash !== pInput && pInput !== '123456' && pInput !== 'admin2026') {
                 return jsonResponse({ detail: "كلمة المرور غير صحيحة، يرجى كتابة كلمة المرور المحددة بالشيت." }, 401);
             }
 

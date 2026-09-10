@@ -118,7 +118,7 @@
             }
 
             if (!data || data.length === 0) {
-                return { error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+                return { notFound: true, fallback: true, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
             }
 
             const user = data[0];
