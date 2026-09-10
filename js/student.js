@@ -268,7 +268,7 @@ async function loadStudentProfile() {
             remaining_credits: 4,
             renewal_count: 1,
             subscription_days: "الاثنين",
-            lecture_time: "8:00 مساءً (ساعة 20)",
+            lecture_time: "8:00 مساءً",
             account_status: s.account_status || "نشط",
             status: "active"
         }];
@@ -342,7 +342,7 @@ function renderEnrolledCoursesTabs(courses) {
         remaining_credits: 4,
         renewal_count: 1,
         subscription_days: "الاثنين",
-        lecture_time: "8:00 مساءً (ساعة 20)",
+        lecture_time: "8:00 مساءً",
         account_status: curStudent.account_status || "نشط",
         status: "active"
     }];
@@ -364,13 +364,26 @@ function renderEnrolledCoursesTabs(courses) {
         const groupId = c.group_id || curStudent.group_id || 'G182';
         const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 4;
         const daysText = c.subscription_days || 'الاثنين';
-        const timeText = c.lecture_time || (c.raw_time ? ('ساعة ' + c.raw_time) : '8:00 مساءً (ساعة 20)');
+        let rawTimeVal = c.lecture_time || '8:00 مساءً';
+        let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
+        if (!timeText || timeText === 'غير محدد') timeText = '8:00 مساءً';
+        
         const statusText = c.account_status || curStudent.account_status || 'نشط';
         const statusColor = (statusText === 'نشط' || statusText.includes('ساري')) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
 
         let durationText = "60 دقيقة (ساعة كاملة)";
-        if (cName && (cName.includes("برايفت") || cName.includes("نصف") || cName.includes("30"))) {
-            durationText = "30-45 دقيقة (جلسة فردية برايفت)";
+        if (cName) {
+            if (cName.includes("20") || cName.includes("20د")) {
+                durationText = "20 دقيقة (جلسة فردية)";
+            } else if (cName.includes("30") || cName.includes("نصف") || cName.includes("30د")) {
+                durationText = "30 دقيقة (جلسة فردية)";
+            } else if (cName.includes("40") || cName.includes("40د")) {
+                durationText = "40 دقيقة (جلسة فردية)";
+            } else if (cName.includes("45") || cName.includes("45د")) {
+                durationText = "45 دقيقة (جلسة فردية)";
+            } else if (cName.includes("برايفت") || cName.includes("خاص")) {
+                durationText = "30 - 45 دقيقة (جلسة فردية)";
+            }
         }
 
         card.innerHTML = `
@@ -538,16 +551,16 @@ async function loadSelectedCourseLectures() {
 
         if (!data.lectures || data.lectures.length === 0) {
             data.lectures = [
-                { id: 101, lecture_number: 1, block_number: 1, title: 'المحاضرة 1: التلاوة ومراجعة سورة المطففين', scheduled_time: upcomingDates[0].dateFormatted + ' • 8:00 مساءً (ساعة كاملة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
-                { id: 102, lecture_number: 2, block_number: 1, title: 'المحاضرة 2: التلاوة ومراجعة سورة الانشقاق', scheduled_time: upcomingDates[1].dateFormatted + ' • 8:00 مساءً (ساعة كاملة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
-                { id: 103, lecture_number: 3, block_number: 1, title: 'المحاضرة 3: التلاوة ومراجعة سورة البروج', scheduled_time: upcomingDates[2].dateFormatted + ' • 8:00 مساءً (ساعة كاملة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
-                { id: 104, lecture_number: 4, block_number: 1, title: 'المحاضرة 4: التلاوة والاختبار التقييمي للمرحلة', scheduled_time: upcomingDates[3].dateFormatted + ' • 8:00 مساءً (ساعة كاملة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' }
+                { id: 101, lecture_number: 1, block_number: 1, title: 'المحاضرة 1: التلاوة ومراجعة سورة المطففين', scheduled_time: upcomingDates[0].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
+                { id: 102, lecture_number: 2, block_number: 1, title: 'المحاضرة 2: التلاوة ومراجعة سورة الانشقاق', scheduled_time: upcomingDates[1].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
+                { id: 103, lecture_number: 3, block_number: 1, title: 'المحاضرة 3: التلاوة ومراجعة سورة البروج', scheduled_time: upcomingDates[2].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' },
+                { id: 104, lecture_number: 4, block_number: 1, title: 'المحاضرة 4: التلاوة والاختبار التقييمي للمرحلة', scheduled_time: upcomingDates[3].dateFormatted + ' • 8:00 مساءً (60 دقيقة)', is_unlocked: true, status: 'scheduled', google_meet_url: 'https://meet.google.com/mnr-g182-mon' }
             ];
         } else {
             let p1Idx = 0;
             data.lectures.forEach(l => {
                 if (l.block_number === 1 && p1Idx < upcomingDates.length) {
-                    l.scheduled_time = upcomingDates[p1Idx].dateFormatted + ' • 8:00 مساءً (ساعة كاملة)';
+                    l.scheduled_time = upcomingDates[p1Idx].dateFormatted + ' • 8:00 مساءً (60 دقيقة)';
                     l.google_meet_url = l.google_meet_url || 'https://meet.google.com/mnr-g182-mon';
                     p1Idx++;
                 }

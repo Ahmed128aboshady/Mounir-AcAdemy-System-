@@ -226,7 +226,7 @@
                             group_id: e.group_id || locE.group_id || stData.group_id || 'G182',
                             teacher_name: e.teacher_name || locE.teacher_name || 'محمود حمادة',
                             subscription_days: e.subscription_days || locE.subscription_days || 'الاثنين',
-                            lecture_time: e.lecture_time || locE.lecture_time || '8:00 مساءً (ساعة 20)',
+                            lecture_time: e.lecture_time || locE.lecture_time || '8:00 مساءً',
                             account_status: e.account_status || locE.account_status || stData.account_status || 'نشط',
                             remaining_credits: (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 4)
                         };
