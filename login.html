@@ -183,9 +183,12 @@
                         expected_role: currentRole
                     })
                 });
-                const data = await res.json();
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch(jErr) {}
 
-                if (!res.ok) {
+                if (!res.ok || !data.success) {
                     alertBox.innerText = data.detail || 'بيانات الدخول غير صحيحة، يرجى التأكد وإعادة المحاولة.';
                     alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-red-900/40 border-red-600 text-red-200 block';
                     submitBtn.disabled = false;

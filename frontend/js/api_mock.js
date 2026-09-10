@@ -653,7 +653,6 @@
     // Global fetch interceptor
     const isLocalhost = (typeof window !== 'undefined' && window.location) ? 
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') : false;
-    const realFetch = (typeof window !== 'undefined') ? window.fetch : null;
 
     if (typeof window !== 'undefined' && realFetch) {
         window.fetch = async function(resource, init) {
