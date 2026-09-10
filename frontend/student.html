@@ -275,17 +275,123 @@
             </div>
 
             <!-- Block 1 Header -->
-            <div class="bg-blue-900 text-white px-4 py-2.5 rounded-xl flex justify-between items-center text-xs font-bold shadow-sm">
+            <div class="bg-[#1F274B] text-white px-4 py-3 rounded-xl flex justify-between items-center text-xs font-bold shadow-sm">
                 <span class="flex items-center gap-2">
-                    <span>المرحلة الأولى: المحاضرات (1 إلى 4)</span>
-                    <span class="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">مفعلة بالكامل</span>
+                    <span class="text-sm font-black">المرحلة الأولى: المحاضرات المفعّلة (1 إلى 4)</span>
+                    <span class="bg-emerald-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold">مفعلة بالكامل (4 حصص متبقية)</span>
                 </span>
-                <span class="text-blue-200 text-[11px]">4 محاضرات</span>
+                <span class="text-blue-200 text-xs font-mono">جدول مواعيد الإثنين</span>
             </div>
 
-            <!-- Lectures 1 to 4 Container -->
+            <!-- Lectures 1 to 4 Container (Pre-rendered for Instant Professional View) -->
             <div id="block1Lectures" class="space-y-3">
-                <!-- Injected via JavaScript -->
+                <!-- Lecture 1 -->
+                <div class="bg-white border-2 border-emerald-500/40 rounded-2xl p-4 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-emerald-300">حصة #1</span>
+                                <span class="bg-blue-50 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded-md">مجدولة بالمواعيد القادمة</span>
+                            </div>
+                            <h4 class="font-black text-base text-slate-900">المحاضرة 1: التلاوة ومراجعة سورة المطففين والافتتاحية</h4>
+                            <p class="text-xs text-slate-600 mt-1 flex items-center gap-1 font-bold">
+                                <span>📅 الموعد:</span>
+                                <strong class="text-blue-900 font-extrabold">الإثنين 14 سبتمبر 2026 • 8:00 مساءً (ساعة كاملة)</strong>
+                            </p>
+                        </div>
+                        <span class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-xl border border-emerald-200">جلسة فردية مباشرة</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        <button onclick="joinMeet(101, 'https://meet.google.com/mnr-g182-mon')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>🟢 دخول البث المباشر (Google Meet)</span>
+                        </button>
+                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A9+1&details=Google+Meet&location=https://meet.google.com/mnr-g182-mon" target="_blank" class="bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold px-3 py-2 rounded-xl text-xs transition border border-blue-200">
+                            📅 حفظ في تقويم Google
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Lecture 2 -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-slate-100 text-slate-700 text-[11px] font-black px-2.5 py-0.5 rounded-md">حصة #2</span>
+                                <span class="bg-blue-50 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded-md">مجدولة بالمواعيد القادمة</span>
+                            </div>
+                            <h4 class="font-black text-base text-slate-900">المحاضرة 2: التلاوة ومراجعة سورة الانشقاق</h4>
+                            <p class="text-xs text-slate-600 mt-1 flex items-center gap-1 font-bold">
+                                <span>📅 الموعد:</span>
+                                <strong class="text-blue-900 font-extrabold">الإثنين 21 سبتمبر 2026 • 8:00 مساءً (ساعة كاملة)</strong>
+                            </p>
+                        </div>
+                        <span class="bg-slate-50 text-slate-600 text-xs font-bold px-3 py-1 rounded-xl border border-slate-200">جلسة فردية مباشرة</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        <button onclick="joinMeet(102, 'https://meet.google.com/mnr-g182-mon')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>🟢 دخول البث المباشر (Google Meet)</span>
+                        </button>
+                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A9+2&details=Google+Meet&location=https://meet.google.com/mnr-g182-mon" target="_blank" class="bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold px-3 py-2 rounded-xl text-xs transition border border-blue-200">
+                            📅 حفظ في تقويم Google
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Lecture 3 -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-slate-100 text-slate-700 text-[11px] font-black px-2.5 py-0.5 rounded-md">حصة #3</span>
+                                <span class="bg-blue-50 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded-md">مجدولة بالمواعيد القادمة</span>
+                            </div>
+                            <h4 class="font-black text-base text-slate-900">المحاضرة 3: التلاوة ومراجعة سورة البروج</h4>
+                            <p class="text-xs text-slate-600 mt-1 flex items-center gap-1 font-bold">
+                                <span>📅 الموعد:</span>
+                                <strong class="text-blue-900 font-extrabold">الإثنين 28 سبتمبر 2026 • 8:00 مساءً (ساعة كاملة)</strong>
+                            </p>
+                        </div>
+                        <span class="bg-slate-50 text-slate-600 text-xs font-bold px-3 py-1 rounded-xl border border-slate-200">جلسة فردية مباشرة</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        <button onclick="joinMeet(103, 'https://meet.google.com/mnr-g182-mon')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>🟢 دخول البث المباشر (Google Meet)</span>
+                        </button>
+                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A9+3&details=Google+Meet&location=https://meet.google.com/mnr-g182-mon" target="_blank" class="bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold px-3 py-2 rounded-xl text-xs transition border border-blue-200">
+                            📅 حفظ في تقويم Google
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Lecture 4 -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex justify-between items-start flex-wrap gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-slate-100 text-slate-700 text-[11px] font-black px-2.5 py-0.5 rounded-md">حصة #4</span>
+                                <span class="bg-amber-100 text-amber-900 text-[11px] font-extrabold px-2 py-0.5 rounded-md border border-amber-300">ختام المرحلة الأولى والتثبيت</span>
+                            </div>
+                            <h4 class="font-black text-base text-slate-900">المحاضرة 4: التلاوة والاختبار التقييمي المباشر للمرحلة</h4>
+                            <p class="text-xs text-slate-600 mt-1 flex items-center gap-1 font-bold">
+                                <span>📅 الموعد:</span>
+                                <strong class="text-blue-900 font-extrabold">الإثنين 5 أكتوبر 2026 • 8:00 مساءً (ساعة كاملة)</strong>
+                            </p>
+                        </div>
+                        <span class="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-xl border border-amber-200">اختبار وتقييم مرحلي</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        <button onclick="joinMeet(104, 'https://meet.google.com/mnr-g182-mon')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>🟢 دخول البث المباشر (Google Meet)</span>
+                        </button>
+                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A9+4&details=Google+Meet&location=https://meet.google.com/mnr-g182-mon" target="_blank" class="bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold px-3 py-2 rounded-xl text-xs transition border border-blue-200">
+                            📅 حفظ في تقويم Google
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Block 2 Header (Paymob Renewal Trigger) -->
@@ -551,7 +657,7 @@
         </div>
     </div>
 
-    <script src="js/api_mock.js?v=20260911_v4"></script>
-    <script src="js/student.js?v=20260911_v4"></script>
+    <script src="js/api_mock.js?v=20260911_v5"></script>
+    <script src="js/student.js?v=20260911_v5"></script>
 </body>
 </html>
