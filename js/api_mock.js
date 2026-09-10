@@ -1,6 +1,29 @@
 // Smart API Mock Engine for GitHub Pages Live Demo & Offline Testing
 (function() {
-    let DB = null;
+    const realFetch = (typeof window !== 'undefined') ? window.fetch : null;
+
+    const DEFAULT_DB = {
+        users: [
+            { id: 1, username: "admin", password_hash: "admin2026", role: "admin", related_id: 1, full_name: "إدارة أكاديمية منير" },
+            { id: 91, username: "ST0001", password_hash: "Mn4620", role: "student", related_id: 1, full_name: "يونس بيجاد محسن عبدالفتاح" }
+        ],
+        students: [
+            { id: 1, name: "يونس بيجاد محسن عبدالفتاح", student_code: "ST0001", age: 6.5, phone: "01222709574", parent_name: "ولي أمر يونس بيجاد", parent_phone: "01222709574" }
+        ],
+        teachers: [],
+        courses: [],
+        enrollments: [
+            { id: 1, student_id: 1, course_name: "السبت 12", track_name: "مسار القرآن والتدبر", unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0 }
+        ],
+        lectures: [],
+        support_tickets: [],
+        quiz_submissions: [],
+        notifications: [],
+        payments: [],
+        attendance: []
+    };
+
+    let DB = DEFAULT_DB;
     let dbFetchPromise = null;
 
     async function ensureDbLoaded() {
@@ -18,7 +41,7 @@
                 const relPath = isFrontendDir ? '../js/db_seed.json' : 'js/db_seed.json';
                 const fetchFn = (typeof realFetch === 'function' && realFetch) ? realFetch : window.fetch;
                 
-                const res = await fetchFn(relPath + '?v=20260910_seed10');
+                const res = await fetchFn(relPath + '?v=20260910_seed11');
                 if (res && res.ok) {
                     const data = await res.json();
                     if (data && data.users && data.students) {
@@ -53,6 +76,19 @@
 
     async function handleMock(url, options = {}) {
         await ensureDbLoaded();
+
+        const dbUsers = (DB && DB.users) ? DB.users : DEFAULT_DB.users;
+        const dbStudents = (DB && DB.students) ? DB.students : DEFAULT_DB.students;
+        const dbTeachers = (DB && DB.teachers) ? DB.teachers : DEFAULT_DB.teachers;
+        const dbEnrollments = (DB && DB.enrollments) ? DB.enrollments : DEFAULT_DB.enrollments;
+        const dbCourses = (DB && DB.courses) ? DB.courses : DEFAULT_DB.courses;
+        const dbLectures = (DB && DB.lectures) ? DB.lectures : DEFAULT_DB.lectures;
+        const dbTickets = (DB && DB.support_tickets) ? DB.support_tickets : DEFAULT_DB.support_tickets;
+        const dbQuizzes = (DB && DB.quiz_submissions) ? DB.quiz_submissions : DEFAULT_DB.quiz_submissions;
+        const dbNotifs = (DB && DB.notifications) ? DB.notifications : DEFAULT_DB.notifications;
+        const dbPayments = (DB && DB.payments) ? DB.payments : DEFAULT_DB.payments;
+        const dbAttendance = (DB && DB.attendance) ? DB.attendance : DEFAULT_DB.attendance;
+
         const method = (options.method || 'GET').toUpperCase();
         let body = {};
         if (options.body) {
@@ -72,36 +108,33 @@
 
         // 0. AUTH: Login
         if (path === '/api/auth/login' && method === 'POST') {
-            if (!DB || !DB.users || DB.users.length < 50) {
-                initDb();
-            }
             let uInput = (body.username || '').trim().toLowerCase();
             let pInput = (body.password || '').trim();
             const expRole = body.expected_role;
 
-            let user = (DB.users || []).find(u => 
+            let user = dbUsers.find(u => 
                 (u.username && u.username.toLowerCase() === uInput) || 
                 (u.email && u.email.toLowerCase() === uInput) ||
                 (u.phone && u.phone === uInput)
             );
 
             if (!user) {
-                const s = (DB.students || []).find(st => 
+                const s = dbStudents.find(st => 
                     (st.student_code && st.student_code.toLowerCase() === uInput) ||
                     (st.phone && st.phone === uInput)
                 );
                 if (s) {
-                    user = (DB.users || []).find(u => u.role === 'student' && u.related_id === s.id);
+                    user = dbUsers.find(u => u.role === 'student' && u.related_id === s.id);
                 }
             }
 
             if (!user) {
-                const t = (DB.teachers || []).find(tch => 
+                const t = dbTeachers.find(tch => 
                     (tch.email && tch.email.toLowerCase() === uInput) ||
                     (tch.phone && tch.phone === uInput)
                 );
                 if (t) {
-                    user = (DB.users || []).find(u => u.role === 'teacher' && u.related_id === t.id);
+                    user = dbUsers.find(u => u.role === 'teacher' && u.related_id === t.id);
                 }
             }
 
