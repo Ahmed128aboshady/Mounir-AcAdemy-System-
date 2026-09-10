@@ -363,6 +363,7 @@ function renderEnrolledCoursesTabs(courses) {
         const teacherName = c.teacher_name || 'محمود حمادة';
         const groupId = c.group_id || curStudent.group_id || 'G182';
         const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 4;
+        const totalUnlocked = (c.total_lectures_unlocked !== undefined) ? c.total_lectures_unlocked : remCredits;
         const daysText = c.subscription_days || 'الاثنين';
         let rawTimeVal = c.lecture_time || '8:00 مساءً';
         let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
@@ -433,7 +434,7 @@ function renderEnrolledCoursesTabs(courses) {
             </div>
 
             <div class="flex justify-between items-center text-xs pt-1 text-slate-600 font-semibold">
-                <span>المحاضرات المفعلة بالسيستم: <strong class="text-blue-900">${c.total_lectures_unlocked || 4} / 8</strong></span>
+                <span>المحاضرات المفعلة بالسيستم: <strong class="text-blue-900">${totalUnlocked} / 8</strong></span>
                 <span>حالة الحضور والمتابعة: <strong class="text-emerald-700">100% منتظم</strong></span>
             </div>
         `;
