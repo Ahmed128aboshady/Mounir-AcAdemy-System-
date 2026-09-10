@@ -4,27 +4,27 @@ let enrolledCoursesList = [];
 let activeQuizId = null;
 let activeQuizQuestions = [];
 
-// Parse URL param if exists ?id=2
+// Strict Academy LMS Session Enforcement:
 const urlParams = new URLSearchParams(window.location.search);
 const userStr = localStorage.getItem('monir_current_user');
+
+if (!userStr) {
+    window.location.replace('login.html');
+}
+
+let activeUser = null;
 if (userStr) {
     try {
-        const u = JSON.parse(userStr);
-        if (u.role === 'student') {
-            const sid = u.student_id || u.related_id;
-            if (sid && !urlParams.has('id')) {
-                currentStudentId = sid;
-            }
-        }
+        activeUser = JSON.parse(userStr);
     } catch(e) {}
 }
 
-if (urlParams.has('id')) {
-    currentStudentId = parseInt(urlParams.get('id')) || currentStudentId;
-}
-
-if (!userStr && !urlParams.has('id')) {
-    window.location.replace('login.html');
+if (activeUser && activeUser.role === 'student') {
+    currentStudentId = activeUser.student_id || activeUser.related_id || currentStudentId;
+} else if (activeUser && (activeUser.role === 'admin' || activeUser.role === 'teacher')) {
+    if (urlParams.has('id')) {
+        currentStudentId = parseInt(urlParams.get('id')) || currentStudentId;
+    }
 }
 
 function initStudentPage() {

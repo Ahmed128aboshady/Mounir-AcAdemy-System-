@@ -219,15 +219,14 @@
 
             setTimeout(() => {
                 if (user.role === 'student') {
-                    const sid = user.student_id || user.related_id || 1;
-                    window.location.replace('student.html?id=' + sid);
+                    window.location.replace('student.html');
                 } else if (user.role === 'teacher') {
                     const tid = user.teacher_id || user.related_id || 1;
                     window.location.replace('teacher.html?id=' + tid);
                 } else if (user.role === 'admin') {
                     window.location.replace('admin.html');
                 } else {
-                    window.location.replace('student.html?id=1');
+                    window.location.replace('student.html');
                 }
             }, 500);
         }
