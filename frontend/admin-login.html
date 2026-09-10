@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950">
@@ -118,6 +119,19 @@
             btn.innerText = 'جاري التحقق من الصلاحيات...';
 
             try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const sbRes = await window.MonirDB.login(username, password, 'admin');
+                    if (sbRes.error) {
+                        throw new Error(sbRes.error);
+                    }
+                    localStorage.setItem('monir_current_user', JSON.stringify(sbRes.user));
+                    if (sbRes.token) localStorage.setItem('monir_auth_token', sbRes.token);
+                    alertBox.innerText = 'تم التحقق بنجاح من قاعدة البيانات السحابية! جاري التوجيه...';
+                    alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-emerald-950/40 border-emerald-600 text-emerald-300 block';
+                    setTimeout(() => { window.location.href = 'admin.html'; }, 600);
+                    return;
+                }
+
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
