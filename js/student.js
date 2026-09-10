@@ -36,8 +36,8 @@ function initStudentPage() {
             const u = JSON.parse(userStr);
             const authBtn = document.getElementById('studentAuthBtn');
             if (authBtn) {
-                authBtn.innerText = 'خروج (' + (u.full_name ? u.full_name.split(' ')[0] : u.username) + ')';
-                authBtn.className = 'text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg font-bold transition';
+                authBtn.innerText = 'تسجيل الخروج (' + (u.full_name ? u.full_name.split(' ')[0] : u.username) + ')';
+                authBtn.className = 'text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer';
                 authBtn.onclick = (e) => {
                     e.preventDefault();
                     if (window.MonirPopup) {
