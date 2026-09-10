@@ -248,10 +248,36 @@ async function loadSelectedCourseLectures() {
     if (!selectedCourseName) return;
     
     try {
-        const res = await fetch('/api/student/' + currentStudentId + '/courses/' + encodeURIComponent(selectedCourseName) + '/lectures');
-        const data = await res.json();
+        let data = null;
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            try {
+                const sbLecs = await window.MonirDB.getCourseLectures(selectedCourseName);
+                if (sbLecs && sbLecs.length > 0) {
+                    const curEnr = enrolledCoursesList.find(c => c.course_name === selectedCourseName) || {};
+                    const totalUnl = curEnr.total_lectures_unlocked || 4;
+                    data = {
+                        course_name: selectedCourseName,
+                        total_lectures_unlocked: totalUnl,
+                        unlocked_blocks: curEnr.unlocked_blocks || 1,
+                        renewal_count: curEnr.renewal_count || 0,
+                        remaining_credits: curEnr.remaining_credits || 4,
+                        lectures: sbLecs.map(l => ({
+                            ...l,
+                            is_unlocked: (l.lecture_number <= totalUnl)
+                        }))
+                    };
+                }
+            } catch(e) {
+                console.warn('[Supabase] Failed to fetch lectures directly, falling back:', e);
+            }
+        }
+
+        if (!data) {
+            const res = await fetch('/api/student/' + currentStudentId + '/courses/' + encodeURIComponent(selectedCourseName) + '/lectures');
+            data = await res.json();
+        }
         
-        document.getElementById('selectedCourseTitle').innerText = 'جدول محاضرات: ' + data.course_name;
+        document.getElementById('selectedCourseTitle').innerText = 'جدول محاضرات: ' + (data.course_name || selectedCourseName);
         
         const currentCourseInfo = enrolledCoursesList.find(c => c.course_name === selectedCourseName);
         if (currentCourseInfo) {
@@ -313,6 +339,82 @@ function renderLectureCard(l) {
     let actionBtn = '';
     let cardClass = 'lecture-card';
     const calUrl = generateGoogleCalendarUrl(l);
+
+    // Google Drive Links elements
+    const recLink = l.drive_recording_url || l.google_drive_url || '';
+    const matLink = l.drive_materials_url || '';
+    const meetLink = l.google_meet_url || '';
+
+    const driveLinksBar = `
+        <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+            ${meetLink ? `
+                <button onclick="joinMeet(${l.id}, '${meetLink}')" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <span>دخول البث (Meet)</span>
+                </button>
+            ` : ''}
+
+            ${recLink ? `
+                <a href="${recLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-[#41519C] hover:bg-[#2D396E] text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>🎥 تسجيل الحصة (Drive)</span>
+                </a>
+            ` : `
+                <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-400 font-medium px-2.5 py-1 rounded-xl text-[11px]">
+                    <span>🎥 بانتظار رفع التسجيل</span>
+                </span>
+            `}
+
+            ${matLink ? `
+                <a href="${matLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    <span>📁 ملازم وكشكول الحصة</span>
+                </a>
+            ` : `
+                <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-400 font-medium px-2.5 py-1 rounded-xl text-[11px]">
+                    <span>📁 بانتظار الملازم</span>
+                </span>
+            `}
+        </div>
+    `;
+
+    // Google Drive Links elements
+    const recLink = l.drive_recording_url || l.google_drive_url || '';
+    const matLink = l.drive_materials_url || '';
+    const meetLink = l.google_meet_url || '';
+
+    const driveLinksBar = `
+        <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+            ${meetLink ? `
+                <button onclick="joinMeet(${l.id}, '${meetLink}')" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <span>دخول البث (Meet)</span>
+                </button>
+            ` : ''}
+
+            ${recLink ? `
+                <a href="${recLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-[#41519C] hover:bg-[#2D396E] text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>🎥 تسجيل الحصة (Drive)</span>
+                </a>
+            ` : `
+                <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-400 font-medium px-2.5 py-1 rounded-xl text-[11px]">
+                    <span>🎥 بانتظار رفع التسجيل</span>
+                </span>
+            `}
+
+            ${matLink ? `
+                <a href="${matLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    <span>📁 ملازم وكشكول الحصة</span>
+                </a>
+            ` : `
+                <span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-400 font-medium px-2.5 py-1 rounded-xl text-[11px]">
+                    <span>📁 بانتظار الملازم</span>
+                </span>
+            `}
+        </div>
+    `;
     
     if (!l.is_unlocked) {
         cardClass += ' locked';
@@ -348,12 +450,8 @@ function renderLectureCard(l) {
             actionBtn = `
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
                     <div>${attBadge}</div>
-                    <div class="flex gap-3 font-bold text-[11px]">
-                        <a href="${l.google_drive_url || 'https://drive.google.com'}" target="_blank" class="text-emerald-700 hover:underline bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
-                            تسجيل ومواد الحصة (Google Drive)
-                        </a>
-                    </div>
                 </div>
+                ${driveLinksBar}
             `;
         } else if (l.status === 'postponed') {
             statusBadge = '<span class="badge-status badge-postponed">تم التأجيل لموعد جديد</span>';
@@ -377,6 +475,7 @@ function renderLectureCard(l) {
                         إضافة لتقويم Google
                     </a>
                 </div>
+                ${driveLinksBar}
             `;
         }
     }

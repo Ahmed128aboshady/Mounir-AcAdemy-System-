@@ -153,6 +153,89 @@
             return { success: true, token: token, user: user, student: studentData };
         },
 
+                // --- LECTURES: Get course lectures from cloud ---
+        getCourseLectures: async function(courseName) {
+            const client = this.getClient();
+            if (!client) return null;
+            try {
+                const { data, error } = await client
+                    .from('lectures')
+                    .select('*')
+                    .eq('course_name', courseName)
+                    .order('lecture_number', { ascending: true });
+                if (error) throw error;
+                return data;
+            } catch(e) {
+                console.warn('[Supabase] Error fetching course lectures:', e);
+                return null;
+            }
+        },
+
+        // --- LECTURES: Save or update lecture in cloud ---
+        saveLecture: async function(lecData) {
+            const client = this.getClient();
+            if (!client) return { error: 'Supabase not initialized' };
+            try {
+                let savedRecord = null;
+                if (lecData.id) {
+                    const { data, error } = await client
+                        .from('lectures')
+                        .update(lecData)
+                        .eq('id', lecData.id)
+                        .select()
+                        .single();
+                    if (error) throw error;
+                    savedRecord = data || lecData;
+                } else {
+                    const { data: maxLec } = await client
+                        .from('lectures')
+                        .select('id')
+                        .order('id', { ascending: false })
+                        .limit(1);
+                    const nextId = (maxLec && maxLec[0] ? maxLec[0].id : 0) + 1;
+                    const recordWithId = { ...lecData, id: nextId };
+                    const { data, error } = await client
+                        .from('lectures')
+                        .insert([recordWithId])
+                        .select()
+                        .single();
+                    if (error) throw error;
+                    savedRecord = data || recordWithId;
+                }
+
+                // Update local storage cache
+                this.updateLocalCache(db => {
+                    if (!db.lectures) db.lectures = [];
+                    const idx = db.lectures.findIndex(l => l.id === savedRecord.id);
+                    if (idx >= 0) db.lectures[idx] = savedRecord;
+                    else db.lectures.push(savedRecord);
+                });
+
+                return { success: true, lecture: savedRecord };
+            } catch(e) {
+                console.error('[Supabase Save Lecture Error]:', e);
+                return { error: e.message || 'تعذر حفظ المحاضرة سحابياً' };
+            }
+        },
+
+        // --- LECTURES: Save batch of lectures for a course ---
+        saveCourseLecturesBatch: async function(courseName, lecturesList) {
+            const client = this.getClient();
+            if (!client) return { error: 'Supabase not initialized' };
+            try {
+                const results = [];
+                for (const lec of lecturesList) {
+                    const res = await this.saveLecture(lec);
+                    if (res.error) throw new Error(res.error);
+                    results.push(res.lecture);
+                }
+                return { success: true, lectures: results };
+            } catch(e) {
+                console.error('[Supabase Batch Save Error]:', e);
+                return { error: e.message || 'حدث خطأ أثناء حفظ المحاضرات' };
+            }
+        },
+
         // --- AUTH: Cloud Register Student ---
         registerStudent: async function(payload) {
             const client = this.getClient();

@@ -473,6 +473,51 @@
             });
         }
 
+                // 7c. Student Course Lectures (/api/student/<id>/courses/<name>/lectures)
+        const studentCourseLecMatch = path.match(/\/api\/student\/(\d+)\/courses\/([^\/]+)\/lectures/);
+        if (studentCourseLecMatch) {
+            const sid = parseInt(studentCourseLecMatch[1]);
+            const cName = decodeURIComponent(studentCourseLecMatch[2]);
+            const enr = DB.enrollments.find(e => e.student_id === sid && e.course_name === cName) 
+                     || DB.enrollments.find(e => e.student_id === sid)
+                     || { unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0, current_surah: '' };
+            const lecs = DB.lectures.filter(l => l.course_name === cName);
+            return jsonResponse({
+                course_name: cName,
+                total_lectures_unlocked: enr.total_lectures_unlocked || 4,
+                unlocked_blocks: enr.unlocked_blocks || 1,
+                renewal_count: enr.renewal_count || 0,
+                remaining_credits: enr.remaining_credits || 4,
+                current_surah: enr.current_surah || '',
+                excuse_count: enr.excuse_count || 0,
+                needs_renewal: ((enr.total_lectures_unlocked || 4) <= 4 && (enr.remaining_credits || 4) <= 1),
+                lectures: lecs.map(l => ({
+                    ...l,
+                    is_unlocked: (l.lecture_number <= (enr.total_lectures_unlocked || 4)),
+                    attendance: { status: (l.lecture_number <= 2 ? 'present' : 'not_recorded'), duration_minutes: 60 }
+                }))
+            });
+        }
+
+        // 7d. Admin Save Lecture / Drive Links (/api/admin/lectures/save)
+        if (path === '/api/admin/lectures/save' && method === 'POST') {
+            const lecData = body ? JSON.parse(body) : {};
+            if (lecData.id) {
+                const idx = DB.lectures.findIndex(l => l.id === lecData.id);
+                if (idx >= 0) {
+                    DB.lectures[idx] = { ...DB.lectures[idx], ...lecData };
+                } else {
+                    DB.lectures.push(lecData);
+                }
+            } else {
+                const newId = Math.max(...DB.lectures.map(l => l.id || 0), 0) + 1;
+                lecData.id = newId;
+                DB.lectures.push(lecData);
+            }
+            saveDb();
+            return jsonResponse({ success: true, message: 'تم حفظ المحاضرة بنجاح', lecture: lecData });
+        }
+
         // 7b. Single Student Info (/api/student/<built-in function id>)
         const studentInfoMatch = path.match(/\/api\/student\/(\d+)$/);
         if (studentInfoMatch) {

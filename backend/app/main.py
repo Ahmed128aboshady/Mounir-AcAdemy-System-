@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Query, Response
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Query, Response, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -1447,6 +1447,26 @@ def join_lecture(lecture_id: int, req: JoinLectureRequest):
         "message": "تم تسجيل حضورك بنجاح في المحاضرة!",
         "google_meet_url": lec["google_meet_url"]
     }
+
+@app.post("/api/admin/lectures/save")
+def admin_save_lecture(lec: dict = Body(...)):
+    conn = get_db()
+    c = conn.cursor()
+    lec_id = lec.get("id")
+    if lec_id:
+        c.execute("""
+            UPDATE lectures 
+            SET title = ?, scheduled_time = ?, google_meet_url = ?, drive_recording_url = ?, drive_materials_url = ?, status = ?
+            WHERE id = ?
+        """, (lec.get("title"), lec.get("scheduled_time"), lec.get("google_meet_url"), lec.get("drive_recording_url"), lec.get("drive_materials_url"), lec.get("status", "scheduled"), lec_id))
+    else:
+        c.execute("""
+            INSERT INTO lectures (course_name, lecture_number, title, block_number, scheduled_time, google_meet_url, drive_recording_url, drive_materials_url, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (lec.get("course_name"), lec.get("lecture_number", 1), lec.get("title"), lec.get("block_number", 1), lec.get("scheduled_time"), lec.get("google_meet_url"), lec.get("drive_recording_url"), lec.get("drive_materials_url"), lec.get("status", "scheduled")))
+    conn.commit()
+    conn.close()
+    return {"success": True, "message": "تم حفظ المحاضرة وروابط الدرايف بنجاح"}
 
 @app.post("/api/lectures/postpone")
 def postpone_lecture(req: PostponeLectureRequest):
