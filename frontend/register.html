@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
@@ -176,6 +177,23 @@
             btn.innerText = 'جاري تسجيل الحساب...';
 
             try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const sbRes = await window.MonirDB.registerStudent(payload);
+                    if (sbRes.error) {
+                        throw new Error(sbRes.error);
+                    }
+                    localStorage.setItem('monir_current_user', JSON.stringify(sbRes.user));
+                    if (sbRes.token) localStorage.setItem('monir_auth_token', sbRes.token);
+
+                    document.getElementById('registerForm').classList.add('hidden');
+                    document.getElementById('resStudentName').innerText = sbRes.user.full_name;
+                    document.getElementById('resStudentCode').innerText = sbRes.student_code;
+                    document.getElementById('resUsername').innerText = sbRes.user.username;
+                    document.getElementById('goToDashboardBtn').href = 'student.html?id=' + (sbRes.user.student_id || 1);
+                    document.getElementById('successBox').classList.remove('hidden');
+                    return;
+                }
+
                 const res = await fetch('/api/auth/register-student', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

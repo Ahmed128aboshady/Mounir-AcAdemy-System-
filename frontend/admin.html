@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
     <script>
         // Access Guard for Admin
@@ -72,11 +73,15 @@
                     </div>
                     <p class="text-xs text-slate-500">حفظ تلقائي لكافة الطلاب والمعلمين والمستخدمين مع إمكانية التصدير والاسترجاع في ثانية واحدة</p>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
-                        <span>تصدير نسخة احتياطية (Backup JSON)</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openSupabaseModal()" class="bg-[#1F274B] hover:bg-slate-900 text-[#57BA9E] border border-[#57BA9E]/40 text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-[#57BA9E] animate-pulse"></span>
+                        <span id="supabaseConnBtnText">إعدادات ربط Supabase السحابية</span>
                     </button>
-                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-4 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5">
+                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <span>تصدير نسخة (JSON)</span>
+                    </button>
+                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-3.5 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5">
                         <span>استعادة قاعدة بيانات</span>
                         <input type="file" id="dbRestoreFileInput" accept=".json" onchange="restoreDatabaseBackup(event)" class="hidden">
                     </label>
@@ -1251,5 +1256,92 @@
             updateDbStats();
         });
 </script>
+
+    <!-- Supabase Cloud Connection Modal -->
+    <div id="supabaseModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white border-2 border-[#57BA9E] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="bg-[#57BA9E] text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg">Cloud PostgreSQL</span>
+                    <h3 class="text-base font-black text-slate-900">ربط قاعدة بيانات Supabase السحابية</h3>
+                </div>
+                <button onclick="closeSupabaseModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+                اربط منصتك بقاعدة بيانات <strong>Supabase (PostgreSQL)</strong> مركزية ومجانية تدعم آلاف الطلاب وتتيح التسجيل الفعلي المتزامن بين أجهزة الطلاب ولابتوب الإدارة لحظياً.
+            </p>
+
+            <div class="space-y-3 text-xs font-bold text-slate-700">
+                <div>
+                    <label class="block mb-1">Project URL (عنوان المشروع السحابي):</label>
+                    <input type="text" id="sbProjectUrl" class="w-full bg-slate-50 border border-slate-300 focus:border-[#41519C] rounded-xl px-3 py-2 text-xs font-mono outline-none" placeholder="مثال: https://xyzcompany.supabase.co">
+                </div>
+                <div>
+                    <label class="block mb-1">Project Anon API Key (المفتاح العام):</label>
+                    <input type="password" id="sbAnonKey" class="w-full bg-slate-50 border border-slate-300 focus:border-[#41519C] rounded-xl px-3 py-2 text-xs font-mono outline-none" placeholder="eyJh...">
+                </div>
+            </div>
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 space-y-1">
+                <strong>💡 أين أجد هذه البيانات؟</strong>
+                <p>من داخل حسابك في <a href="https://supabase.com" target="_blank" class="text-blue-600 underline font-bold">Supabase.com</a> ← اختر مشروعك ← Project Settings ← API ← انسخ Project URL و anon public key.</p>
+                <p>وقم بلصق كود ملف <code class="bg-amber-100 px-1 rounded">supabase_schema.sql</code> في SQL Editor هناك لتجهيز كافة الجداول بضغطة زر واحدة!</p>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="saveSupabaseSettings()" class="flex-1 bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black py-2.5 rounded-xl transition text-xs shadow">
+                    حفظ واختبار الاتصال السحابي
+                </button>
+                <button onclick="closeSupabaseModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openSupabaseModal() {
+            try {
+                const cfg = localStorage.getItem('monir_supabase_cfg');
+                if (cfg) {
+                    const parsed = JSON.parse(cfg);
+                    document.getElementById('sbProjectUrl').value = parsed.url || '';
+                    document.getElementById('sbAnonKey').value = parsed.anonKey || '';
+                }
+            } catch(e) {}
+            document.getElementById('supabaseModal').classList.remove('hidden');
+        }
+
+        function closeSupabaseModal() {
+            document.getElementById('supabaseModal').classList.add('hidden');
+        }
+
+        function saveSupabaseSettings() {
+            const url = document.getElementById('sbProjectUrl').value.trim();
+            const anon = document.getElementById('sbAnonKey').value.trim();
+            if (!url || !anon) {
+                alert('يرجى إدخال عنوان المشروع Project URL والمفتاح Anon Key');
+                return;
+            }
+            if (window.MonirDB) {
+                const ok = window.MonirDB.saveConfig(url, anon);
+                alert('تم حفظ إعدادات Supabase بنجاح! جاري تحديث الصفحة للعمل بالنظام السحابي.');
+                location.reload();
+            } else {
+                localStorage.setItem('monir_supabase_cfg', JSON.stringify({ url, anonKey: anon }));
+                alert('تم الحفظ! جاري تحديث الصفحة.');
+                location.reload();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                const btnText = document.getElementById('supabaseConnBtnText');
+                if (btnText) btnText.innerText = 'Supabase متصل سحابياً 🟢';
+            }
+        });
+    </script>
+
 </body>
 </html>
