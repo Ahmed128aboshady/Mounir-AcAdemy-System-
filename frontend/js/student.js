@@ -197,14 +197,16 @@ async function loadStudentProfile() {
             }
             const finalName = s.name || fallbackName;
 
+            const safeId = s.id || currentStudentId;
             document.getElementById('studentName').innerText = finalName;
             document.getElementById('studentDetails').innerText = (s.age ? (s.age + ' سنة • ') : '') + 'تليفون ولي الأمر: ' + (s.parent_phone || s.phone || '---');
-            document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id).padStart(4, '0'));
+            document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
             document.getElementById('parentName').innerText = s.parent_name || ('ولي أمر ' + finalName);
             document.getElementById('enrolledCoursesCount').innerText = ((data && data.enrolled_courses_count) || (enrolledCoursesList ? enrolledCoursesList.length : 1)) + ' مسار تدريبي';
         }
         
-        const qrCodeData = s.student_code || ('ST' + String(s.id).padStart(4, '0'));
+        const safeId = s.id || currentStudentId;
+        const qrCodeData = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
         const qrImg = document.getElementById('studentQrImg');
         if (qrImg) {
             qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(qrCodeData);
