@@ -62,15 +62,85 @@ function switchStudent(newId) {
 
 async function loadStudentProfile() {
     try {
+        // Read viewer role
+        let viewerRole = 'student';
+        const uStr = localStorage.getItem('monir_current_user');
+        if (uStr) {
+            try {
+                const u = JSON.parse(uStr);
+                viewerRole = u.role || 'student';
+            } catch(e) {}
+        }
+
         const res = await fetch('/api/student/' + currentStudentId);
         const data = await res.json();
         
-        const s = data.student;
-        document.getElementById('studentName').innerText = s.name;
-        document.getElementById('studentDetails').innerText = s.age + ' سنة • تليفون ولي الأمر: ' + s.parent_phone;
-        document.getElementById('studentCode').innerText = s.student_code;
-        document.getElementById('parentName').innerText = s.parent_name;
-        document.getElementById('enrolledCoursesCount').innerText = data.enrolled_courses_count + ' مسار تدريبي';
+        const s = data.student || {};
+
+        // Privacy Shield for Teachers
+        if (viewerRole === 'teacher') {
+            let shield = document.getElementById('teacherPrivacyShieldBanner');
+            if (!shield) {
+                shield = document.createElement('div');
+                shield.id = 'teacherPrivacyShieldBanner';
+                shield.className = 'bg-[#1F274B] border-2 border-[#57BA9E] text-white p-3.5 rounded-2xl mb-5 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs font-bold';
+                shield.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <span class="bg-[#57BA9E] text-slate-950 px-2.5 py-1 rounded-lg font-black text-[11px]">درع الخصوصية مفعّل</span>
+                        <span>أنت تتصفح كمعلم: تم حجب رقم هاتف واسم ولي الأمر والبيانات المالية لضمان خصوصية عائلة الطالب.</span>
+                    </div>
+                    <a href="teacher.html" class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black px-3 py-1.5 rounded-xl transition whitespace-nowrap">
+                        ← العودة لبوابة المعلمين
+                    </a>
+                `;
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.insertBefore(shield, mainEl.firstChild);
+            }
+
+            // Hide Paymob renewal banner from teacher
+            const renBanner = document.getElementById('renewalBanner');
+            if (renBanner) renBanner.classList.add('hidden');
+
+            // Hide switch dropdown container
+            const selDropdown = document.getElementById('studentSelectDropdown');
+            if (selDropdown) selDropdown.disabled = true;
+
+            document.getElementById('studentName').innerText = s.name || 'طالب الأكاديمية';
+            document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: محجوب عن المعلم لحماية الخصوصية';
+            document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
+            document.getElementById('parentName').innerText = 'ولي أمر معتمد (محجوب)';
+            document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
+        } else if (viewerRole === 'admin') {
+            // Admin sees EVERYTHING unmasked + supervisor badge
+            let admBanner = document.getElementById('adminSupervisorBanner');
+            if (!admBanner) {
+                admBanner = document.createElement('div');
+                admBanner.id = 'adminSupervisorBanner';
+                admBanner.className = 'bg-slate-900 border border-amber-500/50 text-amber-300 p-3 rounded-2xl mb-5 shadow flex justify-between items-center text-xs font-bold';
+                admBanner.innerHTML = `
+                    <span>👑 وضع المشرف العام (إدارة كاملة): يحق لك فحص كافة بيانات الطالب وأولياء الأمور والمحاضرات والرسوم.</span>
+                    <a href="admin.html" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-xl transition">العودة للوحة الإدارة</a>
+                `;
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.insertBefore(admBanner, mainEl.firstChild);
+            }
+
+            document.getElementById('studentName').innerText = s.name || '';
+            document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: ' + (s.parent_phone || '0100000000');
+            document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
+            document.getElementById('parentName').innerText = s.parent_name || 'ولي أمر الطالب';
+            document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
+        } else {
+            // Normal Student View
+            const selDropdown = document.getElementById('studentSelectDropdown');
+            if (selDropdown) selDropdown.classList.add('hidden');
+
+            document.getElementById('studentName').innerText = s.name || '';
+            document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: ' + (s.parent_phone || '');
+            document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
+            document.getElementById('parentName').innerText = s.parent_name || '';
+            document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
+        }
         
         document.getElementById('studentQrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=' + encodeURIComponent(s.student_code);
         

@@ -29,8 +29,21 @@
 
     async function handleMock(url, options = {}) {
         const method = (options.method || 'GET').toUpperCase();
-        const body = options.body ? JSON.parse(options.body) : {};
-        const path = url.split('?')[0];
+        let body = {};
+        if (options.body) {
+            try {
+                body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+            } catch(e) { body = {}; }
+        }
+        
+        // Universal path normalizer: strips domain, query string, and preserves /api/...
+        let path = url;
+        const apiIdx = path.indexOf('/api/');
+        if (apiIdx !== -1) {
+            path = path.substring(apiIdx).split('?')[0];
+        } else {
+            path = path.split('?')[0];
+        }
 
         // 0. AUTH: Login
         if (path === '/api/auth/login' && method === 'POST') {
@@ -150,6 +163,27 @@
                     student_code: studentCode
                 }
             });
+        }
+
+        // 0. AUTH: Database Export / Backup
+        if (path === '/api/admin/db/export') {
+            return jsonResponse({
+                success: true,
+                database: DB
+            });
+        }
+
+        // 0. AUTH: Database Restore
+        if (path === '/api/admin/db/restore' && method === 'POST') {
+            if (body && body.database) {
+                DB = Object.assign(DB, body.database);
+                saveDb();
+                return jsonResponse({
+                    success: true,
+                    message: 'تمت استعادة قاعدة البيانات بنجاح وتحديث كافة السجلات!'
+                });
+            }
+            return jsonResponse({ success: false, detail: 'بيانات غير صالحة' }, 400);
         }
 
         // 1. Admin Overview
@@ -492,10 +526,10 @@
             try {
                 const resp = await realFetch(resource, init);
                 if (resp && resp.ok) return resp;
+                return handleMock(url, init);
             } catch(e) {
-                // Network error
+                return handleMock(url, init);
             }
-            return handleMock(url, init);
         }
         return realFetch(resource, init);
     };

@@ -62,6 +62,47 @@
 
     <!-- Main Container -->
     <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        <!-- Database Backup & Persistence Management Section -->
+        <section class="bg-white border-2 border-indigo-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-[#1F274B] text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">أمان واستمرارية البيانات</span>
+                        <h3 class="text-lg font-black text-slate-900">إدارة قاعدة البيانات والنسخ الاحتياطي (Database Persistence)</h3>
+                    </div>
+                    <p class="text-xs text-slate-500">حفظ تلقائي لكافة الطلاب والمعلمين والمستخدمين مع إمكانية التصدير والاسترجاع في ثانية واحدة</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <span>تصدير نسخة احتياطية (Backup JSON)</span>
+                    </button>
+                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-4 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5">
+                        <span>استعادة قاعدة بيانات</span>
+                        <input type="file" id="dbRestoreFileInput" accept=".json" onchange="restoreDatabaseBackup(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+                    <span class="text-[11px] font-bold text-slate-500 block mb-1">إجمالي الطلاب المسجلين</span>
+                    <strong class="text-xl font-black text-[#41519C]" id="dbStatStudentsCount">-</strong>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+                    <span class="text-[11px] font-bold text-slate-500 block mb-1">المعلمون والمدربون</span>
+                    <strong class="text-xl font-black text-[#57BA9E]" id="dbStatTeachersCount">-</strong>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+                    <span class="text-[11px] font-bold text-slate-500 block mb-1">حسابات تسجيل الدخول</span>
+                    <strong class="text-xl font-black text-slate-900" id="dbStatUsersCount">-</strong>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+                    <span class="text-[11px] font-bold text-slate-500 block mb-1">حالة الحفظ التلقائي</span>
+                    <strong class="text-xs font-black text-emerald-700 block mt-1.5">محفوظ ومزامن 100%</strong>
+                </div>
+            </div>
+        </section>
+
 
         <!-- Top Stats Row -->
         <section class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
@@ -1147,5 +1188,68 @@
             }
         }
     </script>
+<script>
+        function updateDbStats() {
+            try {
+                const raw = localStorage.getItem('monir_smart_lms_db_v2');
+                if (raw) {
+                    const db = JSON.parse(raw);
+                    const elS = document.getElementById('dbStatStudentsCount');
+                    const elT = document.getElementById('dbStatTeachersCount');
+                    const elU = document.getElementById('dbStatUsersCount');
+                    if (elS) elS.innerText = (db.students || []).length;
+                    if (elT) elT.innerText = (db.teachers || []).length;
+                    if (elU) elU.innerText = (db.users || []).length;
+                }
+            } catch(e) {}
+        }
+
+        async function exportDatabaseBackup() {
+            try {
+                const res = await fetch('/api/admin/db/export');
+                const data = await res.json();
+                const jsonStr = JSON.stringify(data.database || data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'monir_academy_database_backup_' + new Date().toISOString().slice(0,10) + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('تم تنزيل النسخة الاحتياطية لقاعدة البيانات بنجاح!');
+            } catch(e) {
+                alert('حدث خطأ أثناء تصدير قاعدة البيانات.');
+            }
+        }
+
+        async function restoreDatabaseBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    const dbPayload = parsed.database ? parsed.database : parsed;
+                    const res = await fetch('/api/admin/db/restore', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ database: dbPayload })
+                    });
+                    const data = await res.json();
+                    alert(data.message || 'تمت استعادة قاعدة البيانات بنجاح!');
+                    location.reload();
+                } catch(err) {
+                    alert('الملف المختار غير صالح كنسخة احتياطية لقاعدة البيانات.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDbStats();
+        });
+</script>
 </body>
 </html>

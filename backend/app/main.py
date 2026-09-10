@@ -1576,6 +1576,27 @@ def get_admin_overview(course: Optional[str] = None):
         "payments": payments
     }
 
+@app.get("/api/admin/db/export")
+def export_database():
+    conn = get_db()
+    c = conn.cursor()
+    tables = ['students', 'teachers', 'courses', 'enrollments', 'lectures', 'attendance', 'quizzes', 'quiz_questions', 'quiz_submissions', 'support_tickets', 'notifications', 'payments', 'teacher_payouts', 'users']
+    db_dump = {
+        "meta": {
+            "exported_at": datetime.now().isoformat(),
+            "version": "3.0.0",
+            "system": "Monir Smart LMS"
+        }
+    }
+    for tbl in tables:
+        try:
+            c.execute(f"SELECT * FROM {tbl}")
+            db_dump[tbl] = [dict(r) for r in c.fetchall()]
+        except Exception:
+            db_dump[tbl] = []
+    conn.close()
+    return db_dump
+
 # Mount Frontend Static Directory
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend")
 if os.path.exists(FRONTEND_DIR):
