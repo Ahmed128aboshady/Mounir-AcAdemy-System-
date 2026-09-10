@@ -199,10 +199,10 @@ async function loadStudentProfile() {
 
             const safeId = s.id || currentStudentId;
             const firstEnr = (data.enrolled_courses && data.enrolled_courses[0]) ? data.enrolled_courses[0] : {};
-            const grpId = s.group_id || firstEnr.group_id || 'G001';
+            const grpId = s.group_id || firstEnr.group_id || 'G182';
 
             document.getElementById('studentName').innerText = finalName;
-            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 10) + ' سنة • رقم التواصل / ولي الأمر: ' + (s.parent_phone || s.phone || '---');
+            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 12) + ' سنة • رقم التواصل / ولي الأمر: ' + (s.parent_phone || s.phone || '---');
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
             
             const groupCodeEl = document.getElementById('groupCode');
@@ -211,7 +211,36 @@ async function loadStudentProfile() {
             const accBadgeEl = document.getElementById('accountStatusBadge');
             if (accBadgeEl) accBadgeEl.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
 
-            document.getElementById('parentName').innerText = s.parent_name || ('ولي أمر ' + finalName);
+            // Clean Parent Name Extraction for Compound Arabic Names
+            let safeParentName = s.parent_name;
+            if (!safeParentName || safeParentName.includes('أ. بالله')) {
+                const compoundPrefixes = [
+                    'معتصم بالله', 'عبد الله', 'عبدالله', 'عبد الرحمن', 'عبدالرحمن', 'عبد الرحيم', 'عبدالرحيم',
+                    'عبد القادر', 'عبدالقادر', 'عبد العزيز', 'عبدالعزيز', 'عبد الوهاب', 'عبدالوهاب',
+                    'عز الدين', 'سيف الدين', 'نور الدين', 'زين الدين', 'تقى الله', 'حسام الدين'
+                ];
+                let foundMatch = false;
+                for (const prefix of compoundPrefixes) {
+                    if (finalName.startsWith(prefix + ' ')) {
+                        const father = finalName.substring(prefix.length).trim();
+                        if (father) {
+                            safeParentName = 'أ. ' + father + ' (ولي الأمر)';
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundMatch) {
+                    const parts = finalName.split(/\s+/);
+                    if (parts.length >= 2) {
+                        safeParentName = 'أ. ' + parts.slice(1).join(' ') + ' (ولي الأمر)';
+                    } else {
+                        safeParentName = 'ولي أمر ' + finalName;
+                    }
+                }
+            }
+
+            document.getElementById('parentName').innerText = safeParentName;
             document.getElementById('enrolledCoursesCount').innerText = ((data && data.enrolled_courses_count) || (enrolledCoursesList ? enrolledCoursesList.length : 1)) + ' مسار تدريبي';
         }
         

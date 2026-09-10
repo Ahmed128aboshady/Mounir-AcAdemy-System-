@@ -156,26 +156,76 @@
         // --- STUDENT: Get single student profile from cloud ---
         getStudentProfile: async function(studentId) {
             const client = this.getClient();
-            if (!client) return null;
             try {
                 const sid = parseInt(studentId);
-                const { data: stData, error: stErr } = await client
-                    .from('students')
-                    .select('*')
-                    .eq('id', sid)
-                    .single();
+                let stData = null;
+                let enrData = null;
                 
-                if (stErr || !stData) return null;
+                if (client) {
+                    const { data: st, error: stErr } = await client
+                        .from('students')
+                        .select('*')
+                        .eq('id', sid)
+                        .single();
+                    if (!stErr && st) stData = st;
 
-                const { data: enrData } = await client
-                    .from('enrollments')
-                    .select('*')
-                    .eq('student_id', sid);
+                    const { data: enr } = await client
+                        .from('enrollments')
+                        .select('*')
+                        .eq('student_id', sid);
+                    if (enr) enrData = enr;
+                }
+
+                // Fallback/enrich from window.DEFAULT_DB if available
+                let localSt = null;
+                let localEnrs = [];
+                if (window.DEFAULT_DB) {
+                    if (window.DEFAULT_DB.students) {
+                        localSt = window.DEFAULT_DB.students.find(s => s.id === sid || s.student_code === studentId);
+                    }
+                    if (window.DEFAULT_DB.enrollments) {
+                        localEnrs = window.DEFAULT_DB.enrollments.filter(e => e.student_id === sid);
+                    }
+                }
+
+                if (!stData && localSt) {
+                    stData = { ...localSt };
+                }
+
+                if (!stData) return null;
+
+                if (localSt) {
+                    stData.group_id = stData.group_id || localSt.group_id || 'G182';
+                    stData.age = stData.age || localSt.age || 12;
+                    stData.phone = stData.phone || localSt.phone;
+                    stData.parent_phone = stData.parent_phone || localSt.parent_phone || stData.phone;
+                    stData.parent_name = localSt.parent_name || stData.parent_name;
+                    stData.account_status = stData.account_status || localSt.account_status || 'نشط';
+                }
+
+                let enrichedEnr = [];
+                if (enrData && enrData.length > 0) {
+                    enrichedEnr = enrData.map(e => {
+                        const locE = localEnrs.find(le => le.course_name === e.course_name) || localEnrs[0] || {};
+                        return {
+                            ...locE,
+                            ...e,
+                            group_id: e.group_id || locE.group_id || stData.group_id || 'G182',
+                            teacher_name: e.teacher_name || locE.teacher_name || 'محمود حمادة',
+                            subscription_days: e.subscription_days || locE.subscription_days || 'الاثنين',
+                            lecture_time: e.lecture_time || locE.lecture_time || '8:00 مساءً (ساعة 20)',
+                            account_status: e.account_status || locE.account_status || stData.account_status || 'نشط',
+                            remaining_credits: (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 4)
+                        };
+                    });
+                } else if (localEnrs.length > 0) {
+                    enrichedEnr = localEnrs;
+                }
 
                 return {
                     student: stData,
-                    enrolled_courses: enrData || [],
-                    enrolled_courses_count: (enrData ? enrData.length : 0),
+                    enrolled_courses: enrichedEnr,
+                    enrolled_courses_count: enrichedEnr.length,
                     unread_notifications: 0
                 };
             } catch(e) {

@@ -87,11 +87,27 @@
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">معرف الجروب (Group ID)</span>
-                            <strong class="font-mono text-sm tracking-wider text-emerald-300" id="groupCode">---</strong>
+                            <strong class="font-mono text-sm tracking-wider text-emerald-300" id="groupCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.group_id)?u.group_id:'G182');})();</script></strong>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">ولي الأمر</span>
-                            <strong id="parentName"><script>(function(){const u=window.__PRELOADED_USER__;if(u&&u.full_name){const p=u.full_name.split(' ');document.write(p.length>=2?('أ. '+p.slice(1).join(' ')+' (ولي الأمر)'):('ولي أمر '+u.full_name));}else{document.write('---');}})();</script></strong>
+                            <strong id="parentName"><script>(function(){
+                                const u=window.__PRELOADED_USER__;
+                                if(u&&u.full_name){
+                                    const fn=u.full_name.trim();
+                                    const prefixes=['معتصم بالله','عبد الله','عبدالله','عبد الرحمن','عبدالرحمن','عبد الرحيم','عز الدين','سيف الدين','نور الدين'];
+                                    for(const p of prefixes){
+                                        if(fn.startsWith(p+' ')){
+                                            document.write('أ. '+fn.substring(p.length).trim()+' (ولي الأمر)');
+                                            return;
+                                        }
+                                    }
+                                    const parts=fn.split(/\s+/);
+                                    document.write(parts.length>=2?('أ. '+parts.slice(1).join(' ')+' (ولي الأمر)'):('ولي أمر '+fn));
+                                }else{
+                                    document.write('---');
+                                }
+                            })();</script></strong>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px]">إجمالي الكورسات</span>
@@ -476,7 +492,7 @@
         </div>
     </div>
 
-    <script src="js/api_mock.js?v=20260910_v3"></script>
-    <script src="js/student.js?v=20260910_v3"></script>
+    <script src="js/api_mock.js?v=20260910_v4"></script>
+    <script src="js/student.js?v=20260910_v4"></script>
 </body>
 </html>
