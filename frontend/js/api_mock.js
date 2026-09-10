@@ -86,8 +86,7 @@
     }
 
     async function handleMock(url, options = {}) {
-        // Background async load full DB without blocking immediate response
-        ensureDbLoaded();
+        await ensureDbLoaded();
 
         const dbUsers = (DB && DB.users) ? DB.users : DEFAULT_DB.users;
         const dbStudents = (DB && DB.students) ? DB.students : DEFAULT_DB.students;
@@ -484,11 +483,11 @@
         const studentMatch = path.match(/\/api\/student\/(\d+)\/dashboard/);
         if (studentMatch) {
             const sid = parseInt(studentMatch[1]);
-            const student = DB.students.find(s => s.id === sid) || DB.students[0];
+            const student = DB.students.find(s => s.id === sid) || DB.students.find(s => s.student_code === ('ST' + String(sid).padStart(4, '0'))) || { id: sid, name: "طالب الأكاديمية", student_code: "ST" + String(sid).padStart(4, '0') };
             const enr = DB.enrollments.find(e => e.student_id === student.id) || DB.enrollments[0];
-            const course = DB.courses.find(c => c.name === enr.course_name) || DB.courses[0];
-            const teacher = DB.teachers.find(t => t.id === enr.teacher_id) || DB.teachers[0];
-            const lecs = DB.lectures.filter(l => l.course_name === enr.course_name);
+            const course = DB.courses.find(c => c.name === (enr ? enr.course_name : '')) || DB.courses[0];
+            const teacher = DB.teachers.find(t => t.id === (enr ? enr.teacher_id : 1)) || DB.teachers[0];
+            const lecs = DB.lectures.filter(l => l.course_name === (course ? course.name : ''));
 
             return jsonResponse({
                 student: student,
@@ -500,7 +499,7 @@
             });
         }
 
-                // 7c. Student Course Lectures (/api/student/<id>/courses/<name>/lectures)
+        // 7c. Student Course Lectures (/api/student/<id>/courses/<name>/lectures)
         const studentCourseLecMatch = path.match(/\/api\/student\/(\d+)\/courses\/([^\/]+)\/lectures/);
         if (studentCourseLecMatch) {
             const sid = parseInt(studentCourseLecMatch[1]);
@@ -560,17 +559,17 @@
                         const u = JSON.parse(uStr);
                         const relId = u.student_id || u.related_id;
                         if (relId) student = studentsList.find(s => s.id === relId);
+                        if (!student && u.username) student = studentsList.find(s => s.student_code && s.student_code.toLowerCase() === u.username.toLowerCase());
                     } catch(e) {}
                 }
             }
-            if (!student && studentsList.length > 0) student = studentsList[0];
 
             const enrollmentsList = (DB && DB.enrollments) ? DB.enrollments : [];
             const enrs = student ? enrollmentsList.filter(e => e.student_id === student.id) : [];
             return jsonResponse({
-                student: student || { id: sid, name: "طالب الأكاديمية", student_code: "ST0001", phone: "---" },
-                enrolled_courses: enrs,
-                enrolled_courses_count: enrs.length,
+                student: student || { id: sid, name: "طالب الأكاديمية", student_code: "ST" + String(sid).padStart(4, '0'), phone: "---" },
+                enrolled_courses: enrs.length ? enrs : [{ course_name: "مسار القرآن والتدبر", unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0, current_surah: "سورة الفاتحة", status: "active" }],
+                enrolled_courses_count: enrs.length || 1,
                 unread_notifications: 1
             });
         }
