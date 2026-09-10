@@ -111,8 +111,22 @@ async function loadStudentProfile() {
             if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(fallbackCode);
         }
 
-        const res = await fetch('/api/student/' + currentStudentId);
-        const data = await res.json();
+        let data = {};
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            try {
+                const sbData = await window.MonirDB.getStudentProfile(currentStudentId);
+                if (sbData && sbData.student) {
+                    data = sbData;
+                }
+            } catch(e) {
+                console.warn('[Supabase Cloud Profile]: Fallback to API mock.', e);
+            }
+        }
+
+        if (!data || !data.student) {
+            const res = await fetch('/api/student/' + currentStudentId);
+            data = await res.json();
+        }
         
         const s = data.student || {};
 

@@ -153,7 +153,38 @@
             return { success: true, token: token, user: user, student: studentData };
         },
 
-                // --- LECTURES: Get course lectures from cloud ---
+        // --- STUDENT: Get single student profile from cloud ---
+        getStudentProfile: async function(studentId) {
+            const client = this.getClient();
+            if (!client) return null;
+            try {
+                const sid = parseInt(studentId);
+                const { data: stData, error: stErr } = await client
+                    .from('students')
+                    .select('*')
+                    .eq('id', sid)
+                    .single();
+                
+                if (stErr || !stData) return null;
+
+                const { data: enrData } = await client
+                    .from('enrollments')
+                    .select('*')
+                    .eq('student_id', sid);
+
+                return {
+                    student: stData,
+                    enrolled_courses: enrData || [],
+                    enrolled_courses_count: (enrData ? enrData.length : 0),
+                    unread_notifications: 0
+                };
+            } catch(e) {
+                console.warn('[Supabase] Error fetching student profile:', e);
+                return null;
+            }
+        },
+
+        // --- LECTURES: Get course lectures from cloud ---
         getCourseLectures: async function(courseName) {
             const client = this.getClient();
             if (!client) return null;
