@@ -3,7 +3,7 @@
     // Official Live Supabase Project Config for Mounir Academy
     window.MONIR_SUPABASE_CONFIG = window.MONIR_SUPABASE_CONFIG || {
         url: 'https://chwhrxquvaiskdsthips.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNod2hyeHF1dmFpc2tkc3RoaXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNDM2NzgsImV4cCI6MjEwNDYxOTY3OH0.k_t-GUAT01c6ko-8QcF5L4FYnZQPV6HIu4JSnH1zbO4'
+        anonKey: 'sb_publishable_EEpE3k9qqqWSpACYFD0wLw_77C-fYYP'
     };
 
     const CFG_KEY = 'monir_supabase_cfg';
