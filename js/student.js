@@ -160,7 +160,7 @@ async function loadStudentProfile() {
             if (selDropdown) selDropdown.disabled = true;
 
             document.getElementById('studentName').innerText = s.name || 'طالب الأكاديمية';
-            document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: محجوب عن المعلم لحماية الخصوصية';
+            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
             document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
             document.getElementById('parentName').innerText = 'ولي أمر معتمد (محجوب)';
             const parentPhoneEl = document.getElementById('parentPhone');
@@ -182,7 +182,7 @@ async function loadStudentProfile() {
             }
 
             document.getElementById('studentName').innerText = s.name || '';
-            document.getElementById('studentDetails').innerText = (s.age || 14) + ' سنة • تليفون ولي الأمر: ' + (s.parent_phone || '0100000000');
+            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
             document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
             document.getElementById('parentName').innerText = s.parent_name || 'ولي أمر الطالب';
             const parentPhoneEl = document.getElementById('parentPhone');
@@ -208,7 +208,7 @@ async function loadStudentProfile() {
             const phoneVal = s.parent_phone || s.phone || (initialUser && (initialUser.parent_phone || initialUser.phone)) || 'غير مسجل';
 
             document.getElementById('studentName').innerText = finalName;
-            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 12) + ' سنة • رقم التواصل / ولي الأمر: ' + phoneVal;
+            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
             
             const groupCodeEl = document.getElementById('groupCode');
