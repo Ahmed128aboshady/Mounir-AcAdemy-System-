@@ -371,18 +371,21 @@ function renderEnrolledCoursesTabs(courses) {
         const statusText = c.account_status || curStudent.account_status || 'نشط';
         const statusColor = (statusText === 'نشط' || statusText.includes('ساري')) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
 
-        let durationText = "60 دقيقة (ساعة كاملة)";
-        if (cName) {
-            if (cName.includes("20") || cName.includes("20د")) {
-                durationText = "20 دقيقة (جلسة فردية)";
-            } else if (cName.includes("30") || cName.includes("نصف") || cName.includes("30د")) {
-                durationText = "30 دقيقة (جلسة فردية)";
-            } else if (cName.includes("40") || cName.includes("40د")) {
-                durationText = "40 دقيقة (جلسة فردية)";
-            } else if (cName.includes("45") || cName.includes("45د")) {
-                durationText = "45 دقيقة (جلسة فردية)";
-            } else if (cName.includes("برايفت") || cName.includes("خاص")) {
-                durationText = "30 - 45 دقيقة (جلسة فردية)";
+        let durationText = c.session_duration || c.duration;
+        if (!durationText) {
+            durationText = "60 دقيقة";
+            if (cName) {
+                if (cName.includes("20") || cName.includes("20د")) {
+                    durationText = "20 دقيقة (جلسة فردية)";
+                } else if (cName.includes("30") || cName.includes("نصف") || cName.includes("30د")) {
+                    durationText = "30 دقيقة (جلسة فردية)";
+                } else if (cName.includes("40") || cName.includes("40د")) {
+                    durationText = "40 دقيقة (جلسة فردية)";
+                } else if (cName.includes("45") || cName.includes("45د")) {
+                    durationText = "45 دقيقة (جلسة فردية)";
+                } else if (cName.includes("برايفت") || cName.includes("خاص")) {
+                    durationText = "30 - 45 دقيقة (جلسة فردية)";
+                }
             }
         }
 
