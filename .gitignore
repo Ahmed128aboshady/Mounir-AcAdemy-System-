@@ -1,4 +1,4 @@
-﻿__pycache__/
+__pycache__/
 *.py[cod]
 *.class
 *.so
@@ -30,6 +30,11 @@ ENV/
 *.log
 scratch/
 .system_generated/
+
+# Secrets & Service Account Keys
+google_service_account.json
+*_service_account*.json
+gen-lang-client-*.json
 
 # OS files
 .DS_Store
