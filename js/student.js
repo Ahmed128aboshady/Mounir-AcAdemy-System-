@@ -429,10 +429,7 @@ function renderEnrolledCoursesTabs(courses) {
                         <span class="text-slate-500">📅 أيام الاشتراك:</span>
                         <strong class="text-slate-950 font-extrabold">${daysText}</strong>
                     </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-slate-500">📞 تليفون ولي الأمر:</span>
-                        <strong class="text-slate-900 font-mono font-extrabold">${parentPhoneNum}</strong>
-                    </div>
+
                 </div>
             </div>
 
