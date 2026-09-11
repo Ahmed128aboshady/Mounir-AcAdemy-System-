@@ -269,20 +269,8 @@ async function loadStudentProfile() {
                 };
             });
         } else {
-            const defaultRem = (s.remaining_credits !== undefined) ? s.remaining_credits : 12;
-            enrolledCoursesList = [{
-                course_name: "الاثنين 8",
-                group_id: s.group_id || "G182",
-                teacher_name: "محمود حمادة",
-                unlocked_blocks: Math.ceil(defaultRem / 4),
-                total_lectures_unlocked: defaultRem,
-                remaining_credits: defaultRem,
-                renewal_count: 0,
-                subscription_days: "الاثنين",
-                lecture_time: "8:00 مساءً",
-                account_status: s.account_status || "نشط",
-                status: "active"
-            }];
+            // No enrolled courses found — don't show fake data
+            enrolledCoursesList = [];
         }
         
         if (!selectedCourseName && enrolledCoursesList.length > 0) {
@@ -316,7 +304,7 @@ function checkAndRenderQuranWidget(courses) {
         document.getElementById('quranRemainingCredits').innerText = rem + ' حصص متبقية (من الشيت)';
         document.getElementById('quranExcusesNote').innerText = 'الأعذار المسجلة: ' + (quranCourse.excuse_count || 0) + ' (الأول مجاني)';
         document.getElementById('quranCurrentSurah').innerText = quranCourse.current_surah || 'مسار القرآن الكريم والتدبر';
-        document.getElementById('quranCurrentAya').innerText = 'المعلم المشرف: أ. ' + (quranCourse.teacher_name || 'محمود حمادة');
+        document.getElementById('quranCurrentAya').innerText = 'المعلم المشرف: أ. ' + (quranCourse.teacher_name || '');
         
         const renewalAlert = document.getElementById('quranRenewalAlertBadge');
         if (renewalAlert) {
@@ -345,23 +333,16 @@ function renderEnrolledCoursesTabs(courses) {
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const parentPhoneNum = curStudent.parent_phone || curStudent.phone || (activeSessUser && (activeSessUser.parent_phone || activeSessUser.phone)) || 'غير مسجل';
 
-    const safeCourses = (Array.isArray(courses) && courses.length > 0) ? courses : [{
-        course_name: "الاثنين 8",
-        group_id: curStudent.group_id || "G182",
-        teacher_name: "محمود حمادة",
-        unlocked_blocks: 3,
-        total_lectures_unlocked: curStudent.remaining_credits || 12,
-        remaining_credits: curStudent.remaining_credits || 12,
-        renewal_count: 0,
-        subscription_days: "الاثنين",
-        lecture_time: "8:00 مساءً",
-        account_status: curStudent.account_status || "نشط",
-        status: "active"
-    }];
+    const safeCourses = (Array.isArray(courses) && courses.length > 0) ? courses : [];
+
+    if (safeCourses.length === 0) {
+        container.innerHTML = '<div class="text-center py-8 text-slate-400"><p class="font-bold">جاري تحميل بيانات الكورسات...</p></div>';
+        return;
+    }
 
     safeCourses.forEach(c => {
         if (!c) return;
-        const cName = c.course_name || c.name || c.title || "الاثنين 8";
+        const cName = c.course_name || c.name || c.title || 'مسار القرآن الكريم والتدبر';
         const isSelected = (selectedCourseName ? (cName === selectedCourseName) : true);
         const card = document.createElement('div');
         
@@ -372,14 +353,14 @@ function renderEnrolledCoursesTabs(courses) {
         card.className = 'p-4 rounded-2xl cursor-pointer transition space-y-3 ' + activeClass;
         card.onclick = () => selectCourseTab(cName);
         
-        const teacherName = c.teacher_name || 'محمود حمادة';
-        const groupId = c.group_id || curStudent.group_id || 'G182';
-        const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 12;
+        const teacherName = c.teacher_name || '';
+        const groupId = c.group_id || curStudent.group_id || '';
+        const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 0;
         const totalUnlocked = (c.total_lectures_unlocked !== undefined && c.total_lectures_unlocked >= remCredits) ? c.total_lectures_unlocked : remCredits;
-        const daysText = c.subscription_days || 'الاثنين';
-        let rawTimeVal = c.lecture_time || '8:00 مساءً';
+        const daysText = c.subscription_days || '';
+        let rawTimeVal = c.lecture_time || '';
         let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
-        if (!timeText || timeText === 'غير محدد') timeText = '8:00 مساءً';
+
         
         const statusText = c.account_status || curStudent.account_status || 'نشط';
         const statusColor = (statusText === 'نشط' || statusText.includes('ساري')) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
