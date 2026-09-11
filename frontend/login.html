@@ -165,13 +165,37 @@
                     try {
                         const sbRes = await window.MonirDB.login(username, password, currentRole);
                         if (sbRes && sbRes.success && sbRes.user) {
-                            proceedSuccess(sbRes.user, sbRes.token);
+                            // Merge student data into user object if available
+                            let userObj = { ...sbRes.user };
+                            if (sbRes.student) {
+                                // Store full student data so student.html can use it
+                                userObj.student_id = sbRes.student.id || userObj.student_id;
+                                userObj.related_id = sbRes.student.id || userObj.related_id;
+                                userObj.student_code = sbRes.student.student_code || userObj.username;
+                                userObj.parent_name = sbRes.student.parent_name;
+                                userObj.parent_phone = sbRes.student.parent_phone || sbRes.student.phone;
+                                userObj.phone = sbRes.student.phone;
+                                userObj.age = sbRes.student.age;
+                                userObj.group_id = sbRes.student.qr_code || sbRes.student.group_id;
+                                userObj.status = sbRes.student.status;
+                            }
+                            proceedSuccess(userObj, sbRes.token);
+                            return;
+                        }
+                        if (sbRes && sbRes.error && !sbRes.fallback) {
+                            // Real auth error (wrong password, role mismatch), don't fallback
+                            alertBox.innerText = sbRes.error;
+                            alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-red-900/40 border-red-600 text-red-200 block';
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove('opacity-75');
+                            submitBtn.innerHTML = origText;
                             return;
                         }
                     } catch(sbErr) {
                         console.warn('[Supabase Cloud Login]: Fallback to local database.', sbErr);
                     }
                 }
+
 
                 // Fallback to local / backend API
                 const res = await fetch('/api/auth/login', {

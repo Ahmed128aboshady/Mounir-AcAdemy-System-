@@ -484,28 +484,31 @@
                             const excuseCount = enrData.excuse_count || 0;
                             const maxExcuses = enrData.max_allowed_excuses || 1;
 
+                            // Check if extended columns exist (added via Supabase Studio)
+                            const hasExtendedCols = ('present_count' in enrData);
+
                             if (sessionStatus === 'present') {
                                 updates.remaining_credits = Math.max(0, rc - 1);
-                                updates.present_count = (enrData.present_count || 0) + 1;
+                                if (hasExtendedCols) updates.present_count = (enrData.present_count || 0) + 1;
                                 resultMsg = `تم تسجيل الحضور ✓\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
                                 newCredits = updates.remaining_credits;
                             } else if (sessionStatus === 'excused') {
                                 if (excuseCount < maxExcuses) {
                                     // First excuse is free
                                     updates.excuse_count = excuseCount + 1;
-                                    updates.absent_count = (enrData.absent_count || 0) + 1;
+                                    if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                     resultMsg = `تم تسجيل العذر المجاني ✓\nلا خصم من الرصيد (عذر رقم ${excuseCount + 1} من ${maxExcuses})`;
                                     newCredits = rc;
                                 } else {
                                     // Excuse used up — count as absence
                                     updates.excuse_count = excuseCount + 1;
                                     updates.remaining_credits = Math.max(0, rc - 1);
-                                    updates.absent_count = (enrData.absent_count || 0) + 1;
+                                    if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                     resultMsg = `⚠️ تم استهلاك العذر المجاني\nتم خصم حصة (العذر الثاني يُحتسب غياباً)\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
                                     newCredits = updates.remaining_credits;
                                 }
                             } else if (sessionStatus === 'absent') {
-                                updates.absent_count = (enrData.absent_count || 0) + 1;
+                                if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                 updates.remaining_credits = Math.max(0, rc - 1);
                                 resultMsg = `تم تسجيل الغياب ✗\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
                                 newCredits = updates.remaining_credits;

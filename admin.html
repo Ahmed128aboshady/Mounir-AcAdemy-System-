@@ -218,7 +218,48 @@
             </div>
         </section>
 
+        <!-- 3b. Groups Management — All Groups with Full Student Data (Admin View) -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4" id="sectionGroupsAdmin">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">🗂️ إدارة المجموعات التعليمية الكاملة</h2>
+                    <p class="text-xs text-slate-500">عرض شامل لجميع المجموعات وطلابها وبيانات الاشتراكات — مخصص للإدارة فقط</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="adminGroupsSearch" placeholder="بحث بمعرف المجموعة أو كود الطالب أو المعلم..." 
+                        class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 outline-none w-56 focus:border-blue-400"
+                        oninput="filterAdminGroups()">
+                    <button onclick="loadAdminGroups()" class="text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-3 py-1.5 rounded-lg transition">تحديث</button>
+                </div>
+            </div>
+
+            <!-- Summary Stats Bar -->
+            <div class="grid grid-cols-3 gap-3 text-center text-xs">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                    <div class="text-xl font-black text-blue-800" id="adminGroupsTotal">—</div>
+                    <div class="text-slate-500 font-bold">إجمالي المجموعات</div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                    <div class="text-xl font-black text-emerald-800" id="adminStudentsTotal">—</div>
+                    <div class="text-slate-500 font-bold">إجمالي الطلاب</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <div class="text-xl font-black text-amber-800" id="adminTeachersInGroups">—</div>
+                    <div class="text-slate-500 font-bold">معلمون نشطون</div>
+                </div>
+            </div>
+
+            <!-- Groups Container -->
+            <div id="adminGroupsContainer" class="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                <div class="text-center py-10 text-slate-400">
+                    <div class="text-4xl mb-2">🗂️</div>
+                    <p class="font-bold text-sm">اضغط "تحديث" لتحميل المجموعات من قاعدة البيانات</p>
+                </div>
+            </div>
+        </section>
+
         <!-- 4. Paused & Dropout Students Monitor (الطلاب المتوقفين والمراسلة الفورية) -->
+
         <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4" id="sectionPausedStudents">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
                 <div>
@@ -532,7 +573,199 @@
             loadAdminTickets();
         });
 
+        // ════════════════════════════════════
+        // ADMIN: Groups Management
+        // ════════════════════════════════════
+        let allAdminGroups = [];
+
+        async function loadAdminGroups() {
+            const container = document.getElementById('adminGroupsContainer');
+            if (!container) return;
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-4xl mb-2">⏳</div><p class="font-bold text-sm">جاري تحميل المجموعات من Supabase...</p></div>';
+
+            try {
+                let groups = [];
+
+                // Try Supabase first
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        // Fetch all students with their enrollments and teacher info
+                        const { data: students, error } = await client
+                            .from('students')
+                            .select('id, name, student_code, age, phone, parent_name, parent_phone, qr_code, status')
+                            .not('qr_code', 'is', null)
+                            .order('qr_code', { ascending: true });
+
+                        if (!error && students && students.length > 0) {
+                            // Fetch enrollments separately
+                            const { data: enrollments } = await client
+                                .from('enrollments')
+                                .select('student_id, remaining_credits, teacher_id, course_name, excuse_count, current_surah, current_aya, teachers(name)')
+                                .in('student_id', students.map(s => s.id));
+
+                            const enrMap = {};
+                            if (enrollments) {
+                                enrollments.forEach(e => { enrMap[e.student_id] = e; });
+                            }
+
+                            // Group by qr_code (group_id)
+                            const groupMap = {};
+                            students.forEach(s => {
+                                const gid = s.qr_code || 'G000';
+                                if (!groupMap[gid]) {
+                                    groupMap[gid] = {
+                                        group_id: gid,
+                                        teacher_name: '',
+                                        students: []
+                                    };
+                                }
+                                const enr = enrMap[s.id] || {};
+                                if (enr.teachers && enr.teachers.name) {
+                                    groupMap[gid].teacher_name = enr.teachers.name;
+                                }
+                                groupMap[gid].students.push({
+                                    ...s,
+                                    remaining_credits: enr.remaining_credits || 0,
+                                    teacher_name: enr.teachers ? enr.teachers.name : '',
+                                    teacher_id: enr.teacher_id,
+                                    excuse_count: enr.excuse_count || 0,
+                                    current_surah: enr.current_surah || '',
+                                    current_aya: enr.current_aya || 1,
+                                    course_name: enr.course_name || 'مسار القرآن الكريم والتدبر'
+                                });
+                            });
+
+                            groups = Object.values(groupMap).sort((a, b) => a.group_id.localeCompare(b.group_id));
+                        }
+                    } catch(e) {
+                        console.warn('Supabase groups load failed, trying mock:', e);
+                    }
+                }
+
+                // Fallback: API mock
+                if (groups.length === 0) {
+                    try {
+                        const res = await fetch('/api/admin/groups');
+                        const data = await res.json();
+                        groups = data.groups || [];
+                    } catch(e) {}
+                }
+
+                allAdminGroups = groups;
+
+                // Update stats
+                const totalStudents = groups.reduce((sum, g) => sum + g.students.length, 0);
+                const uniqueTeachers = new Set(groups.map(g => g.teacher_name).filter(Boolean)).size;
+                document.getElementById('adminGroupsTotal').innerText = groups.length;
+                document.getElementById('adminStudentsTotal').innerText = totalStudents;
+                document.getElementById('adminTeachersInGroups').innerText = uniqueTeachers;
+
+                renderAdminGroups(groups);
+
+            } catch(err) {
+                container.innerHTML = '<div class="text-center py-10 text-red-400"><p class="font-bold">حدث خطأ أثناء تحميل المجموعات.</p></div>';
+                console.error(err);
+            }
+        }
+
+        function filterAdminGroups() {
+            const q = (document.getElementById('adminGroupsSearch').value || '').trim().toLowerCase();
+            if (!q) {
+                renderAdminGroups(allAdminGroups);
+                return;
+            }
+            const filtered = allAdminGroups.filter(g =>
+                g.group_id.toLowerCase().includes(q) ||
+                (g.teacher_name && g.teacher_name.toLowerCase().includes(q)) ||
+                g.students.some(s =>
+                    (s.student_code && s.student_code.toLowerCase().includes(q)) ||
+                    (s.name && s.name.toLowerCase().includes(q))
+                )
+            );
+            renderAdminGroups(filtered);
+        }
+
+        function renderAdminGroups(groups) {
+            const container = document.getElementById('adminGroupsContainer');
+            if (!container) return;
+
+            if (!groups || groups.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-slate-400"><div class="text-4xl mb-2">📭</div><p class="font-bold">لا توجد مجموعات مطابقة للبحث</p></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            groups.forEach(g => {
+                const el = document.createElement('div');
+                el.className = 'border border-slate-200 rounded-2xl overflow-hidden shadow-sm';
+
+                const lowRcStudents = g.students.filter(s => s.remaining_credits <= 2).length;
+                const alertBadge = lowRcStudents > 0
+                    ? `<span class="bg-red-100 text-red-700 border border-red-300 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">⚠️ ${lowRcStudents} رصيد منخفض</span>`
+                    : '';
+
+                el.innerHTML = `
+                    <div class="bg-gradient-to-r from-[#1F274B] to-[#41519C] text-white px-4 py-3 flex justify-between items-center">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-xs px-2.5 py-1 rounded-lg">${g.group_id}</span>
+                            <div>
+                                <div class="font-extrabold text-sm">معلم: ${g.teacher_name || '—'}</div>
+                                <div class="text-[11px] text-slate-300">مسار القرآن الكريم والتدبر</div>
+                            </div>
+                            ${alertBadge}
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xl font-black">${g.students.length}</div>
+                            <div class="text-[11px] text-slate-300">طالب</div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                                    <th class="p-2.5">#</th>
+                                    <th class="p-2.5">اسم الطالب</th>
+                                    <th class="p-2.5">الكود</th>
+                                    <th class="p-2.5">السن</th>
+                                    <th class="p-2.5">ولي الأمر</th>
+                                    <th class="p-2.5">الهاتف</th>
+                                    <th class="p-2.5">رصيد الحصص</th>
+                                    <th class="p-2.5">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${g.students.map((s, idx) => {
+                                    const rc = s.remaining_credits || 0;
+                                    let rcBadge;
+                                    if (rc === 0) rcBadge = `<span class="bg-slate-200 text-slate-700 font-black px-2 py-0.5 rounded text-[10px]">منتهي</span>`;
+                                    else if (rc <= 2) rcBadge = `<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded text-[10px] animate-pulse">⚠️ ${rc}</span>`;
+                                    else rcBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px]">${rc}</span>`;
+
+                                    const status = s.status === 'active' ? '<span class="text-emerald-600 font-bold">نشط</span>' : '<span class="text-red-500 font-bold">موقوف</span>';
+                                    return `
+                                        <tr class="hover:bg-slate-50 transition">
+                                            <td class="p-2.5 text-slate-400 font-mono">${idx + 1}</td>
+                                            <td class="p-2.5 font-bold text-slate-900">${s.name || '—'}</td>
+                                            <td class="p-2.5 font-mono text-blue-900 font-extrabold text-[11px]">${s.student_code || '—'}</td>
+                                            <td class="p-2.5 text-slate-600">${s.age || '—'}</td>
+                                            <td class="p-2.5 text-slate-600">${s.parent_name || '—'}</td>
+                                            <td class="p-2.5 font-mono text-emerald-700">${s.parent_phone || s.phone || '—'}</td>
+                                            <td class="p-2.5">${rcBadge}</td>
+                                            <td class="p-2.5">${status}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
         async function loadAdminData() {
+
             try {
                 const res = await fetch('/api/admin/overview');
                 const data = await res.json();
