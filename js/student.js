@@ -499,7 +499,7 @@ async function loadSelectedCourseLectures() {
     try {
         let data = null;
         const currentCourseInfo = enrolledCoursesList.find(c => c.course_name === selectedCourseName) || enrolledCoursesList[0] || {};
-        const totalUnl = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (currentCourseInfo.total_lectures_unlocked || 12);
+        const remainingCredits = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (currentCourseInfo.total_lectures_unlocked || 12);
 
         if (window.MonirDB && window.MonirDB.isConfigured()) {
             try {
@@ -507,13 +507,13 @@ async function loadSelectedCourseLectures() {
                 if (sbLecs && sbLecs.length > 0) {
                     data = {
                         course_name: selectedCourseName,
-                        total_lectures_unlocked: totalUnl,
-                        unlocked_blocks: Math.ceil(totalUnl / 4),
+                        total_lectures_unlocked: remainingCredits,
+                        unlocked_blocks: Math.ceil(remainingCredits / 4),
                         renewal_count: currentCourseInfo.renewal_count || 0,
-                        remaining_credits: totalUnl,
+                        remaining_credits: remainingCredits,
                         lectures: sbLecs.map(l => ({
                             ...l,
-                            is_unlocked: (l.lecture_number <= totalUnl)
+                            is_unlocked: (l.lecture_number <= remainingCredits)
                         }))
                     };
                 }
@@ -532,9 +532,9 @@ async function loadSelectedCourseLectures() {
         if (!data) {
             data = {
                 course_name: selectedCourseName,
-                total_lectures_unlocked: totalUnl,
-                unlocked_blocks: Math.ceil(totalUnl / 4),
-                remaining_credits: totalUnl,
+                total_lectures_unlocked: remainingCredits,
+                unlocked_blocks: Math.ceil(remainingCredits / 4),
+                remaining_credits: remainingCredits,
                 lectures: []
             };
         }
@@ -552,134 +552,188 @@ async function loadSelectedCourseLectures() {
         document.getElementById('paymobServiceName').innerText = 'تجديد مسار ' + (data.course_name || selectedCourseName);
         document.getElementById('paymobStudentInfo').innerText = document.getElementById('studentName').innerText + ' (' + document.getElementById('studentCode').innerText + ')';
         document.getElementById('paymobAmountText').innerText = (currentCourseInfo ? (currentCourseInfo.price_per_block || 450.0) : 450.0) + ' ج.م';
-        
-        const b1Container = document.getElementById('block1Lectures');
-        const b2Container = document.getElementById('block2Lectures');
-        
-        if (b1Container) b1Container.innerHTML = '';
-        if (b2Container) b2Container.innerHTML = '';
-        
-        const targetCount = Math.max(8, totalUnl);
 
-        // ── تحديث Block 1 Header ديناميكياً ──
-        const b1TitleEl = document.getElementById('block1Title');
-        if (b1TitleEl) b1TitleEl.innerText = 'المرحلة الأولى: المحاضرات المفعّلة (1 إلى 4)';
-        const b1BadgeEl = document.getElementById('block1Badge');
-        if (b1BadgeEl) {
-            b1BadgeEl.innerText = 'مفعلة بالكامل ✓';
-            b1BadgeEl.className = 'bg-emerald-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold';
-        }
-
-        // ── تحديث الـ subtitle ──
-        const subtitleEl = document.getElementById('selectedCourseSubtitle');
-        if (subtitleEl) {
-            subtitleEl.innerText = totalUnl >= 8
-                ? 'نظام المسار الكامل (' + totalUnl + ' محاضرات مفعلة بالكامل)'
-                : 'نظام البلوك الرباعي (أول 4 محاضرات مفعلة تلقائياً)';
-        }
-
-        // ── تحديث Block 2 Header ديناميكياً ──
-        if (totalUnl >= 5) {
-            const b2TitleEl = document.getElementById('block2Title');
-            if (b2TitleEl) b2TitleEl.innerText = 'المرحلة الثانية والتالية: المحاضرات (5 إلى ' + targetCount + ')';
-            const b2BadgeEl = document.getElementById('block2Badge');
-            if (b2BadgeEl) {
-                b2BadgeEl.innerText = 'مفعلة بالكامل ✓';
-                b2BadgeEl.className = 'bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold';
-            }
-            const renBannerEl = document.getElementById('renewalBanner');
-            if (renBannerEl) renBannerEl.classList.add('hidden');
-        } else {
-            const b2TitleEl = document.getElementById('block2Title');
-            if (b2TitleEl) b2TitleEl.innerText = 'المرحلة الثانية: المحاضرات (5 إلى 8)';
-            const b2BadgeEl = document.getElementById('block2Badge');
-            if (b2BadgeEl) {
-                b2BadgeEl.innerText = 'مغلقة • تتطلب التجديد';
-                b2BadgeEl.className = 'bg-amber-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full font-black';
-            }
-            const renBannerEl = document.getElementById('renewalBanner');
-            if (renBannerEl) {
-                if (totalUnl <= 1) {
-                    renBannerEl.classList.remove('hidden');
-                } else {
-                    renBannerEl.classList.add('hidden');
-                }
-            }
-        }
+        // ════════════════════════════════════════════════
+        // DYNAMIC BLOCK CALCULATION
+        // Algorithm:
+        //   remaining_credits = N
+        //   Show N unlocked lectures + 1 locked lecture (next)
+        //   Group into blocks of 4
+        //   Example: N=15 → 4 blocks: [1-4][5-8][9-12][13-15, 16🔒]
+        //   Example: N=3  → 1 block: [1-3, 4🔒]
+        //   Example: N=4  → 2 blocks: [1-4][5🔒]
+        // ════════════════════════════════════════════════
+        const rc = remainingCredits;
+        const totalToShow = rc + 1; // always show one locked lecture beyond unlocked
+        const numBlocks = Math.ceil(totalToShow / 4);
         
-        const curStudent = (window.DEFAULT_DB && window.DEFAULT_DB.students) ? window.DEFAULT_DB.students.find(s => String(s.id) === String(currentStudentId) || (s.student_code && s.student_code.toLowerCase() === String(currentStudentId).toLowerCase())) : null;
-        let durVal = currentCourseInfo.session_duration || currentCourseInfo.duration || (curStudent ? (curStudent.session_duration || curStudent.duration) : null);
-        if (!durVal) {
-            const grpId = currentCourseInfo.group_id || (curStudent ? curStudent.group_id : 'G182');
-            const stCode = curStudent ? curStudent.student_code : '';
-            if (grpId === 'G182' || stCode === 'ST0419' || (selectedCourseName && selectedCourseName.includes('20'))) {
-                durVal = '20 دقيقة';
-            } else if (selectedCourseName && selectedCourseName.includes('30')) {
-                durVal = '30 دقيقة';
-            } else if (selectedCourseName && selectedCourseName.includes('40')) {
-                durVal = '40 دقيقة';
-            } else if (selectedCourseName && selectedCourseName.includes('45')) {
-                durVal = '45 دقيقة';
-            } else {
-                durVal = '20 دقيقة';
-            }
-        }
+        const durVal = currentCourseInfo.session_duration || '20';
         let durLabel = '20 دقيقة';
-        if (durVal.includes('20')) durLabel = '20 دقيقة';
-        else if (durVal.includes('30')) durLabel = '30 دقيقة';
-        else if (durVal.includes('40')) durLabel = '40 دقيقة';
-        else if (durVal.includes('45')) durLabel = '45 دقيقة';
-        else if (durVal.includes('60') || durVal.includes('ساعة')) durLabel = '60 دقيقة';
+        const durNum = parseInt(durVal) || 20;
+        durLabel = durNum + ' دقيقة';
+        
+        const subDays = currentCourseInfo.subscription_days || currentCourseInfo.days || 'الاثنين';
+        const upcomingDates = calculateGroupUpcomingDates(subDays, totalToShow + 2);
+        const timeText = currentCourseInfo.lecture_time || '8:00 مساءً';
+        const meetUrl = (currentCourseInfo.google_meet_url || 'https://meet.google.com') ;
 
-        let rawTimeVal = currentCourseInfo.lecture_time || '8:00 مساءً';
-        let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
-        if (!timeText || timeText === 'غير محدد') timeText = '8:00 مساءً';
-
-        const subDays = currentCourseInfo.subscription_days || 'الاثنين';
-        const upcomingDates = calculateGroupUpcomingDates(subDays, targetCount);
-
+        // Build the full list of lectures (existing + generated)
         if (!data.lectures || !Array.isArray(data.lectures)) {
             data.lectures = [];
         }
-
-        while (data.lectures.length < targetCount) {
+        while (data.lectures.length < totalToShow) {
             const num = data.lectures.length + 1;
-            const bNum = num <= 4 ? 1 : 2;
             data.lectures.push({
                 id: 100 + num,
                 lecture_number: num,
-                block_number: bNum,
+                block_number: Math.ceil(num / 4),
                 title: 'المحاضرة ' + num,
-                scheduled_time: 'موعد قادم • ' + timeText + ' (' + durLabel + ')',
-                is_unlocked: (num <= totalUnl),
+                scheduled_time: '',
+                is_unlocked: (num <= rc),
                 status: 'scheduled',
-                google_meet_url: 'https://meet.google.com/mnr-g182-mon'
+                google_meet_url: meetUrl
             });
         }
 
-        let p1Idx = 0;
-        data.lectures.forEach(l => {
-            l.title = 'المحاضرة ' + l.lecture_number;
-            l.is_unlocked = (l.lecture_number <= totalUnl);
-            if (p1Idx < upcomingDates.length) {
-                l.scheduled_time = upcomingDates[p1Idx].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')';
-                l.google_meet_url = l.google_meet_url || 'https://meet.google.com/mnr-g182-mon';
-                p1Idx++;
-            }
-        });
-
-        data.lectures.forEach(l => {
-            const card = renderLectureCard(l);
-            if (l.block_number === 1) {
-                if (b1Container) b1Container.appendChild(card);
+        // Assign dates
+        data.lectures.forEach((l, idx) => {
+            l.lecture_number = l.lecture_number || (idx + 1);
+            l.is_unlocked = (l.lecture_number <= rc);
+            l.block_number = Math.ceil(l.lecture_number / 4);
+            if (idx < upcomingDates.length) {
+                l.scheduled_time = upcomingDates[idx].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')';
             } else {
-                if (b2Container) b2Container.appendChild(card);
+                l.scheduled_time = timeText + ' (' + durLabel + ')';
             }
+            l.title = 'المحاضرة ' + l.lecture_number;
+            l.google_meet_url = l.google_meet_url || meetUrl;
         });
+        
+        // Update the subtitle
+        const subtitleEl = document.getElementById('selectedCourseSubtitle');
+        if (subtitleEl) {
+            subtitleEl.innerText = 'نظام البلوك الرباعي (رصيد متبقي: ' + rc + ' حصص • ' + numBlocks + ' مرحلة)';
+        }
+
+        // Show/hide renewal banner
+        const renBannerEl = document.getElementById('renewalBanner');
+        if (renBannerEl) {
+            if (rc <= 1) renBannerEl.classList.remove('hidden');
+            else renBannerEl.classList.add('hidden');
+        }
+
+        // Clear old static blocks and render new dynamic blocks
+        const lecSection = document.getElementById('block1Lectures') ? 
+            document.getElementById('block1Lectures').parentElement : null;
+        
+        // Find the lectures section container
+        const lecturesSection = document.querySelector('#lectureBlocksContainer') || 
+            (() => {
+                // Create new container if not found
+                const b1 = document.getElementById('block1Lectures');
+                if (b1) {
+                    // Replace the old section with our new container
+                    const newContainer = document.createElement('div');
+                    newContainer.id = 'lectureBlocksContainer';
+                    newContainer.className = 'space-y-5';
+                    // Find the entire section and replace its dynamic content
+                    const sectionEl = document.querySelector('section.space-y-4') || b1.closest('section');
+                    if (sectionEl) {
+                        // Keep the header, replace the dynamic content
+                        const header = sectionEl.querySelector('div.flex.justify-between');
+                        const renBanner = document.getElementById('renewalBanner');
+                        sectionEl.innerHTML = '';
+                        if (header) sectionEl.appendChild(header);
+                        if (renBanner) sectionEl.appendChild(renBanner);
+                        sectionEl.appendChild(newContainer);
+                        return newContainer;
+                    }
+                }
+                return null;
+            })();
+
+        // Find the best container to render into
+        let renderTarget = document.getElementById('lectureBlocksContainer');
+        if (!renderTarget) {
+            // Fallback: clear and repurpose block1Lectures
+            const b1El = document.getElementById('block1Lectures');
+            const b2El = document.getElementById('block2Lectures');
+            if (b1El) b1El.innerHTML = '';
+            if (b2El) b2El.innerHTML = '';
+        }
+
+        if (renderTarget) {
+            renderTarget.innerHTML = '';
+        }
+
+        // Render each block
+        for (let blockNum = 1; blockNum <= numBlocks; blockNum++) {
+            const blockLectures = data.lectures.filter(l => l.block_number === blockNum);
+            if (blockLectures.length === 0) continue;
+
+            const blockStart = (blockNum - 1) * 4 + 1;
+            const blockEnd = blockStart + blockLectures.length - 1;
+            const allUnlocked = blockLectures.every(l => l.is_unlocked);
+            const someUnlocked = blockLectures.some(l => l.is_unlocked);
+
+            // Block header
+            const blockHeader = document.createElement('div');
+            blockHeader.className = 'bg-[#1F274B] text-white px-4 py-3 rounded-xl flex justify-between items-center text-xs font-bold shadow-sm';
+            
+            let badgeText = '';
+            let badgeClass = '';
+            if (allUnlocked) {
+                badgeText = 'مفعلة بالكامل ✓';
+                badgeClass = 'bg-emerald-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold';
+            } else if (someUnlocked) {
+                const unlockedCount = blockLectures.filter(l => l.is_unlocked).length;
+                badgeText = unlockedCount + ' مفعلة • الباقي مقفل';
+                badgeClass = 'bg-amber-400 text-slate-950 text-[10px] px-2.5 py-0.5 rounded-full font-black';
+            } else {
+                badgeText = 'مغلقة • تتطلب التجديد';
+                badgeClass = 'bg-red-400 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold';
+            }
+
+            blockHeader.innerHTML = `
+                <span class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-black">المرحلة ${blockNum}: المحاضرات (${blockStart} إلى ${blockEnd})</span>
+                    <span class="${badgeClass}">${badgeText}</span>
+                </span>
+                <span class="text-blue-200 text-xs font-mono">${subDays}</span>
+            `;
+
+            // Block lectures container
+            const blockContainer = document.createElement('div');
+            blockContainer.className = 'space-y-3';
+
+            blockLectures.forEach(l => {
+                const card = renderLectureCard(l);
+                blockContainer.appendChild(card);
+            });
+
+            if (renderTarget) {
+                renderTarget.appendChild(blockHeader);
+                renderTarget.appendChild(blockContainer);
+            } else {
+                // Fallback to old containers
+                const b1El = document.getElementById('block1Lectures');
+                const b2El = document.getElementById('block2Lectures');
+                if (blockNum === 1 && b1El) {
+                    b1El.before(blockHeader);
+                    blockLectures.forEach(l => b1El.appendChild(renderLectureCard(l)));
+                } else if (b2El) {
+                    b2El.before(blockHeader);
+                    blockLectures.forEach(l => b2El.appendChild(renderLectureCard(l)));
+                }
+            }
+        }
+
     } catch (err) {
         console.error("Error loading course lectures:", err);
     }
 }
+
+
 
 function generateGoogleCalendarUrl(lecture) {
     const title = encodeURIComponent('محاضرة ' + lecture.lecture_number + ': ' + lecture.title + ' — أكاديمية منير');

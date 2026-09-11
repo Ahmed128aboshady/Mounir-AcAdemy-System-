@@ -9,8 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
     <script src="js/supabase_client.js"></script>
-    <script src="js/api_mock.js?v=20260910_auth4"></script>
+    <script src="js/api_mock.js?v=20260911_t3"></script>
     <script>
+        // Auth guard — teachers and admins only
         (function() {
             const userStr = localStorage.getItem('monir_current_user');
             if (!userStr) {
@@ -20,15 +21,8 @@
             try {
                 const u = JSON.parse(userStr);
                 if (u.role === 'student') {
-                    if (window.MonirPopup) {
-                        window.MonirPopup.alert('عذراً، بوابة المعلمين مخصصة فقط للكادر التعليمي والمشرفين. جاري تحويلك إلى بوابتك كطالب.', 'تنبيه الصلاحيات', 'warning', 'الانتقال إلى بوابة الطالب')
-                            .then(() => {
-                                window.location.replace('student.html?id=' + (u.student_id || u.related_id || 1));
-                            });
-                    } else {
-                        alert('عذراً، بوابة المعلمين مخصصة فقط للكادر التعليمي والمشرفين. جاري تحويلك إلى بوابتك كطالب.');
-                        window.location.replace('student.html?id=' + (u.student_id || u.related_id || 1));
-                    }
+                    alert('عذراً، بوابة المعلمين مخصصة للكادر التعليمي فقط.');
+                    window.location.replace('student.html?id=' + (u.student_id || u.related_id || 1));
                     return;
                 }
             } catch(e) {
@@ -36,6 +30,20 @@
             }
         })();
     </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .group-card { transition: box-shadow 0.2s; }
+        .group-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .student-row:hover { background: #f8fafc; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-overlay.hidden { display: none; }
+        .privacy-shield { background: linear-gradient(135deg, #1F274B, #2D396E); }
+        .rating-star { cursor: pointer; font-size: 1.25rem; transition: transform 0.1s; }
+        .rating-star:hover { transform: scale(1.3); }
+        .badge-present { background: #d1fae5; color: #065f46; }
+        .badge-absent { background: #fee2e2; color: #991b1b; }
+        .badge-excuse { background: #fef3c7; color: #92400e; }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20">
 
@@ -46,150 +54,76 @@
                 <a href="index.html" class="flex items-center"><img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-9 w-auto object-contain"></a>
                 <div>
                     <h1 class="font-extrabold text-sm leading-tight">بوابة المعلمين والمدربين</h1>
-                    <p class="text-[11px] text-slate-400">إدارة الطلاب وتسجيل الحضور ومتابعة تقدم القرآن الكريم</p>
+                    <p class="text-[11px] text-slate-400">إدارة المجموعات وتسجيل الحضور ومتابعة تقدم القرآن الكريم</p>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-300 font-bold hidden sm:inline">المعلم:</span>
-                    <select id="teacherSelect" onchange="switchTeacher(this.value)" class="text-xs bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-xl border border-slate-700 outline-none cursor-pointer">
-                        <option value="1">أ. إيمان النجار (القرآن & وعي وأمان)</option>
-                        <option value="2">د. سارة عبد المنعم (وعي وأمان)</option>
-                        <option value="3">م. عمر حسام (كتالوج الشباب)</option>
-                        <option value="4">م. يوسف هاني (قصص الأنبياء)</option>
-                    </select>
-                </div>
-                
-                <a href="login.html" id="teacherAuthBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-700">تسجيل الدخول</a>
-                <a href="admin.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-700">لوحة الإدارة</a>
-                <a href="index.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-700">الرئيسية</a>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 font-bold hidden md:inline" id="teacherNameHeader">—</span>
+                <a href="login.html" id="teacherAuthBtn" class="text-xs bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700 px-3 py-1.5 rounded-lg font-bold transition">تسجيل الخروج</a>
+                <a href="admin.html" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-bold transition border border-slate-600">لوحة الإدارة</a>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Privacy Shield Banner -->
+        <div class="privacy-shield text-white p-4 rounded-2xl shadow-lg border border-[#57BA9E]/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-[#57BA9E] text-slate-950 px-3 py-1 rounded-xl font-black text-xs">🔒 درع الخصوصية مفعّل</span>
+                <div>
+                    <p class="font-bold text-sm">نظام الخصوصية المشددة</p>
+                    <p class="text-xs text-slate-300">تم حجب أسماء الطلاب وأولياء الأمور وأرقام التواصل حمايةً للخصوصية. تظهر فقط الأكواد والإحصائيات.</p>
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-black" id="teacherGroupsCount">0</div>
+                <div class="text-xs text-slate-300">مجموعة مُشرف عليها</div>
+            </div>
+        </div>
 
         <!-- Teacher Bio Card -->
-        <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2.5 py-0.5 rounded-full" id="teacherSpecialty">معلم معتمد</span>
-                    <span class="bg-blue-100 text-blue-900 text-[11px] font-bold px-2.5 py-0.5 rounded-full">نظام الخصوصية المشددة مفعّل</span>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900" id="teacherName">أ. إيمان النجار</h2>
-                <p class="text-xs text-slate-500 mt-1" id="teacherContact">البريد الإلكتروني: eman.naggar@monir-academy.edu.eg • تليفون المعلم: 01011223344</p>
-                <p class="text-xs text-slate-400 mt-0.5">ملاحظة أمنية: يتم حجب أرقام هواتف أولياء الأمور والبيانات المالية لحماية خصوصية العائلات.</p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 w-full md:w-auto">
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center min-w-[120px]">
-                    <div class="text-[11px] font-bold text-slate-500">الطلاب المسندين</div>
-                    <div class="text-xl font-black text-blue-900 mt-0.5" id="statStudentCount">0</div>
-                </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center min-w-[120px]">
-                    <div class="text-[11px] font-bold text-slate-500">المسارات المشرفة عليها</div>
-                    <div class="text-xl font-black text-emerald-700 mt-0.5" id="statCourseCount">0</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Teacher Financial Ledger Card -->
-        <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-100">
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h3 class="text-base font-extrabold text-slate-900">المستحقات المالية وتسويات الحصص</h3>
-                    <p class="text-xs text-slate-500">حساب فوري للمستحقات بناءً على الحصص المكتملة وسعر الحصة المعتمد مع سجل الدفعات المستلمة</p>
+                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                        <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2.5 py-0.5 rounded-full" id="teacherSpecialty">معلم معتمد</span>
+                        <span class="bg-blue-100 text-blue-900 text-[11px] font-bold px-2.5 py-0.5 rounded-full">نظام الخصوصية المشددة مفعّل</span>
+                    </div>
+                    <h2 class="text-xl font-black text-slate-900" id="teacherName">جاري التحميل...</h2>
+                    <p class="text-xs text-slate-500 mt-1" id="teacherContact">—</p>
                 </div>
-                <span class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-lg border border-slate-200">
-                    حساب المعلم الشخصي
-                </span>
-            </div>
-
-            <!-- Financial Metric Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <span class="text-[11px] font-bold text-slate-500 block">سعر الحصة المعتمد</span>
-                    <div class="text-lg font-black text-slate-900 mt-1"><span id="finRate">0</span> <span class="text-xs font-normal text-slate-500">ج.م/حصة</span></div>
-                </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <span class="text-[11px] font-bold text-slate-500 block">إجمالي الحصص المنفذة</span>
-                    <div class="text-lg font-black text-blue-900 mt-1"><span id="finCompleted">0</span> <span class="text-xs font-normal text-slate-500">حصة</span></div>
-                </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <span class="text-[11px] font-bold text-slate-500 block">إجمالي المستحق المكتسب</span>
-                    <div class="text-lg font-black text-slate-900 mt-1"><span id="finEarned">0</span> <span class="text-xs font-normal text-slate-500">ج.م</span></div>
-                </div>
-                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                    <span class="text-[11px] font-bold text-emerald-800 block">الرصيد المتبقي للصرف</span>
-                    <div class="text-lg font-black text-emerald-900 mt-1"><span id="finBalance">0</span> <span class="text-xs font-normal text-emerald-700">ج.م</span></div>
-                </div>
-            </div>
-
-            <!-- Recent Payouts Table -->
-            <div class="mt-4 pt-2">
-                <h4 class="text-xs font-bold text-slate-700 mb-2">سجل الدفعات والتسويات الصادرة</h4>
-                <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                    <table class="w-full text-right text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                                <th class="p-2.5">رقم السند</th>
-                                <th class="p-2.5">المبلغ المصروف</th>
-                                <th class="p-2.5">عدد الحصص المسواة</th>
-                                <th class="p-2.5">عن شهر</th>
-                                <th class="p-2.5">تاريخ التحويل</th>
-                                <th class="p-2.5">طريقة الدفع والرقم المرجعي</th>
-                                <th class="p-2.5">الحالة</th>
-                            </tr>
-                        </thead>
-                        <tbody id="teacherPayoutsTableBody" class="divide-y divide-slate-100">
-                            <!-- Injected via JS -->
-                        </tbody>
-                    </table>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center min-w-[90px]">
+                        <div class="text-[11px] font-bold text-slate-500">إجمالي الطلاب</div>
+                        <div class="text-xl font-black text-blue-900 mt-0.5" id="statStudentCount">0</div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center min-w-[90px]">
+                        <div class="text-[11px] font-bold text-slate-500">المجموعات</div>
+                        <div class="text-xl font-black text-emerald-700 mt-0.5" id="statGroupCount">0</div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center min-w-[90px]">
+                        <div class="text-[11px] font-bold text-slate-500">المسار</div>
+                        <div class="text-xs font-black text-slate-700 mt-0.5">القرآن الكريم</div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Course Filter Pills -->
-        <section class="flex flex-wrap gap-2 text-xs" id="courseFilterPills">
-            <button onclick="filterStudents('all')" id="pill-all" class="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl shadow-sm">
-                كافة الطلاب
-            </button>
-        </section>
+        <!-- Search bar -->
+        <div class="flex gap-3 items-center">
+            <input type="text" id="searchInput" onkeyup="filterGroups()" placeholder="🔍 ابحث برقم الطالب أو معرف المجموعة..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
+            <button onclick="loadTeacherGroups()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-sm">تحديث</button>
+        </div>
 
-        <!-- Students Roster & Quran Progress Table -->
-        <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-900">سجل الطلاب ومتابعة الحصص الفردية</h3>
-                    <p class="text-xs text-slate-500">تسجيل حضور الجلسات، خصم الكريدت، إدارة الأعذار (العذر الأول مجاني)، وتحديث موضع التلاوة والحفظ</p>
-                </div>
-                <button onclick="loadTeacherDashboard()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg border border-slate-200 transition">
-                    تحديث السجل
-                </button>
+        <!-- Groups Container -->
+        <div id="groupsContainer" class="space-y-5">
+            <div class="text-center py-12 text-slate-400">
+                <div class="text-4xl mb-3">📚</div>
+                <p class="font-bold">جاري تحميل مجموعاتك...</p>
             </div>
-
-            <!-- Table Container -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-xs">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
-                            <th class="p-3">#</th>
-                            <th class="p-3">الطالب</th>
-                            <th class="p-3">المسار</th>
-                            <th class="p-3">رصيد الحصص المتبقي</th>
-                            <th class="p-3">مستوى الحفظ والتلاوة</th>
-                            <th class="p-3">سجل الأعذار</th>
-                            <th class="p-3 text-center">إجراءات الحصة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentsTableBody" class="divide-y divide-slate-100">
-                        <!-- Injected via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        </div>
 
     </main>
 
@@ -198,74 +132,76 @@
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
                 <h3 class="font-extrabold text-base text-slate-900">تحديث تقدم الحفظ والتلاوة</h3>
-                <button onclick="closeUpdateSurahModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                <button onclick="closeModal('updateSurahModal')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
-
             <div class="space-y-4 text-xs">
                 <div>
-                    <span class="block text-slate-500 mb-1">الطالب:</span>
-                    <strong class="text-slate-900 text-sm" id="modalStudentName">عبدالرحمن خالد</strong>
+                    <span class="block text-slate-500 mb-1">رمز الطالب:</span>
+                    <strong class="text-slate-900 text-sm" id="modalStudentCode">—</strong>
                 </div>
-
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">السورة الحالية:</label>
                     <input type="text" id="modalSurahInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="مثال: سورة المطففين">
                 </div>
-
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">الآية التي تم الوصول إليها:</label>
                     <input type="number" id="modalAyaInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="مثال: 18">
                 </div>
-
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">ملاحظات التجويد والأداء:</label>
                     <textarea id="modalNotesInput" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-normal outline-none focus:border-emerald-600" placeholder="ملاحظات حول أحكام النون الساكنة أو مخارج الحروف..."></textarea>
                 </div>
-
                 <div class="pt-2 flex gap-2">
-                    <button onclick="saveSurahProgress()" class="flex-1 bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-bold py-2.5 rounded-xl transition">
-                        حفظ وتحديث السجل
-                    </button>
-                    <button onclick="closeUpdateSurahModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition">
-                        إلغاء
-                    </button>
+                    <button onclick="saveSurahProgress()" class="flex-1 bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-bold py-2.5 rounded-xl transition">حفظ وتحديث السجل</button>
+                    <button onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition">إلغاء</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Modal: Rate Student -->
+    <div id="rateStudentModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="font-extrabold text-base text-slate-900">تقييم الطالب</h3>
+                <button onclick="closeModal('rateStudentModal')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <div class="text-center space-y-4">
+                <p class="text-xs text-slate-500">رمز الطالب: <strong id="rateStudentCode">—</strong></p>
+                <div class="flex justify-center gap-2" id="ratingStars">
+                    <span class="rating-star" onclick="setRating(1)">⭐</span>
+                    <span class="rating-star" onclick="setRating(2)">⭐</span>
+                    <span class="rating-star" onclick="setRating(3)">⭐</span>
+                    <span class="rating-star" onclick="setRating(4)">⭐</span>
+                    <span class="rating-star" onclick="setRating(5)">⭐</span>
+                </div>
+                <p class="text-sm font-black text-slate-700" id="ratingLabel">اختر التقييم</p>
+                <button onclick="saveRating()" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold py-2.5 rounded-xl transition">حفظ التقييم</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentTeacherId = 1;
-        let teacherData = null;
-        let activeFilterCourse = 'all';
+        let teacherGroups = [];
         let activeModalStudentId = null;
+        let selectedRating = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
             const userStr = localStorage.getItem('monir_current_user');
             if (userStr) {
                 try {
                     const u = JSON.parse(userStr);
-                    if (u.role === 'teacher' && u.teacher_id && !urlParams.has('id')) {
-                        currentTeacherId = u.teacher_id;
-                    }
+                    currentTeacherId = u.teacher_id || u.related_id || 1;
+                    
+                    // Setup logout button
                     const btn = document.getElementById('teacherAuthBtn');
+                    const nameHeader = document.getElementById('teacherNameHeader');
+                    if (nameHeader) nameHeader.innerText = 'المعلم: ' + (u.full_name || u.username);
                     if (btn) {
-                        btn.innerText = 'تسجيل الخروج (' + (u.full_name ? u.full_name.split(' ')[0] : u.username) + ')';
-                        btn.className = 'text-xs bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700 px-3 py-1.5 rounded-lg font-bold transition';
                         btn.onclick = (e) => {
                             e.preventDefault();
-                            if (window.MonirPopup) {
-                                window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من حساب المعلم؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
-                                    .then(confirmed => {
-                                        if (confirmed) {
-                                            localStorage.removeItem('monir_current_user');
-                                            localStorage.removeItem('monir_auth_token');
-                                            window.location.href = 'login.html';
-                                        }
-                                    });
-                            } else if (confirm('هل ترغب في تسجيل الخروج؟')) {
+                            if (confirm('هل ترغب في تسجيل الخروج؟')) {
                                 localStorage.removeItem('monir_current_user');
                                 localStorage.removeItem('monir_auth_token');
                                 window.location.href = 'login.html';
@@ -275,247 +211,450 @@
                 } catch(e) {}
             }
 
+            // Load from URL if admin is viewing a teacher
+            const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('id')) {
                 currentTeacherId = parseInt(urlParams.get('id')) || currentTeacherId;
             }
-            document.getElementById('teacherSelect').value = currentTeacherId;
-            loadTeacherDashboard();
+
+            loadTeacherGroups();
         });
 
-        function switchTeacher(id) {
-            currentTeacherId = parseInt(id);
-            const newUrl = window.location.protocol + '//' + window.location.host + window.location.pathname + '?id=' + currentTeacherId;
-            window.history.pushState({path:newUrl},'',newUrl);
-            loadTeacherDashboard();
-        }
+        async function loadTeacherGroups() {
+            const container = document.getElementById('groupsContainer');
+            container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-4xl mb-3 animate-bounce">📚</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
 
-        async function loadTeacherDashboard() {
             try {
-                const res = await fetch('/api/teacher/' + currentTeacherId + '/dashboard');
-                teacherData = await res.json();
-                
-                document.getElementById('teacherName').innerText = teacherData.teacher_name;
-                document.getElementById('teacherSpecialty').innerText = teacherData.specialty;
-                document.getElementById('teacherContact').innerText = 'البريد الإلكتروني: ' + teacherData.email + ' • الهاتف: ' + teacherData.phone;
-                
-                document.getElementById('statStudentCount').innerText = teacherData.total_students;
-                document.getElementById('statCourseCount').innerText = teacherData.assigned_courses.length;
+                // Try Supabase first for teacher info
+                let teacherName = '';
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        const { data: tData } = await client.from('teachers').select('*').eq('id', currentTeacherId).single();
+                        if (tData) {
+                            teacherName = tData.name;
+                            document.getElementById('teacherName').innerText = 'أ. ' + tData.name;
+                            document.getElementById('teacherContact').innerText = 'البريد: ' + (tData.email || '—');
+                            document.getElementById('teacherSpecialty').innerText = 'معلم القرآن الكريم';
+                        }
+                    } catch(e) {}
 
-                // Financials & Payouts
-                const fin = teacherData.payroll || teacherData.financials;
-                if (fin) {
-                    document.getElementById('finRate').innerText = (fin.rate_per_session || 0).toLocaleString();
-                    document.getElementById('finCompleted').innerText = (fin.completed_sessions || 0);
-                    document.getElementById('finEarned').innerText = (fin.total_earned || 0).toLocaleString();
-                    document.getElementById('finBalance').innerText = (fin.balance_due || 0).toLocaleString();
+                    // Load groups directly from Supabase
+                    try {
+                        const client = window.MonirDB.getClient();
+                        const { data: enrData } = await client
+                            .from('enrollments')
+                            .select('*, students(id, student_code, age, qr_code, status)')
+                            .eq('teacher_id', currentTeacherId);
 
-                    renderPayoutsTable(fin.payouts_history || fin.recent_payouts || []);
+                        if (enrData && enrData.length > 0) {
+                            // Group by qr_code (which stores group_id)
+                            const groupsMap = {};
+                            enrData.forEach(e => {
+                                const s = e.students;
+                                if (!s) return;
+                                const gid = s.qr_code || e.group_id || 'G000';
+                                if (!groupsMap[gid]) {
+                                    groupsMap[gid] = {
+                                        group_id: gid,
+                                        group_name: e.course_name || gid,
+                                        students: []
+                                    };
+                                }
+                                groupsMap[gid].students.push({
+                                    id: s.id,
+                                    student_id: s.id,
+                                    student_code: s.student_code,
+                                    age: s.age,
+                                    course_name: e.course_name,
+                                    group_id: gid,
+                                    remaining_credits: e.remaining_credits || 0,
+                                    excuse_count: e.excuse_count || 0,
+                                    max_allowed_excuses: e.max_allowed_excuses || 1,
+                                    current_surah: e.current_surah,
+                                    current_aya: e.current_aya || 1,
+                                    present_count: e.present_count || 0,
+                                    absent_count: e.absent_count || 0,
+                                    status: e.status || 'active',
+                                    rating: e.rating || null,
+                                    enrollment_id: e.id,
+                                });
+                            });
+
+                            teacherGroups = Object.values(groupsMap).sort((a, b) => a.group_id.localeCompare(b.group_id));
+                            
+                            document.getElementById('statStudentCount').innerText = enrData.length;
+                            document.getElementById('statGroupCount').innerText = teacherGroups.length;
+                            document.getElementById('teacherGroupsCount').innerText = teacherGroups.length;
+                            
+                            renderGroups(teacherGroups);
+                            return;
+                        }
+                    } catch(e) {
+                        console.warn('Supabase groups load failed, falling back to mock', e);
+                    }
                 }
 
-                renderFilterPills(teacherData.assigned_courses);
-                renderStudentsTable(teacherData.students);
-            } catch (err) {
-                console.error('Error loading teacher dashboard:', err);
+                // Fallback: API mock
+                const res = await fetch('/api/teacher/' + currentTeacherId + '/groups');
+                const data = await res.json();
+                
+                if (data.teacher_name) {
+                    document.getElementById('teacherName').innerText = 'أ. ' + data.teacher_name;
+                    document.getElementById('teacherContact').innerText = 'معلم معتمد في أكاديمية منير الذكية';
+                }
+                document.getElementById('statStudentCount').innerText = data.total_students || 0;
+                document.getElementById('statGroupCount').innerText = data.total_groups || 0;
+                document.getElementById('teacherGroupsCount').innerText = data.total_groups || 0;
+                
+                teacherGroups = data.groups || [];
+                renderGroups(teacherGroups);
+
+            } catch(err) {
+                container.innerHTML = '<div class="text-center py-12 text-red-400"><p class="font-bold">حدث خطأ أثناء تحميل البيانات. حاول مرة أخرى.</p></div>';
+                console.error(err);
             }
         }
 
-        function renderPayoutsTable(payouts) {
-            const tbody = document.getElementById('teacherPayoutsTableBody');
-            tbody.innerHTML = '';
-            if (payouts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-slate-400">لا توجد تسويات مالية سابقة مسجلة حتى الآن.</td></tr>';
+        function filterGroups() {
+            const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+            if (!q) {
+                renderGroups(teacherGroups);
                 return;
             }
+            const filtered = teacherGroups.filter(g =>
+                g.group_id.toLowerCase().includes(q) ||
+                g.group_name.toLowerCase().includes(q) ||
+                g.students.some(s => (s.student_code || '').toLowerCase().includes(q))
+            );
+            renderGroups(filtered);
+        }
 
-            payouts.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition';
-                tr.innerHTML = `
-                    <td class="p-2.5 font-mono text-slate-500">PAY-${p.id}</td>
-                    <td class="p-2.5 font-bold text-emerald-700">${Number(p.amount).toLocaleString()} ج.م</td>
-                    <td class="p-2.5 font-bold text-slate-800">${p.sessions_count} حصة</td>
-                    <td class="p-2.5 text-slate-600">${p.period_month || 'غير محدد'}</td>
-                    <td class="p-2.5 font-mono text-slate-500">${p.payment_date || '-'}</td>
-                    <td class="p-2.5 text-slate-600">${p.payment_method || 'فودافون كاش'} <span class="font-mono text-[10px] text-slate-400">${p.reference_number ? '(' + p.reference_number + ')' : ''}</span></td>
-                    <td class="p-2.5"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[11px]">مكتمل ومحول</span></td>
+        function renderGroups(groups) {
+            const container = document.getElementById('groupsContainer');
+            
+            if (!groups || groups.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-5xl mb-4">📭</div>
+                        <h3 class="text-lg font-black text-slate-700 mb-2">لا توجد مجموعات مسندة إليك</h3>
+                        <p class="text-slate-400 text-sm">تواصل مع الإدارة لإضافة مجموعاتك</p>
+                    </div>
                 `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderFilterPills(courses) {
-            const container = document.getElementById('courseFilterPills');
-            container.innerHTML = '<button onclick="filterStudents(\'all\')" id="pill-all" class="font-bold px-3.5 py-1.5 rounded-xl transition ' + (activeFilterCourse === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700') + '">كافة الطلاب (' + teacherData.total_students + ')</button>';
-            
-            courses.forEach(c => {
-                const isCurrent = (activeFilterCourse === c);
-                const btn = document.createElement('button');
-                btn.className = 'font-bold px-3.5 py-1.5 rounded-xl transition ' + (isCurrent ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700');
-                btn.innerText = c;
-                btn.onclick = () => filterStudents(c);
-                container.appendChild(btn);
-            });
-        }
-
-        function filterStudents(courseName) {
-            activeFilterCourse = courseName;
-            renderFilterPills(teacherData.assigned_courses);
-            
-            if (courseName === 'all') {
-                renderStudentsTable(teacherData.students);
-            } else {
-                const filtered = teacherData.students.filter(s => s.course_name === courseName);
-                renderStudentsTable(filtered);
-            }
-        }
-
-        function renderStudentsTable(students) {
-            const tbody = document.getElementById('studentsTableBody');
-            tbody.innerHTML = '';
-
-            if (students.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">لا يوجد طلاب مسجلين في هذا المسار حالياً.</td></tr>';
                 return;
             }
 
-            students.forEach((s, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition';
+            container.innerHTML = '';
+            groups.forEach(g => {
+                const el = document.createElement('div');
+                el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden';
+                el.innerHTML = `
+                    <!-- Group Header -->
+                    <div class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white px-5 py-3.5 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-xs px-2.5 py-1 rounded-lg">${g.group_id}</span>
+                            <div>
+                                <h3 class="font-extrabold text-sm">${g.group_name || g.group_id}</h3>
+                                <p class="text-[11px] text-slate-300">مسار القرآن الكريم والتدبر</p>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xl font-black">${g.students.length}</div>
+                            <div class="text-[11px] text-slate-300">طالب</div>
+                        </div>
+                    </div>
+                    <!-- Students Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                                    <th class="p-3">#</th>
+                                    <th class="p-3">رمز الطالب</th>
+                                    <th class="p-3">السن</th>
+                                    <th class="p-3">رصيد الحصص</th>
+                                    <th class="p-3">الأعذار</th>
+                                    <th class="p-3">الحضور / الغياب</th>
+                                    <th class="p-3">مستوى القرآن</th>
+                                    <th class="p-3 text-center">إجراءات الحصة</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${g.students.map((s, idx) => renderStudentRow(s, idx)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
 
-                let creditBadge = '<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-md text-[11px]">' + s.remaining_credits + ' من ' + s.total_credits_purchased + ' حصص</span>';
-                if (s.remaining_credits <= 1) {
-                    creditBadge = '<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">متبقي حصة واحدة (تنبيه تجديد)</span>';
-                } else if (s.remaining_credits === 0) {
-                    creditBadge = '<span class="bg-slate-200 text-slate-700 font-black px-2 py-0.5 rounded-md text-[11px]">الرصيد منتهي</span>';
-                }
+        function renderStudentRow(s, idx) {
+            const rc = s.remaining_credits || 0;
+            let creditBadge;
+            if (rc === 0) {
+                creditBadge = `<span class="bg-slate-200 text-slate-700 font-black px-2 py-0.5 rounded-md text-[11px]">الرصيد منتهي</span>`;
+            } else if (rc <= 1) {
+                creditBadge = `<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">⚠️ ${rc} حصة متبقية</span>`;
+            } else {
+                creditBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة</span>`;
+            }
 
-                let quranProgress = '<span class="text-slate-400 font-medium">غير متاح</span>';
-                if (s.current_surah) {
-                    quranProgress = '<div><strong class="text-slate-900">' + s.current_surah + '</strong><span class="text-emerald-700 font-bold block text-[11px]">آية ' + (s.current_aya || 1) + '</span></div>';
-                }
+            const excuseCount = s.excuse_count || 0;
+            const maxExcuse = s.max_allowed_excuses || 1;
+            let excuseBadge;
+            if (excuseCount === 0) {
+                excuseBadge = `<span class="text-slate-400">لا يوجد</span>`;
+            } else if (excuseCount < maxExcuse) {
+                excuseBadge = `<span class="badge-excuse font-bold px-2 py-0.5 rounded-md text-[11px]">${excuseCount} (مجاني)</span>`;
+            } else {
+                excuseBadge = `<span class="badge-absent font-bold px-2 py-0.5 rounded-md text-[11px]">${excuseCount} (استُنفد العذر)</span>`;
+            }
 
-                let excuseText = '<span class="text-slate-500 font-medium">لا يوجد</span>';
-                if (s.excuse_count > 0) {
-                    excuseText = '<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[11px]">' + s.excuse_count + ' عذر مسجل (الأول مجاني)</span>';
-                }
+            const quranProgress = s.current_surah 
+                ? `<div><strong class="text-slate-900">${s.current_surah}</strong><span class="text-emerald-700 font-bold block text-[11px]">آية ${s.current_aya || 1}</span></div>`
+                : `<span class="text-slate-400">غير محدد</span>`;
 
-                tr.innerHTML = `
+            const present = s.present_count || 0;
+            const absent = s.absent_count || 0;
+
+            const ratingDisplay = s.rating 
+                ? `<span class="text-amber-400">${'⭐'.repeat(s.rating)}</span>` 
+                : `<span class="text-slate-300 text-[11px]">—</span>`;
+
+            return `
+                <tr class="student-row" id="row-${s.id}">
                     <td class="p-3 text-slate-400 font-mono">${idx + 1}</td>
                     <td class="p-3">
-                        <strong class="text-slate-900 block text-xs">${s.name}</strong>
-                        <span class="text-slate-400 font-mono text-[10px]">${s.student_code} • ${s.age} سنة</span>
+                        <div class="font-mono font-extrabold text-slate-900 text-[11px]">${s.student_code}</div>
+                        <div class="text-slate-400 text-[10px]">${ratingDisplay}</div>
                     </td>
+                    <td class="p-3 font-bold text-slate-700">${s.age || '—'}</td>
+                    <td class="p-3">${creditBadge}</td>
+                    <td class="p-3">${excuseBadge}</td>
                     <td class="p-3">
-                        <span class="text-blue-900 font-bold text-xs">${s.course_name}</span>
-                    </td>
-                    <td class="p-3">
-                        ${creditBadge}
-                    </td>
-                    <td class="p-3">
-                        ${quranProgress}
-                    </td>
-                    <td class="p-3">
-                        ${excuseText}
-                    </td>
-                    <td class="p-3">
-                        <div class="flex items-center justify-center gap-1.5">
-                            <button onclick="recordSession(${s.id}, 'present')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2.5 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم 1 كريدت">
-                                حضور
-                            </button>
-                            <button onclick="recordSession(${s.id}, 'excused')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] transition" title="عذر مقبول (المرة الأولى مجانية)">
-                                عذر
-                            </button>
-                            <button onclick="recordSession(${s.id}, 'absent')" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2.5 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">
-                                غياب
-                            </button>
-                            <button onclick="openUpdateSurahModal(${s.id}, '${s.name}', '${s.current_surah || ''}', ${s.current_aya || 1})" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2.5 py-1 rounded-lg text-[11px] transition border border-slate-300" title="تحديث تقدم السورة والآية">
-                                تحديث السورة
-                            </button>
-                            <a href="student.html?id=${s.student_id || s.id}" target="_blank" class="bg-[#41519C]/10 hover:bg-[#41519C]/20 text-[#41519C] border border-[#41519C]/30 font-bold px-2.5 py-1 rounded-lg text-[11px] transition flex items-center gap-1" title="عرض ملف الطالب (محجوب البيانات الحساسة)">
-                                <span>عرض كارت الطالب</span>
-                            </a>
+                        <div class="flex items-center gap-1.5">
+                            <span class="badge-present px-1.5 py-0.5 rounded font-bold text-[10px]">✓ ${present}</span>
+                            <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]">✗ ${absent}</span>
                         </div>
                     </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                    <td class="p-3">${quranProgress}</td>
+                    <td class="p-3">
+                        <div class="flex items-center justify-center gap-1 flex-wrap">
+                            <button onclick="recordSession(${s.id}, 'present')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم حصة">حضور</button>
+                            <button onclick="recordSession(${s.id}, 'excused')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="عذر (الأول مجاني)">عذر</button>
+                            <button onclick="recordSession(${s.id}, 'absent')" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">غياب</button>
+                            <button onclick="openSurahModal(${s.id}, '${s.student_code}', '${(s.current_surah || '').replace(/'/g, '')}', ${s.current_aya || 1})" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2 py-1 rounded-lg text-[11px] transition border border-slate-300">تحديث السورة</button>
+                            <button onclick="openRateModal(${s.id}, '${s.student_code}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition">تقييم</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
         }
 
         async function recordSession(studentId, sessionStatus) {
-            const labels = { 'present': 'حضور', 'excused': 'عذر مقبول', 'absent': 'غياب' };
+            const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر مقبول (الأول مجاني)', 'absent': 'غياب بدون عذر' };
+            
+            let confirmed = false;
             if (window.MonirPopup) {
-                const confirmed = await window.MonirPopup.confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟', 'تأكيد تسجيل الجلسة', 'question', 'نعم، تأكيد التسجيل', 'إلغاء');
-                if (!confirmed) return;
-            } else if (!confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟')) {
-                return;
+                confirmed = await window.MonirPopup.confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟', 'تأكيد تسجيل الجلسة', 'question', 'نعم، تأكيد التسجيل', 'إلغاء');
+            } else {
+                confirmed = confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟');
             }
+            if (!confirmed) return;
 
             try {
-                const res = await fetch('/api/quran/record-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        student_id: studentId,
-                        teacher_id: currentTeacherId,
-                        session_status: sessionStatus
-                    })
-                });
-                const data = await res.json();
+                // Try Supabase direct update
+                let success = false;
+                let resultMsg = '';
+                let newCredits = 0;
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        // Get current enrollment
+                        const { data: enrData } = await client
+                            .from('enrollments')
+                            .select('*')
+                            .eq('student_id', studentId)
+                            .single();
+
+                        if (enrData) {
+                            let updates = {};
+                            const rc = enrData.remaining_credits || 0;
+                            const excuseCount = enrData.excuse_count || 0;
+                            const maxExcuses = enrData.max_allowed_excuses || 1;
+
+                            if (sessionStatus === 'present') {
+                                updates.remaining_credits = Math.max(0, rc - 1);
+                                updates.present_count = (enrData.present_count || 0) + 1;
+                                resultMsg = `تم تسجيل الحضور ✓\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
+                                newCredits = updates.remaining_credits;
+                            } else if (sessionStatus === 'excused') {
+                                if (excuseCount < maxExcuses) {
+                                    // First excuse is free
+                                    updates.excuse_count = excuseCount + 1;
+                                    updates.absent_count = (enrData.absent_count || 0) + 1;
+                                    resultMsg = `تم تسجيل العذر المجاني ✓\nلا خصم من الرصيد (عذر رقم ${excuseCount + 1} من ${maxExcuses})`;
+                                    newCredits = rc;
+                                } else {
+                                    // Excuse used up — count as absence
+                                    updates.excuse_count = excuseCount + 1;
+                                    updates.remaining_credits = Math.max(0, rc - 1);
+                                    updates.absent_count = (enrData.absent_count || 0) + 1;
+                                    resultMsg = `⚠️ تم استهلاك العذر المجاني\nتم خصم حصة (العذر الثاني يُحتسب غياباً)\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
+                                    newCredits = updates.remaining_credits;
+                                }
+                            } else if (sessionStatus === 'absent') {
+                                updates.absent_count = (enrData.absent_count || 0) + 1;
+                                updates.remaining_credits = Math.max(0, rc - 1);
+                                resultMsg = `تم تسجيل الغياب ✗\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
+                                newCredits = updates.remaining_credits;
+                            }
+
+                            await client.from('enrollments').update(updates).eq('id', enrData.id);
+                            
+                            // Record in attendance table
+                            await client.from('attendance').insert({
+                                student_id: studentId,
+                                teacher_id: currentTeacherId,
+                                status: sessionStatus,
+                                session_date: new Date().toISOString().split('T')[0],
+                                notes: labels[sessionStatus]
+                            });
+
+                            success = true;
+                        }
+                    } catch(e) {
+                        console.warn('Supabase record failed, trying mock:', e);
+                    }
+                }
+
+                if (!success) {
+                    // Fallback: mock API
+                    const res = await fetch('/api/quran/record-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            student_id: studentId,
+                            teacher_id: currentTeacherId,
+                            session_status: sessionStatus
+                        })
+                    });
+                    const data = await res.json();
+                    resultMsg = data.message + '\nالرصيد المتبقي: ' + data.remaining_credits + ' حصص';
+                    success = data.success;
+                }
+
+                if (window.MonirPopup) {
+                    await window.MonirPopup.alert(resultMsg, 'تم التسجيل بنجاح', 'success');
+                } else {
+                    alert(resultMsg);
+                }
                 
-                alert('تم بنجاح: ' + data.message + '\nالرصيد المتبقي: ' + data.remaining_credits + ' حصص');
-                loadTeacherDashboard();
-            } catch (err) {
+                await loadTeacherGroups();
+
+            } catch(err) {
                 console.error('Error recording session:', err);
-                alert('حدث خطأ أثناء تسجيل الجلسة.');
+                alert('حدث خطأ أثناء تسجيل الجلسة. يرجى المحاولة مرة أخرى.');
             }
         }
 
-        function openUpdateSurahModal(studentId, studentName, currentSurah, currentAya) {
+        function openSurahModal(studentId, studentCode, currentSurah, currentAya) {
             activeModalStudentId = studentId;
-            document.getElementById('modalStudentName').innerText = studentName;
+            document.getElementById('modalStudentCode').innerText = studentCode;
             document.getElementById('modalSurahInput').value = currentSurah;
-            document.getElementById('modalAyaInput').value = currentAya;
+            document.getElementById('modalAyaInput').value = currentAya || '';
             document.getElementById('modalNotesInput').value = '';
             document.getElementById('updateSurahModal').classList.remove('hidden');
         }
 
-        function closeUpdateSurahModal() {
-            document.getElementById('updateSurahModal').classList.add('hidden');
-        }
-
         async function saveSurahProgress() {
             if (!activeModalStudentId) return;
-
             const surah = document.getElementById('modalSurahInput').value.trim();
             const aya = parseInt(document.getElementById('modalAyaInput').value) || 1;
             const notes = document.getElementById('modalNotesInput').value.trim();
 
-            if (!surah) {
-                alert('يرجى إدخال اسم السورة');
-                return;
-            }
+            if (!surah) { alert('يرجى إدخال اسم السورة'); return; }
 
             try {
-                const res = await fetch('/api/quran/update-surah', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        student_id: activeModalStudentId,
-                        teacher_id: currentTeacherId,
-                        surah_name: surah,
-                        aya_number: aya,
-                        notes: notes
-                    })
-                });
-                const data = await res.json();
-                
-                alert(data.message);
-                closeUpdateSurahModal();
-                loadTeacherDashboard();
-            } catch (err) {
-                console.error('Error saving surah progress:', err);
-                alert('حدث خطأ أثناء حفظ تقدم السورة.');
+                let success = false;
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        await client.from('enrollments').update({
+                            current_surah: surah,
+                            current_aya: aya
+                        }).eq('student_id', activeModalStudentId);
+                        success = true;
+                    } catch(e) {}
+                }
+
+                if (!success) {
+                    await fetch('/api/quran/update-surah', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ student_id: activeModalStudentId, teacher_id: currentTeacherId, surah_name: surah, aya_number: aya, notes })
+                    });
+                }
+                closeModal('updateSurahModal');
+                alert('تم تحديث موضع التلاوة والحفظ بنجاح! ✓');
+                await loadTeacherGroups();
+            } catch(err) {
+                alert('حدث خطأ أثناء الحفظ.');
             }
+        }
+
+        function openRateModal(studentId, studentCode) {
+            activeModalStudentId = studentId;
+            selectedRating = 0;
+            document.getElementById('rateStudentCode').innerText = studentCode;
+            updateRatingStars(0);
+            document.getElementById('rateStudentModal').classList.remove('hidden');
+        }
+
+        function setRating(r) {
+            selectedRating = r;
+            updateRatingStars(r);
+            const labels = ['', 'ضعيف', 'مقبول', 'جيد', 'جيد جداً', 'ممتاز'];
+            document.getElementById('ratingLabel').innerText = labels[r] || '';
+        }
+
+        function updateRatingStars(r) {
+            const stars = document.querySelectorAll('.rating-star');
+            stars.forEach((s, i) => {
+                s.style.opacity = i < r ? '1' : '0.3';
+                s.style.transform = i < r ? 'scale(1.2)' : 'scale(1)';
+            });
+        }
+
+        async function saveRating() {
+            if (!selectedRating || !activeModalStudentId) { alert('يرجى اختيار تقييم أولاً'); return; }
+            try {
+                let done = false;
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        await client.from('enrollments').update({ rating: selectedRating }).eq('student_id', activeModalStudentId);
+                        done = true;
+                    } catch(e) {}
+                }
+                if (!done) {
+                    await fetch('/api/teacher/' + currentTeacherId + '/student/' + activeModalStudentId + '/rate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ rating: selectedRating })
+                    });
+                }
+                closeModal('rateStudentModal');
+                alert('تم حفظ التقييم بنجاح! ✓');
+                await loadTeacherGroups();
+            } catch(e) {
+                alert('حدث خطأ أثناء الحفظ.');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
     </script>
 </body>

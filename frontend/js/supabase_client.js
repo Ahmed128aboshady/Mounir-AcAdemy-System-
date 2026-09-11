@@ -190,11 +190,12 @@
                     const { data: st, error: stErr } = await stQuery.single();
                     if (!stErr && st) stData = st;
 
-                    if (realSid) {
+                    if (realSid || (stData && stData.id)) {
+                        const actualId = realSid || stData.id;
                         const { data: enr } = await client
                             .from('enrollments')
-                            .select('*')
-                            .eq('student_id', realSid);
+                            .select('*, teachers(id, name, username)')
+                            .eq('student_id', actualId);
                         if (enr) enrData = enr;
                     }
                 }
@@ -205,29 +206,43 @@
 
                 if (!stData) return null;
 
+                // group_id is stored in qr_code field of students table
+                const groupIdFromDB = stData.qr_code || localSt?.group_id || 'G000';
+
                 if (localSt) {
-                    stData.group_id = stData.group_id || localSt.group_id || 'G182';
+                    stData.group_id = groupIdFromDB;
                     stData.age = stData.age || localSt.age || 12;
                     stData.phone = stData.phone || localSt.phone;
                     stData.parent_phone = stData.parent_phone || localSt.parent_phone || stData.phone;
                     stData.parent_name = localSt.parent_name || stData.parent_name;
-                    stData.account_status = stData.account_status || localSt.account_status || 'نشط';
+                    stData.account_status = stData.status === 'active' ? 'نشط' : (stData.status === 'inactive' ? 'موقوف' : (stData.account_status || 'نشط'));
+                } else {
+                    stData.group_id = groupIdFromDB;
+                    stData.account_status = stData.status === 'active' ? 'نشط' : (stData.status === 'inactive' ? 'موقوف' : 'نشط');
                 }
 
                 let enrichedEnr = [];
                 if (enrData && enrData.length > 0) {
                     enrichedEnr = enrData.map(e => {
                         const locE = localEnrs.find(le => le.course_name === e.course_name) || localEnrs[0] || {};
+                        const teacherName = (e.teachers && e.teachers.name) ? e.teachers.name : (locE.teacher_name || 'محمود حمادة');
+                        const rc = (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 12);
                         return {
                             ...locE,
                             ...e,
-                            group_id: e.group_id || locE.group_id || stData.group_id || 'G182',
-                            teacher_name: e.teacher_name || locE.teacher_name || 'محمود حمادة',
+                            group_id: groupIdFromDB,
+                            teacher_name: teacherName,
+                            teacher_id: e.teacher_id,
                             subscription_days: e.subscription_days || locE.subscription_days || 'الاثنين',
                             lecture_time: e.lecture_time || locE.lecture_time || '8:00 مساءً',
-                            account_status: e.account_status || locE.account_status || stData.account_status || 'نشط',
-                            remaining_credits: (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 12),
-                            total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 12))
+                            account_status: stData.account_status,
+                            session_duration: e.session_duration || locE.session_duration || '',
+                            remaining_credits: rc,
+                            total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, rc),
+                            excuse_count: e.excuse_count || 0,
+                            present_count: e.present_count || 0,
+                            absent_count: e.absent_count || 0,
+                            status: e.status || 'active',
                         };
                     });
                 } else if (localEnrs.length > 0) {

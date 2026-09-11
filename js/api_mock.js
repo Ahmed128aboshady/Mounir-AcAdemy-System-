@@ -440,7 +440,7 @@
                 email: teacher.email,
                 phone: teacher.phone,
                 specialty: teacher.specialty,
-                assigned_courses: assignedCourses.length ? assignedCourses : ['كتالوج الشباب 2.0'],
+                assigned_courses: assignedCourses.length ? assignedCourses : ['مسار القرآن الكريم والتدبر'],
                 total_students: stList.length,
                 students: stList,
                 financials: {
@@ -460,6 +460,103 @@
                     payouts_history: payouts
                 }
             });
+        }
+
+        // 6b. Teacher Groups View (/api/teacher/<id>/groups)
+        const teacherGroupsMatch = path.match(/\/api\/teacher\/(\d+)\/groups/);
+        if (teacherGroupsMatch) {
+            const tid = parseInt(teacherGroupsMatch[1]);
+            const teacher = DB.teachers.find(t => t.id === tid) || DB.teachers[0];
+
+            // Get all students enrolled with this teacher
+            const enrs = DB.enrollments.filter(e => e.teacher_id === tid);
+            
+            // Group students by group_id (stored in qr_code field or enrollment group_id)
+            const groupsMap = {};
+            enrs.forEach(e => {
+                const s = DB.students.find(st => st.id === e.student_id);
+                if (!s) return;
+                const gid = s.qr_code || e.group_id || 'G000'; // group_id stored in qr_code
+                if (!groupsMap[gid]) {
+                    groupsMap[gid] = {
+                        group_id: gid,
+                        group_name: e.course_name || gid,
+                        teacher_id: tid,
+                        teacher_name: teacher.name,
+                        students: []
+                    };
+                }
+                // PRIVACY: hide name, parent_name, phone for teachers
+                groupsMap[gid].students.push({
+                    id: s.id,
+                    student_id: s.id,
+                    student_code: s.student_code,
+                    age: s.age,
+                    course_name: e.course_name,
+                    group_id: gid,
+                    remaining_credits: e.remaining_credits,
+                    excuse_count: e.excuse_count || 0,
+                    max_allowed_excuses: e.max_allowed_excuses || 1,
+                    current_surah: e.current_surah,
+                    current_aya: e.current_aya || 1,
+                    present_count: e.present_count || 0,
+                    absent_count: e.absent_count || 0,
+                    status: e.status || 'active',
+                    rating: e.rating || null,
+                    // DO NOT include: name, parent_name, phone, parent_phone
+                });
+            });
+
+            const groups = Object.values(groupsMap).sort((a, b) => a.group_id.localeCompare(b.group_id));
+            return jsonResponse({
+                teacher_id: tid,
+                teacher_name: teacher.name,
+                total_groups: groups.length,
+                total_students: enrs.length,
+                groups: groups
+            });
+        }
+
+        // 6c. Admin Groups View (/api/admin/groups)
+        if (path === '/api/admin/groups') {
+            const groupsMap = {};
+            DB.students.forEach(s => {
+                const enrs = DB.enrollments.filter(e => e.student_id === s.id);
+                const gid = s.qr_code || 'G000';
+                if (!gid) return;
+                if (!groupsMap[gid]) {
+                    const enr0 = enrs[0] || {};
+                    const teacher = DB.teachers.find(t => t.id === enr0.teacher_id);
+                    groupsMap[gid] = {
+                        group_id: gid,
+                        group_name: enr0.course_name || gid,
+                        teacher_name: teacher ? teacher.name : '',
+                        teacher_id: enr0.teacher_id || null,
+                        students: []
+                    };
+                }
+                groupsMap[gid].students.push({
+                    id: s.id,
+                    name: s.name,  // Admin sees full name
+                    student_code: s.student_code,
+                    age: s.age,
+                    phone: s.phone,
+                    parent_phone: s.parent_phone,
+                    status: s.status,
+                    remaining_credits: (DB.enrollments.find(e => e.student_id === s.id) || {}).remaining_credits || 0
+                });
+            });
+            const groups = Object.values(groupsMap).sort((a, b) => a.group_id.localeCompare(b.group_id));
+            return jsonResponse({ total_groups: groups.length, groups: groups });
+        }
+
+        // 6d. Rate student (/api/teacher/<tid>/student/<sid>/rate)
+        const rateMatch = path.match(/\/api\/teacher\/(\d+)\/student\/(\d+)\/rate/);
+        if (rateMatch && method === 'POST') {
+            const sid = parseInt(rateMatch[2]);
+            const enr = DB.enrollments.find(e => e.student_id === sid);
+            if (enr) enr.rating = body.rating;
+            return jsonResponse({ success: true, message: 'تم تقييم الطالب بنجاح!' });
         }
 
         // 7. Student Dashboard
