@@ -111,14 +111,10 @@
 
 
         <!-- Top Stats Row -->
-        <section class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="text-xs text-slate-500 font-semibold">المسارات المفعلة</div>
-                <div class="text-2xl font-black text-blue-600 mt-1" id="statCoursesCount">4 مسارات</div>
-            </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="text-xs text-slate-500 font-semibold">إجمالي المحاضرات</div>
-                <div class="text-2xl font-black text-slate-900 mt-1" id="statTotalLectures">32 محاضرة</div>
+                <div class="text-2xl font-black text-blue-600 mt-1" id="statCoursesCount">1 مسار (القرآن الكريم)</div>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="text-xs text-slate-500 font-semibold">الطلاب النشطين</div>
@@ -154,24 +150,7 @@
             </div>
         </section>
 
-        <!-- 1. Groups Capacity & Ages Hub (سعة المجموعات والأعمار والمقاعد الشاغرة) -->
-        <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-                <div>
-                    <h2 class="text-lg font-extrabold text-slate-900">سعة المجموعات وتوزيع الأعمار والمقاعد الشاغرة</h2>
-                    <p class="text-xs text-slate-500">متابعة الفئات العمرية المستهدفة والأعمار الحقيقية للطلاب المسجلين والمقاعد المتبقية لاكتمال كل جروب</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="filterCourseAnalytics('all')" id="btnCapacityAll" class="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg">كافة المجموعات</button>
-                    <button onclick="filterCourseAnalytics('incomplete')" id="btnCapacityIncomplete" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg">المجموعات الشاغرة فقط</button>
-                </div>
-            </div>
 
-            <!-- Groups Analytics Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="coursesAnalyticsGrid">
-                <!-- Injected via JS -->
-            </div>
-        </section>
 
         <!-- 2. Teacher Payroll & Financial Settlements Engine (محاسبة المعلمين والمستحقات) -->
         <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
@@ -546,7 +525,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadAdminData();
-            loadCoursesAnalytics();
             loadPayrollData();
             loadPerformanceReport();
             loadStudentsStatusSummary();
@@ -559,15 +537,19 @@
                 const res = await fetch('/api/admin/overview');
                 const data = await res.json();
                 
-                allLectures = data.lectures;
+                allLectures = data.lectures || [];
                 
-                const coursesCount = (data.available_courses ? data.available_courses.length : (data.courses_list ? data.courses_list.length : 0));
-                document.getElementById('statCoursesCount').innerText = coursesCount + ' مسار';
-                const lecturesCount = (data.total_active_lectures !== undefined && data.total_active_lectures !== null) ? data.total_active_lectures : 0;
-                document.getElementById('statTotalLectures').innerText = lecturesCount + ' محاضرة';
-                const studentsCount = (data.total_students !== undefined && data.total_students !== null) ? data.total_students : 0;
-                document.getElementById('statTotalStudents').innerText = studentsCount + ' طالب';
-                document.getElementById('statPendingTickets').innerText = (data.open_tickets_count || 0) + ' تذكرة';
+                const statCoursesEl = document.getElementById('statCoursesCount');
+                if (statCoursesEl) statCoursesEl.innerText = '1 مسار (القرآن الكريم)';
+
+                const statStudentsEl = document.getElementById('statTotalStudents');
+                if (statStudentsEl) {
+                    const studentsCount = (data.total_students !== undefined && data.total_students !== null) ? data.total_students : 0;
+                    statStudentsEl.innerText = studentsCount + ' طالب';
+                }
+
+                const statPendingEl = document.getElementById('statPendingTickets');
+                if (statPendingEl) statPendingEl.innerText = (data.open_tickets_count || 0) + ' تذكرة';
                 
                 renderLecturesTable(allLectures);
             } catch (err) {
