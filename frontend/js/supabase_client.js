@@ -194,7 +194,7 @@
                         const actualId = realSid || stData.id;
                         const { data: enr } = await client
                             .from('enrollments')
-                            .select('*, teachers(id, name, username)')
+                            .select('*, teachers(id, name)')
                             .eq('student_id', actualId);
                         if (enr) enrData = enr;
                     }
@@ -225,18 +225,20 @@
                 if (enrData && enrData.length > 0) {
                     enrichedEnr = enrData.map(e => {
                         const locE = localEnrs.find(le => le.course_name === e.course_name) || localEnrs[0] || {};
-                        const teacherName = (e.teachers && e.teachers.name) ? e.teachers.name : (locE.teacher_name || 'محمود حمادة');
-                        const rc = (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 12);
+                        // Teacher name: from DB JOIN only — no hardcoded fallback
+                        const teacherName = (e.teachers && e.teachers.name) ? e.teachers.name : (locE.teacher_name || '');
+                        const rc = (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 0);
                         return {
                             ...locE,
                             ...e,
                             group_id: groupIdFromDB,
                             teacher_name: teacherName,
                             teacher_id: e.teacher_id,
-                            subscription_days: e.subscription_days || locE.subscription_days || 'الاثنين',
-                            lecture_time: e.lecture_time || locE.lecture_time || '8:00 مساءً',
-                            account_status: stData.account_status,
+                            // Days/time from DB columns (set by upload script), fallback to empty
+                            subscription_days: e.subscription_days || locE.subscription_days || '',
+                            lecture_time: e.lecture_time || locE.lecture_time || '',
                             session_duration: e.session_duration || locE.session_duration || '',
+                            account_status: stData.account_status,
                             remaining_credits: rc,
                             total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, rc),
                             excuse_count: e.excuse_count || 0,
