@@ -83,14 +83,12 @@
                     client.from('teachers').select('*')
                 ]);
 
-                if (stRes.data && stRes.data.length > 0) {
-                    this.updateLocalCache(db => {
-                        db.students = stRes.data;
-                        if (enrRes.data) db.enrollments = enrRes.data;
-                        if (uRes.data) db.users = uRes.data;
-                        if (tcRes.data) db.teachers = tcRes.data;
-                    });
-                }
+                this.updateLocalCache(db => {
+                    db.students = stRes.data || [];
+                    db.enrollments = enrRes.data || [];
+                    if (uRes.data) db.users = uRes.data;
+                    if (tcRes.data) db.teachers = tcRes.data;
+                });
             } catch(e) {
                 console.log('[Supabase Sync]:', e);
             }

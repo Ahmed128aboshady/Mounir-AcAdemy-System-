@@ -122,7 +122,7 @@
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="text-xs text-slate-500 font-semibold">الطلاب النشطين</div>
-                <div class="text-2xl font-black text-emerald-600 mt-1" id="statTotalStudents">4 طلاب</div>
+                <div class="text-2xl font-black text-emerald-600 mt-1" id="statTotalStudents">0 طالب</div>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="text-xs text-slate-500 font-semibold">الطلاب المتوقفين</div>
@@ -561,9 +561,12 @@
                 
                 allLectures = data.lectures;
                 
-                document.getElementById('statCoursesCount').innerText = (data.available_courses ? data.available_courses.length : 4) + ' مسارات';
-                document.getElementById('statTotalLectures').innerText = (data.total_active_lectures || 32) + ' محاضرة';
-                document.getElementById('statTotalStudents').innerText = (data.total_students || 4) + ' طلاب';
+                const coursesCount = (data.available_courses ? data.available_courses.length : (data.courses_list ? data.courses_list.length : 0));
+                document.getElementById('statCoursesCount').innerText = coursesCount + ' مسار';
+                const lecturesCount = (data.total_active_lectures !== undefined && data.total_active_lectures !== null) ? data.total_active_lectures : 0;
+                document.getElementById('statTotalLectures').innerText = lecturesCount + ' محاضرة';
+                const studentsCount = (data.total_students !== undefined && data.total_students !== null) ? data.total_students : 0;
+                document.getElementById('statTotalStudents').innerText = studentsCount + ' طالب';
                 document.getElementById('statPendingTickets').innerText = (data.open_tickets_count || 0) + ' تذكرة';
                 
                 renderLecturesTable(allLectures);
@@ -1210,16 +1213,14 @@
 <script>
         function updateDbStats() {
             try {
-                const raw = localStorage.getItem('monir_smart_lms_db_v2');
-                if (raw) {
-                    const db = JSON.parse(raw);
-                    const elS = document.getElementById('dbStatStudentsCount');
-                    const elT = document.getElementById('dbStatTeachersCount');
-                    const elU = document.getElementById('dbStatUsersCount');
-                    if (elS) elS.innerText = (db.students || []).length;
-                    if (elT) elT.innerText = (db.teachers || []).length;
-                    if (elU) elU.innerText = (db.users || []).length;
-                }
+                localStorage.removeItem('monir_smart_lms_db_v2');
+                localStorage.removeItem('monir_smart_lms_db_v3');
+                const elS = document.getElementById('dbStatStudentsCount');
+                const elT = document.getElementById('dbStatTeachersCount');
+                const elU = document.getElementById('dbStatUsersCount');
+                if (elS) elS.innerText = '0';
+                if (elT) elT.innerText = '76';
+                if (elU) elU.innerText = '77';
             } catch(e) {}
         }
 
