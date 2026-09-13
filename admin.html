@@ -128,8 +128,11 @@
                 <div class="text-[11px] sm:text-xs text-slate-500 font-semibold">الطلاب النشطين</div>
                 <div class="text-lg sm:text-2xl font-black text-emerald-600 mt-1" id="statTotalStudents">740 طالب</div>
             </div>
-            <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div class="text-[11px] sm:text-xs text-slate-500 font-semibold">الطلاب المتوقفين</div>
+            <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-red-300 transition" onclick="ensureOpenAndLoadPausedStudents(); document.getElementById('sectionPausedStudents')?.scrollIntoView({behavior:'smooth'})" title="اضغط لعرض ومتابعة الطلاب المتوقفين">
+                <div class="text-[11px] sm:text-xs text-slate-500 font-semibold flex items-center justify-between">
+                    <span>الطلاب المتوقفين</span>
+                    <span class="text-[10px] text-red-500 font-normal">عرض التفاصيل ←</span>
+                </div>
                 <div class="text-lg sm:text-2xl font-black text-red-600 mt-1" id="statPausedStudents">13</div>
             </div>
             <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -278,16 +281,26 @@
 
         <!-- 4. Paused & Dropout Students Monitor (الطلاب المتوقفين والمراسلة الفورية) -->
         <section class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4" id="sectionPausedStudents">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-                <div>
-                    <h2 class="text-base sm:text-lg font-extrabold text-slate-900">متابعة الطلاب المتوقفين وفرص استعادة الاشتراكات</h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500">حصر الطلاب الذين نفد رصيدهم أو انقطعوا عن الحضور، مع إمكانية مراسلة ولي الأمر مباشرة عبر WhatsApp</p>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleDashboardSection('pausedStudentsContent', 'pausedStudentsToggleBtn', 'pausedStudentsStateBadge')">
+                <div class="flex items-center gap-3">
+                    <button type="button" id="pausedStudentsToggleBtn" class="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-amber-50 group-hover:text-amber-600 text-slate-600 flex items-center justify-center transition shadow-sm shrink-0">
+                        <svg class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-amber-900 transition">متابعة الطلاب المتوقفين وفرص استعادة الاشتراكات</h2>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="pausedStudentsStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500">حصر الطلاب الذين نفد رصيدهم أو انقطعوا عن الحضور، مع إمكانية مراسلة ولي الأمر مباشرة عبر WhatsApp</p>
+                    </div>
                 </div>
-                <button onclick="loadStudentsStatusSummary()" class="w-full sm:w-auto text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 sm:py-1.5 rounded-lg transition">تحديث القائمة</button>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end" onclick="event.stopPropagation()">
+                    <button onclick="ensureOpenAndLoadPausedStudents()" class="w-full sm:w-auto text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 sm:py-1.5 rounded-lg transition">تحديث القائمة</button>
+                </div>
             </div>
 
-            <!-- Paused Students Table -->
-            <div class="overflow-x-auto">
+            <!-- Paused Students Table (Collapsible Dropdown Content) -->
+            <div id="pausedStudentsContent" class="hidden overflow-x-auto transition-all duration-300 pt-1">
                 <table class="w-full text-right text-xs min-w-[650px]">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
@@ -1348,6 +1361,14 @@
                 toggleDashboardSection('bulkStudentsContent', 'bulkStudentsToggleBtn', 'bulkStudentsStateBadge');
             }
             loadBulkStudents();
+        }
+
+        function ensureOpenAndLoadPausedStudents() {
+            const content = document.getElementById('pausedStudentsContent');
+            if (content && content.classList.contains('hidden')) {
+                toggleDashboardSection('pausedStudentsContent', 'pausedStudentsToggleBtn', 'pausedStudentsStateBadge');
+            }
+            loadStudentsStatusSummary();
         }
 
         // ── Helper: Sync Stat Cards with In-Memory / Live Students Data ──
