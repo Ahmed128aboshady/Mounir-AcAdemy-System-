@@ -1689,155 +1689,215 @@
 
         async function loadBulkStudents() {
             const tbody = document.getElementById('bsTableBody');
-            tbody.innerHTML = `<tr><td colspan="11" class="text-center py-12 text-slate-400">
-                <div class="text-3xl mb-2 animate-spin">⚙️</div>
-                <p class="font-bold">جاري تحميل بيانات الطلاب من Supabase...</p>
-            </td></tr>`;
+
+            const showStatus = (icon, msg, sub='') => {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-12 text-slate-400">
+                    <div class="text-4xl mb-3">${icon}</div>
+                    <p class="font-bold text-slate-700">${msg}</p>
+                    ${sub ? `<p class="text-[12px] text-slate-400 mt-1">${sub}</p>` : ''}
+                </td></tr>`;
+            };
+
+            showStatus('⚙️', 'جاري تحميل بيانات الطلاب...', 'يتصل بـ Supabase...');
+
+            let students = [];
+            let teachers = [];
+            let debugLog = [];
 
             try {
-                let students = [];
-                let teachers = [];
-
-                // ① Try Supabase
+                // ══════════════════════════════════
+                // ① PRIMARY: Supabase direct query
+                // ══════════════════════════════════
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
+                    debugLog.push('✔ MonirDB configured');
 
-                    // Load teachers
-                    const { data: tData, error: tErr } = await client.from('teachers').select('id, name').order('name');
-                    if (tData) teachers = tData;
-                    if (tErr) console.warn('[BulkStudents] teachers load error:', tErr.message);
+                    // Teachers
+                    const { data: tData, error: tErr } = await client
+                        .from('teachers').select('id, name').order('name');
+                    if (tData && tData.length > 0) {
+                        teachers = tData;
+                        debugLog.push(`✔ Teachers: ${teachers.length}`);
+                    }
+                    if (tErr) debugLog.push(`✘ Teachers error: ${tErr.message}`);
 
-                    // Load students — only columns that actually exist in the schema
+                    // Students — SELECT * to get all columns regardless of schema
+                    showStatus('⚙️', 'جاري تحميل الطلاب...', 'يقرأ بيانات students من Supabase...');
                     const { data: sData, error: sErr } = await client
                         .from('students')
-                        .select('id, name, student_code, age, phone, parent_name, parent_phone, status, qr_code')
+                        .select('*')
                         .order('student_code', { ascending: true });
 
                     if (sErr) {
-                        console.error('[BulkStudents] students query error:', sErr.message, sErr);
+                        debugLog.push(`✘ Students error: ${sErr.message}`);
+                        showStatus('⚠️',
+                            `خطأ في قاعدة البيانات: ${sErr.message}`,
+                            'تحقق من صلاحيات Supabase RLS أو اسم الجدول');
+                        console.error('[BulkStudents] Supabase error:', sErr);
                     }
 
                     if (sData && sData.length > 0) {
-                        // Load enrollments separately to avoid join column errors
-                        const { data: enrData, error: enrErr } = await client
-                            .from('enrollments')
-                            .select('student_id, remaining_credits, teacher_id, teachers(id, name)')
-                            .in('student_id', sData.map(s => s.id));
+                        debugLog.push(`✔ Students raw: ${sData.length}`);
+                        showStatus('⚙️', `تم جلب ${sData.length} طالب...`, 'يجلب بيانات التسجيل...');
 
-                        if (enrErr) console.warn('[BulkStudents] enrollments error:', enrErr.message);
-
-                        // Build enrollment map by student_id
-                        const enrMap = {};
-                        if (enrData) {
-                            enrData.forEach(e => {
-                                if (!enrMap[e.student_id]) enrMap[e.student_id] = e;
-                            });
+                        // Build ID list in chunks of 500 (Supabase .in() limit)
+                        const allIds = sData.map(s => s.id);
+                        let enrData = [];
+                        for (let i = 0; i < allIds.length; i += 400) {
+                            const chunk = allIds.slice(i, i + 400);
+                            const { data: chunkEnr } = await client
+                                .from('enrollments')
+                                .select('student_id, remaining_credits, teacher_id, teachers(id, name)')
+                                .in('student_id', chunk);
+                            if (chunkEnr) enrData = enrData.concat(chunkEnr);
                         }
+                        debugLog.push(`✔ Enrollments: ${enrData.length}`);
+
+                        // Map enrollments by student_id
+                        const enrMap = {};
+                        enrData.forEach(e => { if (!enrMap[e.student_id]) enrMap[e.student_id] = e; });
 
                         students = sData.map(s => {
                             const enr = enrMap[s.id] || {};
                             const teacherObj = enr.teachers || null;
+                            // group_id: some setups use qr_code, others group_id
+                            const groupId = s.qr_code || s.group_id || '—';
+                            // status: handle both 'active'/'inactive' and 'نشط'/'غير نشط'
+                            let status = 'active';
+                            if (s.status === 'inactive' || s.status === 'غير نشط' || s.account_status === 'غير نشط') status = 'inactive';
                             return {
-                                id: s.id,
-                                name: s.name || '',
-                                student_code: s.student_code || '',
-                                age: s.age || 0,
-                                gender: guessGender(s.name),
-                                group_id: s.qr_code || '—',
-                                status: s.status || 'active',
-                                remaining_credits: enr.remaining_credits || 0,
-                                teacher_id: enr.teacher_id || (teacherObj ? teacherObj.id : null),
-                                teacher_name: teacherObj ? teacherObj.name : '—',
-                                subscription_days: '—',
-                                lecture_time: '—',
-                                enrollment_id: enr.id || null
+                                id:               s.id,
+                                name:             s.name || '',
+                                student_code:     s.student_code || '',
+                                age:              s.age || 0,
+                                gender:           guessGender(s.name),
+                                group_id:         groupId,
+                                status:           status,
+                                remaining_credits: enr.remaining_credits ?? s.remaining_credits ?? 0,
+                                teacher_id:       enr.teacher_id || (teacherObj ? teacherObj.id : null),
+                                teacher_name:     teacherObj ? teacherObj.name : '—',
+                                subscription_days: s.subscription_days || '—',
+                                lecture_time:     s.lecture_time || '—',
+                                enrollment_id:    enr.id || null
                             };
                         });
+                        debugLog.push(`✔ Mapped: ${students.length} students`);
 
-                        console.log(`[BulkStudents] Loaded ${students.length} students from Supabase ✅`);
                     } else if (!sErr) {
-                        console.warn('[BulkStudents] Supabase returned 0 students — table may be empty');
+                        debugLog.push('⚠ Supabase students table is empty (0 rows)');
+                    }
+                } else {
+                    debugLog.push('✘ MonirDB not configured — skipping Supabase');
+                }
+
+                // ══════════════════════════════════
+                // ② FALLBACK: allAdminGroups (if already loaded on page)
+                // ══════════════════════════════════
+                if (students.length === 0) {
+                    debugLog.push('⟳ Trying allAdminGroups fallback...');
+                    // Try to trigger loadAdminGroups if not yet loaded
+                    if ((!window.allAdminGroups || allAdminGroups.length === 0) && typeof loadAdminGroups === 'function') {
+                        showStatus('⚙️', 'يحاول تحميل المجموعات أولاً...', 'لم يتم العثور على بيانات Supabase');
+                        await loadAdminGroups();
+                    }
+                    if (window.allAdminGroups && allAdminGroups.length > 0) {
+                        allAdminGroups.forEach(g => {
+                            (g.students || []).forEach(s => {
+                                students.push({
+                                    id:               s.id,
+                                    name:             s.name || '',
+                                    student_code:     s.student_code || '',
+                                    age:              s.age || 0,
+                                    gender:           guessGender(s.name),
+                                    group_id:         g.group_id || s.qr_code || '—',
+                                    status:           s.status || 'active',
+                                    remaining_credits: s.remaining_credits || 0,
+                                    teacher_id:       s.teacher_id || null,
+                                    teacher_name:     s.teacher_name || '—',
+                                    subscription_days: s.subscription_days || '—',
+                                    lecture_time:     s.lecture_time || '—',
+                                    enrollment_id:    null
+                                });
+                            });
+                        });
+                        debugLog.push(`✔ allAdminGroups fallback: ${students.length} students`);
                     }
                 }
 
-                // ② Fallback: API mock
+                // ══════════════════════════════════
+                // ③ FALLBACK: Mock API
+                // ══════════════════════════════════
                 if (students.length === 0) {
+                    debugLog.push('⟳ Trying mock API fallback...');
                     try {
                         const res = await fetch('/api/admin/students');
-                        const data = await res.json();
-                        students = (data.students || []).map(s => ({
-                            id: s.id,
-                            name: s.name || '',
-                            student_code: s.student_code || s.code || '',
-                            age: s.age || 0,
-                            gender: guessGender(s.name),
-                            group_id: s.group_id || s.qr_code || '—',
-                            status: s.account_status === 'نشط' ? 'active' : (s.status || 'active'),
-                            remaining_credits: s.remaining_credits || 0,
-                            teacher_id: s.teacher_id || null,
-                            teacher_name: s.teacher_name || '—',
-                            subscription_days: s.subscription_days || '—',
-                            lecture_time: s.lecture_time || '—',
-                            enrollment_id: null
-                        }));
-                    } catch(e) { console.warn('Mock fallback failed', e); }
-                }
-
-                // ③ Fallback: load from allAdminGroups if already loaded
-                if (students.length === 0 && window.allAdminGroups && allAdminGroups.length > 0) {
-                    allAdminGroups.forEach(g => {
-                        g.students.forEach(s => {
-                            students.push({
-                                id: s.id,
-                                name: s.name || '',
-                                student_code: s.student_code || '',
-                                age: s.age || 0,
-                                gender: guessGender(s.name),
-                                group_id: g.group_id || '—',
-                                status: s.status || 'active',
+                        if (res.ok) {
+                            const data = await res.json();
+                            students = (data.students || []).map(s => ({
+                                id:               s.id,
+                                name:             s.name || '',
+                                student_code:     s.student_code || '',
+                                age:              s.age || 0,
+                                gender:           guessGender(s.name),
+                                group_id:         s.group_id || s.qr_code || '—',
+                                status:           s.account_status === 'نشط' ? 'active' : (s.status || 'active'),
                                 remaining_credits: s.remaining_credits || 0,
-                                teacher_id: s.teacher_id || null,
-                                teacher_name: s.teacher_name || '—',
-                                subscription_days: '—',
-                                lecture_time: '—',
-                                enrollment_id: null
-                            });
-                        });
-                    });
+                                teacher_id:       s.teacher_id || null,
+                                teacher_name:     s.teacher_name || '—',
+                                subscription_days: s.subscription_days || '—',
+                                lecture_time:     s.lecture_time || '—',
+                                enrollment_id:    null
+                            }));
+                            debugLog.push(`✔ Mock API: ${students.length} students`);
+                        }
+                    } catch(e) {
+                        debugLog.push(`✘ Mock API failed: ${e.message}`);
+                    }
                 }
 
-                // Load teachers for mock fallback
+                // Teachers fallback
                 if (teachers.length === 0) {
                     try {
                         const r = await fetch('/api/teachers');
-                        const td = await r.json();
-                        teachers = (td || []).map(t => ({ id: t.id, name: t.name }));
+                        if (r.ok) {
+                            const td = await r.json();
+                            teachers = (td || []).map(t => ({ id: t.id, name: t.name }));
+                        }
                     } catch(e) {}
+                }
+
+                // ══════════════════════════════════
+                // RESULT
+                // ══════════════════════════════════
+                console.log('[BulkStudents] Debug log:\n' + debugLog.join('\n'));
+
+                if (students.length === 0) {
+                    showStatus('📭',
+                        'لم يتم العثور على طلاب',
+                        `سجل Debug: ${debugLog.slice(-3).join(' | ')}`);
+                    if (window.MonirPopup) MonirPopup.error(
+                        'لم يُعثر على طلاب.<br><small>' + debugLog.join('<br>') + '</small>',
+                        'تعذّر التحميل');
+                    return;
                 }
 
                 bsAllStudents = students;
                 bsTeachersList = teachers;
                 bsSelectedIds.clear();
-
-                // Populate filter dropdowns
                 bsPopulateDropdowns(students, teachers);
-
-                // Render
                 applyBulkFilters();
 
                 if (window.MonirPopup) {
                     MonirPopup.toast(`✅ تم تحميل ${students.length} طالب بنجاح`, 'success');
-                } else {
-                    console.log(`Loaded ${students.length} students`);
                 }
 
             } catch(err) {
-                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-10 text-red-400 font-bold">
-                    ⚠️ حدث خطأ أثناء تحميل الطلاب. تحقق من إعدادات Supabase.
-                </td></tr>`;
-                console.error('loadBulkStudents error:', err);
+                console.error('[BulkStudents] Fatal error:', err);
+                showStatus('❌', `خطأ غير متوقع: ${err.message}`, 'افتح Developer Console لمزيد من التفاصيل');
+                if (window.MonirPopup) MonirPopup.error(`خطأ: ${err.message}`);
             }
         }
+
 
         function bsPopulateDropdowns(students, teachers) {
             // Groups — fill both the dropdown and the datalist
