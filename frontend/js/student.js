@@ -569,10 +569,11 @@ async function loadSelectedCourseLectures() {
             l.google_meet_url = l.google_meet_url || meetUrl;
         });
         
-        // Update the subtitle
+        // Subtitle removed per user request
         const subtitleEl = document.getElementById('selectedCourseSubtitle');
         if (subtitleEl) {
-            subtitleEl.innerText = 'نظام البلوك الرباعي (رصيد متبقي: ' + rc + ' حصص • ' + numBlocks + ' مرحلة)';
+            subtitleEl.innerText = '';
+            subtitleEl.classList.add('hidden');
         }
 
         // Show/hide renewal banner
@@ -771,7 +772,6 @@ function renderLectureCard(l) {
             <div>
                 <span class="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">حصة #${l.lecture_number}</span>
                 <h4 class="font-extrabold text-sm text-slate-900 mt-1">${l.title}</h4>
-                <p class="text-xs text-slate-500 mt-0.5">${l.description || ''}</p>
             </div>
             <div>${statusBadge}</div>
         </div>
