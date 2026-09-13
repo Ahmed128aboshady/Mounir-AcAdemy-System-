@@ -525,9 +525,12 @@ async function loadSelectedCourseLectures() {
                 : 'المرحلة الأولى';
         }
         
-        document.getElementById('paymobServiceName').innerText = 'تجديد مسار ' + (data.course_name || selectedCourseName);
-        document.getElementById('paymobStudentInfo').innerText = document.getElementById('studentName').innerText + ' (' + document.getElementById('studentCode').innerText + ')';
-        document.getElementById('paymobAmountText').innerText = (currentCourseInfo ? (currentCourseInfo.price_per_block || 450.0) : 450.0) + ' ج.م';
+        const cBadge = document.getElementById('paymobCourseNameBadge');
+        if (cBadge) cBadge.innerText = data.course_name || selectedCourseName;
+        const sInfo = document.getElementById('paymobStudentInfo');
+        if (sInfo && document.getElementById('studentName')) {
+            sInfo.innerText = document.getElementById('studentName').innerText + ' (' + (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : '') + ')';
+        }
 
         // ════════════════════════════════════════════════
         // DYNAMIC BLOCK CALCULATION
@@ -769,7 +772,7 @@ function renderLectureCard(l) {
         statusBadge = '<span class="badge-status badge-locked">مغلقة • تتطلب تجديد المرحلة</span>';
         actionBtn = `
             <button onclick="openPaymobModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-                <span>تجديد مسار ${selectedCourseName} لفتح المحاضرة</span>
+                <span>تجديد الاشتراك واختيار الباقة لفتح المحاضرة</span>
             </button>
         `;
     } else {
@@ -1164,8 +1167,128 @@ function closeTopBanner() {
     document.getElementById('topNotificationBanner').classList.add('hidden');
 }
 
-// ---------------- Paymob & Receipt Sharing ----------------
+// ---------------- Paymob & Renewal Packages ----------------
+const RENEWAL_PACKAGES = [
+    {
+        id: 'group_4',
+        type: 'group',
+        typeName: 'جروب (مجموعة)',
+        name: 'باقة الـ 4 محاضرات شهرياً',
+        subtitle: 'شهرياً (حصة أسبوعياً)',
+        credits: 4,
+        duration: '45-60 دقيقة',
+        price: 400,
+        badge: null
+    },
+    {
+        id: 'group_8',
+        type: 'group',
+        typeName: 'جروب (مجموعة)',
+        name: 'باقة الـ 8 محاضرات شهرياً',
+        subtitle: 'شهرياً (حصتان أسبوعياً)',
+        credits: 8,
+        duration: '45-60 دقيقة',
+        price: 500,
+        badge: 'الأكثر طلباً ⭐'
+    },
+    {
+        id: 'private_4_60',
+        type: 'private',
+        typeName: 'برايفت (فردي خاص)',
+        name: 'باقة 4 محاضرات (ساعة كاملة)',
+        subtitle: '60 دقيقة للحصة — متابعة فردية 1:1',
+        credits: 4,
+        duration: '60 دقيقة',
+        price: 1000,
+        badge: null
+    },
+    {
+        id: 'private_4_30',
+        type: 'private',
+        typeName: 'برايفت (فردي خاص)',
+        name: 'باقة 4 محاضرات (نصف ساعة)',
+        subtitle: '30 دقيقة للحصة — متابعة فردية 1:1',
+        credits: 4,
+        duration: '30 دقيقة',
+        price: 666,
+        badge: null
+    }
+];
+
+let selectedRenewalPackageId = 'group_8';
+
+function selectRenewalPackage(pkgId) {
+    const pkg = RENEWAL_PACKAGES.find(p => p.id === pkgId);
+    if (!pkg) return;
+    selectedRenewalPackageId = pkgId;
+
+    // Update Visual State on Cards
+    RENEWAL_PACKAGES.forEach(p => {
+        const card = document.getElementById('pkgCard_' + p.id);
+        if (!card) return;
+        const ind = card.querySelector('.pkg-indicator');
+        const isSelected = (p.id === pkgId);
+
+        if (isSelected) {
+            if (p.type === 'group') {
+                card.className = 'pkg-card cursor-pointer border-2 border-blue-600 bg-blue-50/50 rounded-2xl p-3.5 transition relative flex flex-col justify-between shadow-sm';
+                if (ind) {
+                    ind.className = 'pkg-indicator font-black text-blue-700';
+                    ind.innerText = 'مُحدد ◉';
+                }
+            } else {
+                card.className = 'pkg-card cursor-pointer border-2 border-emerald-600 bg-emerald-50/50 rounded-2xl p-3.5 transition relative flex flex-col justify-between shadow-sm';
+                if (ind) {
+                    ind.className = 'pkg-indicator font-black text-emerald-700';
+                    ind.innerText = 'مُحدد ◉';
+                }
+            }
+        } else {
+            card.className = 'pkg-card cursor-pointer border-2 border-slate-200 hover:border-slate-300 rounded-2xl p-3.5 transition bg-white relative flex flex-col justify-between';
+            if (ind) {
+                ind.className = 'pkg-indicator font-bold text-slate-400';
+                ind.innerText = 'اختيار ◯';
+            }
+        }
+    });
+
+    // Update Summary Details
+    const sName = document.getElementById('paymobServiceName');
+    if (sName) sName.innerText = pkg.name + ' (' + pkg.typeName + ')';
+    
+    const credAdd = document.getElementById('paymobCreditsToAdd');
+    if (credAdd) credAdd.innerText = '+' + pkg.credits + ' حصص جديدة (' + pkg.duration + ')';
+
+    const amt = document.getElementById('paymobAmountText');
+    if (amt) amt.innerText = pkg.price.toFixed(2) + ' ج.م';
+
+    const btnTxt = document.getElementById('btnPaymobSubmitText');
+    if (btnTxt) btnTxt.innerText = 'تأكيد ودفع ' + pkg.price.toFixed(2) + ' ج.م وشحن (' + pkg.credits + ' حصص)';
+}
+
+function updatePayMethodVisual(radioInput) {
+    document.querySelectorAll('.pay-method-opt').forEach(opt => {
+        opt.classList.remove('border-blue-500', 'bg-blue-50/50', 'text-blue-900');
+        opt.classList.add('border-slate-200', 'text-slate-700');
+    });
+    if (radioInput && radioInput.parentElement) {
+        radioInput.parentElement.classList.remove('border-slate-200', 'text-slate-700');
+        radioInput.parentElement.classList.add('border-blue-500', 'bg-blue-50/50', 'text-blue-900');
+    }
+}
+
 function openPaymobModal() {
+    const cBadge = document.getElementById('paymobCourseNameBadge');
+    if (cBadge) cBadge.innerText = selectedCourseName || 'مسار القرآن والعلوم الإسلامية';
+    
+    const sInfo = document.getElementById('paymobStudentInfo');
+    const sNameElem = document.getElementById('studentName');
+    const sCodeElem = document.getElementById('studentCode');
+    if (sInfo && sNameElem) {
+        sInfo.innerText = sNameElem.innerText + (sCodeElem ? ' (' + sCodeElem.innerText + ')' : '');
+    }
+
+    selectRenewalPackage(selectedRenewalPackageId || 'group_8');
     document.getElementById('paymobModal').classList.remove('hidden');
 }
 
@@ -1174,20 +1297,30 @@ function closePaymobModal() {
 }
 
 function openReceiptModal(receipt) {
-    document.getElementById('receiptNumber').innerText = receipt.receipt_number;
-    document.getElementById('receiptStudentName').innerText = receipt.student_name;
-    document.getElementById('receiptStudentCode').innerText = receipt.student_code;
-    document.getElementById('receiptCourseName').innerText = receipt.course_name;
-    document.getElementById('receiptAmount').innerText = receipt.amount + ' ج.م';
+    if (!receipt) return;
+    document.getElementById('receiptNumber').innerText = receipt.receipt_number || ('RCT-' + Date.now());
+    document.getElementById('receiptStudentName').innerText = receipt.student_name || (document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية');
+    document.getElementById('receiptStudentCode').innerText = receipt.student_code || (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : 'MNR');
+    document.getElementById('receiptCourseName').innerText = receipt.course_name || selectedCourseName;
+    
+    const rPkg = document.getElementById('receiptPackageName');
+    if (rPkg) rPkg.innerText = receipt.package_name || 'باقة تجديد الاشتراك';
+    
+    const rCred = document.getElementById('receiptCreditsAdded');
+    if (rCred) rCred.innerText = '+' + (receipt.credits_added || 4) + ' حصص معتمدة';
+
+    document.getElementById('receiptAmount').innerText = (receipt.amount !== undefined ? receipt.amount : 500) + '.00 ج.م';
     document.getElementById('receiptDate').innerText = (receipt.created_at || new Date().toISOString()).slice(0, 10);
     
     const waText = encodeURIComponent(
         'إيصال سداد رسمي — أكاديمية منير الذكية\n' +
-        'رقم الإيصال: ' + receipt.receipt_number + '\n' +
-        'اسم الطالب: ' + receipt.student_name + ' (' + receipt.student_code + ')\n' +
-        'المسار: ' + receipt.course_name + '\n' +
-        'المبلغ المسدد: ' + receipt.amount + ' ج.م\n' +
-        'تم تأكيد السداد وفتح المحاضرات بنجاح.'
+        'رقم الإيصال: ' + (receipt.receipt_number || '') + '\n' +
+        'اسم الطالب: ' + (receipt.student_name || '') + ' (' + (receipt.student_code || '') + ')\n' +
+        'المسار: ' + (receipt.course_name || selectedCourseName) + '\n' +
+        'الباقة المختارة: ' + (receipt.package_name || '') + '\n' +
+        'الرصيد المضاف: +' + (receipt.credits_added || 4) + ' حصص\n' +
+        'المبلغ المسدد: ' + (receipt.amount || '') + ' ج.م\n' +
+        'حالة العملية: تم السداد بنجاح وشحن الرصيد المباشر.'
     );
     document.getElementById('btnWhatsAppReceipt').href = 'https://wa.me/?text=' + waText;
     
@@ -1199,35 +1332,140 @@ function closeReceiptModal() {
 }
 
 async function submitPaymobPayment() {
+    const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[1];
     const btn = document.getElementById('btnPaymobSubmit');
     const oldTxt = btn.innerHTML;
     btn.innerHTML = '<span>جاري معالجة الدفع عبر Paymob...</span>';
     btn.disabled = true;
-    
+
+    const sName = document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية';
+    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : 'MNR-STUDENT';
+    const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
+    const payMethod = payMethodRadio ? payMethodRadio.value : 'card';
+
     try {
-        const checkRes = await fetch('/api/paymob/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                student_id: currentStudentId, 
-                course_name: selectedCourseName,
-                block_to_unlock: 2, 
-                payment_method: 'card' 
-            })
-        });
-        const checkData = await checkRes.json();
-        
-        setTimeout(async () => {
-            const webRes = await fetch('/api/paymob/webhook', {
+        let checkData = null;
+        try {
+            const checkRes = await fetch('/api/paymob/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ transaction_id: checkData.transaction_id })
+                body: JSON.stringify({ 
+                    student_id: currentStudentId, 
+                    course_name: selectedCourseName,
+                    package_id: pkg.id,
+                    package_name: pkg.name + ' (' + pkg.typeName + ')',
+                    package_type: pkg.type,
+                    credits_to_add: pkg.credits,
+                    amount: pkg.price,
+                    payment_method: payMethod 
+                })
             });
-            const webData = await webRes.json();
-            
-            btn.innerHTML = 'تم الدفع والتجديد بنجاح!';
+            if (checkRes.ok) {
+                checkData = await checkRes.json();
+            }
+        } catch(e) {
+            console.warn('[Paymob] Checkout endpoint fallback:', e);
+        }
+
+        const txId = (checkData && checkData.transaction_id) ? checkData.transaction_id : ('PAYMOB-' + Math.random().toString(36).substring(2, 10).toUpperCase());
+
+        setTimeout(async () => {
+            let webData = null;
+            try {
+                const webRes = await fetch('/api/paymob/webhook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        transaction_id: txId,
+                        student_id: currentStudentId,
+                        student_name: sName,
+                        student_code: sCode,
+                        course_name: selectedCourseName,
+                        package_name: pkg.name + ' (' + pkg.typeName + ')',
+                        credits_to_add: pkg.credits,
+                        amount: pkg.price
+                    })
+                });
+                if (webRes.ok) {
+                    webData = await webRes.json();
+                }
+            } catch(e) {
+                console.warn('[Paymob] Webhook fallback:', e);
+            }
+
+            const receipt = (webData && webData.receipt) ? webData.receipt : {
+                receipt_number: 'REC-2026-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                student_name: sName,
+                student_code: sCode,
+                course_name: selectedCourseName,
+                package_name: pkg.name + ' (' + pkg.typeName + ')',
+                credits_added: pkg.credits,
+                amount: pkg.price,
+                created_at: new Date().toISOString()
+            };
+
+            // Update local memory and cache
+            const targetCourse = enrolledCoursesList.find(c => c.course_name === selectedCourseName);
+            if (targetCourse) {
+                targetCourse.remaining_credits = (targetCourse.remaining_credits || 0) + pkg.credits;
+                targetCourse.total_lectures_unlocked = (targetCourse.total_lectures_unlocked || 0) + pkg.credits;
+                targetCourse.renewal_count = (targetCourse.renewal_count || 0) + 1;
+            }
+
+            // Sync with Supabase if configured
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    if (client) {
+                        const { data: enrs } = await client.from('enrollments')
+                            .select('*')
+                            .eq('student_id', currentStudentId)
+                            .eq('course_name', selectedCourseName);
+                        
+                        if (enrs && enrs.length > 0) {
+                            const curEnr = enrs[0];
+                            const newCredits = (curEnr.remaining_credits || 0) + pkg.credits;
+                            const newTotal = (curEnr.total_lectures_unlocked || 0) + pkg.credits;
+                            const newRenewals = (curEnr.renewal_count || 0) + 1;
+                            await client.from('enrollments').update({
+                                remaining_credits: newCredits,
+                                total_lectures_unlocked: newTotal,
+                                renewal_count: newRenewals,
+                                excuse_count: 0
+                            }).eq('id', curEnr.id);
+                        }
+
+                        await client.from('notifications').insert([{
+                            student_id: currentStudentId,
+                            course_name: selectedCourseName,
+                            title: 'تم تجديد الاشتراك بنجاح (' + pkg.name + ')',
+                            message: 'شكراً لك! تم استلام رسوم التجديد (' + pkg.price + ' ج.م) وإضافة +' + pkg.credits + ' حصص لرصيدك بموجب إيصال #' + receipt.receipt_number + '.',
+                            type: 'renewal',
+                            action_url: '/student.html'
+                        }]);
+                    }
+                } catch(err) {
+                    console.warn('[Supabase] Renewal sync error:', err);
+                }
+            }
+
+            // Also update local mock DB cache if exists
+            if (window.MonirDB && typeof window.MonirDB.updateLocalCache === 'function') {
+                window.MonirDB.updateLocalCache(db => {
+                    if (db && db.enrollments) {
+                        const mEnr = db.enrollments.find(e => e.student_id === currentStudentId && e.course_name === selectedCourseName);
+                        if (mEnr) {
+                            mEnr.remaining_credits = (mEnr.remaining_credits || 0) + pkg.credits;
+                            mEnr.total_lectures_unlocked = (mEnr.total_lectures_unlocked || 0) + pkg.credits;
+                            mEnr.renewal_count = (mEnr.renewal_count || 0) + 1;
+                        }
+                    }
+                });
+            }
+
+            btn.innerHTML = 'تم الدفع وشحن (' + pkg.credits + ' حصص) بنجاح!';
             btn.className = 'w-full bg-emerald-600 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg';
-            
+
             setTimeout(() => {
                 closePaymobModal();
                 btn.innerHTML = oldTxt;
@@ -1235,13 +1473,14 @@ async function submitPaymobPayment() {
                 btn.className = 'w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg';
                 
                 // Show official receipt modal
-                openReceiptModal(webData.receipt);
+                openReceiptModal(receipt);
                 
+                // Refresh UI immediately
                 loadStudentProfile();
                 loadNotifications();
             }, 1000);
         }, 1200);
-        
+
     } catch (err) {
         console.error("Paymob Error:", err);
         btn.innerHTML = oldTxt;

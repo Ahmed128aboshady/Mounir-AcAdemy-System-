@@ -843,6 +843,62 @@
             return jsonResponse({ success: true, message: 'تم إرسال تذكرتك بنجاح وسيتم الرد خلال ساعات.', ticket_id: newT.id });
         }
 
+        // Action: Paymob Checkout
+        if (method === 'POST' && path === '/api/paymob/checkout') {
+            const txId = 'PAYMOB-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+            const receiptNo = 'REC-2026-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            return jsonResponse({
+                success: true,
+                transaction_id: txId,
+                receipt_number: receiptNo,
+                course_name: body.course_name,
+                package_id: body.package_id,
+                package_name: body.package_name,
+                package_type: body.package_type,
+                credits_to_add: body.credits_to_add || 4,
+                amount: body.amount || 400,
+                currency: 'EGP'
+            });
+        }
+
+        // Action: Paymob Webhook
+        if (method === 'POST' && path === '/api/paymob/webhook') {
+            const txId = body.transaction_id || ('PAYMOB-' + Math.random().toString(36).substring(2, 10).toUpperCase());
+            const receiptNo = body.receipt_number || ('REC-2026-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+            const studentId = body.student_id;
+            const courseName = body.course_name;
+            const creditsToAdd = body.credits_to_add || 4;
+            const amount = body.amount || 400;
+            const packageName = body.package_name || 'باقة تجديد الاشتراك';
+
+            if (DB && DB.enrollments) {
+                const enr = DB.enrollments.find(e => (!studentId || e.student_id === studentId) && (!courseName || e.course_name === courseName));
+                if (enr) {
+                    enr.remaining_credits = (enr.remaining_credits || 0) + creditsToAdd;
+                    enr.total_lectures_unlocked = (enr.total_lectures_unlocked || 0) + creditsToAdd;
+                    enr.renewal_count = (enr.renewal_count || 0) + 1;
+                }
+            }
+
+            const receipt = {
+                receipt_number: receiptNo,
+                student_name: body.student_name || 'طالب الأكاديمية',
+                student_code: body.student_code || 'MNR-STUDENT',
+                course_name: courseName || 'مسار القرآن والعلوم الإسلامية',
+                package_name: packageName,
+                credits_added: creditsToAdd,
+                amount: amount,
+                created_at: new Date().toISOString()
+            };
+
+            saveDb();
+            return jsonResponse({
+                success: true,
+                message: 'تم تأكيد السداد وتجديد الرصيد بنجاح',
+                receipt: receipt
+            });
+        }
+
         return jsonResponse({ success: true, message: 'Mock OK' });
     }
 

@@ -51,9 +51,16 @@ class PaymobCheckoutRequest(BaseModel):
     course_name: str
     block_to_unlock: int = 2
     payment_method: str = "card"
+    package_id: Optional[str] = None
+    package_name: Optional[str] = None
+    package_type: Optional[str] = None
+    credits_to_add: Optional[int] = 4
+    amount: Optional[float] = None
 
 class PaymobWebhookRequest(BaseModel):
     transaction_id: str
+    credits_to_add: Optional[int] = 4
+    package_name: Optional[str] = None
 
 class QuranRecordSessionRequest(BaseModel):
     student_id: int
@@ -1524,15 +1531,28 @@ def get_notifications(student_id: int):
     return notifs
 
 # ========== PAYMOB CHECKOUT & WEBHOOK ==========
-
+ 
 @app.post("/api/paymob/checkout")
 def paymob_checkout(req: PaymobCheckoutRequest):
-    res = paymob.create_paymob_order(req.student_id, req.course_name, req.block_to_unlock, req.payment_method)
+    res = paymob.create_paymob_order(
+        req.student_id, 
+        req.course_name, 
+        req.block_to_unlock, 
+        req.payment_method,
+        package_id=req.package_id,
+        package_name=req.package_name,
+        credits_to_add=req.credits_to_add or 4,
+        amount=req.amount
+    )
     return res
 
 @app.post("/api/paymob/webhook")
 def paymob_webhook(req: PaymobWebhookRequest):
-    res = paymob.process_paymob_success(req.transaction_id)
+    res = paymob.process_paymob_success(
+        req.transaction_id,
+        credits_to_add=req.credits_to_add or 4,
+        package_name=req.package_name
+    )
     return res
 
 # ========== ADMIN OVERVIEW ==========

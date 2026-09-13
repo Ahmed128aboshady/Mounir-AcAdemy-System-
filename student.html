@@ -167,8 +167,9 @@
             </div>
 
             <div class="flex justify-end pt-1">
-                <button onclick="openPaymobModal()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-sm">
-                    شحن وتجديد 4 حصص جديدة عبر Paymob
+                <button onclick="openPaymobModal()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                    <span>⚡</span>
+                    <span>شحن وتجديد رصيد الحصص (جروب / برايفت)</span>
                 </button>
             </div>
         </section>
@@ -274,10 +275,10 @@
                 <div>
                     <span class="bg-slate-950 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">تجديد الاشتراك عبر Paymob</span>
                     <h4 class="text-lg font-black mt-1" id="renewalBannerTitle">رصيدك على وشك الانتهاء — جدد الآن!</h4>
-                    <p class="text-xs text-amber-950 font-semibold mt-0.5" id="renewalBannerSubtitle">جدد اشتراكك بـ 450 ج.م بضغطة زر وسيتم فتح المحاضرات الأربعة القادمة فوراً.</p>
+                    <p class="text-xs text-amber-950 font-semibold mt-0.5" id="renewalBannerSubtitle">اختر الباقة المناسبة (جروب أو برايفت) بضغطة زر وسيتم شحن الرصيد وفتح المحاضرات فوراً.</p>
                 </div>
                 <button onclick="openPaymobModal()" class="w-full sm:w-auto bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-xs px-6 py-3 rounded-xl shadow-md whitespace-nowrap transition transform hover:scale-105">
-                    تجديد الآن عبر Paymob
+                    تجديد الآن واختيار الباقة
                 </button>
             </div>
 
@@ -424,59 +425,172 @@
 
     <!-- Modal: Paymob Simulated Checkout -->
     <div id="paymobModal" class="modal-overlay hidden">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black text-xs">P</span>
-                    <h3 class="font-extrabold text-base text-slate-900">بوابة الدفع الإلكتروني (Paymob)</h3>
+                    <span class="w-8 h-8 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-sm">P</span>
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900 leading-tight">شحن وتجديد الاشتراك — Paymob</h3>
+                        <p class="text-[11px] text-slate-400 font-medium">بوابة دفع معتمدة وآمنة 100%</p>
+                    </div>
                 </div>
-                <button onclick="closePaymobModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                <button onclick="closePaymobModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 text-xl font-bold flex items-center justify-center transition">&times;</button>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-4 text-xs space-y-1">
-                <div class="flex justify-between text-slate-600">
-                    <span>الخدمة:</span>
-                    <strong class="text-slate-900" id="paymobServiceName">تجديد مسار كتالوج الشباب (المحاضرات 5-8)</strong>
+            <!-- Student & Course Context Bar -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-4 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-medium">المسار:</span>
+                    <strong class="text-slate-800 font-bold" id="paymobCourseNameBadge">المسار المختار</strong>
                 </div>
-                <div class="flex justify-between text-slate-600">
-                    <span>الطالب:</span>
-                    <strong class="text-slate-900" id="paymobStudentInfo">عمر أحمد علي</strong>
-                </div>
-                <div class="flex justify-between text-slate-900 text-sm font-black pt-2 border-t border-slate-200">
-                    <span>المبلغ الإجمالي:</span>
-                    <span class="text-emerald-700" id="paymobAmountText">450.00 ج.م</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 font-medium">الطالب:</span>
+                    <strong class="text-slate-800 font-bold" id="paymobStudentInfo">طالب الأكاديمية</strong>
                 </div>
             </div>
 
-            <div class="space-y-3 mb-5 text-xs">
+            <!-- Packages Selection Header -->
+            <div class="mb-3">
+                <label class="block font-black text-slate-800 text-xs mb-1">اختر باقة التجديد المطلوبة:</label>
+                <p class="text-[11px] text-slate-500">حدد الباقة المناسبة ليتم شحن الرصيد وفتح الحصص فوراً بعد السداد</p>
+            </div>
+
+            <!-- Group Packages Section -->
+            <div class="space-y-2 mb-3.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-black text-blue-900 bg-blue-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-blue-200">
+                        <span>👥</span>
+                        <span>باقات المجموعات (جروب)</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400">جلسات تفاعلية جماعية</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Package: Group 4 -->
+                    <div id="pkgCard_group_4" onclick="selectRenewalPackage('group_4')" class="pkg-card cursor-pointer border-2 border-slate-200 hover:border-blue-400 rounded-2xl p-3.5 transition bg-white relative flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-extrabold text-xs text-slate-900">باقة الـ 4 محاضرات شهرياً</span>
+                                <span class="text-xs font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">400 ج.م</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 font-medium">حصة أسبوعياً (45-60 دقيقة)</p>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+4 حصص لرصيدك</span>
+                            <span class="pkg-indicator font-bold text-slate-400">اختيار ◯</span>
+                        </div>
+                    </div>
+
+                    <!-- Package: Group 8 (Most Popular) -->
+                    <div id="pkgCard_group_8" onclick="selectRenewalPackage('group_8')" class="pkg-card cursor-pointer border-2 border-blue-600 bg-blue-50/50 rounded-2xl p-3.5 transition relative flex flex-col justify-between shadow-sm">
+                        <span class="absolute -top-2.5 left-3 bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full shadow-xs">الأكثر طلباً ⭐</span>
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-extrabold text-xs text-slate-900">باقة الـ 8 محاضرات شهرياً</span>
+                                <span class="text-xs font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded-lg">500 ج.م</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 font-medium">حصتان أسبوعياً (45-60 دقيقة)</p>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-t border-blue-100 flex items-center justify-between text-[10px]">
+                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+8 حصص لرصيدك</span>
+                            <span class="pkg-indicator font-black text-blue-700">مُحدد ◉</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Private Packages Section -->
+            <div class="space-y-2 mb-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-black text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-200">
+                        <span>⭐</span>
+                        <span>باقات الحصص الفردية (برايفت)</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400">متابعة خاصة 1-to-1 مع المعلم</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Package: Private 4 (60 min) -->
+                    <div id="pkgCard_private_4_60" onclick="selectRenewalPackage('private_4_60')" class="pkg-card cursor-pointer border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-3.5 transition bg-white relative flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-extrabold text-xs text-slate-900">4 محاضرات (ساعة كاملة)</span>
+                                <span class="text-xs font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg">1000 ج.م</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 font-medium">60 دقيقة للحصة — متابعة فردية</p>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+4 حصص ساعة</span>
+                            <span class="pkg-indicator font-bold text-slate-400">اختيار ◯</span>
+                        </div>
+                    </div>
+
+                    <!-- Package: Private 4 (30 min) -->
+                    <div id="pkgCard_private_4_30" onclick="selectRenewalPackage('private_4_30')" class="pkg-card cursor-pointer border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-3.5 transition bg-white relative flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-extrabold text-xs text-slate-900">4 محاضرات (نصف ساعة)</span>
+                                <span class="text-xs font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg">666 ج.م</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 font-medium">30 دقيقة للحصة — متابعة فردية</p>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+4 حصص نصف ساعة</span>
+                            <span class="pkg-indicator font-bold text-slate-400">اختيار ◯</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary Box -->
+            <div class="bg-gradient-to-br from-slate-900 to-blue-950 text-white p-4 rounded-2xl mb-4 text-xs space-y-2 shadow-inner">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span>الباقة المختارة:</span>
+                    <strong class="text-amber-300 font-bold" id="paymobServiceName">باقة الـ 8 محاضرات شهرياً (جروب)</strong>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span>الرصيد الذي سيُضاف:</span>
+                    <strong class="text-emerald-400 font-bold" id="paymobCreditsToAdd">+8 حصص جديدة</strong>
+                </div>
+                <div class="flex justify-between items-center text-white text-sm font-black pt-2 border-t border-slate-700/60">
+                    <span>المبلغ المطلوب سداده:</span>
+                    <span class="text-amber-400 text-base" id="paymobAmountText">500.00 ج.م</span>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="space-y-2 mb-4 text-xs">
                 <label class="block font-bold text-slate-700">اختر وسيلة الدفع المفضلة:</label>
                 <div class="grid grid-cols-3 gap-2">
-                    <label class="border border-blue-500 bg-blue-50/50 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-blue-900">
-                        <input type="radio" name="payMethod" value="card" checked class="hidden">
-                        <span>بطاقة بنكية / ميزة</span>
+                    <label class="pay-method-opt border-2 border-blue-500 bg-blue-50/50 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-blue-900 transition">
+                        <input type="radio" name="payMethod" value="card" checked class="hidden" onchange="updatePayMethodVisual(this)">
+                        <span>💳 بطاقة بنكية / ميزة</span>
                     </label>
-                    <label class="border border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700">
-                        <input type="radio" name="payMethod" value="vodafone_cash" class="hidden">
-                        <span>فودافون كاش</span>
+                    <label class="pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition">
+                        <input type="radio" name="payMethod" value="vodafone_cash" class="hidden" onchange="updatePayMethodVisual(this)">
+                        <span>📱 فودافون كاش</span>
                     </label>
-                    <label class="border border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700">
-                        <input type="radio" name="payMethod" value="instapay" class="hidden">
-                        <span>انستاباي</span>
+                    <label class="pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition">
+                        <input type="radio" name="payMethod" value="instapay" class="hidden" onchange="updatePayMethodVisual(this)">
+                        <span>⚡ انستاباي</span>
                     </label>
                 </div>
             </div>
 
-            <!-- Demo Simulate Pay Button -->
+            <!-- Submit Pay Button -->
             <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                <span>تأكيد ودفع الرسوم الآن</span>
+                <span id="btnPaymobSubmitText">تأكيد ودفع 500.00 ج.م وشحن الرصيد</span>
             </button>
-            <p class="text-[11px] text-center text-slate-400 mt-2">معاملة مشفرة وآمنة عبر Paymob Payment Gateway</p>
+            <p class="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
+                <span>🔒</span>
+                <span>معاملة مشفرة وآمنة عبر بوابة الدفع الإلكتروني المعتمدة (Paymob)</span>
+            </p>
         </div>
     </div>
 
     <!-- Modal: Official Digital Payment Receipt & WhatsApp Share -->
     <div id="receiptModal" class="modal-overlay hidden">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-2">
                     <span class="w-7 h-7 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-black text-xs">M</span>
@@ -503,8 +617,16 @@
                     <strong class="text-slate-950 font-sans" id="receiptCourseName">كتالوج الشباب 2.0</strong>
                 </div>
                 <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">باقة التجديد:</span>
+                    <strong class="text-blue-900 font-bold font-sans" id="receiptPackageName">باقة الـ 8 محاضرات شهرياً (جروب)</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-sans text-slate-500">الرصيد المضاف:</span>
+                    <strong class="text-emerald-700 font-bold font-sans" id="receiptCreditsAdded">+8 حصص جديدة</strong>
+                </div>
+                <div class="flex justify-between">
                     <span class="font-sans text-slate-500">المبلغ المسدد:</span>
-                    <strong class="text-emerald-700 font-bold text-sm" id="receiptAmount">450.00 ج.م</strong>
+                    <strong class="text-emerald-700 font-bold text-sm" id="receiptAmount">500.00 ج.م</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">تاريخ المعاملة:</span>
