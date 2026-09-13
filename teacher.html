@@ -113,10 +113,22 @@
             </div>
         </section>
 
-        <!-- Search bar -->
-        <div class="flex gap-3 items-center">
-            <input type="text" id="searchInput" onkeyup="filterGroups()" placeholder="🔍 ابحث برقم الطالب أو معرف المجموعة..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
-            <button onclick="loadTeacherGroups()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-sm">تحديث</button>
+        <!-- Search bar & Quick Accordion Controls -->
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div class="flex-1 flex gap-2">
+                <input type="text" id="searchInput" onkeyup="filterGroups()" placeholder="🔍 ابحث برقم الطالب أو معرف المجموعة..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
+                <button onclick="loadTeacherGroups()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap">تحديث</button>
+            </div>
+            <div class="flex items-center gap-2 justify-end">
+                <button type="button" onclick="toggleAllTeacherGroups(true)" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center gap-1.5" title="فتح جميع المجموعات">
+                    <span>▼</span>
+                    <span>فتح الكل</span>
+                </button>
+                <button type="button" onclick="toggleAllTeacherGroups(false)" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center gap-1.5" title="طي جميع المجموعات">
+                    <span>▲</span>
+                    <span>طي الكل</span>
+                </button>
+            </div>
         </div>
 
         <!-- Groups Container -->
@@ -330,6 +342,54 @@
                 g.students.some(s => (s.student_code || '').toLowerCase().includes(q))
             );
             renderGroups(filtered);
+            toggleAllTeacherGroups(true);
+        }
+
+        function toggleTeacherGroup(idSafe) {
+            const content = document.getElementById('content-' + idSafe);
+            const arrow = document.getElementById('arrow-' + idSafe);
+            const badge = document.getElementById('badge-' + idSafe);
+            if (!content) return;
+            
+            const isHidden = content.classList.contains('hidden');
+            if (isHidden) {
+                content.classList.remove('hidden');
+                if (arrow) arrow.querySelector('svg')?.classList.add('rotate-180');
+                if (badge) {
+                    badge.innerText = 'مفتوح (اضغط للطي)';
+                    badge.className = 'text-[10px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full font-semibold';
+                }
+            } else {
+                content.classList.add('hidden');
+                if (arrow) arrow.querySelector('svg')?.classList.remove('rotate-180');
+                if (badge) {
+                    badge.innerText = 'اضغط للعرض';
+                    badge.className = 'text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-semibold';
+                }
+            }
+        }
+
+        function toggleAllTeacherGroups(open) {
+            document.querySelectorAll('.teacher-group-content').forEach(c => {
+                const idSafe = c.id.replace('content-', '');
+                const arrow = document.getElementById('arrow-' + idSafe);
+                const badge = document.getElementById('badge-' + idSafe);
+                if (open) {
+                    c.classList.remove('hidden');
+                    if (arrow) arrow.querySelector('svg')?.classList.add('rotate-180');
+                    if (badge) {
+                        badge.innerText = 'مفتوح (اضغط للطي)';
+                        badge.className = 'text-[10px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full font-semibold';
+                    }
+                } else {
+                    c.classList.add('hidden');
+                    if (arrow) arrow.querySelector('svg')?.classList.remove('rotate-180');
+                    if (badge) {
+                        badge.innerText = 'اضغط للعرض';
+                        badge.className = 'text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-semibold';
+                    }
+                }
+            });
         }
 
         function renderGroups(groups) {
@@ -347,16 +407,25 @@
             }
 
             container.innerHTML = '';
-            groups.forEach(g => {
+            groups.forEach((g, gIdx) => {
+                const idSafe = 'grp_' + (g.group_id || 'g').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
                 const el = document.createElement('div');
-                el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden';
+                el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden transition-all duration-200';
                 el.innerHTML = `
-                    <!-- Group Header -->
-                    <div class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white px-5 py-3.5 flex justify-between items-center">
+                    <!-- Group Header (Accordion Dropdown Trigger) -->
+                    <div class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white px-5 py-3.5 flex justify-between items-center cursor-pointer select-none group hover:brightness-110 transition" onclick="toggleTeacherGroup('${idSafe}')">
                         <div class="flex items-center gap-3">
+                            <div id="arrow-${idSafe}" class="w-8 h-8 rounded-lg bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition shrink-0">
+                                <svg class="w-4 h-4 transform transition-transform duration-300 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
                             <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-xs px-2.5 py-1 rounded-lg">${g.group_id}</span>
                             <div>
-                                <h3 class="font-extrabold text-sm">${g.group_name || g.group_id}</h3>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="font-extrabold text-sm">${g.group_name || g.group_id}</h3>
+                                    <span id="badge-${idSafe}" class="text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-semibold">اضغط للعرض</span>
+                                </div>
                                 <p class="text-[11px] text-slate-300">مسار القرآن الكريم والتدبر</p>
                             </div>
                         </div>
@@ -365,8 +434,8 @@
                             <div class="text-[11px] text-slate-300">طالب</div>
                         </div>
                     </div>
-                    <!-- Students Table -->
-                    <div class="overflow-x-auto">
+                    <!-- Students Table (Collapsible Content) -->
+                    <div id="content-${idSafe}" class="teacher-group-content hidden overflow-x-auto transition-all duration-300 border-t border-slate-100">
                         <table class="w-full text-right text-xs">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
