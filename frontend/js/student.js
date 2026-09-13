@@ -1336,7 +1336,7 @@ function openReceiptModal(receipt) {
     document.getElementById('receiptDate').innerText = (receipt.created_at || new Date().toISOString()).slice(0, 10);
     
     const waText = encodeURIComponent(
-        'إيصال سداد رسمي — أكاديمية منير الذكية\n' +
+        'إيصال سداد رسمي — أكاديمية منير\n' +
         'رقم الإيصال: ' + (receipt.receipt_number || '') + '\n' +
         'اسم الطالب: ' + (receipt.student_name || '') + ' (' + (receipt.student_code || '') + ')\n' +
         'المسار: ' + (receipt.course_name || selectedCourseName) + '\n' +
