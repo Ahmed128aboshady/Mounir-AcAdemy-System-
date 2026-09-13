@@ -396,9 +396,13 @@
                     </div>
                     <!-- Group -->
                     <div>
-                        <label class="block font-bold text-slate-600 mb-1">المجموعة</label>
-                        <select id="bsFilterGroup" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 outline-none focus:border-[#41519C]">
-                            <option value="">الكل</option>
+                        <label class="block font-bold text-slate-600 mb-1">معرف المجموعة (Group ID)</label>
+                        <input type="text" id="bsFilterGroupText" list="bsGroupDatalist"
+                            placeholder="مثال: G182..." oninput="applyBulkFilters()"
+                            class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 outline-none focus:border-[#41519C] font-mono font-bold">
+                        <datalist id="bsGroupDatalist"></datalist>
+                        <select id="bsFilterGroup" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 outline-none focus:border-[#41519C] mt-1 text-[11px]">
+                            <option value="">— أو اختر من القائمة —</option>
                         </select>
                     </div>
                     <!-- Teacher -->
@@ -1699,19 +1703,40 @@
                     const client = window.MonirDB.getClient();
 
                     // Load teachers
-                    const { data: tData } = await client.from('teachers').select('id, name').order('name');
+                    const { data: tData, error: tErr } = await client.from('teachers').select('id, name').order('name');
                     if (tData) teachers = tData;
+                    if (tErr) console.warn('[BulkStudents] teachers load error:', tErr.message);
 
-                    // Load students (with enrollment data via join)
-                    const { data: sData, error } = await client
+                    // Load students — only columns that actually exist in the schema
+                    const { data: sData, error: sErr } = await client
                         .from('students')
-                        .select(`id, name, student_code, age, phone, parent_name, parent_phone, status, qr_code,
-                            enrollments(remaining_credits, teacher_id, subscription_days, lecture_time, teachers(id, name))`)
+                        .select('id, name, student_code, age, phone, parent_name, parent_phone, status, qr_code')
                         .order('student_code', { ascending: true });
 
-                    if (!error && sData && sData.length > 0) {
+                    if (sErr) {
+                        console.error('[BulkStudents] students query error:', sErr.message, sErr);
+                    }
+
+                    if (sData && sData.length > 0) {
+                        // Load enrollments separately to avoid join column errors
+                        const { data: enrData, error: enrErr } = await client
+                            .from('enrollments')
+                            .select('student_id, remaining_credits, teacher_id, teachers(id, name)')
+                            .in('student_id', sData.map(s => s.id));
+
+                        if (enrErr) console.warn('[BulkStudents] enrollments error:', enrErr.message);
+
+                        // Build enrollment map by student_id
+                        const enrMap = {};
+                        if (enrData) {
+                            enrData.forEach(e => {
+                                if (!enrMap[e.student_id]) enrMap[e.student_id] = e;
+                            });
+                        }
+
                         students = sData.map(s => {
-                            const enr = (s.enrollments && s.enrollments[0]) ? s.enrollments[0] : {};
+                            const enr = enrMap[s.id] || {};
+                            const teacherObj = enr.teachers || null;
                             return {
                                 id: s.id,
                                 name: s.name || '',
@@ -1721,13 +1746,17 @@
                                 group_id: s.qr_code || '—',
                                 status: s.status || 'active',
                                 remaining_credits: enr.remaining_credits || 0,
-                                teacher_id: enr.teacher_id || (enr.teachers ? enr.teachers.id : null),
-                                teacher_name: enr.teachers ? enr.teachers.name : '—',
-                                subscription_days: enr.subscription_days || '—',
-                                lecture_time: enr.lecture_time || '—',
+                                teacher_id: enr.teacher_id || (teacherObj ? teacherObj.id : null),
+                                teacher_name: teacherObj ? teacherObj.name : '—',
+                                subscription_days: '—',
+                                lecture_time: '—',
                                 enrollment_id: enr.id || null
                             };
                         });
+
+                        console.log(`[BulkStudents] Loaded ${students.length} students from Supabase ✅`);
+                    } else if (!sErr) {
+                        console.warn('[BulkStudents] Supabase returned 0 students — table may be empty');
                     }
                 }
 
@@ -1811,36 +1840,51 @@
         }
 
         function bsPopulateDropdowns(students, teachers) {
-            // Groups dropdown
+            // Groups — fill both the dropdown and the datalist
             const groupSel = document.getElementById('bsFilterGroup');
-            const groups = [...new Set(students.map(s => s.group_id).filter(g => g && g !== '—'))].sort();
-            groupSel.innerHTML = '<option value="">الكل</option>' + groups.map(g => `<option value="${g}">${g}</option>`).join('');
+            const groupDl  = document.getElementById('bsGroupDatalist');
+            const groups = [...new Set(students.map(s => s.group_id).filter(g => g && g !== '—'))].sort((a,b)=>{
+                // natural sort: G1, G2 ... G10, G11
+                const na = parseInt(a.replace(/\D/g,'')) || 0;
+                const nb = parseInt(b.replace(/\D/g,'')) || 0;
+                return na - nb;
+            });
+            const groupOpts = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+            groupSel.innerHTML = '<option value="">— أو اختر من القائمة —</option>' + groupOpts;
+            if (groupDl) groupDl.innerHTML = groups.map(g => `<option value="${g}">`).join('');
 
             // Teachers dropdown (filter + inline)
             const teacherSel = document.getElementById('bsFilterTeacher');
-            const inlineSel = document.getElementById('inlineTeacher');
-            const bulkTeacherOpts = '<option value="">— بدون معلم —</option>' + teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            teacherSel.innerHTML = '<option value="">الكل</option>' + teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            if (inlineSel) inlineSel.innerHTML = bulkTeacherOpts;
+            const inlineSel  = document.getElementById('inlineTeacher');
+            const teacherOpts = teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            teacherSel.innerHTML = '<option value="">الكل</option>' + teacherOpts;
+            if (inlineSel) inlineSel.innerHTML = '<option value="">— بدون معلم —</option>' + teacherOpts;
         }
 
         function applyBulkFilters() {
-            const q = (document.getElementById('bsFilterSearch').value || '').toLowerCase().trim();
-            const group = document.getElementById('bsFilterGroup').value;
-            const teacherF = document.getElementById('bsFilterTeacher').value;
-            const status = document.getElementById('bsFilterStatus').value;
-            const gender = document.getElementById('bsFilterGender').value;
-            const credMin = parseInt(document.getElementById('bsFilterCreditsMin').value) || 0;
-            const credMax = parseInt(document.getElementById('bsFilterCreditsMax').value) ?? 200;
-            const ageMin = parseInt(document.getElementById('bsFilterAgeMin').value) || 0;
-            const ageMax = parseInt(document.getElementById('bsFilterAgeMax').value) ?? 99;
+            const q         = (document.getElementById('bsFilterSearch').value || '').toLowerCase().trim();
+            // Group: text input takes priority, dropdown is secondary
+            const groupText = (document.getElementById('bsFilterGroupText').value || '').trim().toLowerCase();
+            const groupSel  = document.getElementById('bsFilterGroup').value;
+            const teacherF  = document.getElementById('bsFilterTeacher').value;
+            const status    = document.getElementById('bsFilterStatus').value;
+            const gender    = document.getElementById('bsFilterGender').value;
+            const credMin   = parseInt(document.getElementById('bsFilterCreditsMin').value) || 0;
+            const credMax   = parseInt(document.getElementById('bsFilterCreditsMax').value) ?? 200;
+            const ageMin    = parseInt(document.getElementById('bsFilterAgeMin').value) || 0;
+            const ageMax    = parseInt(document.getElementById('bsFilterAgeMax').value) ?? 99;
 
             let filtered = bsAllStudents.filter(s => {
+                // Name / code search
                 if (q && !s.name.toLowerCase().includes(q) && !s.student_code.toLowerCase().includes(q)) return false;
-                if (group && s.group_id !== group) return false;
+                // Group ID: text input uses partial match (contains), dropdown uses exact match
+                const gid = (s.group_id || '').toLowerCase();
+                if (groupText && !gid.includes(groupText)) return false;
+                if (groupSel  && s.group_id !== groupSel) return false;
+                // Other filters
                 if (teacherF && String(s.teacher_id) !== teacherF) return false;
-                if (status && s.status !== status) return false;
-                if (gender && s.gender !== gender) return false;
+                if (status   && s.status !== status) return false;
+                if (gender   && s.gender !== gender) return false;
                 if (s.remaining_credits < credMin || s.remaining_credits > credMax) return false;
                 const age = parseInt(s.age) || 0;
                 if (age < ageMin || age > ageMax) return false;
@@ -1874,17 +1918,19 @@
         }
 
         function resetBulkFilters() {
-            document.getElementById('bsFilterSearch').value = '';
-            document.getElementById('bsFilterGroup').value = '';
-            document.getElementById('bsFilterTeacher').value = '';
-            document.getElementById('bsFilterStatus').value = '';
-            document.getElementById('bsFilterGender').value = '';
-            document.getElementById('bsFilterCreditsMin').value = '0';
-            document.getElementById('bsFilterCreditsMax').value = '200';
-            document.getElementById('bsFilterAgeMin').value = '0';
-            document.getElementById('bsFilterAgeMax').value = '99';
+            document.getElementById('bsFilterSearch').value      = '';
+            document.getElementById('bsFilterGroupText').value   = '';
+            document.getElementById('bsFilterGroup').value       = '';
+            document.getElementById('bsFilterTeacher').value     = '';
+            document.getElementById('bsFilterStatus').value      = '';
+            document.getElementById('bsFilterGender').value      = '';
+            document.getElementById('bsFilterCreditsMin').value  = '0';
+            document.getElementById('bsFilterCreditsMax').value  = '200';
+            document.getElementById('bsFilterAgeMin').value      = '0';
+            document.getElementById('bsFilterAgeMax').value      = '99';
             applyBulkFilters();
         }
+
 
         function renderBulkTable() {
             const tbody = document.getElementById('bsTableBody');
