@@ -254,9 +254,9 @@ async function loadStudentProfile() {
         
         const safeId = s.id || currentStudentId;
         const qrCodeData = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
-        const qrImg = document.getElementById('studentQrImg');
-        if (qrImg) {
-            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(qrCodeData);
+        const qrImgEl = document.getElementById('studentQrImg');
+        if (qrImgEl) {
+            qrImgEl.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(qrCodeData);
         }
         
         if (data && data.enrolled_courses && data.enrolled_courses.length) {
