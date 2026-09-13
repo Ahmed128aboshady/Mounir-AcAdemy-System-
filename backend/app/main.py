@@ -434,6 +434,80 @@ def get_all_students():
     conn.close()
     return students
 
+@app.get("/api/admin/students")
+def get_admin_students_list():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    seed_paths = [
+        os.path.join(base_dir, "..", "..", "js", "db_seed.json"),
+        os.path.join(base_dir, "..", "..", "frontend", "js", "db_seed.json")
+    ]
+    for sp in seed_paths:
+        if os.path.exists(sp):
+            try:
+                with open(sp, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if data.get("students") and len(data["students"]) > 0:
+                        return {"students": data["students"], "total": len(data["students"])}
+            except Exception:
+                pass
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+    SELECT 
+        s.id,
+        s.name,
+        s.student_code,
+        s.age,
+        s.phone,
+        s.parent_name,
+        s.parent_phone,
+        s.qr_code,
+        s.created_at,
+        e.id as enrollment_id,
+        e.course_name,
+        e.teacher_id,
+        e.remaining_credits,
+        e.status as enrollment_status,
+        t.name as teacher_name
+    FROM students s
+    LEFT JOIN enrollments e ON e.student_id = s.id
+    LEFT JOIN teachers t ON t.id = e.teacher_id
+    ORDER BY s.id ASC
+    """)
+    rows = c.fetchall()
+    conn.close()
+
+    students = []
+    seen = set()
+    for r in rows:
+        sid = r["id"]
+        if sid in seen:
+            continue
+        seen.add(sid)
+        raw_st = str(r["enrollment_status"] or "").lower().strip()
+        is_inactive = raw_st in ("inactive", "موقوف", "غير نشط", "frozen", "paused", "stopped", "expired")
+        students.append({
+            "id": sid,
+            "name": r["name"] or "",
+            "student_code": r["student_code"] or "",
+            "age": r["age"] or 0,
+            "phone": r["phone"] or "",
+            "parent_name": r["parent_name"] or "",
+            "parent_phone": r["parent_phone"] or "",
+            "group_id": r["qr_code"] or "—",
+            "status": "inactive" if is_inactive else "active",
+            "account_status": "موقوف" if is_inactive else "نشط",
+            "remaining_credits": r["remaining_credits"] if r["remaining_credits"] is not None else 0,
+            "teacher_id": r["teacher_id"],
+            "teacher_name": r["teacher_name"] or "—",
+            "subscription_days": "—",
+            "lecture_time": "—",
+            "enrollment_id": r["enrollment_id"]
+        })
+    return {"students": students, "total": len(students)}
+
+
 @app.get("/api/student/{student_id}")
 def get_student_profile(student_id: int):
     conn = get_db()

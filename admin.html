@@ -1959,24 +1959,32 @@
                 if (students.length === 0) {
                     debugLog.push('⟳ Trying mock API fallback...');
                     try {
-                        const res = await fetch('/api/admin/students');
+                        let res = await fetch('/api/admin/students');
+                        if (!res.ok) {
+                            res = await fetch('/api/students');
+                        }
                         if (res.ok) {
                             const data = await res.json();
-                            students = (data.students || []).map(s => ({
-                                id:               s.id,
-                                name:             s.name || '',
-                                student_code:     s.student_code || '',
-                                age:              s.age || 0,
-                                gender:           guessGender(s.name),
-                                group_id:         s.group_id || s.qr_code || '—',
-                                status:           s.account_status === 'نشط' ? 'active' : (s.status || 'active'),
-                                remaining_credits: s.remaining_credits || 0,
-                                teacher_id:       s.teacher_id || null,
-                                teacher_name:     s.teacher_name || '—',
-                                subscription_days: s.subscription_days || '—',
-                                lecture_time:     s.lecture_time || '—',
-                                enrollment_id:    null
-                            }));
+                            const rawList = Array.isArray(data) ? data : (data.students || []);
+                            students = rawList.map(s => {
+                                const rawSt = String(s.account_status || s.status || '').toLowerCase().trim();
+                                const isInactive = ['inactive', 'غير نشط', 'موقوف', 'frozen', 'paused', 'stopped', 'expired'].includes(rawSt);
+                                return {
+                                    id:               s.id,
+                                    name:             s.name || '',
+                                    student_code:     s.student_code || '',
+                                    age:              s.age || 0,
+                                    gender:           guessGender(s.name),
+                                    group_id:         s.group_id || s.qr_code || '—',
+                                    status:           isInactive ? 'inactive' : 'active',
+                                    remaining_credits: s.remaining_credits || 0,
+                                    teacher_id:       s.teacher_id || null,
+                                    teacher_name:     s.teacher_name || '—',
+                                    subscription_days: s.subscription_days || '—',
+                                    lecture_time:     s.lecture_time || '—',
+                                    enrollment_id:    null
+                                };
+                            });
                             debugLog.push(`✔ Mock API: ${students.length} students`);
                         }
                     } catch(e) {
@@ -2002,11 +2010,9 @@
 
                 if (students.length === 0) {
                     showStatus('📭',
-                        'لم يتم العثور على طلاب',
-                        `سجل Debug: ${debugLog.slice(-3).join(' | ')}`);
-                    if (window.MonirPopup) MonirPopup.error(
-                        'لم يُعثر على طلاب.<br><small>' + debugLog.join('<br>') + '</small>',
-                        'تعذّر التحميل');
+                        'لم يتم العثور على طلاب مسجلين',
+                        `تأكد من الاتصال بقاعدة البيانات أو تحميل البيانات التجريبية.`);
+                    console.warn('[BulkStudents] Debug log:\n' + debugLog.join('\n'));
                     return;
                 }
 

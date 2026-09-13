@@ -8,7 +8,7 @@
     let dbFetchPromise = null;
 
     async function ensureDbLoaded() {
-        if (DB && DB.teachers && DB.teachers.length >= 10) {
+        if (DB && DB.students && DB.students.length >= 50) {
             return DB;
         }
 
@@ -19,17 +19,23 @@
         dbFetchPromise = (async () => {
             try {
                 const isFrontendDir = (typeof window !== 'undefined' && window.location && window.location.pathname.includes('/frontend/'));
-                const relPath = isFrontendDir ? '../js/db_seed.json' : 'js/db_seed.json';
+                const candidatePaths = isFrontendDir 
+                    ? ['../js/db_seed.json', 'js/db_seed.json', '/js/db_seed.json', 'frontend/js/db_seed.json']
+                    : ['js/db_seed.json', '../js/db_seed.json', '/js/db_seed.json', 'frontend/js/db_seed.json'];
                 const fetchFn = (typeof realFetch === 'function' && realFetch) ? realFetch : window.fetch;
                 
-                const res = await fetchFn(relPath + '?v=20260910_seed12');
-                if (res && res.ok) {
-                    const data = await res.json();
-                    if (data && data.users && data.students) {
-                        DB = data;
-                        console.log('[Mock DB] Loaded ' + DB.students.length + ' students into memory.');
-                        return DB;
-                    }
+                for (const p of candidatePaths) {
+                    try {
+                        const res = await fetchFn(p + '?v=20260913_seed15');
+                        if (res && res.ok) {
+                            const data = await res.json();
+                            if (data && data.students && data.students.length > 0) {
+                                DB = data;
+                                console.log('[Mock DB] Loaded ' + DB.students.length + ' students into memory from ' + p);
+                                return DB;
+                            }
+                        }
+                    } catch(innerE) {}
                 }
             } catch(e) {
                 console.warn('[Mock DB] Failed to load db_seed.json:', e);
@@ -37,8 +43,7 @@
             return DB;
         })();
 
-        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(DB), 500));
-        return Promise.race([dbFetchPromise, timeoutPromise]);
+        return await dbFetchPromise;
     }
 
     function initDb() {
@@ -374,14 +379,23 @@
             return jsonResponse(res);
         }
 
+        // ── Students List ─────────────────────
+        if (path === '/api/students' && method === 'GET') {
+            await ensureDbLoaded();
+            return jsonResponse(DB.students || []);
+        }
+
         // ── Bulk Students List (for Bulk Manager) ─────────────────────
         if (path === '/api/admin/students' && method === 'GET') {
+            await ensureDbLoaded();
             const students = (DB.students || []).map(s => {
                 const enrs = (DB.enrollments || []).filter(e => e.student_id === s.id);
                 const enr  = enrs[0] || {};
                 const teacher = enr.teacher_id
                     ? (DB.teachers || []).find(t => t.id === enr.teacher_id)
                     : null;
+                const actStatus = s.account_status || (s.status === 'inactive' || s.status === 'موقوف' ? 'موقوف' : 'نشط');
+                const isInactive = actStatus === 'موقوف' || s.status === 'inactive' || s.status === 'موقوف';
                 return {
                     id:                s.id,
                     name:              s.name || '',
@@ -390,14 +404,14 @@
                     phone:             s.phone || '',
                     parent_name:       s.parent_name || '',
                     parent_phone:      s.parent_phone || '',
-                    group_id:          s.qr_code || s.group_id || '—',
-                    status:            s.status || 'active',
-                    account_status:    s.account_status || (s.status === 'active' ? 'نشط' : 'غير نشط'),
-                    remaining_credits: enr.remaining_credits || s.remaining_credits || 0,
-                    teacher_id:        enr.teacher_id || null,
-                    teacher_name:      teacher ? teacher.name : (s.teacher_name || '—'),
+                    group_id:          s.group_id || s.qr_code || enr.group_id || '—',
+                    status:            isInactive ? 'inactive' : 'active',
+                    account_status:    actStatus,
+                    remaining_credits: s.remaining_credits !== undefined ? s.remaining_credits : (enr.remaining_credits || 0),
+                    teacher_id:        s.teacher_id || enr.teacher_id || (teacher ? teacher.id : null),
+                    teacher_name:      s.teacher_name || (teacher ? teacher.name : '—'),
                     subscription_days: s.subscription_days || enr.subscription_days || '—',
-                    lecture_time:      s.lecture_time      || enr.lecture_time      || '—'
+                    lecture_time:      s.lecture_time || enr.lecture_time || '—'
                 };
             });
             return jsonResponse({ students, total: students.length });
