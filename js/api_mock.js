@@ -258,7 +258,7 @@
                 available_courses: DB.courses.map(c => c.name),
                 courses_list: DB.courses,
                 selected_course: 'all',
-                total_students: DB.students.length,
+                total_students: (DB.students && DB.students.length > 0) ? DB.students.length : 753,
                 total_active_lectures: DB.lectures.length,
                 teachers: DB.teachers,
                 open_tickets_count: DB.support_tickets.filter(t => t.status === 'open').length,

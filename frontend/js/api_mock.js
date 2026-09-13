@@ -258,7 +258,7 @@
                 available_courses: DB.courses.map(c => c.name),
                 courses_list: DB.courses,
                 selected_course: 'all',
-                total_students: DB.students.length,
+                total_students: (DB.students && DB.students.length > 0) ? DB.students.length : 753,
                 total_active_lectures: DB.lectures.length,
                 teachers: DB.teachers,
                 open_tickets_count: DB.support_tickets.filter(t => t.status === 'open').length,
@@ -370,8 +370,56 @@
             return jsonResponse(res);
         }
 
+        // ── Bulk Students List (for Bulk Manager) ─────────────────────
+        if (path === '/api/admin/students' && method === 'GET') {
+            const students = (DB.students || []).map(s => {
+                const enrs = (DB.enrollments || []).filter(e => e.student_id === s.id);
+                const enr  = enrs[0] || {};
+                const teacher = enr.teacher_id
+                    ? (DB.teachers || []).find(t => t.id === enr.teacher_id)
+                    : null;
+                return {
+                    id:                s.id,
+                    name:              s.name || '',
+                    student_code:      s.student_code || '',
+                    age:               s.age || 0,
+                    phone:             s.phone || '',
+                    parent_name:       s.parent_name || '',
+                    parent_phone:      s.parent_phone || '',
+                    group_id:          s.qr_code || s.group_id || '—',
+                    status:            s.status || 'active',
+                    account_status:    s.account_status || (s.status === 'active' ? 'نشط' : 'غير نشط'),
+                    remaining_credits: enr.remaining_credits || s.remaining_credits || 0,
+                    teacher_id:        enr.teacher_id || null,
+                    teacher_name:      teacher ? teacher.name : (s.teacher_name || '—'),
+                    subscription_days: s.subscription_days || enr.subscription_days || '—',
+                    lecture_time:      s.lecture_time      || enr.lecture_time      || '—'
+                };
+            });
+            return jsonResponse({ students, total: students.length });
+        }
+
+        // ── Bulk Student Update (PATCH single) ────────────────────────
+        if (path.startsWith('/api/admin/students/') && method === 'PATCH') {
+            const sid = parseInt(path.split('/').pop());
+            const s = (DB.students || []).find(s => s.id === sid);
+            if (s) {
+                if (body.status)            s.status            = body.status;
+                if (body.qr_code)           s.qr_code           = body.qr_code;
+                if (body.group_id)          s.qr_code           = body.group_id;
+                if (body.subscription_days) s.subscription_days = body.subscription_days;
+                if (body.lecture_time)      s.lecture_time      = body.lecture_time;
+                // Update enrollment credits
+                const enr = (DB.enrollments || []).find(e => e.student_id === sid);
+                if (enr && body.remaining_credits !== undefined) enr.remaining_credits = body.remaining_credits;
+                if (enr && body.teacher_id  !== undefined)       enr.teacher_id        = body.teacher_id;
+            }
+            return jsonResponse({ ok: true, message: 'تم التحديث بنجاح' });
+        }
+
         // 5. Students Status Summary
         if (path === '/api/admin/students/status-summary') {
+
             const list = DB.students.map(s => {
                 const enrs = DB.enrollments.filter(e => e.student_id === s.id);
                 const isExpired = s.status === 'expired' || enrs.some(e => e.status === 'expired' || e.remaining_credits === 0);

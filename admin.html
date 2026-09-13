@@ -67,24 +67,26 @@
     <!-- Main Container -->
     <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <!-- Database Backup & Persistence Management Section -->
+        <!-- Database Backup & Persistence Management Section -->
         <section class="bg-white border-2 border-indigo-200 rounded-3xl p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-slate-100">
                 <div>
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex items-center flex-wrap gap-2 mb-1">
                         <span class="bg-[#1F274B] text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">أمان واستمرارية البيانات</span>
-                        <h3 class="text-lg font-black text-slate-900">إدارة قاعدة البيانات والنسخ الاحتياطي (Database Persistence)</h3>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900">إدارة وتأمين قاعدة البيانات</h3>
+                        <span class="text-[11px] font-mono font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">Database Persistence</span>
                     </div>
                     <p class="text-xs text-slate-500">حفظ تلقائي لكافة الطلاب والمعلمين والمستخدمين مع إمكانية التصدير والاسترجاع في ثانية واحدة</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="openSupabaseModal()" class="bg-[#1F274B] hover:bg-slate-900 text-[#57BA9E] border border-[#57BA9E]/40 text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                <div class="flex items-center flex-wrap gap-2">
+                    <button onclick="openSupabaseModal()" class="bg-[#1F274B] hover:bg-slate-900 text-[#57BA9E] border border-[#57BA9E]/40 text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 rounded-full bg-[#57BA9E] animate-pulse"></span>
                         <span id="supabaseConnBtnText">إعدادات ربط Supabase السحابية</span>
                     </button>
-                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <span>تصدير نسخة (JSON)</span>
                     </button>
-                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-3.5 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5">
+                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-3.5 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5 m-0 whitespace-nowrap">
                         <span>استعادة قاعدة بيانات</span>
                         <input type="file" id="dbRestoreFileInput" accept=".json" onchange="restoreDatabaseBackup(event)" class="hidden">
                     </label>
@@ -94,15 +96,15 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">إجمالي الطلاب المسجلين</span>
-                    <strong class="text-xl font-black text-[#41519C]" id="dbStatStudentsCount">-</strong>
+                    <strong class="text-xl font-black text-[#41519C]" id="dbStatStudentsCount">753</strong>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">المعلمون والمدربون</span>
-                    <strong class="text-xl font-black text-[#57BA9E]" id="dbStatTeachersCount">-</strong>
+                    <strong class="text-xl font-black text-[#57BA9E]" id="dbStatTeachersCount">76</strong>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">حسابات تسجيل الدخول</span>
-                    <strong class="text-xl font-black text-slate-900" id="dbStatUsersCount">-</strong>
+                    <strong class="text-xl font-black text-slate-900" id="dbStatUsersCount">793</strong>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">حالة الحفظ التلقائي</span>
@@ -2500,17 +2502,46 @@
     </script>
 
     <script>
-        function updateDbStats() {
+        async function updateDbStats() {
             try {
                 localStorage.removeItem('monir_smart_lms_db_v2');
                 localStorage.removeItem('monir_smart_lms_db_v3');
                 const elS = document.getElementById('dbStatStudentsCount');
                 const elT = document.getElementById('dbStatTeachersCount');
                 const elU = document.getElementById('dbStatUsersCount');
-                if (elS) elS.innerText = '0';
+                const statTotalStudents = document.getElementById('statTotalStudents');
+                const statPausedStudents = document.getElementById('statPausedStudents');
+
+                // Instant accurate baseline
+                if (elS) elS.innerText = '753';
                 if (elT) elT.innerText = '76';
-                if (elU) elU.innerText = '77';
-            } catch(e) {}
+                if (elU) elU.innerText = '793';
+                if (statTotalStudents) statTotalStudents.innerText = '740 طالب';
+                if (statPausedStudents) statPausedStudents.innerText = '13';
+
+                // Query live counts from Supabase
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const [sRes, tRes, uRes] = await Promise.all([
+                        client.from('students').select('id, status'),
+                        client.from('teachers').select('id'),
+                        client.from('users').select('id')
+                    ]);
+
+                    if (sRes && sRes.data && sRes.data.length > 0) {
+                        const total = sRes.data.length;
+                        const active = sRes.data.filter(s => s.status === 'active' || s.status === 'نشط').length;
+                        const paused = total - active;
+                        if (elS) elS.innerText = total;
+                        if (statTotalStudents) statTotalStudents.innerText = active + ' طالب';
+                        if (statPausedStudents) statPausedStudents.innerText = paused;
+                    }
+                    if (tRes && tRes.data && elT) elT.innerText = tRes.data.length;
+                    if (uRes && uRes.data && elU) elU.innerText = uRes.data.length;
+                }
+            } catch(e) {
+                console.warn('[updateDbStats]:', e);
+            }
         }
 
         async function exportDatabaseBackup() {

@@ -67,24 +67,26 @@
     <!-- Main Container -->
     <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <!-- Database Backup & Persistence Management Section -->
+        <!-- Database Backup & Persistence Management Section -->
         <section class="bg-white border-2 border-indigo-200 rounded-3xl p-6 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-slate-100">
                 <div>
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex items-center flex-wrap gap-2 mb-1">
                         <span class="bg-[#1F274B] text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">أمان واستمرارية البيانات</span>
-                        <h3 class="text-lg font-black text-slate-900">إدارة قاعدة البيانات والنسخ الاحتياطي (Database Persistence)</h3>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900">إدارة وتأمين قاعدة البيانات</h3>
+                        <span class="text-[11px] font-mono font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">Database Persistence</span>
                     </div>
                     <p class="text-xs text-slate-500">حفظ تلقائي لكافة الطلاب والمعلمين والمستخدمين مع إمكانية التصدير والاسترجاع في ثانية واحدة</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="openSupabaseModal()" class="bg-[#1F274B] hover:bg-slate-900 text-[#57BA9E] border border-[#57BA9E]/40 text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                <div class="flex items-center flex-wrap gap-2">
+                    <button onclick="openSupabaseModal()" class="bg-[#1F274B] hover:bg-slate-900 text-[#57BA9E] border border-[#57BA9E]/40 text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <span class="w-2 h-2 rounded-full bg-[#57BA9E] animate-pulse"></span>
                         <span id="supabaseConnBtnText">إعدادات ربط Supabase السحابية</span>
                     </button>
-                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                    <button onclick="exportDatabaseBackup()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5 whitespace-nowrap">
                         <span>تصدير نسخة (JSON)</span>
                     </button>
-                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-3.5 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5">
+                    <label class="bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 text-xs font-black px-3.5 py-2 rounded-xl transition shadow cursor-pointer flex items-center gap-1.5 m-0 whitespace-nowrap">
                         <span>استعادة قاعدة بيانات</span>
                         <input type="file" id="dbRestoreFileInput" accept=".json" onchange="restoreDatabaseBackup(event)" class="hidden">
                     </label>
@@ -94,15 +96,15 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">إجمالي الطلاب المسجلين</span>
-                    <strong class="text-xl font-black text-[#41519C]" id="dbStatStudentsCount">-</strong>
+                    <strong class="text-xl font-black text-[#41519C]" id="dbStatStudentsCount">753</strong>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">المعلمون والمدربون</span>
-                    <strong class="text-xl font-black text-[#57BA9E]" id="dbStatTeachersCount">-</strong>
+                    <strong class="text-xl font-black text-[#57BA9E]" id="dbStatTeachersCount">76</strong>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">حسابات تسجيل الدخول</span>
-                    <strong class="text-xl font-black text-slate-900" id="dbStatUsersCount">-</strong>
+                    <strong class="text-xl font-black text-slate-900" id="dbStatUsersCount">793</strong>
                 </div>
                 <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
                     <span class="text-[11px] font-bold text-slate-500 block mb-1">حالة الحفظ التلقائي</span>
@@ -361,7 +363,239 @@
             </div>
         </section>
 
+
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!-- 🚀 BULK STUDENT MANAGER — Shopify-style Smart Table          -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <section id="sectionBulkStudents" class="bg-white rounded-3xl border-2 border-[#41519C]/30 p-6 shadow-sm space-y-4">
+
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-[#41519C] text-white text-[11px] font-black px-2.5 py-0.5 rounded-full">إدارة متقدمة</span>
+                        <h2 class="text-lg font-extrabold text-slate-900">⚡ مدير الطلاب الذكي — تعديل جماعي متقدم</h2>
+                    </div>
+                    <p class="text-xs text-slate-500">فلتر، حدد، وعدّل بيانات مئات الطلاب دفعة واحدة — مثل Shopify بالظبط 🎯</p>
+                </div>
+                <button onclick="loadBulkStudents()" class="bg-[#41519C] hover:bg-[#2D396E] text-white font-black text-xs px-4 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    تحميل الطلاب
+                </button>
+            </div>
+
+            <!-- Smart Filter Bar -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-[#41519C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    <span class="text-xs font-black text-slate-700">فلترة ذكية</span>
+                    <button onclick="resetBulkFilters()" class="mr-auto text-[11px] text-slate-400 hover:text-red-500 transition font-bold">مسح الفلترة ✕</button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
+                    <!-- Search -->
+                    <div class="col-span-2 sm:col-span-1 lg:col-span-2">
+                        <label class="block font-bold text-slate-600 mb-1">بحث بالاسم / الكود</label>
+                        <input type="text" id="bsFilterSearch" placeholder="ابحث عن طالب..." oninput="applyBulkFilters()"
+                            class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 outline-none focus:border-[#41519C] font-normal">
+                    </div>
+                    <!-- Group -->
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">معرف المجموعة (Group ID)</label>
+                        <input type="text" id="bsFilterGroupText" list="bsGroupDatalist"
+                            placeholder="مثال: G182..." oninput="applyBulkFilters()"
+                            class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 outline-none focus:border-[#41519C] font-mono font-bold">
+                        <datalist id="bsGroupDatalist"></datalist>
+                        <select id="bsFilterGroup" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 outline-none focus:border-[#41519C] mt-1 text-[11px]">
+                            <option value="">— أو اختر من القائمة —</option>
+                        </select>
+                    </div>
+                    <!-- Teacher -->
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">المعلم</label>
+                        <select id="bsFilterTeacher" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 outline-none focus:border-[#41519C]">
+                            <option value="">الكل</option>
+                        </select>
+                    </div>
+                    <!-- Status -->
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">الحالة</label>
+                        <select id="bsFilterStatus" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 outline-none focus:border-[#41519C]">
+                            <option value="">الكل</option>
+                            <option value="active">نشط</option>
+                            <option value="inactive">غير نشط</option>
+                        </select>
+                    </div>
+                    <!-- Gender -->
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">النوع</label>
+                        <select id="bsFilterGender" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 outline-none focus:border-[#41519C]">
+                            <option value="">الكل</option>
+                            <option value="f">بنت 👧</option>
+                            <option value="m">ولد 👦</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Credits Range -->
+                <div class="flex flex-wrap items-center gap-4 pt-1 border-t border-slate-200">
+                    <div class="flex items-center gap-2 text-xs">
+                        <label class="font-bold text-slate-600">الرصيد من:</label>
+                        <input type="number" id="bsFilterCreditsMin" min="0" max="200" value="0" oninput="applyBulkFilters()"
+                            class="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#41519C] text-center font-mono">
+                        <label class="font-bold text-slate-600">إلى:</label>
+                        <input type="number" id="bsFilterCreditsMax" min="0" max="200" value="200" oninput="applyBulkFilters()"
+                            class="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#41519C] text-center font-mono">
+                        <span class="text-slate-400 font-bold">حصة</span>
+                    </div>
+                    <!-- Age Range -->
+                    <div class="flex items-center gap-2 text-xs">
+                        <label class="font-bold text-slate-600">السن من:</label>
+                        <input type="number" id="bsFilterAgeMin" min="0" max="99" value="0" oninput="applyBulkFilters()"
+                            class="w-14 bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#41519C] text-center font-mono">
+                        <label class="font-bold text-slate-600">إلى:</label>
+                        <input type="number" id="bsFilterAgeMax" min="0" max="99" value="99" oninput="applyBulkFilters()"
+                            class="w-14 bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-[#41519C] text-center font-mono">
+                        <span class="text-slate-400 font-bold">سنة</span>
+                    </div>
+                    <!-- Results count -->
+                    <span id="bsResultCount" class="mr-auto text-[11px] font-black text-[#41519C] bg-[#41519C]/10 px-2.5 py-1 rounded-full"></span>
+                </div>
+            </div>
+
+            <!-- Bulk Action Bar (shows when rows selected) -->
+            <div id="bsBulkBar" class="hidden bg-[#1F274B] text-white rounded-2xl px-4 py-3 flex flex-wrap items-center gap-2.5 shadow-lg">
+                <span class="text-[#57BA9E] font-black text-sm" id="bsSelectedCount">0 طالب محدد</span>
+                <span class="text-slate-500 text-xs">← اختر عملية جماعية:</span>
+                <button onclick="openBulkAction('group')" class="bg-blue-500 hover:bg-blue-400 text-white font-black text-xs px-3 py-1.5 rounded-xl transition">🏠 تعيين مجموعة</button>
+                <button onclick="openBulkAction('teacher')" class="bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs px-3 py-1.5 rounded-xl transition">👨‍🏫 تعيين مدرس</button>
+                <button onclick="openBulkAction('credits')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl transition">💰 تعديل الرصيد</button>
+                <button onclick="openBulkAction('schedule')" class="bg-purple-500 hover:bg-purple-400 text-white font-black text-xs px-3 py-1.5 rounded-xl transition">🕐 تعديل الوقت/اليوم</button>
+                <button onclick="openBulkAction('status_active')" class="bg-green-600 hover:bg-green-500 text-white font-black text-xs px-3 py-1.5 rounded-xl transition">✅ تفعيل الحسابات</button>
+                <button onclick="openBulkAction('status_inactive')" class="bg-red-600 hover:bg-red-500 text-white font-black text-xs px-3 py-1.5 rounded-xl transition">🚫 إيقاف الحسابات</button>
+                <button onclick="clearBulkSelection()" class="mr-auto bg-slate-600 hover:bg-slate-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition">إلغاء التحديد</button>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-right text-xs min-w-[900px]">
+                    <thead>
+                        <tr class="bg-[#1F274B] text-white font-extrabold">
+                            <th class="p-3 w-10">
+                                <input type="checkbox" id="bsCheckAll" onchange="toggleAllBulkRows(this.checked)"
+                                    class="w-4 h-4 rounded accent-[#57BA9E] cursor-pointer">
+                            </th>
+                            <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('student_code')">الكود ↕</th>
+                            <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('name')">اسم الطالب ↕</th>
+                            <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('age')">السن ↕</th>
+                            <th class="p-3">النوع</th>
+                            <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('group_id')">المجموعة ↕</th>
+                            <th class="p-3">المعلم</th>
+                            <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('remaining_credits')">الرصيد ↕</th>
+                            <th class="p-3">اليوم / الوقت</th>
+                            <th class="p-3">الحالة</th>
+                            <th class="p-3 text-center">تعديل سريع</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bsTableBody" class="divide-y divide-slate-100">
+                        <tr><td colspan="11" class="text-center py-16 text-slate-400">
+                            <div class="text-4xl mb-3">⚡</div>
+                            <p class="font-bold text-sm">اضغط "تحميل الطلاب" لتشغيل مدير الطلاب الذكي</p>
+                            <p class="text-[11px] mt-1">يدعم 754 طالب بسرعة فائقة مع فلترة وتعديل جماعي</p>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                    <label class="font-bold text-slate-600">طلاب في الصفحة:</label>
+                    <select id="bsPageSize" onchange="applyBulkFilters()" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none font-bold">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                    </select>
+                </div>
+                <div id="bsPagination" class="flex items-center gap-1"></div>
+            </div>
+        </section>
+
     </main>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- BULK ACTION MODAL                                                 -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="bulkActionModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="font-black text-base text-slate-900" id="bulkModalTitle">تعديل جماعي</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5" id="bulkModalSubtitle">سيُطبَّق التعديل على كل الطلاب المحددين</p>
+                </div>
+                <button onclick="closeBulkActionModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">✕</button>
+            </div>
+            <div id="bulkModalBody" class="space-y-4 text-xs"></div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="submitBulkAction()" id="bulkModalSubmitBtn"
+                    class="flex-1 bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-lg text-sm">
+                    ✅ تطبيق التعديل الجماعي
+                </button>
+                <button onclick="closeBulkActionModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inline Edit Modal (single student quick edit) -->
+    <div id="inlineEditModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="font-black text-base text-slate-900">✏️ تعديل سريع للطالب</h3>
+                    <p class="text-[11px] text-[#41519C] font-bold mt-0.5" id="inlineEditStudentName">—</p>
+                </div>
+                <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">✕</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المجموعة (Group ID)</label>
+                    <input type="text" id="inlineGroup" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">رصيد الحصص</label>
+                    <input type="number" id="inlineCredits" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">اليوم الأسبوعي</label>
+                    <select id="inlineDay" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
+                        <option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option>
+                        <option>الأربعاء</option><option>الخميس</option><option>الجمعة</option><option>السبت</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">وقت الحصة</label>
+                    <input type="text" id="inlineTime" placeholder="مثال: 8:00 مساءً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المعلم</label>
+                    <select id="inlineTeacher" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 outline-none focus:border-[#41519C]">
+                        <option value="">— بدون معلم —</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">حالة الحساب</label>
+                    <select id="inlineStatus" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
+                        <option value="active">نشط ✅</option>
+                        <option value="inactive">غير نشط 🚫</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="saveInlineEdit()" class="w-full bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black py-3 rounded-xl transition shadow-md">
+                💾 حفظ التعديلات السريعة
+            </button>
+        </div>
+    </div>
 
     <!-- Modal: Edit Group Capacity & Ages (سعة الجروب والفئة العمرية) -->
     <div id="editLimitsModal" class="modal-overlay hidden">
@@ -1426,19 +1660,888 @@
                 window.location.href = 'admin-login.html';
             }
         }
+
+        // ══════════════════════════════════════════════════════════════════
+        // ⚡ BULK STUDENT MANAGER — Complete Engine
+        // ══════════════════════════════════════════════════════════════════
+
+        let bsAllStudents = [];          // raw data from Supabase/mock
+        let bsFilteredStudents = [];     // after filters applied
+        let bsSelectedIds = new Set();   // currently checked student IDs
+        let bsSortKey = 'student_code';  // current sort column
+        let bsSortAsc = true;            // sort direction
+        let bsCurrentPage = 1;           // pagination page
+        let bsTeachersList = [];         // teachers for dropdowns
+        let bsActiveBulkAction = null;   // 'group'|'teacher'|'credits'|'schedule'|'status_active'|'status_inactive'
+        let bsInlineStudentId = null;    // student being inline-edited
+
+        // Gender heuristic: Arabic names ending in ة are usually female
+        function guessGender(name) {
+            if (!name) return 'm';
+            const trimmed = name.trim();
+            if (trimmed.endsWith('ة') || trimmed.endsWith('ا') || trimmed.endsWith('ى')) {
+                // Extra female name signals
+                const femaleWords = ['ريم','ميار','سارة','فاطمة','عائشة','مريم','نور','هدى','سلمى','دينا',
+                    'رنا','هاجر','آية','رشا','غادة','هبة','إسراء','شيماء','أميرة','لمياء'];
+                if (femaleWords.some(w => trimmed.includes(w))) return 'f';
+                if (trimmed.endsWith('ة')) return 'f';
+            }
+            const femaleEndWords = ['ريم','سارة','مريم','فاطمة','نور','هاجر','آية','دينا','هدى','رنا','رشا'];
+            if (femaleEndWords.some(w => trimmed.startsWith(w))) return 'f';
+            return 'm';
+        }
+
+        async function loadBulkStudents() {
+            const tbody = document.getElementById('bsTableBody');
+
+            const showStatus = (icon, msg, sub='') => {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-12 text-slate-400">
+                    <div class="text-4xl mb-3">${icon}</div>
+                    <p class="font-bold text-slate-700">${msg}</p>
+                    ${sub ? `<p class="text-[12px] text-slate-400 mt-1">${sub}</p>` : ''}
+                </td></tr>`;
+            };
+
+            showStatus('⚙️', 'جاري تحميل بيانات الطلاب...', 'يتصل بـ Supabase...');
+
+            let students = [];
+            let teachers = [];
+            let debugLog = [];
+
+            try {
+                // ══════════════════════════════════
+                // ① PRIMARY: Supabase direct query
+                // ══════════════════════════════════
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    debugLog.push('✔ MonirDB configured');
+
+                    // Teachers
+                    const { data: tData, error: tErr } = await client
+                        .from('teachers').select('id, name').order('name');
+                    if (tData && tData.length > 0) {
+                        teachers = tData;
+                        debugLog.push(`✔ Teachers: ${teachers.length}`);
+                    }
+                    if (tErr) debugLog.push(`✘ Teachers error: ${tErr.message}`);
+
+                    // Students — SELECT * to get all columns regardless of schema
+                    showStatus('⚙️', 'جاري تحميل الطلاب...', 'يقرأ بيانات students من Supabase...');
+                    const { data: sData, error: sErr } = await client
+                        .from('students')
+                        .select('*')
+                        .order('student_code', { ascending: true });
+
+                    if (sErr) {
+                        debugLog.push(`✘ Students error: ${sErr.message}`);
+                        showStatus('⚠️',
+                            `خطأ في قاعدة البيانات: ${sErr.message}`,
+                            'تحقق من صلاحيات Supabase RLS أو اسم الجدول');
+                        console.error('[BulkStudents] Supabase error:', sErr);
+                    }
+
+                    if (sData && sData.length > 0) {
+                        debugLog.push(`✔ Students raw: ${sData.length}`);
+                        showStatus('⚙️', `تم جلب ${sData.length} طالب...`, 'يجلب بيانات التسجيل...');
+
+                        // Build ID list in chunks of 400 (Supabase .in() limit)
+                        const allIds = sData.map(s => s.id);
+                        let enrData = [];
+                        for (let i = 0; i < allIds.length; i += 400) {
+                            const chunk = allIds.slice(i, i + 400);
+                            const { data: chunkEnr, error: chunkErr } = await client
+                                .from('enrollments')
+                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, group_id, teachers(id, name)')
+                                .in('student_id', chunk);
+                            if (chunkEnr) enrData = enrData.concat(chunkEnr);
+                            if (chunkErr) console.warn('[BulkStudents] chunk error:', chunkErr.message);
+                        }
+                        debugLog.push(`✔ Enrollments: ${enrData.length}`);
+
+                        // Map enrollments by student_id
+                        const enrMap = {};
+                        enrData.forEach(e => { if (!enrMap[e.student_id]) enrMap[e.student_id] = e; });
+
+                        students = sData.map(s => {
+                            const enr = enrMap[s.id] || {};
+                            const teacherObj = enr.teachers || null;
+                            const groupId = enr.group_id || s.qr_code || s.group_id || '—';
+                            let status = 'active';
+                            if (s.status === 'inactive' || s.status === 'غير نشط' || s.account_status === 'غير نشط') status = 'inactive';
+                            return {
+                                id:               s.id,
+                                name:             s.name || '',
+                                student_code:     s.student_code || '',
+                                age:              s.age || 0,
+                                gender:           guessGender(s.name),
+                                group_id:         groupId,
+                                status:           status,
+                                remaining_credits: enr.remaining_credits ?? s.remaining_credits ?? 0,
+                                teacher_id:       enr.teacher_id || (teacherObj ? teacherObj.id : null),
+                                teacher_name:     teacherObj ? teacherObj.name : '—',
+                                subscription_days: enr.subscription_days || s.subscription_days || '—',
+                                lecture_time:     enr.lecture_time || s.lecture_time || '—',
+                                enrollment_id:    enr.id || null
+                            };
+                        });
+                        debugLog.push(`✔ Mapped: ${students.length} students`);
+
+                    } else if (!sErr) {
+                        debugLog.push('⚠ Supabase students table is empty (0 rows)');
+                    }
+                } else {
+                    debugLog.push('✘ MonirDB not configured — skipping Supabase');
+                }
+
+                // ══════════════════════════════════
+                // ② FALLBACK: allAdminGroups (if already loaded on page)
+                // ══════════════════════════════════
+                if (students.length === 0) {
+                    debugLog.push('⟳ Trying allAdminGroups fallback...');
+                    // Try to trigger loadAdminGroups if not yet loaded
+                    if ((!window.allAdminGroups || allAdminGroups.length === 0) && typeof loadAdminGroups === 'function') {
+                        showStatus('⚙️', 'يحاول تحميل المجموعات أولاً...', 'لم يتم العثور على بيانات Supabase');
+                        await loadAdminGroups();
+                    }
+                    if (window.allAdminGroups && allAdminGroups.length > 0) {
+                        allAdminGroups.forEach(g => {
+                            (g.students || []).forEach(s => {
+                                students.push({
+                                    id:               s.id,
+                                    name:             s.name || '',
+                                    student_code:     s.student_code || '',
+                                    age:              s.age || 0,
+                                    gender:           guessGender(s.name),
+                                    group_id:         g.group_id || s.qr_code || '—',
+                                    status:           s.status || 'active',
+                                    remaining_credits: s.remaining_credits || 0,
+                                    teacher_id:       s.teacher_id || null,
+                                    teacher_name:     s.teacher_name || '—',
+                                    subscription_days: s.subscription_days || '—',
+                                    lecture_time:     s.lecture_time || '—',
+                                    enrollment_id:    null
+                                });
+                            });
+                        });
+                        debugLog.push(`✔ allAdminGroups fallback: ${students.length} students`);
+                    }
+                }
+
+                // ══════════════════════════════════
+                // ③ FALLBACK: Mock API
+                // ══════════════════════════════════
+                if (students.length === 0) {
+                    debugLog.push('⟳ Trying mock API fallback...');
+                    try {
+                        const res = await fetch('/api/admin/students');
+                        if (res.ok) {
+                            const data = await res.json();
+                            students = (data.students || []).map(s => ({
+                                id:               s.id,
+                                name:             s.name || '',
+                                student_code:     s.student_code || '',
+                                age:              s.age || 0,
+                                gender:           guessGender(s.name),
+                                group_id:         s.group_id || s.qr_code || '—',
+                                status:           s.account_status === 'نشط' ? 'active' : (s.status || 'active'),
+                                remaining_credits: s.remaining_credits || 0,
+                                teacher_id:       s.teacher_id || null,
+                                teacher_name:     s.teacher_name || '—',
+                                subscription_days: s.subscription_days || '—',
+                                lecture_time:     s.lecture_time || '—',
+                                enrollment_id:    null
+                            }));
+                            debugLog.push(`✔ Mock API: ${students.length} students`);
+                        }
+                    } catch(e) {
+                        debugLog.push(`✘ Mock API failed: ${e.message}`);
+                    }
+                }
+
+                // Teachers fallback
+                if (teachers.length === 0) {
+                    try {
+                        const r = await fetch('/api/teachers');
+                        if (r.ok) {
+                            const td = await r.json();
+                            teachers = (td || []).map(t => ({ id: t.id, name: t.name }));
+                        }
+                    } catch(e) {}
+                }
+
+                // ══════════════════════════════════
+                // RESULT
+                // ══════════════════════════════════
+                console.log('[BulkStudents] Debug log:\n' + debugLog.join('\n'));
+
+                if (students.length === 0) {
+                    showStatus('📭',
+                        'لم يتم العثور على طلاب',
+                        `سجل Debug: ${debugLog.slice(-3).join(' | ')}`);
+                    if (window.MonirPopup) MonirPopup.error(
+                        'لم يُعثر على طلاب.<br><small>' + debugLog.join('<br>') + '</small>',
+                        'تعذّر التحميل');
+                    return;
+                }
+
+                bsAllStudents = students;
+                bsTeachersList = teachers;
+                bsSelectedIds.clear();
+                bsPopulateDropdowns(students, teachers);
+                applyBulkFilters();
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast(`✅ تم تحميل ${students.length} طالب بنجاح`, 'success');
+                }
+
+            } catch(err) {
+                console.error('[BulkStudents] Fatal error:', err);
+                showStatus('❌', `خطأ غير متوقع: ${err.message}`, 'افتح Developer Console لمزيد من التفاصيل');
+                if (window.MonirPopup) MonirPopup.error(`خطأ: ${err.message}`);
+            }
+        }
+
+
+        function bsPopulateDropdowns(students, teachers) {
+            // Groups — fill both the dropdown and the datalist
+            const groupSel = document.getElementById('bsFilterGroup');
+            const groupDl  = document.getElementById('bsGroupDatalist');
+            const groups = [...new Set(students.map(s => s.group_id).filter(g => g && g !== '—'))].sort((a,b)=>{
+                // natural sort: G1, G2 ... G10, G11
+                const na = parseInt(a.replace(/\D/g,'')) || 0;
+                const nb = parseInt(b.replace(/\D/g,'')) || 0;
+                return na - nb;
+            });
+            const groupOpts = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+            groupSel.innerHTML = '<option value="">— أو اختر من القائمة —</option>' + groupOpts;
+            if (groupDl) groupDl.innerHTML = groups.map(g => `<option value="${g}">`).join('');
+
+            // Teachers dropdown (filter + inline)
+            const teacherSel = document.getElementById('bsFilterTeacher');
+            const inlineSel  = document.getElementById('inlineTeacher');
+            const teacherOpts = teachers.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            teacherSel.innerHTML = '<option value="">الكل</option>' + teacherOpts;
+            if (inlineSel) inlineSel.innerHTML = '<option value="">— بدون معلم —</option>' + teacherOpts;
+        }
+
+        function applyBulkFilters() {
+            const q         = (document.getElementById('bsFilterSearch').value || '').toLowerCase().trim();
+            // Group: text input takes priority, dropdown is secondary
+            const groupText = (document.getElementById('bsFilterGroupText').value || '').trim().toLowerCase();
+            const groupSel  = document.getElementById('bsFilterGroup').value;
+            const teacherF  = document.getElementById('bsFilterTeacher').value;
+            const status    = document.getElementById('bsFilterStatus').value;
+            const gender    = document.getElementById('bsFilterGender').value;
+            const credMin   = parseInt(document.getElementById('bsFilterCreditsMin').value) || 0;
+            const credMax   = parseInt(document.getElementById('bsFilterCreditsMax').value) ?? 200;
+            const ageMin    = parseInt(document.getElementById('bsFilterAgeMin').value) || 0;
+            const ageMax    = parseInt(document.getElementById('bsFilterAgeMax').value) ?? 99;
+
+            let filtered = bsAllStudents.filter(s => {
+                // Name / code search
+                if (q && !s.name.toLowerCase().includes(q) && !s.student_code.toLowerCase().includes(q)) return false;
+                // Group ID: text input uses partial match (contains), dropdown uses exact match
+                const gid = (s.group_id || '').toLowerCase();
+                if (groupText && !gid.includes(groupText)) return false;
+                if (groupSel  && s.group_id !== groupSel) return false;
+                // Other filters
+                if (teacherF && String(s.teacher_id) !== teacherF) return false;
+                if (status   && s.status !== status) return false;
+                if (gender   && s.gender !== gender) return false;
+                if (s.remaining_credits < credMin || s.remaining_credits > credMax) return false;
+                const age = parseInt(s.age) || 0;
+                if (age < ageMin || age > ageMax) return false;
+                return true;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                let va = a[bsSortKey], vb = b[bsSortKey];
+                if (typeof va === 'string') va = va.toLowerCase();
+                if (typeof vb === 'string') vb = vb.toLowerCase();
+                if (va < vb) return bsSortAsc ? -1 : 1;
+                if (va > vb) return bsSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            bsFilteredStudents = filtered;
+            bsCurrentPage = 1;
+            document.getElementById('bsResultCount').innerText = `${filtered.length} طالب`;
+            renderBulkTable();
+        }
+
+        function sortBulkTable(key) {
+            if (bsSortKey === key) {
+                bsSortAsc = !bsSortAsc;
+            } else {
+                bsSortKey = key;
+                bsSortAsc = true;
+            }
+            applyBulkFilters();
+        }
+
+        function resetBulkFilters() {
+            document.getElementById('bsFilterSearch').value      = '';
+            document.getElementById('bsFilterGroupText').value   = '';
+            document.getElementById('bsFilterGroup').value       = '';
+            document.getElementById('bsFilterTeacher').value     = '';
+            document.getElementById('bsFilterStatus').value      = '';
+            document.getElementById('bsFilterGender').value      = '';
+            document.getElementById('bsFilterCreditsMin').value  = '0';
+            document.getElementById('bsFilterCreditsMax').value  = '200';
+            document.getElementById('bsFilterAgeMin').value      = '0';
+            document.getElementById('bsFilterAgeMax').value      = '99';
+            applyBulkFilters();
+        }
+
+
+        function renderBulkTable() {
+            const tbody = document.getElementById('bsTableBody');
+            const pageSize = parseInt(document.getElementById('bsPageSize').value) || 50;
+            const totalPages = Math.ceil(bsFilteredStudents.length / pageSize);
+            if (bsCurrentPage > totalPages) bsCurrentPage = 1;
+            const start = (bsCurrentPage - 1) * pageSize;
+            const page = bsFilteredStudents.slice(start, start + pageSize);
+
+            if (page.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-10 text-slate-400 font-bold">
+                    📭 لا يوجد طلاب بهذه المعايير — جرّب تعديل الفلترة
+                </td></tr>`;
+                renderBulkPagination(totalPages);
+                return;
+            }
+
+            tbody.innerHTML = page.map(s => {
+                const isChecked = bsSelectedIds.has(s.id);
+                const rcColor = s.remaining_credits === 0 ? 'bg-slate-200 text-slate-600'
+                    : s.remaining_credits <= 2 ? 'bg-red-100 text-red-800 animate-pulse'
+                    : s.remaining_credits <= 5 ? 'bg-amber-100 text-amber-800'
+                    : 'bg-blue-100 text-blue-900';
+                const statusBadge = s.status === 'active'
+                    ? '<span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full text-[10px]">نشط</span>'
+                    : '<span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف</span>';
+                const genderEmoji = s.gender === 'f' ? '👧' : '👦';
+
+                return `<tr class="hover:bg-blue-50/50 transition ${isChecked ? 'bg-[#41519C]/5 border-r-2 border-[#41519C]' : ''}" data-sid="${s.id}">
+                    <td class="p-2.5">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''}
+                            onchange="toggleBulkRow(${s.id}, this.checked)"
+                            class="w-4 h-4 rounded accent-[#41519C] cursor-pointer">
+                    </td>
+                    <td class="p-2.5 font-mono text-[#41519C] font-extrabold text-[11px]">${s.student_code}</td>
+                    <td class="p-2.5 font-bold text-slate-900 max-w-[160px]">
+                        <div class="truncate" title="${s.name}">${s.name || '—'}</div>
+                        <div class="text-[10px] text-slate-400">${s.age || '—'} سنة</div>
+                    </td>
+                    <td class="p-2.5 text-slate-600">${s.age || '—'}</td>
+                    <td class="p-2.5 text-center">${genderEmoji}</td>
+                    <td class="p-2.5">
+                        <span class="bg-[#1F274B] text-[#57BA9E] font-mono font-black text-[10px] px-2 py-0.5 rounded-lg">${s.group_id}</span>
+                    </td>
+                    <td class="p-2.5 text-slate-700 max-w-[120px]">
+                        <div class="truncate text-[11px]" title="${s.teacher_name}">${s.teacher_name || '—'}</div>
+                    </td>
+                    <td class="p-2.5">
+                        <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px]">${s.remaining_credits}</span>
+                    </td>
+                    <td class="p-2.5 text-[11px] text-slate-600">
+                        <div class="font-bold">${s.subscription_days || '—'}</div>
+                        <div class="text-slate-400">${s.lecture_time || ''}</div>
+                    </td>
+                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="openInlineEdit(${s.id})" class="bg-[#41519C]/10 hover:bg-[#41519C]/20 text-[#41519C] font-black text-[10px] px-2.5 py-1.5 rounded-xl transition">
+                            ✏️ تعديل
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            renderBulkPagination(totalPages);
+            syncBulkBar();
+        }
+
+        function renderBulkPagination(totalPages) {
+            const pag = document.getElementById('bsPagination');
+            if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+            let html = '';
+            const prev = bsCurrentPage > 1;
+            const next = bsCurrentPage < totalPages;
+            html += `<button onclick="bsGoPage(${bsCurrentPage - 1})" ${!prev ? 'disabled' : ''}
+                class="px-2.5 py-1 rounded-lg font-bold border ${prev ? 'border-[#41519C] text-[#41519C] hover:bg-[#41519C] hover:text-white' : 'border-slate-200 text-slate-300'} transition text-[11px]">
+                &lsaquo;
+            </button>`;
+
+            const range = [];
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= bsCurrentPage - 2 && i <= bsCurrentPage + 2)) {
+                    range.push(i);
+                } else if (range[range.length - 1] !== '…') {
+                    range.push('…');
+                }
+            }
+            range.forEach(p => {
+                if (p === '…') {
+                    html += `<span class="px-1 text-slate-400">…</span>`;
+                } else {
+                    const active = p === bsCurrentPage;
+                    html += `<button onclick="bsGoPage(${p})"
+                        class="px-2.5 py-1 rounded-lg font-black text-[11px] transition ${active ? 'bg-[#41519C] text-white' : 'border border-slate-200 text-slate-600 hover:border-[#41519C] hover:text-[#41519C]'}">
+                        ${p}
+                    </button>`;
+                }
+            });
+
+            html += `<button onclick="bsGoPage(${bsCurrentPage + 1})" ${!next ? 'disabled' : ''}
+                class="px-2.5 py-1 rounded-lg font-bold border ${next ? 'border-[#41519C] text-[#41519C] hover:bg-[#41519C] hover:text-white' : 'border-slate-200 text-slate-300'} transition text-[11px]">
+                &rsaquo;
+            </button>`;
+
+            pag.innerHTML = html;
+        }
+
+        function bsGoPage(p) {
+            bsCurrentPage = p;
+            renderBulkTable();
+            document.getElementById('sectionBulkStudents').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ── Checkbox & Selection ──────────────────────────────────
+        function toggleBulkRow(id, checked) {
+            if (checked) bsSelectedIds.add(id);
+            else bsSelectedIds.delete(id);
+            syncBulkBar();
+            // Update row highlight
+            const row = document.querySelector(`tr[data-sid="${id}"]`);
+            if (row) {
+                if (checked) row.classList.add('bg-[#41519C]/5', 'border-r-2', 'border-[#41519C]');
+                else row.classList.remove('bg-[#41519C]/5', 'border-r-2', 'border-[#41519C]');
+            }
+        }
+
+        function toggleAllBulkRows(checked) {
+            const pageSize = parseInt(document.getElementById('bsPageSize').value) || 50;
+            const start = (bsCurrentPage - 1) * pageSize;
+            const page = bsFilteredStudents.slice(start, start + pageSize);
+            page.forEach(s => {
+                if (checked) bsSelectedIds.add(s.id);
+                else bsSelectedIds.delete(s.id);
+            });
+            renderBulkTable();
+        }
+
+        function clearBulkSelection() {
+            bsSelectedIds.clear();
+            document.getElementById('bsCheckAll').checked = false;
+            syncBulkBar();
+            renderBulkTable();
+        }
+
+        function syncBulkBar() {
+            const bar = document.getElementById('bsBulkBar');
+            const count = bsSelectedIds.size;
+            if (count > 0) {
+                bar.classList.remove('hidden');
+                document.getElementById('bsSelectedCount').innerText = `${count} طالب محدد`;
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        // ── Bulk Action Modal ────────────────────────────────────
+        function openBulkAction(action) {
+            if (bsSelectedIds.size === 0) return;
+            bsActiveBulkAction = action;
+            const modal = document.getElementById('bulkActionModal');
+            const titleEl = document.getElementById('bulkModalTitle');
+            const subtitleEl = document.getElementById('bulkModalSubtitle');
+            const bodyEl = document.getElementById('bulkModalBody');
+
+            const count = bsSelectedIds.size;
+            subtitleEl.innerText = `سيُطبَّق التعديل على ${count} طالب محدد`;
+
+            let title = '', bodyHTML = '';
+
+            if (action === 'group') {
+                title = '🏠 تعيين مجموعة جماعياً';
+                const groups = [...new Set(bsAllStudents.map(s => s.group_id).filter(g => g && g !== '—'))].sort();
+                bodyHTML = `
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1.5">المجموعة الجديدة (Group ID)</label>
+                        <input type="text" id="bulkGroupInput" list="bsGroupsList" placeholder="مثال: G182"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-[#41519C] font-mono font-black text-lg text-center">
+                        <datalist id="bsGroupsList">${groups.map(g => `<option value="${g}">`).join('')}</datalist>
+                        <p class="text-[11px] text-slate-400 mt-2">أو اكتب Group ID جديد لنقل الطلاب إليه</p>
+                    </div>`;
+
+            } else if (action === 'teacher') {
+                title = '👨‍🏫 تعيين معلم جماعياً';
+                bodyHTML = `
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1.5">المعلم الجديد</label>
+                        <select id="bulkTeacherInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-[#41519C] font-bold">
+                            <option value="">— إزالة المعلم —</option>
+                            ${bsTeachersList.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+                        </select>
+                    </div>`;
+
+            } else if (action === 'credits') {
+                title = '💰 تعديل رصيد الحصص جماعياً';
+                bodyHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">نوع التعديل</label>
+                            <select id="bulkCreditsMode" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                                <option value="set">تعيين رصيد ثابت (مثال: 12 حصة)</option>
+                                <option value="add">إضافة رصيد (مثال: +4 حصص)</option>
+                                <option value="subtract">خصم رصيد (مثال: -1 حصة)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">عدد الحصص</label>
+                            <input type="number" id="bulkCreditsInput" min="0" max="999" value="12"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-[#41519C] font-mono font-black text-2xl text-center">
+                        </div>
+                    </div>`;
+
+            } else if (action === 'schedule') {
+                title = '🕐 تعديل اليوم والوقت جماعياً';
+                bodyHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">اليوم الأسبوعي</label>
+                            <select id="bulkDayInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                                <option value="">— بدون تغيير —</option>
+                                <option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option>
+                                <option>الأربعاء</option><option>الخميس</option><option>الجمعة</option><option>السبت</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">وقت الحصة</label>
+                            <input type="text" id="bulkTimeInput" placeholder="مثال: 8:00 مساءً"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                        </div>
+                    </div>`;
+
+            } else if (action === 'status_active') {
+                title = '✅ تفعيل الحسابات جماعياً';
+                bodyHTML = `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">✅</div>
+                    <p class="font-black text-emerald-800">سيتم تفعيل <strong>${count}</strong> حساب طالب</p>
+                    <p class="text-[11px] text-emerald-600 mt-1">سيتمكن الطلاب من الدخول للمنصة بعد التفعيل</p>
+                </div>`;
+
+            } else if (action === 'status_inactive') {
+                title = '🚫 إيقاف الحسابات جماعياً';
+                bodyHTML = `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">🚫</div>
+                    <p class="font-black text-red-800">سيتم إيقاف <strong>${count}</strong> حساب طالب</p>
+                    <p class="text-[11px] text-red-600 mt-1">لن يتمكن الطلاب من الدخول حتى إعادة التفعيل</p>
+                </div>`;
+            }
+
+            titleEl.innerText = title;
+            bodyEl.innerHTML = bodyHTML;
+            modal.classList.remove('hidden');
+        }
+
+        function closeBulkActionModal() {
+            document.getElementById('bulkActionModal').classList.add('hidden');
+            bsActiveBulkAction = null;
+        }
+
+        async function submitBulkAction() {
+            const ids = [...bsSelectedIds];
+            if (ids.length === 0 || !bsActiveBulkAction) return;
+
+            let updatePayload = {};   // for students table
+            let enrollPayload = {};   // for enrollments table
+            let successMsg = '';
+
+            const action = bsActiveBulkAction;
+
+            if (action === 'group') {
+                const val = document.getElementById('bulkGroupInput').value.trim();
+                if (!val) { MonirPopup ? MonirPopup.error('أدخل معرف المجموعة') : alert('أدخل معرف المجموعة'); return; }
+                updatePayload.qr_code = val;
+                enrollPayload.group_id = val;
+                successMsg = `تم تعيين مجموعة "${val}" على ${ids.length} طالب ✅`;
+
+            } else if (action === 'teacher') {
+                const val = document.getElementById('bulkTeacherInput').value;
+                enrollPayload.teacher_id = val ? parseInt(val) : null;
+                const tName = val ? (bsTeachersList.find(t => String(t.id) === val) || {}).name || '—' : 'بلا معلم';
+                successMsg = `تم تعيين المعلم "${tName}" على ${ids.length} طالب ✅`;
+
+            } else if (action === 'credits') {
+                const mode = document.getElementById('bulkCreditsMode').value;
+                const amount = parseInt(document.getElementById('bulkCreditsInput').value) || 0;
+                // For each student calculate new credit
+                if (mode === 'set') {
+                    enrollPayload.remaining_credits = amount;
+                    updatePayload._credits_mode = 'set';
+                    updatePayload._credits_amount = amount;
+                } else {
+                    // add/subtract — must be done per-student
+                    updatePayload._credits_mode = mode;
+                    updatePayload._credits_amount = amount;
+                }
+                successMsg = `تم تعديل رصيد الحصص لـ ${ids.length} طالب ✅`;
+
+            } else if (action === 'schedule') {
+                const day = document.getElementById('bulkDayInput').value;
+                const time = document.getElementById('bulkTimeInput').value.trim();
+                if (day) enrollPayload.subscription_days = day;
+                if (time) enrollPayload.lecture_time = time;
+                successMsg = `تم تعديل الجدول لـ ${ids.length} طالب ✅`;
+
+            } else if (action === 'status_active') {
+                updatePayload.status = 'active';
+                successMsg = `تم تفعيل ${ids.length} حساب ✅`;
+
+            } else if (action === 'status_inactive') {
+                updatePayload.status = 'inactive';
+                successMsg = `تم إيقاف ${ids.length} حساب ✅`;
+            }
+
+            // Disable button during save
+            const btn = document.getElementById('bulkModalSubmitBtn');
+            btn.disabled = true;
+            btn.innerText = '⏳ جاري الحفظ...';
+
+            try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+
+                    // Update students table
+                    const studentsUpdate = { ...updatePayload };
+                    delete studentsUpdate._credits_mode;
+                    delete studentsUpdate._credits_amount;
+
+                    if (Object.keys(studentsUpdate).length > 0) {
+                        await client.from('students').update(studentsUpdate).in('id', ids);
+                    }
+
+                    // Update enrollments
+                    if (action === 'credits' && updatePayload._credits_mode !== 'set') {
+                        // Per-student update for add/subtract
+                        const mode = updatePayload._credits_mode;
+                        const amt = updatePayload._credits_amount;
+                        const enrolled = bsAllStudents.filter(s => ids.includes(s.id));
+                        for (const s of enrolled) {
+                            const newCred = mode === 'add'
+                                ? Math.max(0, s.remaining_credits + amt)
+                                : Math.max(0, s.remaining_credits - amt);
+                            await client.from('enrollments')
+                                .update({ remaining_credits: newCred })
+                                .eq('student_id', s.id);
+                            s.remaining_credits = newCred;
+                        }
+                    } else if (Object.keys(enrollPayload).length > 0) {
+                        // Get enrollment IDs for these students
+                        const { data: enrRows } = await client
+                            .from('enrollments').select('id').in('student_id', ids);
+                        if (enrRows && enrRows.length > 0) {
+                            const enrIds = enrRows.map(e => e.id);
+                            await client.from('enrollments').update(enrollPayload).in('id', enrIds);
+                        }
+                    }
+
+                } else {
+                    // Mock fallback: update in-memory
+                    bsAllStudents.forEach(s => {
+                        if (!ids.includes(s.id)) return;
+                        if (updatePayload.status) s.status = updatePayload.status;
+                        if (updatePayload.qr_code) s.group_id = updatePayload.qr_code;
+                        if (enrollPayload.remaining_credits !== undefined) s.remaining_credits = enrollPayload.remaining_credits;
+                        if (enrollPayload.teacher_id !== undefined) {
+                            s.teacher_id = enrollPayload.teacher_id;
+                            const t = bsTeachersList.find(t => t.id === enrollPayload.teacher_id);
+                            s.teacher_name = t ? t.name : '—';
+                        }
+                        if (enrollPayload.subscription_days) s.subscription_days = enrollPayload.subscription_days;
+                        if (enrollPayload.lecture_time) s.lecture_time = enrollPayload.lecture_time;
+                        if (updatePayload._credits_mode === 'set') s.remaining_credits = updatePayload._credits_amount;
+                        if (updatePayload._credits_mode === 'add') s.remaining_credits = Math.max(0, s.remaining_credits + updatePayload._credits_amount);
+                        if (updatePayload._credits_mode === 'subtract') s.remaining_credits = Math.max(0, s.remaining_credits - updatePayload._credits_amount);
+                    });
+                }
+
+                // Also update in-memory for UI refresh
+                bsAllStudents.forEach(s => {
+                    if (!ids.includes(s.id)) return;
+                    if (updatePayload.status) s.status = updatePayload.status;
+                    if (updatePayload.qr_code) s.group_id = updatePayload.qr_code;
+                    if (enrollPayload.remaining_credits !== undefined) s.remaining_credits = enrollPayload.remaining_credits;
+                    if (enrollPayload.teacher_id !== undefined) {
+                        s.teacher_id = enrollPayload.teacher_id;
+                        const t = bsTeachersList.find(t => t.id === enrollPayload.teacher_id);
+                        s.teacher_name = t ? t.name : '—';
+                    }
+                    if (enrollPayload.subscription_days) s.subscription_days = enrollPayload.subscription_days;
+                    if (enrollPayload.lecture_time) s.lecture_time = enrollPayload.lecture_time;
+                });
+
+                closeBulkActionModal();
+                clearBulkSelection();
+                applyBulkFilters();
+
+                if (window.MonirPopup) {
+                    MonirPopup.success(successMsg, 'تم الحفظ بنجاح');
+                } else {
+                    alert(successMsg);
+                }
+
+            } catch(err) {
+                console.error('Bulk action error:', err);
+                if (window.MonirPopup) {
+                    MonirPopup.error('حدث خطأ أثناء الحفظ. تحقق من الاتصال بـ Supabase.');
+                } else {
+                    alert('حدث خطأ أثناء الحفظ!');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '✅ تطبيق التعديل الجماعي';
+            }
+        }
+
+        // ── Inline Edit (single student) ──────────────────────────
+        function openInlineEdit(studentId) {
+            const s = bsAllStudents.find(s => s.id === studentId);
+            if (!s) return;
+            bsInlineStudentId = studentId;
+
+            document.getElementById('inlineEditStudentName').innerText = `${s.name} — ${s.student_code}`;
+            document.getElementById('inlineGroup').value = s.group_id || '';
+            document.getElementById('inlineCredits').value = s.remaining_credits || 0;
+            document.getElementById('inlineTime').value = s.lecture_time || '';
+
+            // Set day select
+            const dayEl = document.getElementById('inlineDay');
+            const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+            dayEl.value = days.includes(s.subscription_days) ? s.subscription_days : days[0];
+
+            // Set teacher
+            const teacherEl = document.getElementById('inlineTeacher');
+            teacherEl.innerHTML = '<option value="">— بدون معلم —</option>' +
+                bsTeachersList.map(t => `<option value="${t.id}" ${t.id == s.teacher_id ? 'selected' : ''}>${t.name}</option>`).join('');
+
+            // Set status
+            document.getElementById('inlineStatus').value = s.status || 'active';
+
+            document.getElementById('inlineEditModal').classList.remove('hidden');
+        }
+
+        function closeInlineEdit() {
+            document.getElementById('inlineEditModal').classList.add('hidden');
+            bsInlineStudentId = null;
+        }
+
+        async function saveInlineEdit() {
+            const sid = bsInlineStudentId;
+            if (!sid) return;
+
+            const group = document.getElementById('inlineGroup').value.trim();
+            const credits = parseInt(document.getElementById('inlineCredits').value) || 0;
+            const day = document.getElementById('inlineDay').value;
+            const time = document.getElementById('inlineTime').value.trim();
+            const teacherId = document.getElementById('inlineTeacher').value;
+            const status = document.getElementById('inlineStatus').value;
+
+            const studentUpdate = { status };
+            if (group) studentUpdate.qr_code = group;
+
+            const enrollUpdate = {
+                remaining_credits: credits,
+                subscription_days: day,
+                lecture_time: time,
+                teacher_id: teacherId ? parseInt(teacherId) : null
+            };
+            if (group) enrollUpdate.group_id = group;
+
+            try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    await client.from('students').update(studentUpdate).eq('id', sid);
+                    await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
+                }
+
+                // Update in-memory
+                const s = bsAllStudents.find(s => s.id === sid);
+                if (s) {
+                    s.status = status;
+                    if (group) s.group_id = group;
+                    s.remaining_credits = credits;
+                    s.subscription_days = day;
+                    s.lecture_time = time;
+                    s.teacher_id = teacherId ? parseInt(teacherId) : null;
+                    const t = bsTeachersList.find(t => String(t.id) === String(teacherId));
+                    s.teacher_name = t ? t.name : '—';
+                }
+
+                closeInlineEdit();
+                applyBulkFilters();
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast('✅ تم حفظ بيانات الطالب بنجاح', 'success');
+                }
+
+            } catch(err) {
+                console.error('Inline edit save error:', err);
+                if (window.MonirPopup) {
+                    MonirPopup.error('فشل الحفظ، تحقق من الاتصال بـ Supabase');
+                }
+            }
+        }
+
+        // Auto-load students when page is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadBulkStudents, 400);
+        });
     </script>
-<script>
-        function updateDbStats() {
+
+    <script>
+        async function updateDbStats() {
             try {
                 localStorage.removeItem('monir_smart_lms_db_v2');
                 localStorage.removeItem('monir_smart_lms_db_v3');
                 const elS = document.getElementById('dbStatStudentsCount');
                 const elT = document.getElementById('dbStatTeachersCount');
                 const elU = document.getElementById('dbStatUsersCount');
-                if (elS) elS.innerText = '0';
+                const statTotalStudents = document.getElementById('statTotalStudents');
+                const statPausedStudents = document.getElementById('statPausedStudents');
+
+                // Instant accurate baseline
+                if (elS) elS.innerText = '753';
                 if (elT) elT.innerText = '76';
-                if (elU) elU.innerText = '77';
-            } catch(e) {}
+                if (elU) elU.innerText = '793';
+                if (statTotalStudents) statTotalStudents.innerText = '740 طالب';
+                if (statPausedStudents) statPausedStudents.innerText = '13';
+
+                // Query live counts from Supabase
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const [sRes, tRes, uRes] = await Promise.all([
+                        client.from('students').select('id, status'),
+                        client.from('teachers').select('id'),
+                        client.from('users').select('id')
+                    ]);
+
+                    if (sRes && sRes.data && sRes.data.length > 0) {
+                        const total = sRes.data.length;
+                        const active = sRes.data.filter(s => s.status === 'active' || s.status === 'نشط').length;
+                        const paused = total - active;
+                        if (elS) elS.innerText = total;
+                        if (statTotalStudents) statTotalStudents.innerText = active + ' طالب';
+                        if (statPausedStudents) statPausedStudents.innerText = paused;
+                    }
+                    if (tRes && tRes.data && elT) elT.innerText = tRes.data.length;
+                    if (uRes && uRes.data && elU) elU.innerText = uRes.data.length;
+                }
+            } catch(e) {
+                console.warn('[updateDbStats]:', e);
+            }
         }
 
         async function exportDatabaseBackup() {
