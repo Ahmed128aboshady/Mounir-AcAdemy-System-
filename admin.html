@@ -1281,52 +1281,98 @@
             }
         }
 
+        // ── Helper: Sync Stat Cards with In-Memory / Live Students Data ──
+        function syncStudentStats() {
+            if (!window.bsAllStudents || bsAllStudents.length === 0) return;
+            const total = bsAllStudents.length;
+            const active = bsAllStudents.filter(s => s.status === 'active' || s.status === 'نشط').length;
+            const paused = total - active;
+            
+            const elS = document.getElementById('dbStatStudentsCount');
+            const statTotalStudents = document.getElementById('statTotalStudents');
+            const statPausedStudents = document.getElementById('statPausedStudents');
+            
+            if (elS) elS.innerText = total;
+            if (statTotalStudents) statTotalStudents.innerText = active + ' طالب';
+            if (statPausedStudents) statPausedStudents.innerText = paused + ' طالب';
+        }
+
         // ---------------- 4. Paused Students Monitor ----------------
         async function loadStudentsStatusSummary() {
             try {
-                const res = await fetch('/api/admin/students/status-summary');
-                const data = await res.json();
-                
-                document.getElementById('statPausedStudents').innerText = data.summary.total_paused + ' طالب';
+                let data = null;
+                try {
+                    const res = await fetch('/api/admin/students/status-summary');
+                    if (res.ok) data = await res.json();
+                } catch(e) {}
 
-                const tbody = document.getElementById('pausedStudentsTableBody');
-                tbody.innerHTML = '';
+                let pausedCount = 0;
+                let pausedList = [];
 
-                const pausedList = data.students.filter(s => s.status !== 'active');
-
-                if (pausedList.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">لا يوجد طلاب متوقفين حالياً، كافة الاشتراكات سارية بنجاح.</td></tr>';
-                    return;
+                if (window.bsAllStudents && bsAllStudents.length > 0) {
+                    const activeCount = bsAllStudents.filter(s => s.status === 'active' || s.status === 'نشط').length;
+                    pausedCount = bsAllStudents.length - activeCount;
+                    pausedList = bsAllStudents.filter(s => s.status !== 'active' && s.status !== 'نشط').map(s => {
+                        const cleanPhone = (s.parent_phone || s.phone || '01000000000').replace(/[^\d+]/g, '');
+                        const pPhone = cleanPhone.startsWith('0') ? ('2' + cleanPhone) : cleanPhone;
+                        const waMsg = encodeURIComponent(`السلام عليكم ورحمة الله أستاذ ${s.parent_name || 'ولي الأمر'}. نود الاطمئنان على الطالب البطل ${s.name} في أكاديمية منير، وحرصاً على استمرار تميزه يسعدنا تيسير تجديد الاشتراك ومتابعة الحصص.`);
+                        return {
+                            id: s.id,
+                            name: s.name,
+                            age: s.age,
+                            student_code: s.student_code,
+                            courses_str: s.group_id || 'القرآن الكريم',
+                            status: s.remaining_credits === 0 ? 'expired' : 'paused',
+                            parent_name: s.parent_name || ('ولي أمر ' + s.name),
+                            parent_phone: s.parent_phone || s.phone || '—',
+                            whatsapp_reactivation_url: `https://wa.me/${pPhone}?text=${waMsg}`
+                        };
+                    });
+                    syncStudentStats();
+                } else if (data && data.summary) {
+                    pausedCount = data.summary.total_paused !== undefined ? data.summary.total_paused : (data.summary.expired_count || 0);
+                    pausedList = (data.students || []).filter(s => s.status !== 'active');
+                    const statEl = document.getElementById('statPausedStudents');
+                    if (statEl) statEl.innerText = pausedCount + ' طالب';
                 }
 
-                pausedList.forEach(s => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition';
-
-                    let statusBadge = '';
-                    if (s.status === 'expired') {
-                        statusBadge = '<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded text-[10px]">متوقف (انتهاء الرصيد)</span>';
-                    } else {
-                        statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px]">انقطاع عن الحضور</span>';
+                const tbody = document.getElementById('pausedStudentsTableBody');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    if (pausedList.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">لا يوجد طلاب متوقفين حالياً، كافة الاشتراكات سارية بنجاح.</td></tr>';
+                        return;
                     }
 
-                    tr.innerHTML = `
-                        <td class="p-3 font-bold text-slate-900">${s.name} (${s.age} سنة)</td>
-                        <td class="p-3 font-mono text-slate-500">${s.student_code}</td>
-                        <td class="p-3 font-medium text-blue-900">${s.courses_str}</td>
-                        <td class="p-3">${statusBadge}</td>
-                        <td class="p-3">
-                            <span class="block text-slate-800">${s.parent_name}</span>
-                            <span class="text-slate-400 font-mono text-[10px]">${s.parent_phone}</span>
-                        </td>
-                        <td class="p-3 text-center">
-                            <a href="${s.whatsapp_reactivation_url}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition inline-block">
-                                تذكير عبر WhatsApp
-                            </a>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                    pausedList.forEach(s => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition';
+
+                        let statusBadge = '';
+                        if (s.status === 'expired') {
+                            statusBadge = '<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded text-[10px]">متوقف (انتهاء الرصيد)</span>';
+                        } else {
+                            statusBadge = '<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px]">حساب موقوف</span>';
+                        }
+
+                        tr.innerHTML = `
+                            <td class="p-3 font-bold text-slate-900">${s.name} (${s.age || '—'} سنة)</td>
+                            <td class="p-3 font-mono text-slate-500">${s.student_code}</td>
+                            <td class="p-3 font-medium text-blue-900">${s.courses_str || '—'}</td>
+                            <td class="p-3">${statusBadge}</td>
+                            <td class="p-3">
+                                <span class="block text-slate-800">${s.parent_name || '—'}</span>
+                                <span class="text-slate-400 font-mono text-[10px]">${s.parent_phone || '—'}</span>
+                            </td>
+                            <td class="p-3 text-center">
+                                <a href="${s.whatsapp_reactivation_url || '#'}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition inline-block">
+                                    تذكير عبر WhatsApp
+                                </a>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
             } catch (err) {
                 console.error("Error loading paused students:", err);
             }
@@ -1775,7 +1821,10 @@
                             const teacherObj = enr.teachers || null;
                             const groupId = enr.group_id || s.qr_code || s.group_id || '—';
                             let status = 'active';
-                            if (s.status === 'inactive' || s.status === 'غير نشط' || s.account_status === 'غير نشط') status = 'inactive';
+                            const rawSt = String(s.status || s.account_status || (enr && enr.status) || '').toLowerCase().trim();
+                            if (['inactive', 'غير نشط', 'موقوف', 'frozen', 'paused', 'stopped', 'expired'].includes(rawSt)) {
+                                status = 'inactive';
+                            }
                             return {
                                 id:               s.id,
                                 name:             s.name || '',
@@ -1897,6 +1946,8 @@
                 bsSelectedIds.clear();
                 bsPopulateDropdowns(students, teachers);
                 applyBulkFilters();
+                syncStudentStats();
+                loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
                     MonirPopup.toast(`✅ تم تحميل ${students.length} طالب بنجاح`, 'success');
@@ -2394,6 +2445,8 @@
                 closeBulkActionModal();
                 clearBulkSelection();
                 applyBulkFilters();
+                syncStudentStats();
+                loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
                     MonirPopup.success(successMsg, 'تم الحفظ بنجاح');
@@ -2490,6 +2543,8 @@
 
                 closeInlineEdit();
                 applyBulkFilters();
+                syncStudentStats();
+                loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
                     MonirPopup.toast('✅ تم حفظ بيانات الطالب بنجاح', 'success');
@@ -2525,7 +2580,7 @@
                 if (elT) elT.innerText = '76';
                 if (elU) elU.innerText = '793';
                 if (statTotalStudents) statTotalStudents.innerText = '740 طالب';
-                if (statPausedStudents) statPausedStudents.innerText = '13';
+                if (statPausedStudents) statPausedStudents.innerText = '13 طالب';
 
                 // Query live counts from Supabase
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
@@ -2542,7 +2597,7 @@
                         const paused = total - active;
                         if (elS) elS.innerText = total;
                         if (statTotalStudents) statTotalStudents.innerText = active + ' طالب';
-                        if (statPausedStudents) statPausedStudents.innerText = paused;
+                        if (statPausedStudents) statPausedStudents.innerText = paused + ' طالب';
                     }
                     if (tRes && tRes.data && elT) elT.innerText = tRes.data.length;
                     if (uRes && uRes.data && elU) elU.innerText = uRes.data.length;

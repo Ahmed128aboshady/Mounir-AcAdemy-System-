@@ -426,18 +426,27 @@
 
             const list = DB.students.map(s => {
                 const enrs = DB.enrollments.filter(e => e.student_id === s.id);
-                const isExpired = s.status === 'expired' || enrs.some(e => e.status === 'expired' || e.remaining_credits === 0);
-                const wa = 'https://wa.me/2' + s.parent_phone + '?text=' + encodeURIComponent('السلام عليكم ورحمة الله أستاذ ' + s.parent_name + '. نود الاطمئنان على الطالب البطل ' + s.name + ' في أكاديمية منير الذكية، وحرصاً على استمرار تميزه يسعدنا تيسير تجديد الاشتراك ومتابعة الحصص القادمة.');
+                const sStatus = String(s.status || s.account_status || '').toLowerCase().trim();
+                const isInactive = ['inactive', 'غير نشط', 'موقوف', 'frozen', 'paused', 'stopped', 'expired'].includes(sStatus);
+                const enrInactive = enrs.some(e => {
+                    const es = String(e.status || '').toLowerCase().trim();
+                    return ['expired', 'frozen', 'inactive', 'موقوف', 'غير نشط', 'paused', 'stopped'].includes(es) || e.remaining_credits === 0;
+                });
+                const isExpired = isInactive || enrInactive;
+                const parentPhone = s.parent_phone || s.phone || '01000000000';
+                const cleanPhone = parentPhone.replace(/[^\d+]/g, '');
+                const waPhone = cleanPhone.startsWith('0') ? ('2' + cleanPhone) : cleanPhone;
+                const wa = 'https://wa.me/' + waPhone + '?text=' + encodeURIComponent('السلام عليكم ورحمة الله أستاذ ' + (s.parent_name || 'ولي الأمر') + '. نود الاطمئنان على الطالب البطل ' + s.name + ' في أكاديمية منير، وحرصاً على استمرار تميزه يسعدنا تيسير تجديد الاشتراك ومتابعة الحصص القادمة.');
                 return {
                     id: s.id,
                     name: s.name,
                     student_code: s.student_code,
                     age: s.age,
-                    parent_name: s.parent_name,
-                    parent_phone: s.parent_phone,
+                    parent_name: s.parent_name || ('ولي أمر ' + s.name),
+                    parent_phone: parentPhone,
                     status: isExpired ? 'expired' : 'active',
                     enrollments: enrs,
-                    courses_str: enrs.map(e => e.course_name).join(', '),
+                    courses_str: enrs.map(e => e.course_name).join(', ') || 'القرآن الكريم',
                     whatsapp_reactivation_url: wa
                 };
             });

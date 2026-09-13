@@ -947,7 +947,13 @@ def get_students_status_summary():
         """, (sid,))
         enrollments = [dict(e) for e in c.fetchall()]
         
-        is_expired = any(e["status"] == "expired" or e["remaining_credits"] == 0 for e in enrollments)
+        st_val = str(s.get("status") or "").lower().strip()
+        is_st_inactive = st_val in ("inactive", "موقوف", "غير نشط", "frozen", "paused", "expired", "stopped")
+        is_enr_inactive = any(
+            str(e.get("status") or "").lower().strip() in ("expired", "frozen", "inactive", "موقوف", "غير نشط", "paused", "stopped") or e.get("remaining_credits") == 0
+            for e in enrollments
+        )
+        is_expired = is_st_inactive or is_enr_inactive
         
         c.execute("SELECT COUNT(*) as absent_cnt FROM attendance WHERE student_id = ? AND status = 'absent'", (sid,))
         absent_cnt = c.fetchone()["absent_cnt"]
