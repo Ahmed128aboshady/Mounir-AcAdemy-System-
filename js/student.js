@@ -294,29 +294,8 @@ async function loadStudentProfile() {
 }
 
 function checkAndRenderQuranWidget(courses) {
-    const quranCourse = (courses && courses.find(c => c.course_name.includes("القرآن"))) || (courses && courses[0] ? courses[0] : null);
     const sec = document.getElementById('quranCreditSection');
-    if (!sec) return;
-    
-    if (quranCourse) {
-        sec.classList.remove('hidden');
-        const rem = (quranCourse.remaining_credits !== undefined) ? quranCourse.remaining_credits : 12;
-        document.getElementById('quranRemainingCredits').innerText = rem + ' حصص متبقية';
-        document.getElementById('quranExcusesNote').innerText = 'الأعذار المسجلة: ' + (quranCourse.excuse_count || 0) + ' (الأول مجاني)';
-        document.getElementById('quranCurrentSurah').innerText = quranCourse.current_surah || 'مسار القرآن الكريم والتدبر';
-        document.getElementById('quranCurrentAya').innerText = 'المعلم المشرف: أ. ' + (quranCourse.teacher_name || '');
-        
-        const renewalAlert = document.getElementById('quranRenewalAlertBadge');
-        if (renewalAlert) {
-            if (rem <= 1) {
-                renewalAlert.classList.remove('hidden');
-            } else {
-                renewalAlert.classList.add('hidden');
-            }
-        }
-    } else {
-        sec.classList.add('hidden');
-    }
+    if (sec) sec.remove();
 }
 
 function renderEnrolledCoursesTabs(courses) {
@@ -1217,6 +1196,72 @@ const RENEWAL_PACKAGES = [
 
 let selectedRenewalPackageId = 'group_8';
 
+function copyTransferText(text, btn) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showCopySuccess(btn);
+        }).catch(() => {
+            fallbackCopyText(text, btn);
+        });
+    } else {
+        fallbackCopyText(text, btn);
+    }
+}
+
+function fallbackCopyText(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showCopySuccess(btn);
+    } catch(e) {
+        prompt('انسخ الرقم:', text);
+    }
+    document.body.removeChild(ta);
+}
+
+function showCopySuccess(btn) {
+    if (!btn) return;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<span>تم النسخ ✔</span>';
+    btn.classList.add('bg-emerald-200', 'text-emerald-950');
+    setTimeout(() => {
+        btn.innerHTML = oldHtml;
+        btn.classList.remove('bg-emerald-200', 'text-emerald-950');
+    }, 2000);
+}
+
+function updateWhatsAppTransferLink() {
+    const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[1];
+    const sNameElem = document.getElementById('studentName');
+    const sCodeElem = document.getElementById('studentCode');
+    const sName = sNameElem ? sNameElem.innerText.trim() : 'طالب الأكاديمية';
+    const sCode = sCodeElem ? sCodeElem.innerText.trim() : 'MNR';
+    
+    const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
+    const methodVal = payMethodRadio ? payMethodRadio.value : 'instapay';
+    const methodTitle = (methodVal === 'vodafone_cash') 
+        ? 'فودافون كاش (01002530197)' 
+        : 'إنستا باي (009348060001 - First Abu Dhabi Bank Misr - TRAINER X FOR TRAINING)';
+    
+    const msg = 
+        'السلام عليكم، تم تحويل رسوم تجديد الاشتراك بأكاديمية منير:\n' +
+        '• اسم الطالب: ' + sName + ' (' + sCode + ')\n' +
+        '• المسار التدريبي: ' + (selectedCourseName || 'مسار القرآن الكريم والتدبر') + '\n' +
+        '• الباقة المختارة: ' + pkg.name + ' (' + pkg.typeName + ')\n' +
+        '• الرصيد المطلوب إضافته: +' + pkg.credits + ' حصص (' + pkg.duration + ')\n' +
+        '• المبلغ المحول: ' + pkg.price + ' ج.م\n' +
+        '• طريقة التحويل: ' + methodTitle + '\n' +
+        'مرفق لسيادتكم صورة إشعار التحويل (سكرين شوت) لتأكيد وتفعيل الحصص فوراً.';
+        
+    const waBtn = document.getElementById('btnSendWhatsAppTransfer');
+    if (waBtn) {
+        waBtn.href = 'https://wa.me/201025969295?text=' + encodeURIComponent(msg);
+    }
+}
+
 function selectRenewalPackage(pkgId) {
     const pkg = RENEWAL_PACKAGES.find(p => p.id === pkgId);
     if (!pkg) return;
@@ -1262,24 +1307,51 @@ function selectRenewalPackage(pkgId) {
     const amt = document.getElementById('paymobAmountText');
     if (amt) amt.innerText = pkg.price.toFixed(2) + ' ج.م';
 
+    const instapayAmt = document.getElementById('instapayAmountDisplay');
+    if (instapayAmt) instapayAmt.innerText = pkg.price.toFixed(2) + ' ج.م';
+
+    const vodafoneAmt = document.getElementById('vodafoneAmountDisplay');
+    if (vodafoneAmt) vodafoneAmt.innerText = pkg.price.toFixed(2) + ' ج.م';
+
     const btnTxt = document.getElementById('btnPaymobSubmitText');
-    if (btnTxt) btnTxt.innerText = 'تأكيد ودفع ' + pkg.price.toFixed(2) + ' ج.م وشحن (' + pkg.credits + ' حصص)';
+    if (btnTxt) btnTxt.innerText = 'تأكيد السداد (' + pkg.price.toFixed(2) + ' ج.م) وإصدار الإيصال الرسمي';
+
+    updateWhatsAppTransferLink();
 }
 
 function updatePayMethodVisual(radioInput) {
-    document.querySelectorAll('.pay-method-opt').forEach(opt => {
-        opt.classList.remove('border-blue-500', 'bg-blue-50/50', 'text-blue-900');
-        opt.classList.add('border-slate-200', 'text-slate-700');
-    });
-    if (radioInput && radioInput.parentElement) {
-        radioInput.parentElement.classList.remove('border-slate-200', 'text-slate-700');
-        radioInput.parentElement.classList.add('border-blue-500', 'bg-blue-50/50', 'text-blue-900');
+    const val = radioInput ? radioInput.value : 'instapay';
+    const instapayTab = document.getElementById('payMethodTab_instapay');
+    const vodafoneTab = document.getElementById('payMethodTab_vodafone_cash');
+    const instapayBox = document.getElementById('instapayDetailsBox');
+    const vodafoneBox = document.getElementById('vodafoneDetailsBox');
+
+    if (val === 'vodafone_cash') {
+        if (vodafoneTab) {
+            vodafoneTab.className = 'pay-method-opt border-2 border-rose-600 bg-rose-50/70 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-rose-950 transition shadow-xs';
+        }
+        if (instapayTab) {
+            instapayTab.className = 'pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition';
+        }
+        if (instapayBox) instapayBox.classList.add('hidden');
+        if (vodafoneBox) vodafoneBox.classList.remove('hidden');
+    } else {
+        if (instapayTab) {
+            instapayTab.className = 'pay-method-opt border-2 border-indigo-600 bg-indigo-50/70 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-indigo-950 transition shadow-xs';
+        }
+        if (vodafoneTab) {
+            vodafoneTab.className = 'pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition';
+        }
+        if (instapayBox) instapayBox.classList.remove('hidden');
+        if (vodafoneBox) vodafoneBox.classList.add('hidden');
     }
+
+    updateWhatsAppTransferLink();
 }
 
 function openPaymobModal() {
     const cBadge = document.getElementById('paymobCourseNameBadge');
-    if (cBadge) cBadge.innerText = selectedCourseName || 'مسار القرآن والعلوم الإسلامية';
+    if (cBadge) cBadge.innerText = selectedCourseName || 'مسار القرآن الكريم والتدبر';
     
     const sInfo = document.getElementById('paymobStudentInfo');
     const sNameElem = document.getElementById('studentName');
@@ -1289,6 +1361,7 @@ function openPaymobModal() {
     }
 
     selectRenewalPackage(selectedRenewalPackageId || 'group_8');
+    updateWhatsAppTransferLink();
     document.getElementById('paymobModal').classList.remove('hidden');
 }
 
@@ -1322,7 +1395,7 @@ function openReceiptModal(receipt) {
         'المبلغ المسدد: ' + (receipt.amount || '') + ' ج.م\n' +
         'حالة العملية: تم السداد بنجاح وشحن الرصيد المباشر.'
     );
-    document.getElementById('btnWhatsAppReceipt').href = 'https://wa.me/?text=' + waText;
+    document.getElementById('btnWhatsAppReceipt').href = 'https://wa.me/201025969295?text=' + waText;
     
     document.getElementById('receiptModal').classList.remove('hidden');
 }
@@ -1335,7 +1408,7 @@ async function submitPaymobPayment() {
     const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[1];
     const btn = document.getElementById('btnPaymobSubmit');
     const oldTxt = btn.innerHTML;
-    btn.innerHTML = '<span>جاري معالجة الدفع عبر Paymob...</span>';
+    btn.innerHTML = '<span>جاري تسجيل السداد وتحديث الرصيد...</span>';
     btn.disabled = true;
 
     const sName = document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية';

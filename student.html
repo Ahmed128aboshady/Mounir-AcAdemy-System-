@@ -133,53 +133,16 @@
             </div>
         </section>
 
-        <!-- Quran Specific Engine Widget (Displays if enrolled in Quran track) -->
-        <section id="quranCreditSection" class="hidden bg-emerald-950 text-white rounded-2xl p-5 shadow-md border border-emerald-800 space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-emerald-800 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-emerald-700 text-emerald-100 rounded-lg flex items-center justify-center font-black text-sm">ق</div>
-                    <div>
-                        <h3 class="font-black text-sm text-emerald-100">رصيد حصص القرآن الكريم الفردية ومتابعة الحفظ</h3>
-                        <p class="text-[11px] text-emerald-300">نظام الخصم الفردي (4 حصص/تجديد) مع مراعاة العذر الأول المجاني</p>
-                    </div>
-                </div>
-                <div id="quranRenewalAlertBadge" class="hidden bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full animate-pulse">
-                    تنبيه: اقترب انتهاء الرصيد (متبقي حصة أو أقل)
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div class="bg-emerald-900/60 p-3.5 rounded-xl border border-emerald-700/50">
-                    <span class="text-emerald-300 block text-[11px]">رصيد الحصص المتبقي</span>
-                    <div class="text-xl font-black text-emerald-100 mt-0.5" id="quranRemainingCredits">3 من 4 حصص</div>
-                    <span class="text-[10px] text-emerald-400" id="quranExcusesNote">الأعذار المسجلة: 0</span>
-                </div>
-                <div class="bg-emerald-900/60 p-3.5 rounded-xl border border-emerald-700/50">
-                    <span class="text-emerald-300 block text-[11px]">السورة وموضع التلاوة</span>
-                    <div class="text-lg font-black text-amber-300 mt-0.5" id="quranCurrentSurah">سورة المطففين</div>
-                    <span class="text-[10px] text-emerald-300" id="quranCurrentAya">الآية رقم: 18</span>
-                </div>
-                <div class="bg-emerald-900/60 p-3.5 rounded-xl border border-emerald-700/50">
-                    <span class="text-emerald-300 block text-[11px]">المعلم المشرف المباشر</span>
-                    <div class="text-base font-bold text-white mt-0.5" id="quranTeacherName">أ. إيمان النجار</div>
-                    <span class="text-[10px] text-emerald-300">جلسات فردية مباشرة</span>
-                </div>
-            </div>
-
-            <div class="flex justify-end pt-1">
-                <button onclick="openPaymobModal()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
-                    <span>⚡</span>
-                    <span>شحن وتجديد رصيد الحصص (جروب / برايفت)</span>
-                </button>
-            </div>
-        </section>
-
         <!-- 2. Enrolled Courses Tabs (Interactive Course Switcher for Student) -->
         <section class="space-y-3">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <h3 class="text-sm font-extrabold text-slate-900">
                     الكورسات والمسارات المشترك بها الطالب:
                 </h3>
+                <button onclick="openPaymobModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 transform hover:scale-[1.02]">
+                    <span>⚡</span>
+                    <span>شحن وتجديد الاشتراك (جروب / برايفت)</span>
+                </button>
             </div>
 
             <!-- Dynamic Courses Pills -->
@@ -423,15 +386,15 @@
         </div>
     </div>
 
-    <!-- Modal: Paymob Simulated Checkout -->
+    <!-- Modal: Direct Transfer Checkout (InstaPay & Vodafone Cash) -->
     <div id="paymobModal" class="modal-overlay hidden">
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-sm">P</span>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 bg-gradient-to-tr from-indigo-700 to-purple-600 text-white rounded-xl flex items-center justify-center font-black text-base shadow-sm">⚡</span>
                     <div>
-                        <h3 class="font-extrabold text-base text-slate-900 leading-tight">شحن وتجديد الاشتراك — Paymob</h3>
-                        <p class="text-[11px] text-slate-400 font-medium">بوابة دفع معتمدة وآمنة 100%</p>
+                        <h3 class="font-extrabold text-base text-slate-900 leading-tight">شحن وتجديد الاشتراك</h3>
+                        <p class="text-[11px] text-slate-500 font-medium">التحويل عبر إنستا باي أو فودافون كاش وإرسال الإشعار</p>
                     </div>
                 </div>
                 <button onclick="closePaymobModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 text-xl font-bold flex items-center justify-center transition">&times;</button>
@@ -452,7 +415,7 @@
             <!-- Packages Selection Header -->
             <div class="mb-3">
                 <label class="block font-black text-slate-800 text-xs mb-1">اختر باقة التجديد المطلوبة:</label>
-                <p class="text-[11px] text-slate-500">حدد الباقة المناسبة ليتم شحن الرصيد وفتح الحصص فوراً بعد السداد</p>
+                <p class="text-[11px] text-slate-500">حدد الباقة المناسبة ليتم احتساب المبلغ المطلوب وتجهيز بيانات التحويل</p>
             </div>
 
             <!-- Group Packages Section -->
@@ -543,7 +506,7 @@
             </div>
 
             <!-- Order Summary Box -->
-            <div class="bg-gradient-to-br from-slate-900 to-blue-950 text-white p-4 rounded-2xl mb-4 text-xs space-y-2 shadow-inner">
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-4 rounded-2xl mb-4 text-xs space-y-2 shadow-inner">
                 <div class="flex justify-between items-center text-slate-300">
                     <span>الباقة المختارة:</span>
                     <strong class="text-amber-300 font-bold" id="paymobServiceName">باقة الـ 8 محاضرات شهرياً (جروب)</strong>
@@ -553,37 +516,117 @@
                     <strong class="text-emerald-400 font-bold" id="paymobCreditsToAdd">+8 حصص جديدة</strong>
                 </div>
                 <div class="flex justify-between items-center text-white text-sm font-black pt-2 border-t border-slate-700/60">
-                    <span>المبلغ المطلوب سداده:</span>
+                    <span>المبلغ المطلوب تحويله:</span>
                     <span class="text-amber-400 text-base" id="paymobAmountText">500.00 ج.م</span>
                 </div>
             </div>
 
-            <!-- Payment Methods -->
-            <div class="space-y-2 mb-4 text-xs">
-                <label class="block font-bold text-slate-700">اختر وسيلة الدفع المفضلة:</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <label class="pay-method-opt border-2 border-blue-500 bg-blue-50/50 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-blue-900 transition">
-                        <input type="radio" name="payMethod" value="card" checked class="hidden" onchange="updatePayMethodVisual(this)">
-                        <span>💳 بطاقة بنكية / ميزة</span>
+            <!-- Payment Methods Selector (InstaPay & Vodafone Cash) -->
+            <div class="space-y-2 mb-3 text-xs">
+                <label class="block font-bold text-slate-800">اختر طريقة التحويل:</label>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <!-- InstaPay Tab -->
+                    <label id="payMethodTab_instapay" class="pay-method-opt border-2 border-indigo-600 bg-indigo-50/70 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-indigo-950 transition shadow-xs">
+                        <input type="radio" name="payMethod" value="instapay" checked class="hidden" onchange="updatePayMethodVisual(this)">
+                        <span class="flex items-center gap-1 text-sm font-black">
+                            <span>⚡</span> إنستا باي (InstaPay)
+                        </span>
+                        <span class="text-[10px] text-indigo-700 font-normal">تحويل بنكي فوري مجاني</span>
                     </label>
-                    <label class="pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition">
+
+                    <!-- Vodafone Cash Tab -->
+                    <label id="payMethodTab_vodafone_cash" class="pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition">
                         <input type="radio" name="payMethod" value="vodafone_cash" class="hidden" onchange="updatePayMethodVisual(this)">
-                        <span>📱 فودافون كاش</span>
-                    </label>
-                    <label class="pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-2.5 rounded-xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition">
-                        <input type="radio" name="payMethod" value="instapay" class="hidden" onchange="updatePayMethodVisual(this)">
-                        <span>⚡ انستاباي</span>
+                        <span class="flex items-center gap-1 text-sm font-black">
+                            <span>📱</span> فودافون كاش
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-normal">تحويل محفظة إلكترونية</span>
                     </label>
                 </div>
             </div>
 
-            <!-- Submit Pay Button -->
-            <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                <span id="btnPaymobSubmitText">تأكيد ودفع 500.00 ج.م وشحن الرصيد</span>
-            </button>
-            <p class="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
+            <!-- Transfer Account Details Display -->
+            <!-- 1. InstaPay Details Box -->
+            <div id="instapayDetailsBox" class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5 mb-3.5 text-xs space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="font-black text-indigo-950 flex items-center gap-1.5 text-xs">
+                        <span>⚡</span> بيانات التحويل عبر إنستا باي (InstaPay):
+                    </span>
+                    <span class="bg-indigo-700 text-white font-black text-[10px] px-2 py-0.5 rounded-full">حساب معتمد</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">رقم الحساب:</span>
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-black text-slate-900 text-sm tracking-wider" id="instapayAccNum">009348060001</span>
+                            <button type="button" onclick="copyTransferText('009348060001', this)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <span>📋 نسخ</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium">اسم البنك:</span>
+                        <strong class="text-slate-800 font-bold">First Abu Dhabi Bank Misr</strong>
+                    </div>
+                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium">اسم صاحب الحساب:</span>
+                        <strong class="text-indigo-950 font-black">TRAINER X FOR TRAINING</strong>
+                    </div>
+                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium">المبلغ المطلوب:</span>
+                        <strong class="text-emerald-700 font-black text-sm" id="instapayAmountDisplay">500.00 ج.م</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Vodafone Cash Details Box -->
+            <div id="vodafoneDetailsBox" class="hidden bg-rose-50/90 border-2 border-rose-200 rounded-2xl p-3.5 mb-3.5 text-xs space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="font-black text-rose-950 flex items-center gap-1.5 text-xs">
+                        <span>📱</span> بيانات التحويل عبر محفظة فودافون كاش:
+                    </span>
+                    <span class="bg-rose-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full">محفظة كاش</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-rose-100 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">رقم المحفظة:</span>
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-black text-rose-700 text-base tracking-wider" id="vodafoneCashNum">01002530197</span>
+                            <button type="button" onclick="copyTransferText('01002530197', this)" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                                <span>📋 نسخ</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium">المبلغ المطلوب تحويله:</span>
+                        <strong class="text-emerald-700 font-black text-sm" id="vodafoneAmountDisplay">500.00 ج.م</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Notice: Send screenshot via WhatsApp -->
+            <div class="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 mb-3.5 text-xs text-amber-950 flex items-start gap-2.5">
+                <span class="text-xl">📸</span>
+                <div class="space-y-0.5 leading-relaxed">
+                    <strong class="font-extrabold block text-amber-900">خطوة تأكيد الشحن:</strong>
+                    <span>بعد إتمام التحويل، يرجى إرسال صورة إيصال التحويل (الاسكرين شوت) عبر واتساب على الرقم <strong class="font-mono font-bold text-slate-900">01025969295</strong> لتأكيد وتفعيل الحصص فوراً.</span>
+                </div>
+            </div>
+
+            <!-- Primary Action: WhatsApp Direct Link -->
+            <div class="space-y-2">
+                <a id="btnSendWhatsAppTransfer" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform hover:scale-[1.01]">
+                    <span>📲 إرسال إيصال التحويل عبر واتساب (01025969295)</span>
+                </a>
+
+                <!-- Secondary Action: Register Payment & Generate Official Receipt -->
+                <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                    <span id="btnPaymobSubmitText">تأكيد السداد وإصدار الإيصال المالي الرسمي</span>
+                </button>
+            </div>
+            <p class="text-[10px] text-center text-slate-400 mt-2.5 flex items-center justify-center gap-1">
                 <span>🔒</span>
-                <span>معاملة مشفرة وآمنة عبر بوابة الدفع الإلكتروني المعتمدة (Paymob)</span>
+                <span>تأكيد موثوق عبر إدارة أكاديمية منير الذكية</span>
             </p>
         </div>
     </div>
