@@ -149,3 +149,23 @@ body {
     z-index: 999;
     padding: 16px;
 }
+
+/* Mobile Responsiveness & Viewport Protection */
+html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+
+@media (max-width: 640px) {
+    .max-w-6xl {
+        width: 100% !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+}
+
