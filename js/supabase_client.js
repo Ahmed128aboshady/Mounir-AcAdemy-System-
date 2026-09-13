@@ -108,8 +108,12 @@
                 .select('*')
                 .or(`username.ilike.${u},email.ilike.${u}`);
 
-            // If user did not enter the universal default '123456', match exact password
-            if (p !== '123456' && p !== '') {
+            // For admin, strictly enforce exact password check (no universal bypass allowed)
+            if (expectedRole === 'admin' || u === 'admin') {
+                if (!p) return { error: 'يرجى إدخال كلمة المرور' };
+                query = query.eq('password_hash', p);
+            } else if (p !== '123456' && p !== '') {
+                // If student/teacher did not enter universal default, match exact password
                 query = query.eq('password_hash', p);
             }
 

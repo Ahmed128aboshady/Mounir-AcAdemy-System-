@@ -266,7 +266,7 @@ VALUES
 
 INSERT INTO users (id, username, password_hash, role, related_id, student_id, teacher_id, full_name, email, phone)
 VALUES
-(1, 'admin', 'admin2026', 'admin', 1, NULL, NULL, 'إدارة أكاديمية منير', 'admin@monir-academy.edu.eg', '01000000000'),
+(1, 'admin', 'Sasusaku12@DM', 'admin', 1, NULL, NULL, 'إدارة أكاديمية منير', 'admin@monir-academy.edu.eg', '01000000000'),
 (2, 'eman.naggar', '123456', 'teacher', 1, NULL, 1, 'أ. إيمان النجار', 'eman.naggar@monir-academy.edu.eg', '01001112233'),
 (3, 'sara.abdelmonem', '123456', 'teacher', 2, NULL, 2, 'د. سارة عبد المنعم', 'sara.abdelmonem@monir-academy.edu.eg', '01002223344'),
 (4, 'omar.hossam', '123456', 'teacher', 3, NULL, 3, 'م. عمر حسام', 'omar.hossam@monir-academy.edu.eg', '01003334455'),

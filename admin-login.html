@@ -54,14 +54,11 @@
                 
                 <div>
                     <label class="block font-bold text-slate-300 mb-1.5">اسم مستخدم المشرف:</label>
-                    <input type="text" id="adminUsername" required class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none font-mono transition" placeholder="admin">
+                    <input type="text" id="adminUsername" required class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none font-mono transition" placeholder="أدخل اسم المستخدم">
                 </div>
 
                 <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label class="block font-bold text-slate-300">كلمة المرور الأمنية:</label>
-                        <span class="text-[10px] text-slate-500 font-mono">الافتراضية: admin2026</span>
-                    </div>
+                    <label class="block font-bold text-slate-300 mb-1.5">كلمة المرور الأمنية:</label>
                     <input type="password" id="adminPassword" required class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none font-mono transition" placeholder="أدخل كلمة المرور">
                 </div>
 
@@ -72,14 +69,6 @@
                 </div>
 
             </form>
-
-            <!-- Quick Auto Fill for Demo -->
-            <div class="mt-6 pt-5 border-t border-slate-800 flex justify-between items-center text-[11px]">
-                <span class="text-slate-400 font-bold">تجربة سريعة للإدارة:</span>
-                <button type="button" onclick="fillAdminDemo()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1 rounded-lg border border-slate-700 font-bold transition">
-                    تعبئة بيانات الإدارة (admin / admin2026)
-                </button>
-            </div>
 
         </div>
 
@@ -115,11 +104,6 @@
                 alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-amber-950/40 border-amber-600 text-amber-300 block';
             }
         });
-
-        function fillAdminDemo() {
-            document.getElementById('adminUsername').value = 'admin';
-            document.getElementById('adminPassword').value = 'admin2026';
-        }
 
         async function handleAdminLogin(e) {
             e.preventDefault();
