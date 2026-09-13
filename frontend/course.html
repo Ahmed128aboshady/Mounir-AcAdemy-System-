@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تفاصيل الكورس والطلاب — أكاديمية منير الذكية</title>
+    <title>تفاصيل الكورس والطلاب أكاديمية منير الذكية</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -200,7 +202,7 @@
             const data = await res.json();
             
             const c = data.course;
-            document.title = `${c.name} — أكاديمية منير الذكية`;
+            document.title = `${c.name} أكاديمية منير الذكية`;
             document.getElementById('headerCourseTitle').innerText = c.name;
             document.getElementById('headerCourseTrack').innerText = `أكاديمية منير • ${c.track_name}`;
             document.getElementById('courseName').innerText = c.name;
