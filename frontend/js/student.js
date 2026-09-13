@@ -301,7 +301,7 @@ function checkAndRenderQuranWidget(courses) {
     if (quranCourse) {
         sec.classList.remove('hidden');
         const rem = (quranCourse.remaining_credits !== undefined) ? quranCourse.remaining_credits : 12;
-        document.getElementById('quranRemainingCredits').innerText = rem + ' حصص متبقية (من الشيت)';
+        document.getElementById('quranRemainingCredits').innerText = rem + ' حصص متبقية';
         document.getElementById('quranExcusesNote').innerText = 'الأعذار المسجلة: ' + (quranCourse.excuse_count || 0) + ' (الأول مجاني)';
         document.getElementById('quranCurrentSurah').innerText = quranCourse.current_surah || 'مسار القرآن الكريم والتدبر';
         document.getElementById('quranCurrentAya').innerText = 'المعلم المشرف: أ. ' + (quranCourse.teacher_name || '');
@@ -400,11 +400,6 @@ function renderEnrolledCoursesTabs(courses) {
                         <span>👨‍🏫 المعلم المشرف:</span>
                         <span class="underline decoration-blue-400">أ. ${teacherName}</span>
                     </p>
-                </div>
-                <div class="text-right">
-                    <span class="bg-amber-400 border border-amber-500 text-slate-950 font-black px-3.5 py-1.5 rounded-xl text-xs block whitespace-nowrap shadow-md">
-                        📊 المتبقي من الشيت: ${remCredits} حصة
-                    </span>
                 </div>
             </div>
 
