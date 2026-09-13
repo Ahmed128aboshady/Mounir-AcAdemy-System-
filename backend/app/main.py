@@ -1433,6 +1433,35 @@ def export_students_excel():
     headers = {'Content-Disposition': 'attachment; filename="Monir_Academy_Students_Roster.xlsx"'}
     return StreamingResponse(out, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+@app.get("/api/admin/export/teachers-excel")
+def export_teachers_excel():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "..", "..", "teachers_credentials.xlsx")
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename="teachers_credentials.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    
+    conn = get_db()
+    c = conn.cursor()
+    teachers = [dict(t) for t in c.execute("SELECT * FROM teachers ORDER BY id ASC").fetchall()]
+    users = [dict(u) for u in c.execute("SELECT * FROM users WHERE role = 'teacher'").fetchall()]
+    conn.close()
+    u_map = {u['related_id']: u for u in users}
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "بيانات دخول المعلمين"
+    ws.sheet_view.rightToLeft = True
+    ws.append(["م", "كود المعلم", "كلمة المرور", "اسم المعلم", "التخصص", "البريد الإلكتروني", "رقم الهاتف"])
+    for t in teachers:
+        u = u_map.get(t['id'], {})
+        ws.append([t['id'], u.get('username', f"T{t['id']:03d}"), u.get('password_hash', ''), t['name'], t['specialty'], t['email'], t['phone']])
+    out = io.BytesIO()
+    wb.save(out)
+    out.seek(0)
+    headers = {'Content-Disposition': 'attachment; filename="teachers_credentials.xlsx"'}
+    return StreamingResponse(out, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
 @app.post("/api/admin/import/students")
 def import_students(students_list: List[StudentImportItem]):
     """
