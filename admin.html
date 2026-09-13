@@ -1740,16 +1740,17 @@
                         debugLog.push(`✔ Students raw: ${sData.length}`);
                         showStatus('⚙️', `تم جلب ${sData.length} طالب...`, 'يجلب بيانات التسجيل...');
 
-                        // Build ID list in chunks of 500 (Supabase .in() limit)
+                        // Build ID list in chunks of 400 (Supabase .in() limit)
                         const allIds = sData.map(s => s.id);
                         let enrData = [];
                         for (let i = 0; i < allIds.length; i += 400) {
                             const chunk = allIds.slice(i, i + 400);
-                            const { data: chunkEnr } = await client
+                            const { data: chunkEnr, error: chunkErr } = await client
                                 .from('enrollments')
-                                .select('student_id, remaining_credits, teacher_id, teachers(id, name)')
+                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, group_id, teachers(id, name)')
                                 .in('student_id', chunk);
                             if (chunkEnr) enrData = enrData.concat(chunkEnr);
+                            if (chunkErr) console.warn('[BulkStudents] chunk error:', chunkErr.message);
                         }
                         debugLog.push(`✔ Enrollments: ${enrData.length}`);
 
@@ -1760,9 +1761,7 @@
                         students = sData.map(s => {
                             const enr = enrMap[s.id] || {};
                             const teacherObj = enr.teachers || null;
-                            // group_id: some setups use qr_code, others group_id
-                            const groupId = s.qr_code || s.group_id || '—';
-                            // status: handle both 'active'/'inactive' and 'نشط'/'غير نشط'
+                            const groupId = enr.group_id || s.qr_code || s.group_id || '—';
                             let status = 'active';
                             if (s.status === 'inactive' || s.status === 'غير نشط' || s.account_status === 'غير نشط') status = 'inactive';
                             return {
@@ -1776,8 +1775,8 @@
                                 remaining_credits: enr.remaining_credits ?? s.remaining_credits ?? 0,
                                 teacher_id:       enr.teacher_id || (teacherObj ? teacherObj.id : null),
                                 teacher_name:     teacherObj ? teacherObj.name : '—',
-                                subscription_days: s.subscription_days || '—',
-                                lecture_time:     s.lecture_time || '—',
+                                subscription_days: enr.subscription_days || s.subscription_days || '—',
+                                lecture_time:     enr.lecture_time || s.lecture_time || '—',
                                 enrollment_id:    enr.id || null
                             };
                         });
@@ -2262,6 +2261,7 @@
                 const val = document.getElementById('bulkGroupInput').value.trim();
                 if (!val) { MonirPopup ? MonirPopup.error('أدخل معرف المجموعة') : alert('أدخل معرف المجموعة'); return; }
                 updatePayload.qr_code = val;
+                enrollPayload.group_id = val;
                 successMsg = `تم تعيين مجموعة "${val}" على ${ids.length} طالب ✅`;
 
             } else if (action === 'teacher') {
@@ -2454,6 +2454,7 @@
                 lecture_time: time,
                 teacher_id: teacherId ? parseInt(teacherId) : null
             };
+            if (group) enrollUpdate.group_id = group;
 
             try {
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
@@ -2489,8 +2490,14 @@
                 }
             }
         }
-    
-<script>
+
+        // Auto-load students when page is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadBulkStudents, 400);
+        });
+    </script>
+
+    <script>
         function updateDbStats() {
             try {
                 localStorage.removeItem('monir_smart_lms_db_v2');
