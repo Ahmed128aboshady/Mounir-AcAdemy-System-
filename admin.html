@@ -118,7 +118,10 @@
         <section class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="text-xs text-slate-500 font-semibold">المسارات المفعلة</div>
-                <div class="text-2xl font-black text-blue-600 mt-1" id="statCoursesCount">1 مسار (القرآن الكريم)</div>
+                <div class="mt-1" id="statCoursesCount">
+                    <span class="text-2xl font-black text-blue-600 block">1 مسار</span>
+                    <span class="text-xs font-bold text-slate-600 block mt-0.5">القرآن الكريم</span>
+                </div>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="text-xs text-slate-500 font-semibold">الطلاب النشطين</div>
@@ -1007,7 +1010,7 @@
                 allLectures = data.lectures || [];
                 
                 const statCoursesEl = document.getElementById('statCoursesCount');
-                if (statCoursesEl) statCoursesEl.innerText = '1 مسار (القرآن الكريم)';
+                if (statCoursesEl) statCoursesEl.innerHTML = '<span class="text-2xl font-black text-blue-600 block">1 مسار</span><span class="text-xs font-bold text-slate-600 block mt-0.5">القرآن الكريم</span>';
 
                 const statStudentsEl = document.getElementById('statTotalStudents');
                 if (statStudentsEl) {
