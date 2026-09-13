@@ -30,28 +30,31 @@
 <body class="bg-slate-50 text-slate-800 pb-20">
 
     <!-- Top Navigation -->
-    <header class="bg-white border-b border-slate-200 py-3 px-4 sticky top-0 z-40 shadow-sm">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <a href="index.html" class="flex items-center"><img src="images/monir_logo_trans.png" alt="أكاديمية منير" class="h-8 w-auto object-contain"></a>
-                <div>
-                    <h1 class="font-bold text-sm text-slate-900 leading-tight">بوابة الطالب وولي الأمر</h1>
-                    <p class="text-[11px] text-slate-500" id="headerCourseSubtitle">أكاديمية منير الذكية</p>
+    <header class="bg-white border-b border-slate-200 py-2.5 sm:py-3 px-3 sm:px-4 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2 min-w-0 flex-shrink-0">
+                <a href="index.html" class="flex items-center shrink-0"><img src="images/monir_logo_trans.png" alt="أكاديمية منير" class="h-8 w-auto object-contain"></a>
+                <div class="min-w-0">
+                    <h1 class="font-bold text-xs sm:text-sm text-slate-900 leading-tight whitespace-nowrap">بوابة الطالب<span class="hidden sm:inline"> وولي الأمر</span></h1>
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 truncate" id="headerCourseSubtitle">أكاديمية منير الذكية</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                 <!-- Support & Tickets Button -->
-                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1">
-                    <span>الدعم والشكاوى</span>
+                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-2 sm:px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الدعم والشكاوى">
+                    <span class="text-xs">💬</span>
+                    <span class="hidden sm:inline">الدعم والشكاوى</span>
+                    <span class="sm:hidden text-[11px]">الدعم</span>
                 </button>
 
                 <!-- Notifications Bell -->
-                <button onclick="toggleNotifications()" class="relative p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-full transition border border-slate-200">
-                    <span class="text-xs font-bold">الإشعارات</span>
+                <button onclick="toggleNotifications()" class="relative p-1.5 sm:p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الإشعارات">
+                    <span class="text-sm">🔔</span>
+                    <span class="hidden sm:inline text-xs font-bold">الإشعارات</span>
                     <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">1</span>
                 </button>
-                <a href="login.html" id="studentAuthBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200"><script>(function(){const u=window.__PRELOADED_USER__;if(u){const name=(u.full_name?u.full_name.split(' ')[0]:u.username);document.write('تسجيل الخروج ('+name+')');document.currentScript.parentElement.className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer";}else{document.write('تسجيل الدخول');}})();</script></a>
+                <a href="login.html" id="studentAuthBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 sm:px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200 flex items-center gap-1 shrink-0"><script>(function(){const u=window.__PRELOADED_USER__;if(u){const name=(u.full_name?u.full_name.split(' ')[0]:u.username);document.write('<span class="hidden sm:inline">تسجيل الخروج ('+name+')</span><span class="sm:hidden text-[11px]">خروج</span>');document.currentScript.parentElement.className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2 sm:px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 shrink-0";document.currentScript.parentElement.title="تسجيل الخروج ("+name+")";}else{document.write('<span class="text-[11px] sm:text-xs">دخول</span>');}})();</script></a>
             </div>
         </div>
     </header>
