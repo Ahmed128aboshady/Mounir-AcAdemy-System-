@@ -247,6 +247,7 @@
                             subscription_days: e.subscription_days || locE.subscription_days || '',
                             lecture_time: e.lecture_time || locE.lecture_time || '',
                             session_duration: e.session_duration || locE.session_duration || '',
+                            google_meet_url: (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(groupIdFromDB) : (e.google_meet_url || locE.google_meet_url || 'https://meet.google.com'),
                             account_status: stData.account_status,
                             remaining_credits: rc,
                             total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, rc),
@@ -257,7 +258,10 @@
                         };
                     });
                 } else if (localEnrs.length > 0) {
-                    enrichedEnr = localEnrs;
+                    enrichedEnr = localEnrs.map(le => ({
+                        ...le,
+                        google_meet_url: (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(le.group_id || groupIdFromDB) : (le.google_meet_url || 'https://meet.google.com')
+                    }));
                 }
 
                 return {

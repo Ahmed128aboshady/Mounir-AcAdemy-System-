@@ -402,6 +402,35 @@ function renderEnrolledCoursesTabs(courses) {
                 </div>
             </div>
 
+            <!-- Google Meet Live Room Box -->
+            <div class="bg-gradient-to-r from-[#1F274B] via-[#243360] to-[#1F274B] border border-emerald-500/40 text-white p-3.5 rounded-xl shadow-sm space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm shrink-0">📹</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h5 class="font-extrabold text-xs text-emerald-300">قاعة البث المباشر (Google Meet)</h5>
+                                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">معتمد للمجموعة</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 mt-0.5">ادخل للحصة مع المعلم أ. ${teacherName || 'المشرف'} في الموعد المحدد</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <a href="${typeof window !== 'undefined' && window.getGroupMeetUrl ? window.getGroupMeetUrl(groupId) : (c.google_meet_url || 'https://meet.google.com')}" target="_blank" onclick="event.stopPropagation();" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs transition shadow transform hover:scale-[1.02]">
+                            <span>🟢</span>
+                            <span>دخول الحصة الآن</span>
+                        </a>
+                        <button type="button" onclick="event.stopPropagation(); const u = '${typeof window !== 'undefined' && window.getGroupMeetUrl ? window.getGroupMeetUrl(groupId) : (c.google_meet_url || 'https://meet.google.com')}'; if (window.copyMeetLink) window.copyMeetLink(u, this); else { navigator.clipboard.writeText(u); alert('تم نسخ رابط الحصة بنجاح!'); }" class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-3 py-2 rounded-xl text-xs transition">
+                            <span>📋</span>
+                            <span>نسخ الرابط</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-[10px] font-mono text-slate-400 truncate dir-ltr text-left px-1 select-all" dir="ltr">
+                    ${typeof window !== 'undefined' && window.getGroupMeetUrl ? window.getGroupMeetUrl(groupId) : (c.google_meet_url || 'https://meet.google.com')}
+                </div>
+            </div>
+
             <div class="flex justify-between items-center text-xs pt-1 text-slate-600 font-semibold">
                 <span>المحاضرات المفعلة بالسيستم: <strong class="text-blue-900">${totalUnlocked} / ${totalUnlocked}</strong></span>
                 <span>حالة الحضور والمتابعة: <strong class="text-emerald-700">100% منتظم</strong></span>
@@ -534,8 +563,10 @@ async function loadSelectedCourseLectures() {
         
         const subDays = currentCourseInfo.subscription_days || currentCourseInfo.days || 'الاثنين';
         const upcomingDates = calculateGroupUpcomingDates(subDays, totalToShow + 2);
-        const timeText = currentCourseInfo.lecture_time || '8:00 مساءً';
-        const meetUrl = (currentCourseInfo.google_meet_url || 'https://meet.google.com') ;
+        const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
+        const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+            ? window.getGroupMeetUrl(curGid)
+            : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
         // Build the full list of lectures (existing + generated)
         if (!data.lectures || !Array.isArray(data.lectures)) {

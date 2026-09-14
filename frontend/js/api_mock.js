@@ -31,6 +31,9 @@
                             const data = await res.json();
                             if (data && data.students && data.students.length > 0) {
                                 DB = data;
+                                if (data.group_meet_links && typeof window !== 'undefined') {
+                                    window.GROUP_MEET_LINKS = Object.assign(window.GROUP_MEET_LINKS || {}, data.group_meet_links);
+                                }
                                 console.log('[Mock DB] Loaded ' + DB.students.length + ' students into memory from ' + p);
                                 return DB;
                             }
@@ -553,11 +556,15 @@
                 if (!s) return;
                 const gid = s.qr_code || e.group_id || 'G000'; // group_id stored in qr_code
                 if (!groupsMap[gid]) {
+                    const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                        ? window.getGroupMeetUrl(gid)
+                        : ((DB.group_meet_links && DB.group_meet_links[gid]) || ('https://meet.google.com/mnr-' + gid.toLowerCase().replace(/[^a-z0-9]/g, '')));
                     groupsMap[gid] = {
                         group_id: gid,
                         group_name: e.course_name || gid,
                         teacher_id: tid,
                         teacher_name: teacher.name,
+                        google_meet_url: meetUrl,
                         students: []
                     };
                 }
@@ -774,8 +781,23 @@
                 }];
             }
 
+            enrs = enrs.map(e => {
+                const gId = e.group_id || (student && student.group_id) || 'G182';
+                const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                    ? window.getGroupMeetUrl(gId)
+                    : ((DB.group_meet_links && DB.group_meet_links[gId]) || ('https://meet.google.com/mnr-' + gId.toLowerCase().replace(/[^a-z0-9]/g, '')));
+                return {
+                    ...e,
+                    google_meet_url: meetUrl
+                };
+            });
+
+            const stGroup = (student && student.group_id) || (enrs[0] && enrs[0].group_id) || 'G182';
+            const stMeet = (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(stGroup) : 'https://meet.google.com';
+            if (student) student.google_meet_url = stMeet;
+
             return jsonResponse({
-                student: student || { id: realSid, name: "طالب الأكاديمية", student_code: rawId, phone: "غير مسجل", parent_name: "ولي أمر الطالب", parent_phone: "غير مسجل", group_id: "G182", account_status: "نشط" },
+                student: student || { id: realSid, name: "طالب الأكاديمية", student_code: rawId, phone: "غير مسجل", parent_name: "ولي أمر الطالب", parent_phone: "غير مسجل", group_id: "G182", account_status: "نشط", google_meet_url: stMeet },
                 enrolled_courses: enrs,
                 enrolled_courses_count: enrs.length,
                 unread_notifications: 0

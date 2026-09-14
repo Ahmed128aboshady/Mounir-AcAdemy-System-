@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
+    <script src="js/meet_manager.js"></script>
     <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260911_t3"></script>
     <script>
@@ -269,9 +270,13 @@
                                 if (!s) return;
                                 const gid = s.qr_code || e.group_id || 'G000';
                                 if (!groupsMap[gid]) {
+                                    const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                                        ? window.getGroupMeetUrl(gid)
+                                        : ('https://meet.google.com/mnr-' + gid.toLowerCase().replace(/[^a-z0-9]/g, ''));
                                     groupsMap[gid] = {
                                         group_id: gid,
                                         group_name: e.course_name || gid,
+                                        google_meet_url: meetUrl,
                                         students: []
                                     };
                                 }
@@ -409,6 +414,7 @@
             container.innerHTML = '';
             groups.forEach((g, gIdx) => {
                 const idSafe = 'grp_' + (g.group_id || 'g').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
+                const meetUrl = g.google_meet_url || ((typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(g.group_id) : ('https://meet.google.com/mnr-' + (g.group_id || 'g').toLowerCase().replace(/[^a-z0-9]/g, '')));
                 const el = document.createElement('div');
                 el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden transition-all duration-200';
                 el.innerHTML = `
@@ -421,6 +427,10 @@
                                 </svg>
                             </div>
                             <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-xs px-2.5 py-1 rounded-lg">${g.group_id}</span>
+                            <a href="${meetUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-emerald-500/25 hover:bg-emerald-500 text-emerald-200 hover:text-slate-950 border border-emerald-400/40 px-2.5 py-1 rounded-lg font-black inline-flex items-center gap-1 transition shadow-sm" title="بدء الحصة عبر Google Meet">
+                                <span>📹</span>
+                                <span>Meet</span>
+                            </a>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 class="font-extrabold text-sm">${g.group_name || g.group_id}</h3>
@@ -434,8 +444,41 @@
                             <div class="text-[11px] text-slate-300">طالب</div>
                         </div>
                     </div>
-                    <!-- Students Table (Collapsible Content) -->
+
+                    <!-- Students Table & Tools (Collapsible Content) -->
                     <div id="content-${idSafe}" class="teacher-group-content hidden overflow-x-auto transition-all duration-300 border-t border-slate-100">
+                        <!-- Group Google Meet Toolbar -->
+                        <div class="bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-50 border-b border-emerald-100 p-3.5 px-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-base shadow-sm shrink-0">
+                                    📹
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-black text-xs text-slate-900">رابط Google Meet للحصة:</span>
+                                        <a href="${meetUrl}" target="_blank" id="meet-link-${idSafe}" class="text-xs font-mono font-bold text-emerald-700 hover:text-emerald-800 underline truncate max-w-[280px] sm:max-w-[400px]" dir="ltr">${meetUrl}</a>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">
+                                        هذا الرابط معتمد ومفعل لجميع طلاب هذه المجموعة (${g.group_id}) تلقائياً. يمكنك البدء الآن أو تعديل الرابط.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                                <a href="${meetUrl}" target="_blank" id="meet-btn-${idSafe}" class="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs shadow-sm transition">
+                                    <span>📹</span>
+                                    <span>بدء الحصة (Google Meet)</span>
+                                </a>
+                                <button type="button" onclick="copyMeetLink('${meetUrl}', this)" class="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs shadow-sm transition">
+                                    <span>📋</span>
+                                    <span>نسخ</span>
+                                </button>
+                                <button type="button" onclick="promptEditGroupMeetUrl('${g.group_id}', '${meetUrl}', function(newUrl){ updateTeacherGroupMeetUI('${idSafe}', '${g.group_id}', newUrl); })" class="inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold px-3 py-2 rounded-xl text-xs shadow-sm transition" title="تعديل رابط Google Meet">
+                                    <span>✏️</span>
+                                    <span>تعديل الرابط</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <table class="w-full text-right text-xs">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
@@ -457,6 +500,18 @@
                 `;
                 container.appendChild(el);
             });
+        }
+
+        function updateTeacherGroupMeetUI(idSafe, groupId, newUrl) {
+            const linkEl = document.getElementById('meet-link-' + idSafe);
+            const btnEl = document.getElementById('meet-btn-' + idSafe);
+            if (linkEl) {
+                linkEl.href = newUrl;
+                linkEl.innerText = newUrl;
+            }
+            if (btnEl) {
+                btnEl.href = newUrl;
+            }
         }
 
         function renderStudentRow(s, idx) {
