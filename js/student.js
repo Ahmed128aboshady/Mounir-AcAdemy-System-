@@ -402,35 +402,6 @@ function renderEnrolledCoursesTabs(courses) {
                 </div>
             </div>
 
-            <!-- Google Meet Live Room Box -->
-            <div class="bg-gradient-to-r from-[#1F274B] via-[#243360] to-[#1F274B] border border-emerald-500/40 text-white p-3.5 rounded-xl shadow-sm space-y-2">
-                <div class="flex items-center justify-between flex-wrap gap-2">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm shrink-0">📹</span>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h5 class="font-extrabold text-xs text-emerald-300">قاعة البث التفاعلي المباشر (صوت وفيديو)</h5>
-                                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">معتمد ومفعل للمجموعة</span>
-                            </div>
-                            <p class="text-[11px] text-slate-300 mt-0.5">ادخل للحصة مع المعلم أ. ${teacherName || 'المشرف'} في الموعد المحدد</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <a href="${typeof window !== 'undefined' && window.getGroupMeetUrl ? window.getGroupMeetUrl(groupId) : (c.google_meet_url || 'https://meet.google.com')}" target="_blank" onclick="event.stopPropagation();" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs transition shadow transform hover:scale-[1.02]">
-                            <span>🟢</span>
-                            <span>دخول الحصة الآن</span>
-                        </a>
-                        <button type="button" onclick="event.stopPropagation(); const u = '${typeof window !== 'undefined' && window.getGroupMeetUrl ? window.getGroupMeetUrl(groupId) : (c.google_meet_url || 'https://meet.google.com')}'; if (window.copyMeetLink) window.copyMeetLink(u, this); else { navigator.clipboard.writeText(u); alert('تم نسخ رابط الحصة بنجاح!'); }" class="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold px-3 py-2 rounded-xl text-xs transition">
-                            <span>📋</span>
-                            <span>نسخ الرابط</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="text-[10px] font-mono text-slate-400 truncate dir-ltr text-left px-1 select-all" dir="ltr">
-                    ${typeof window !== 'undefined' && window.getGroupMeetUrl ? window.getGroupMeetUrl(groupId) : (c.google_meet_url || 'https://meet.google.com')}
-                </div>
-            </div>
-
             <div class="flex justify-between items-center text-xs pt-1 text-slate-600 font-semibold">
                 <span>المحاضرات المفعلة بالسيستم: <strong class="text-blue-900">${totalUnlocked} / ${totalUnlocked}</strong></span>
                 <span>حالة الحضور والمتابعة: <strong class="text-emerald-700">100% منتظم</strong></span>
@@ -659,6 +630,12 @@ async function loadSelectedCourseLectures() {
             renderTarget.innerHTML = '';
         }
 
+        // Determine which lecture is currently due (first unlocked lecture that is not completed)
+        const dueLecture = data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
+            || data.lectures.find(l => l.is_unlocked) 
+            || data.lectures[0];
+        const dueLectureNumber = dueLecture ? dueLecture.lecture_number : 1;
+
         // Render each block
         for (let blockNum = 1; blockNum <= numBlocks; blockNum++) {
             const blockLectures = data.lectures.filter(l => l.block_number === blockNum);
@@ -700,7 +677,8 @@ async function loadSelectedCourseLectures() {
             blockContainer.className = 'space-y-3';
 
             blockLectures.forEach(l => {
-                const card = renderLectureCard(l);
+                const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed');
+                const card = renderLectureCard(l, isCurrentDue);
                 blockContainer.appendChild(card);
             });
 
@@ -713,10 +691,16 @@ async function loadSelectedCourseLectures() {
                 const b2El = document.getElementById('block2Lectures');
                 if (blockNum === 1 && b1El) {
                     b1El.before(blockHeader);
-                    blockLectures.forEach(l => b1El.appendChild(renderLectureCard(l)));
+                    blockLectures.forEach(l => {
+                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed');
+                        b1El.appendChild(renderLectureCard(l, isCurrentDue));
+                    });
                 } else if (b2El) {
                     b2El.before(blockHeader);
-                    blockLectures.forEach(l => b2El.appendChild(renderLectureCard(l)));
+                    blockLectures.forEach(l => {
+                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed');
+                        b2El.appendChild(renderLectureCard(l, isCurrentDue));
+                    });
                 }
             }
         }
@@ -730,12 +714,12 @@ async function loadSelectedCourseLectures() {
 
 
 
-function renderLectureCard(l) {
+function renderLectureCard(l, isCurrentDue = false) {
     const div = document.createElement('div');
     
     let statusBadge = '';
     let actionBtn = '';
-    let cardClass = 'lecture-card';
+    let cardClass = 'lecture-card p-4 rounded-xl border transition-all';
 
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || {};
     const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
@@ -743,18 +727,25 @@ function renderLectureCard(l) {
         ? window.getGroupMeetUrl(curGid) 
         : (l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
-    // The single video room button
+    // The single video room button - only shown for current due lecture or live
     const meetBtn = `
-        <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-start">
-            <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-sm transition transform hover:scale-[1.01]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                <span>دخول قاعة الحصة</span>
-            </button>
+        <div class="mt-3 pt-3 border-t border-emerald-200/60 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition transform hover:scale-[1.02]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <span>دخول قاعة الحصة الآن</span>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); if (window.copyMeetLink) window.copyMeetLink('${meetLink}', this); else { navigator.clipboard.writeText('${meetLink}'); alert('تم نسخ رابط الحصة بنجاح!'); }" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3 py-2.5 rounded-xl text-xs transition">
+                    <span>📋</span>
+                    <span>نسخ الرابط</span>
+                </button>
+            </div>
+            <span class="text-[11px] text-emerald-800 font-semibold bg-emerald-100/70 px-2 py-1 rounded-lg">قاعة تفاعلية مباشرة مع المعلم</span>
         </div>
     `;
     
     if (!l.is_unlocked) {
-        cardClass += ' locked';
+        cardClass += ' locked bg-slate-50/70 border-slate-200 opacity-80';
         statusBadge = '<span class="badge-status badge-locked">مغلقة • تتطلب تجديد المرحلة</span>';
         actionBtn = `
             <button onclick="openPaymobModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
@@ -764,39 +755,54 @@ function renderLectureCard(l) {
     } else {
         cardClass += ' unlocked';
         
-        if (l.status === 'live') {
-            cardClass += ' live-now';
-            statusBadge = '<span class="badge-status badge-live">جارية الآن • Google Meet</span>';
-            actionBtn = meetBtn;
-        } else if (l.status === 'completed') {
+        if (l.status === 'completed') {
+            cardClass += ' bg-white border-slate-200';
             const isPresent = (l.attendance && l.attendance.status === 'present');
             const attBadge = isPresent 
-                ? '<span class="text-emerald-600 font-bold text-xs">تم تسجيل حضورك (' + (l.attendance.duration_minutes || 60) + ' دقيقة)</span>' 
-                : '<span class="text-red-600 font-bold text-xs">لم يتم الحضور (غياب)</span>';
+                ? '<span class="text-emerald-600 font-bold text-xs flex items-center gap-1"><span>✓</span> <span>تم تسجيل حضورك (' + (l.attendance.duration_minutes || 60) + ' دقيقة)</span></span>' 
+                : '<span class="text-red-600 font-bold text-xs flex items-center gap-1"><span>✕</span> <span>لم يتم الحضور (غياب)</span></span>';
                 
-            statusBadge = '<span class="badge-status badge-completed">مكتملة</span>';
+            statusBadge = '<span class="badge-status badge-completed">مكتملة ✓</span>';
             actionBtn = `
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs mb-1.5">
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
                     <div>${attBadge}</div>
                 </div>
-                ${meetBtn}
             `;
         } else if (l.status === 'postponed') {
+            cardClass += ' bg-amber-50/40 border-amber-200';
             statusBadge = '<span class="badge-status badge-postponed">تم التأجيل لموعد جديد</span>';
             actionBtn = `
-                <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-xs text-amber-900 mb-1.5">
+                <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-xs text-amber-900">
                     <strong>الموعد الجديد:</strong> ${l.rescheduled_to || l.scheduled_time} <br>
                     <span class="text-[11px] text-amber-700">السبب: ${l.postpone_reason || 'تنسيق المواعيد'} • لا يتم احتساب أي غياب.</span>
+                </div>
+            `;
+        } else if (isCurrentDue || l.status === 'live') {
+            cardClass += ' border-2 border-emerald-500 bg-emerald-50/30 shadow-sm ring-2 ring-emerald-400/20';
+            statusBadge = `
+                <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    الحصة الحالية • جاهزة للدخول
+                </span>
+            `;
+            actionBtn = `
+                <div class="bg-white p-3 rounded-xl border border-emerald-200 text-xs text-slate-700">
+                    <div class="mb-1 font-bold text-slate-900">موعد الحصة: <strong class="text-emerald-700">${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
+                    <p class="text-[11px] text-slate-600">هذه هي المحاضرة التي عليها الدور الآن في خطتك. يمكنك الدخول المباشر للقاعة.</p>
                 </div>
                 ${meetBtn}
             `;
         } else {
-            statusBadge = '<span class="badge-status bg-blue-100 text-blue-800">مجدولة</span>';
+            cardClass += ' bg-white border-slate-200';
+            statusBadge = '<span class="badge-status bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-medium">مجدولة • لم يحن دورها بعد</span>';
             actionBtn = `
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs text-slate-600 mb-1.5">
-                    موعد المحاضرة: <strong>${l.scheduled_time || 'حسب جدول المجموعة'}</strong>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600">
+                    <div class="mb-1">موعد المحاضرة: <strong>${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
+                    <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-1 font-medium">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <span>يُتاح رابط الدخول عند حلول موعد هذه الحصة وبعد إتمام المحاضرة السابقة</span>
+                    </div>
                 </div>
-                ${meetBtn}
             `;
         }
     }
