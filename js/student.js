@@ -758,9 +758,16 @@ function renderLectureCard(l, isCurrentDue = false) {
         if (l.status === 'completed') {
             cardClass += ' bg-white border-slate-200';
             const isPresent = (l.attendance && l.attendance.status === 'present');
-            const attBadge = isPresent 
-                ? '<span class="text-emerald-600 font-bold text-xs flex items-center gap-1"><span>✓</span> <span>تم تسجيل حضورك (' + (l.attendance.duration_minutes || 60) + ' دقيقة)</span></span>' 
-                : '<span class="text-red-600 font-bold text-xs flex items-center gap-1"><span>✕</span> <span>لم يتم الحضور (غياب)</span></span>';
+            const isAbsent = (l.attendance && l.attendance.status === 'absent');
+            
+            let attBadge = '';
+            if (isPresent) {
+                attBadge = '<span class="text-emerald-600 font-bold text-xs flex items-center gap-1"><span>✓</span> <span>تم تسجيل حضورك (' + (l.attendance.duration_minutes || 60) + ' دقيقة)</span></span>';
+            } else if (isAbsent) {
+                attBadge = '<span class="text-red-600 font-bold text-xs flex items-center gap-1"><span>✕</span> <span>لم يتم الحضور (غياب مسجل)</span></span>';
+            } else {
+                attBadge = '<span class="text-slate-600 font-medium text-xs">تمت المحاضرة</span>';
+            }
                 
             statusBadge = '<span class="badge-status badge-completed">مكتملة ✓</span>';
             actionBtn = `
