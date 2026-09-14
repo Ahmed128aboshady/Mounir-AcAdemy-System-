@@ -31,121 +31,22 @@
         </div>
     </header>
 
-    <!-- Main Registration Box -->
-    <main class="max-w-xl w-full mx-auto px-4 py-8 flex-1 flex flex-col justify-center">
+    <!-- Main Registration Box (Closed Notice) -->
+    <main class="max-w-lg w-full mx-auto px-4 py-12 flex-1 flex flex-col justify-center">
         
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-md text-center space-y-6">
             
-            <div class="text-center mb-6">
-                <span class="bg-[#41519C]/30 text-[#73C8AF] border border-[#57BA9E]/40 text-[11px] font-black px-3 py-1 rounded-full inline-block mb-2">
-                    التحاق فوري ومباشر
+            <div class="w-20 h-20 bg-amber-500/10 border-2 border-amber-500/30 text-amber-400 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-inner">
+                🔒
+            </div>
+
+            <div class="space-y-2">
+                <span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-black px-3.5 py-1 rounded-full inline-block">
+                    إشعار إداري هام
                 </span>
-                <h2 class="text-2xl font-black text-white">إنشاء حساب طالب جديد</h2>
-                <p class="text-xs text-slate-400 mt-1">سجل بياناتك للانضمام الفوري للمسار والحصول على كود الطالب وبطاقتك الرقمية</p>
-            </div>
-
-            <!-- Alert Box -->
-            <div id="regAlert" class="hidden mb-5 p-3.5 rounded-xl text-xs font-bold border"></div>
-
-            <!-- Registration Form -->
-            <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-4 text-xs">
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">اسم الطالب رباعي:</label>
-                        <input type="text" id="regName" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="مثال: يوسف محمود حسن علي">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">عمر الطالب (سنوات):</label>
-                        <input type="number" id="regAge" min="5" max="25" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="مثال: 14">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">اسم ولي الأمر:</label>
-                        <input type="text" id="regParentName" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="مثال: محمود حسن علي">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">رقم هاتف ولي الأمر (واتساب):</label>
-                        <input type="tel" id="regParentPhone" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none font-mono" placeholder="مثال: 01012345678">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">رقم هاتف الطالب (اختياري):</label>
-                        <input type="tel" id="regPhone" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none font-mono" placeholder="مثال: 01099887766">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">المسار التدريبي المطلوب:</label>
-                        <select id="regCourse" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none">
-                            <option value="كتالوج الشباب 2.0">كتالوج الشباب 2.0 (11 - 17 سنة)</option>
-                            <option value="وعي وأمان (بنين)">وعي وأمان (بنين) (11 - 15 سنة)</option>
-                            <option value="وعي وأمان (فتيات وأمهات)">وعي وأمان (فتيات وأمهات) (8 - 12 سنة)</option>
-                            <option value="مسار القرآن الكريم والتدبر">مسار القرآن الكريم والتدبر (فردي)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="pt-2 border-t border-slate-700/60">
-                    <span class="block font-bold text-slate-300 mb-2">بيانات الدخول لحسابك:</span>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-400 mb-1 font-bold">اسم المستخدم المختار (بالإنجليزية):</label>
-                            <input type="text" id="regUsername" required pattern="[a-zA-Z0-9_\.]+" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none font-mono" placeholder="مثال: yusuf_2026">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1 font-bold">كلمة المرور:</label>
-                            <input type="password" id="regPassword" minlength="4" required class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none" placeholder="أدخل كلمة المرور">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-3">
-                    <button type="submit" id="regSubmitBtn" class="w-full bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-lg shadow-[#41519C]/20 text-sm">
-                        إتمام التسجيل والدخول الفوري للمنصة
-                    </button>
-                </div>
-
-            </form>
-
-            <!-- Success Container Modal View -->
-            <div id="successBox" class="hidden text-center py-4 space-y-4">
-                <div class="w-14 h-14 bg-[#57BA9E]/20 text-[#57BA9E] border border-[#57BA9E]/40 rounded-2xl flex items-center justify-center mx-auto text-2xl font-black">
-                    OK
-                </div>
-                <div>
-                    <h3 class="text-xl font-black text-white">مرحباً بك في أكاديمية منير!</h3>
-                    <p class="text-xs text-slate-300 mt-1">تم تفعيل حسابك وإنشاء كارت الطالب والمسار التعليمي بنجاح.</p>
-                </div>
-                <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 text-right space-y-1.5 text-xs">
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">اسم الطالب:</span>
-                        <strong class="text-white" id="resStudentName">-</strong>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">كود الطالب الرقمي:</span>
-                        <strong class="text-amber-400 font-mono" id="resStudentCode">-</strong>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">اسم المستخدم:</span>
-                        <strong class="text-blue-400 font-mono" id="resUsername">-</strong>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">رصيد الحصص الترحيبي:</span>
-                        <span class="bg-emerald-900/40 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded font-black text-[10px]">4 حصص مفعلة (البلوك 1)</span>
-                    </div>
-                </div>
-                <a id="goToDashboardBtn" href="student.html" class="block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm">
-                    الانتقال المباشر لبوابة الطالب
-                </a>
-            </div>
-
-            <div class="mt-5 text-center">
-                <p class="text-xs text-slate-400">
-                    لديك حساب مسجل بالفعل؟  
-                    <a href="login.html" class="text-blue-400 hover:text-blue-300 font-extrabold underline mr-1">تسجيل الدخول من هنا</a>
+                <h2 class="text-2xl sm:text-3xl font-black text-white">التسجيل الذاتي مغلق حالياً</h2>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto pt-2">
+                    عزيزي ولي الأمر / الطالب، يتم تسجيل وتسكين الطلاب الجدد حصرياً وبشكل مركزي من خلال إدارة أكاديمية منير، وذلك لتحديد المستوى وتوزيع المواعيد والمجموعات التعليمية بدقة.
                 </p>
             </div>
 
@@ -170,79 +71,7 @@
     </footer>
 
     <script>
-        async function handleRegisterSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('regSubmitBtn');
-            const alertBox = document.getElementById('regAlert');
-            alertBox.classList.add('hidden');
-
-            const payload = {
-                name: document.getElementById('regName').value.trim(),
-                age: parseInt(document.getElementById('regAge').value) || 12,
-                parent_name: document.getElementById('regParentName').value.trim(),
-                parent_phone: document.getElementById('regParentPhone').value.trim(),
-                phone: document.getElementById('regPhone').value.trim() || document.getElementById('regParentPhone').value.trim(),
-                course_name: document.getElementById('regCourse').value,
-                username: document.getElementById('regUsername').value.trim(),
-                password: document.getElementById('regPassword').value.trim()
-            };
-
-            btn.disabled = true;
-            btn.innerText = 'جاري تسجيل الحساب...';
-
-            try {
-                if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    const sbRes = await window.MonirDB.registerStudent(payload);
-                    if (sbRes.error) {
-                        throw new Error(sbRes.error);
-                    }
-                    localStorage.setItem('monir_current_user', JSON.stringify(sbRes.user));
-                    if (sbRes.token) localStorage.setItem('monir_auth_token', sbRes.token);
-
-                    document.getElementById('registerForm').classList.add('hidden');
-                    document.getElementById('resStudentName').innerText = sbRes.user.full_name;
-                    document.getElementById('resStudentCode').innerText = sbRes.student_code;
-                    document.getElementById('resUsername').innerText = sbRes.user.username;
-                    document.getElementById('goToDashboardBtn').href = 'student.html?id=' + (sbRes.user.student_id || 1);
-                    document.getElementById('successBox').classList.remove('hidden');
-                    return;
-                }
-
-                const res = await fetch('/api/auth/register-student', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-
-                if (!res.ok) {
-                    alertBox.innerText = data.detail || 'حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى.';
-                    alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-bold border bg-red-900/30 border-red-700 text-red-300 block';
-                    btn.disabled = false;
-                    btn.innerText = 'إتمام التسجيل والدخول الفوري للمنصة';
-                    return;
-                }
-
-                // Save session in localStorage
-                localStorage.setItem('monir_current_user', JSON.stringify(data.user));
-                localStorage.setItem('monir_auth_token', data.token);
-
-                // Show Success Card
-                document.getElementById('registerForm').classList.add('hidden');
-                document.getElementById('resStudentName').innerText = data.user.full_name;
-                document.getElementById('resStudentCode').innerText = data.user.student_code;
-                document.getElementById('resUsername').innerText = data.user.username;
-                document.getElementById('goToDashboardBtn').href = 'student.html?id=' + data.user.student_id;
-                document.getElementById('successBox').classList.remove('hidden');
-
-            } catch (err) {
-                console.error(err);
-                alertBox.innerText = 'حدث خطأ في الاتصال، يرجى إعادة المحاولة.';
-                alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-bold border bg-red-900/30 border-red-700 text-red-300 block';
-                btn.disabled = false;
-                btn.innerText = 'إتمام التسجيل والدخول الفوري للمنصة';
-            }
-        }
+        console.log("Self-registration is currently closed by administration.");
     </script>
 </body>
 </html>
