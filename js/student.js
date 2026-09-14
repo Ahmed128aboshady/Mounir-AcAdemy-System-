@@ -106,6 +106,10 @@ async function loadStudentProfile() {
             ? (initialUser.student_code || initialUser.username || currentStudentId) 
             : currentStudentId;
 
+        const nameEl = document.getElementById('studentName');
+        const codeEl = document.getElementById('studentCode');
+        const qrImg = document.getElementById('studentQrImg');
+
         if (initialUser && viewerRole === 'student') {
             const userCode = initialUser.student_code || initialUser.username || (String(lookupKey).startsWith('ST') ? lookupKey : ('ST' + String(lookupKey).padStart(4, '0')));
             if (nameEl) nameEl.innerText = initialUser.full_name || initialUser.username;
