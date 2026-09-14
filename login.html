@@ -253,6 +253,10 @@
 
         function proceedSuccess(user, token) {
             const alertBox = document.getElementById('loginAlert');
+            // Purge any lingering or mismatched session keys
+            localStorage.removeItem('monir_current_user');
+            localStorage.removeItem('monir_auth_token');
+
             localStorage.setItem('monir_current_user', JSON.stringify(user));
             if (token) localStorage.setItem('monir_auth_token', token);
 
@@ -261,7 +265,8 @@
 
             setTimeout(() => {
                 if (user.role === 'student') {
-                    window.location.replace('student.html');
+                    const code = user.student_code || user.username || '';
+                    window.location.replace('student.html' + (code ? '?code=' + encodeURIComponent(code) : ''));
                 } else if (user.role === 'teacher') {
                     const tid = user.teacher_id || user.related_id || 1;
                     window.location.replace('teacher.html?id=' + tid);

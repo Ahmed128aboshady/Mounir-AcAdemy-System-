@@ -164,47 +164,66 @@
         getStudentProfile: async function(studentId) {
             const client = this.getClient();
             try {
-                let numId = parseInt(studentId);
-                let codeStr = String(studentId);
+                const idStr = String(studentId || '').trim();
+                const isStudentCode = idStr.toUpperCase().startsWith('ST');
+                let numId = parseInt(idStr);
                 
                 let localSt = null;
                 let localEnrs = [];
                 
-                if (window.DEFAULT_DB) {
-                    if (window.DEFAULT_DB.students) {
+                // 1. Resolve local record strictly by student_code first if available
+                if (window.DEFAULT_DB && window.DEFAULT_DB.students) {
+                    if (isStudentCode) {
                         localSt = window.DEFAULT_DB.students.find(s => 
-                            s.id === numId || 
-                            s.student_code === codeStr || 
-                            (s.student_code && s.student_code.toLowerCase() === codeStr.toLowerCase())
+                            s.student_code && s.student_code.toLowerCase() === idStr.toLowerCase()
                         );
+                    } else if (!isNaN(numId)) {
+                        localSt = window.DEFAULT_DB.students.find(s => s.id === numId);
                     }
                 }
-                
-                const realSid = localSt ? localSt.id : (!isNaN(numId) ? numId : null);
-                
-                if (window.DEFAULT_DB && window.DEFAULT_DB.enrollments && realSid) {
-                    localEnrs = window.DEFAULT_DB.enrollments.filter(e => e.student_id === realSid);
-                }
 
+                // If not found in local DB yet and caller passed a code, check active session
+                if (!localSt && isStudentCode) {
+                    try {
+                        const uStr = localStorage.getItem('monir_current_user');
+                        if (uStr) {
+                            const u = JSON.parse(uStr);
+                            if (u.student_code && u.student_code.toLowerCase() === idStr.toLowerCase() && window.DEFAULT_DB && window.DEFAULT_DB.students) {
+                                localSt = window.DEFAULT_DB.students.find(s => s.student_code && s.student_code.toLowerCase() === u.student_code.toLowerCase());
+                            }
+                        }
+                    } catch(e) {}
+                }
+                
+                // Target unique code is our ground truth
+                const targetCode = isStudentCode ? idStr : (localSt ? localSt.student_code : '');
+                
                 let stData = null;
                 let enrData = null;
 
                 if (client) {
                     let stQuery = client.from('students').select('*');
-                    if (realSid) {
-                        stQuery = stQuery.eq('id', realSid);
-                    } else {
-                        stQuery = stQuery.eq('student_code', codeStr);
+                    if (targetCode) {
+                        // ALWAYS query Supabase by student_code to guarantee 100% exact matching
+                        stQuery = stQuery.eq('student_code', targetCode);
+                    } else if (!isNaN(numId)) {
+                        stQuery = stQuery.eq('id', numId);
                     }
-                    const { data: st, error: stErr } = await stQuery.single();
-                    if (!stErr && st) stData = st;
+                    
+                    try {
+                        const res = await stQuery.limit(1);
+                        if (res.data && res.data.length > 0) {
+                            stData = res.data[0];
+                        }
+                    } catch(qErr) {
+                        console.warn('[Supabase Profile Query Error]:', qErr);
+                    }
 
-                    if (realSid || (stData && stData.id)) {
-                        const actualId = realSid || stData.id;
+                    if (stData && stData.id) {
                         const { data: enr } = await client
                             .from('enrollments')
                             .select('*, teachers(id, name)')
-                            .eq('student_id', actualId);
+                            .eq('student_id', stData.id);
                         if (enr) enrData = enr;
                     }
                 }
@@ -214,6 +233,12 @@
                 }
 
                 if (!stData) return null;
+
+                // Sync local enrollments for fallback
+                const resolvedLocalId = localSt ? localSt.id : null;
+                if (window.DEFAULT_DB && window.DEFAULT_DB.enrollments && resolvedLocalId) {
+                    localEnrs = window.DEFAULT_DB.enrollments.filter(e => e.student_id === resolvedLocalId);
+                }
 
                 // group_id is stored in qr_code field of students table
                 const groupIdFromDB = stData.qr_code || localSt?.group_id || 'G000';

@@ -720,19 +720,17 @@
             const sid = parseInt(rawId);
             const studentsList = (DB && DB.students) ? DB.students : [];
             let student = studentsList.find(s => 
-                s.id === sid || 
-                s.student_code === rawId || 
-                (s.student_code && s.student_code.toLowerCase() === rawId.toLowerCase())
-            );
+                s.student_code && s.student_code.toLowerCase() === rawId.toLowerCase()
+            ) || (!isNaN(sid) ? studentsList.find(s => s.id === sid) : null);
 
             if (!student) {
                 const uStr = localStorage.getItem('monir_current_user');
                 if (uStr) {
                     try {
                         const u = JSON.parse(uStr);
-                        const relId = u.student_id || u.related_id;
-                        if (relId) student = studentsList.find(s => s.id === relId);
+                        if (u.student_code) student = studentsList.find(s => s.student_code && s.student_code.toLowerCase() === u.student_code.toLowerCase());
                         if (!student && u.username) student = studentsList.find(s => s.student_code && s.student_code.toLowerCase() === u.username.toLowerCase());
+                        if (!student && u.student_id) student = studentsList.find(s => s.id === u.student_id);
                     } catch(e) {}
                 }
             }

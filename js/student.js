@@ -20,10 +20,14 @@ if (userStr) {
 }
 
 if (activeUser && activeUser.role === 'student') {
-    currentStudentId = activeUser.student_id || activeUser.related_id || currentStudentId;
+    // If the active logged-in user is a student, ALWAYS bind strictly to their student_code / username
+    currentStudentId = activeUser.student_code || activeUser.username || activeUser.student_id || activeUser.related_id || currentStudentId;
 } else if (activeUser && (activeUser.role === 'admin' || activeUser.role === 'teacher')) {
-    if (urlParams.has('id')) {
-        currentStudentId = parseInt(urlParams.get('id')) || currentStudentId;
+    if (urlParams.has('code')) {
+        currentStudentId = urlParams.get('code');
+    } else if (urlParams.has('id')) {
+        const pId = urlParams.get('id');
+        currentStudentId = String(pId).startsWith('ST') ? pId : (parseInt(pId) || currentStudentId);
     }
 }
 
@@ -97,17 +101,18 @@ async function loadStudentProfile() {
             } catch(e) {}
         }
 
-        // Fast immediate UI population from active session or URL ID
-        const nameEl = document.getElementById('studentName');
-        const codeEl = document.getElementById('studentCode');
-        const qrImg = document.getElementById('studentQrImg');
+        // Determine exact unique lookup key (prefer student_code over numeric id)
+        const lookupKey = (viewerRole === 'student' && initialUser) 
+            ? (initialUser.student_code || initialUser.username || currentStudentId) 
+            : currentStudentId;
 
         if (initialUser && viewerRole === 'student') {
+            const userCode = initialUser.student_code || initialUser.username || (String(lookupKey).startsWith('ST') ? lookupKey : ('ST' + String(lookupKey).padStart(4, '0')));
             if (nameEl) nameEl.innerText = initialUser.full_name || initialUser.username;
-            if (codeEl) codeEl.innerText = initialUser.username || ('ST' + String(currentStudentId).padStart(4, '0'));
-            if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(initialUser.username || ('ST' + String(currentStudentId).padStart(4, '0')));
+            if (codeEl) codeEl.innerText = userCode;
+            if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(userCode);
         } else {
-            const fallbackCode = 'ST' + String(currentStudentId).padStart(4, '0');
+            const fallbackCode = String(lookupKey).startsWith('ST') ? lookupKey : ('ST' + String(lookupKey).padStart(4, '0'));
             if (nameEl && nameEl.innerText.includes('جاري')) nameEl.innerText = 'طالب الأكاديمية';
             if (codeEl && (codeEl.innerText === '---' || !codeEl.innerText)) codeEl.innerText = fallbackCode;
             if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(fallbackCode);
@@ -116,7 +121,7 @@ async function loadStudentProfile() {
         let data = {};
         if (window.MonirDB && window.MonirDB.isConfigured()) {
             try {
-                const sbData = await window.MonirDB.getStudentProfile(currentStudentId);
+                const sbData = await window.MonirDB.getStudentProfile(lookupKey);
                 if (sbData && sbData.student) {
                     data = sbData;
                 }
@@ -126,7 +131,7 @@ async function loadStudentProfile() {
         }
 
         if (!data || !data.student) {
-            const res = await fetch('/api/student/' + currentStudentId);
+            const res = await fetch('/api/student/' + encodeURIComponent(lookupKey));
             data = await res.json();
         }
         

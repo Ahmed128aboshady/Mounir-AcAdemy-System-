@@ -12,15 +12,23 @@
     <script>
         (function() {
             const uStr = localStorage.getItem('monir_current_user');
-            const urlParams = new URLSearchParams(window.location.search);
-            if (!uStr && !urlParams.has('id')) {
+            if (!uStr) {
                 window.location.replace('login.html');
                 return;
             }
-            if (uStr) {
-                try {
-                    window.__PRELOADED_USER__ = JSON.parse(uStr);
-                } catch(e) {}
+            try {
+                const u = JSON.parse(uStr);
+                window.__PRELOADED_USER__ = u;
+                // If a student user accesses a shared link with ?id=..., strip it so they see ONLY their own account
+                if (u.role === 'student') {
+                    const url = new URL(window.location.href);
+                    if (url.searchParams.has('id')) {
+                        url.searchParams.delete('id');
+                        window.history.replaceState({}, '', url.pathname);
+                    }
+                }
+            } catch(e) {
+                window.location.replace('login.html');
             }
         })();
     </script>
