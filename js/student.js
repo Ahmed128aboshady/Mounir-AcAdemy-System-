@@ -563,6 +563,7 @@ async function loadSelectedCourseLectures() {
         
         const subDays = currentCourseInfo.subscription_days || currentCourseInfo.days || 'الاثنين';
         const upcomingDates = calculateGroupUpcomingDates(subDays, totalToShow + 2);
+        const timeText = currentCourseInfo.lecture_time || '8:00 مساءً';
         const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
         const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
             ? window.getGroupMeetUrl(curGid)
@@ -737,14 +738,17 @@ function renderLectureCard(l) {
     let cardClass = 'lecture-card';
 
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || {};
-    const meetLink = l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com';
+    const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
+    const meetLink = (typeof window !== 'undefined' && window.getGroupMeetUrl) 
+        ? window.getGroupMeetUrl(curGid) 
+        : (l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
-    // The single Google Meet button requested by user
+    // The single video room button
     const meetBtn = `
         <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-start">
             <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-sm transition transform hover:scale-[1.01]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                <span>دخول الحصة (Google Meet)</span>
+                <span>دخول قاعة الحصة</span>
             </button>
         </div>
     `;
