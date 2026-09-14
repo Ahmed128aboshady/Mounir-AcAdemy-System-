@@ -409,8 +409,8 @@ function renderEnrolledCoursesTabs(courses) {
                         <span class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm shrink-0">📹</span>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h5 class="font-extrabold text-xs text-emerald-300">قاعة البث المباشر (Google Meet)</h5>
-                                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">معتمد للمجموعة</span>
+                                <h5 class="font-extrabold text-xs text-emerald-300">قاعة البث التفاعلي المباشر (صوت وفيديو)</h5>
+                                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">معتمد ومفعل للمجموعة</span>
                             </div>
                             <p class="text-[11px] text-slate-300 mt-0.5">ادخل للحصة مع المعلم أ. ${teacherName || 'المشرف'} في الموعد المحدد</p>
                         </div>

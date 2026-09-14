@@ -1,4 +1,4 @@
-// Mounir Academy — Central Google Meet Group Manager
+// Mounir Academy — Central Live Video & Meet Group Manager
 (function() {
     const STORAGE_KEY = 'monir_group_meet_links';
 
@@ -15,16 +15,16 @@
         }
     }
 
-    // Standardized Google Meet link generator
+    // Standardized Group Live Room generator (Jitsi Meet / Google Meet / Zoom)
     window.getGroupMeetUrl = function(groupId) {
-        if (!groupId || groupId === '—' || groupId === 'G000') {
-            return 'https://meet.google.com';
+        if (!groupId || groupId === '—' || groupId === 'G000' || groupId === 'G') {
+            return 'https://meet.jit.si/MounirAcademy_GeneralRoom';
         }
         
         const cleanGid = String(groupId).trim();
         const stored = getStoredLinks();
 
-        // 1. User/Teacher/Admin local override
+        // 1. User/Teacher/Admin override (e.g. Google Meet or Zoom link)
         if (stored[cleanGid]) {
             return stored[cleanGid];
         }
@@ -34,9 +34,9 @@
             return window.GROUP_MEET_LINKS[cleanGid];
         }
 
-        // 3. Normalized standard Google Meet link
-        const codeSuffix = cleanGid.toLowerCase().replace(/[^a-z0-9]/g, '');
-        return 'https://meet.google.com/mnr-' + codeSuffix;
+        // 3. Instant working live interactive video room (No login required)
+        const codeSuffix = cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        return 'https://meet.jit.si/MounirAcademy_Group_' + codeSuffix;
     };
 
     // Update group meet link
@@ -46,8 +46,8 @@
         let finalUrl = (newUrl || '').trim();
 
         if (!finalUrl) {
-            // Revert to default
-            finalUrl = 'https://meet.google.com/mnr-' + cleanGid.toLowerCase().replace(/[^a-z0-9]/g, '');
+            // Revert to default Jitsi room
+            finalUrl = 'https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '');
         } else if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
             finalUrl = 'https://' + finalUrl;
         }
@@ -83,7 +83,7 @@
                     btnElement.classList.remove('bg-emerald-100', 'text-emerald-800');
                 }, 2000);
             } else {
-                alert('تم نسخ رابط Google Meet بنجاح:\n' + url);
+                alert('تم نسخ رابط القاعة بنجاح:\n' + url);
             }
         }).catch(err => {
             prompt('انسخ الرابط يدوياً:', url);
@@ -92,13 +92,13 @@
 
     // Prompt teacher or admin to edit the group meet link
     window.promptEditGroupMeetUrl = function(groupId, currentUrl, callback) {
-        const input = prompt('أدخل رابط Google Meet الجديد للمجموعة (' + groupId + '):', currentUrl || window.getGroupMeetUrl(groupId));
+        const input = prompt('أدخل رابط الحصة الجديد للمجموعة (' + groupId + ')\nيمكنك وضع رابط Google Meet أو Zoom أو أي رابط تختاره:', currentUrl || window.getGroupMeetUrl(groupId));
         if (input !== null) {
             const trimmed = input.trim();
             if (trimmed) {
                 const saved = window.setGroupMeetUrl(groupId, trimmed);
                 if (saved) {
-                    alert('تم حفظ وتحديث رابط Google Meet للمجموعة (' + groupId + ') بنجاح!\nسيظهر الرابط الآن فوراً لك ولجميع طلاب المجموعة:\n' + saved);
+                    alert('تم حفظ وتحديث رابط الحصة للمجموعة (' + groupId + ') بنجاح!\nسيظهر الرابط الآن فوراً لك ولجميع طلاب المجموعة:\n' + saved);
                     if (typeof callback === 'function') callback(saved);
                 }
             }
