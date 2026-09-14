@@ -531,9 +531,8 @@ async function loadSelectedCourseLectures() {
         //   Example: N=15 → 4 blocks: [1-4][5-8][9-12][13-15, 16🔒]
         //   Example: N=3  → 1 block: [1-3, 4🔒]
         //   Example: N=4  → 2 blocks: [1-4][5🔒]
-        // ════════════════════════════════════════════════
         const rc = remainingCredits;
-        const totalToShow = rc + 1; // always show one locked lecture beyond unlocked
+        const totalToShow = Math.max(1, rc); // Show exactly what remains for the student
         const numBlocks = Math.ceil(totalToShow / 4);
         
         const durVal = currentCourseInfo.session_duration || '20';
