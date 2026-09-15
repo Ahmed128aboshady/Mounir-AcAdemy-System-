@@ -414,7 +414,11 @@
                         <p class="text-xs text-slate-500">فلتر، حدد، وعدّل بيانات مئات الطلاب دفعة واحدة بكل سهولة وسرعة</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-end" onclick="event.stopPropagation()">
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap" onclick="event.stopPropagation()">
+                    <button type="button" onclick="openAddStudentsToGroupModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-3.5 py-2.5 sm:py-2 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                        <span>➕</span>
+                        <span>إضافة طلاب لمجموعة</span>
+                    </button>
                     <button onclick="ensureOpenAndLoadBulkStudents()" class="w-full sm:w-auto bg-[#41519C] hover:bg-[#2D396E] text-white font-black text-xs px-4 py-2.5 sm:py-2 rounded-xl shadow-sm transition">
                         تحميل الطلاب
                     </button>
@@ -442,7 +446,12 @@
                     </div>
                     <!-- Group -->
                     <div>
-                        <label class="block font-bold text-slate-600 mb-1">معرف المجموعة (Group ID)</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-slate-600">معرف المجموعة (Group ID)</label>
+                            <button type="button" onclick="openAddStudentsToGroupModal()" class="text-[10px] font-black text-[#41519C] hover:underline flex items-center gap-0.5">
+                                <span>➕ إضافة</span>
+                            </button>
+                        </div>
                         <input type="text" id="bsFilterGroupText" list="bsGroupDatalist"
                             placeholder="مثال: G182..." oninput="applyBulkFilters()"
                             class="w-full bg-white border border-slate-200 rounded-xl px-2 py-2 outline-none focus:border-[#41519C] font-mono font-bold">
@@ -515,6 +524,7 @@
                     <button onclick="openBulkAction('teacher')" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">👨‍🏫 تعيين مدرس</button>
                     <button onclick="openBulkAction('credits')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-2.5 py-1.5 rounded-xl transition">💰 تعديل الرصيد</button>
                     <button onclick="openBulkAction('schedule')" class="bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">🕐 تعديل الوقت</button>
+                    <button onclick="openBulkAction('duration')" class="bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">⏱️ مدة الحلقة</button>
                     <button onclick="openBulkAction('status_active')" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">✅ تفعيل</button>
                     <button onclick="openBulkAction('status_inactive')" class="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">🚫 إيقاف</button>
                     <button onclick="clearBulkSelection()" class="bg-slate-600 hover:bg-slate-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">إلغاء</button>
@@ -637,10 +647,184 @@
                         <option value="inactive">غير نشط 🚫</option>
                     </select>
                 </div>
+                <div class="col-span-2">
+                    <label class="block font-bold text-slate-700 mb-1">⏱️ مدة الحلقة</label>
+                    <select id="inlineDuration" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                        <option value="20 دقيقة">20 دقيقة (جلسة فردية سريعة)</option>
+                        <option value="30 دقيقة">30 دقيقة (نصف ساعة)</option>
+                        <option value="40 دقيقة">40 دقيقة</option>
+                        <option value="45 دقيقة">45 دقيقة (حصة مكثفة)</option>
+                        <option value="60 دقيقة">60 دقيقة (ساعة كاملة)</option>
+                    </select>
+                </div>
             </div>
             <button onclick="saveInlineEdit()" class="w-full bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black py-3 rounded-xl transition shadow-md">
                 💾 حفظ التعديلات السريعة
             </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- ADD STUDENTS TO GROUP MODAL                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="addStudentsToGroupModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
+                <div>
+                    <h3 class="font-black text-base sm:text-lg text-slate-900 flex items-center gap-2">
+                        <span class="p-1.5 bg-[#41519C]/10 text-[#41519C] rounded-xl text-sm">👥</span>
+                        <span>إضافة وتسكين طلاب في مجموعة</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">اختر المجموعة وأضف إليها طلاباً مسجلين أو أنشئ طالباً جديداً مباشرة</p>
+                </div>
+                <button onclick="closeAddStudentsToGroupModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">✕</button>
+            </div>
+
+            <!-- Target Group Selection Bar -->
+            <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-3 sm:p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 flex-shrink-0">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <span class="text-xs font-black text-blue-950 whitespace-nowrap">المجموعة المستهدفة:</span>
+                    <input type="text" id="asgTargetGroup" list="bsGroupDatalist" placeholder="مثال: G424"
+                        class="bg-white border-2 border-[#41519C] text-[#41519C] font-mono font-black text-sm sm:text-base px-3 py-1.5 rounded-xl outline-none shadow-sm w-36 text-center"
+                        oninput="onAsgTargetGroupChanged()">
+                </div>
+                <div class="text-[11px] text-blue-900 leading-tight">
+                    <span>💡 اكتب كود أي مجموعة (مثل <code class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-blue-200">G424</code>) أو اختر من المجموعات الحالية.</span>
+                </div>
+            </div>
+
+            <!-- Tabs Header -->
+            <div class="flex border-b border-slate-200 flex-shrink-0">
+                <button type="button" id="asgTabBtn1" onclick="switchAsgTab(1)" class="flex-1 pb-2.5 font-black text-xs border-b-2 border-[#41519C] text-[#41519C] transition flex items-center justify-center gap-1.5">
+                    <span>👥 نقل وتسكين طلاب مسجلين</span>
+                    <span id="asgSelectedCountBadge" class="hidden bg-[#41519C] text-white text-[10px] px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button type="button" id="asgTabBtn2" onclick="switchAsgTab(2)" class="flex-1 pb-2.5 font-bold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-1.5">
+                    <span>➕ إنشاء طالب جديد بالمجموعة</span>
+                </button>
+            </div>
+
+            <!-- Tab 1: Existing Students Picker -->
+            <div id="asgTabContent1" class="space-y-3 flex-1 overflow-hidden flex flex-col">
+                <!-- Search & Quick Filters -->
+                <div class="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                    <div class="relative flex-1">
+                        <input type="text" id="asgStudentSearch" placeholder="ابحث بالاسم، الكود، أو رقم الهاتف..."
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs outline-none focus:border-[#41519C]"
+                            oninput="renderAsgStudentsList()">
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button" onclick="setAsgFilter('all')" id="asgFilterBtn_all" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border bg-[#41519C] text-white border-[#41519C] transition">الكل</button>
+                        <button type="button" onclick="setAsgFilter('nogroup')" id="asgFilterBtn_nogroup" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition">بدون مجموعة فقط</button>
+                        <button type="button" onclick="setAsgFilter('othergroup')" id="asgFilterBtn_othergroup" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition">بمجموعات أخرى</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-[11px] text-slate-500 px-1 flex-shrink-0">
+                    <label class="flex items-center gap-1.5 cursor-pointer font-bold text-slate-700">
+                        <input type="checkbox" id="asgCheckAll" onchange="toggleAllAsgStudents(this.checked)" class="w-4 h-4 accent-[#41519C] rounded">
+                        <span>تحديد جميع المعروضين</span>
+                    </label>
+                    <span id="asgListStats" class="font-bold text-slate-600">—</span>
+                </div>
+
+                <!-- Student Rows List -->
+                <div id="asgStudentsListContainer" class="flex-1 overflow-y-auto space-y-1.5 border border-slate-200 rounded-2xl p-2 bg-slate-50/50 min-h-[180px] max-h-[260px]">
+                    <!-- Dynamic rows -->
+                </div>
+
+                <!-- Action Submit Button -->
+                <div class="flex gap-2 pt-2 flex-shrink-0">
+                    <button type="button" onclick="submitAddExistingStudentsToGroup()" id="asgSubmitBtn" class="flex-1 bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-2.5 sm:py-3 rounded-xl transition shadow-md text-xs sm:text-sm flex items-center justify-center gap-2">
+                        <span>✅ إضافة وتسكين الطلاب المحددين في المجموعة</span>
+                    </button>
+                    <button type="button" onclick="closeAddStudentsToGroupModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 sm:py-3 rounded-xl transition text-xs">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Create New Student directly in Group -->
+            <div id="asgTabContent2" class="hidden space-y-3 flex-1 overflow-y-auto pr-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">اسم الطالب بالكامل <span class="text-rose-500">*</span></label>
+                        <input type="text" id="asgNewName" placeholder="مثال: يوسف أحمد محمد"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">كود الطالب (اختياري / يُولَّد تلقائياً)</label>
+                        <input type="text" id="asgNewCode" placeholder="اتركه فارغاً للتوليد التلقائي"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رقم الهاتف / ولي الأمر <span class="text-rose-500">*</span></label>
+                        <input type="text" id="asgNewPhone" placeholder="مثال: 01012345678"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">السن</label>
+                            <input type="number" id="asgNewAge" value="10" min="4" max="80"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">النوع</label>
+                            <select id="asgNewGender" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 outline-none focus:border-[#41519C]">
+                                <option value="m">ولد 👦</option>
+                                <option value="f">بنت 👧</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">المعلم</label>
+                        <select id="asgNewTeacher" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
+                            <option value="">— اختر المعلم —</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رصيد الحصص المبدئي</label>
+                        <input type="number" id="asgNewCredits" value="12" min="0" max="200"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">أيام المحاضرة</label>
+                        <input type="text" id="asgNewDays" placeholder="مثال: السبت والثلاثاء"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">وقت الحصة</label>
+                        <input type="text" id="asgNewTime" placeholder="مثال: 8:00 مساءً"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">⏱️ مدة الحلقة</label>
+                        <select id="asgNewDuration" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                            <option value="20 دقيقة">20 دقيقة (جلسة فردية سريعة)</option>
+                            <option value="30 دقيقة" selected>30 دقيقة (نصف ساعة)</option>
+                            <option value="40 دقيقة">40 دقيقة</option>
+                            <option value="45 دقيقة">45 دقيقة (حصة مكثفة)</option>
+                            <option value="60 دقيقة">60 دقيقة (ساعة كاملة)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">كلمة المرور للحساب (لتسجيل الدخول)</label>
+                        <input type="text" id="asgNewPassword" value="123456"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
+                    </div>
+                </div>
+
+                <!-- Action Submit Button -->
+                <div class="flex gap-2 pt-3 flex-shrink-0">
+                    <button type="button" onclick="submitCreateNewStudentInGroup()" id="asgNewSubmitBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 sm:py-3 rounded-xl transition shadow-md text-xs sm:text-sm flex items-center justify-center gap-2">
+                        <span>✅ حفظ وإنشاء الطالب بالمجموعة</span>
+                    </button>
+                    <button type="button" onclick="closeAddStudentsToGroupModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 sm:py-3 rounded-xl transition text-xs">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1911,7 +2095,7 @@
                             const chunk = allIds.slice(i, i + 400);
                             const { data: chunkEnr, error: chunkErr } = await client
                                 .from('enrollments')
-                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, group_id, teachers(id, name)')
+                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, session_duration, group_id, teachers(id, name)')
                                 .in('student_id', chunk);
                             if (chunkEnr) enrData = enrData.concat(chunkEnr);
                             if (chunkErr) console.warn('[BulkStudents] chunk error:', chunkErr.message);
@@ -1935,6 +2119,7 @@
                                 id:               s.id,
                                 name:             s.name || '',
                                 student_code:     s.student_code || '',
+                                phone:            s.phone || s.parent_phone || '',
                                 age:              s.age || 0,
                                 gender:           guessGender(s.name),
                                 group_id:         groupId,
@@ -1944,6 +2129,7 @@
                                 teacher_name:     teacherObj ? teacherObj.name : '—',
                                 subscription_days: enr.subscription_days || s.subscription_days || '—',
                                 lecture_time:     enr.lecture_time || s.lecture_time || '—',
+                                session_duration: enr.session_duration || s.session_duration || '20 دقيقة',
                                 enrollment_id:    enr.id || null
                             };
                         });
@@ -2175,8 +2361,25 @@
             const page = bsFilteredStudents.slice(start, start + pageSize);
 
             if (page.length === 0) {
+                const curGroup = (document.getElementById('bsFilterGroupText')?.value || document.getElementById('bsFilterGroup')?.value || '').trim();
+                const addBtnHtml = curGroup ? `
+                    <div class="mt-3">
+                        <button type="button" onclick="openAddStudentsToGroupModal('${curGroup}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition inline-flex items-center gap-1.5">
+                            <span>➕</span>
+                            <span>إضافة وتسكين طلاب في المجموعة (${curGroup})</span>
+                        </button>
+                    </div>` : `
+                    <div class="mt-3">
+                        <button type="button" onclick="openAddStudentsToGroupModal()" class="bg-[#41519C] hover:bg-[#2D396E] text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition inline-flex items-center gap-1.5">
+                            <span>➕</span>
+                            <span>إضافة طلاب لمجموعة</span>
+                        </button>
+                    </div>`;
+
                 tbody.innerHTML = `<tr><td colspan="11" class="text-center py-10 text-slate-400 font-bold">
-                    📭 لا يوجد طلاب بهذه المعايير — جرّب تعديل الفلترة
+                    <div class="text-2xl mb-1">📭</div>
+                    <div>لا يوجد طلاب بهذه المعايير — جرّب تعديل الفلترة</div>
+                    ${addBtnHtml}
                 </td></tr>`;
                 renderBulkPagination(totalPages);
                 return;
@@ -2218,6 +2421,7 @@
                     <td class="p-2.5 text-[11px] text-slate-600">
                         <div class="font-bold">${s.subscription_days || '—'}</div>
                         <div class="text-slate-400">${s.lecture_time || ''}</div>
+                        <div class="mt-1"><span class="inline-flex items-center gap-1 bg-teal-50 text-teal-800 border border-teal-200 px-1.5 py-0.5 rounded-md text-[10px] font-black">⏱️ ${s.session_duration || '20 دقيقة'}</span></div>
                     </td>
                     <td class="p-2.5">${statusBadge}</td>
                     <td class="p-2.5 text-center">
@@ -2451,6 +2655,11 @@
             renumberBulkScheduleSlots();
         };
 
+        window.setBulkDurationPreset = function(dur) {
+            const input = document.getElementById('bulkDurationInput');
+            if (input) input.value = dur;
+        };
+
         // ── Bulk Action Modal ────────────────────────────────────
         function openBulkAction(action) {
             if (bsSelectedIds.size === 0) return;
@@ -2568,6 +2777,48 @@
                         </button>
                     </div>`;
 
+            } else if (action === 'duration') {
+                title = '⏱️ تعديل مدة الحلقة جماعياً';
+                bodyHTML = `
+                    <div class="space-y-4">
+                        <div class="p-3 bg-teal-50/80 border border-teal-200 rounded-2xl text-xs text-teal-950 flex items-start gap-2">
+                            <span class="text-base leading-none">⏱️</span>
+                            <div class="leading-relaxed">
+                                حدد المدة الزمنية لكل حلقة للطلاب المحددين (ستظهر في جدول حصص الطالب كمدة السيشن).
+                            </div>
+                        </div>
+
+                        <!-- Presets -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <button type="button" onclick="setBulkDurationPreset('20 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
+                                <span class="block text-base mb-0.5">⚡</span>
+                                <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">20 دقيقة</span>
+                                <span class="block text-[10px] text-slate-400 font-normal">جلسة فردية سريعة</span>
+                            </button>
+                            <button type="button" onclick="setBulkDurationPreset('30 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
+                                <span class="block text-base mb-0.5">⭐</span>
+                                <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">30 دقيقة</span>
+                                <span class="block text-[10px] text-slate-400 font-normal">نصف ساعة</span>
+                            </button>
+                            <button type="button" onclick="setBulkDurationPreset('45 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
+                                <span class="block text-base mb-0.5">🔥</span>
+                                <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">45 دقيقة</span>
+                                <span class="block text-[10px] text-slate-400 font-normal">حصة مكثفة</span>
+                            </button>
+                            <button type="button" onclick="setBulkDurationPreset('60 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
+                                <span class="block text-base mb-0.5">🏆</span>
+                                <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">60 دقيقة</span>
+                                <span class="block text-[10px] text-slate-400 font-normal">ساعة كاملة</span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 text-xs mb-1.5">المدة المحددة (أو اكتب مدة يدوياً)</label>
+                            <input type="text" id="bulkDurationInput" placeholder="مثال: 30 دقيقة" value="30 دقيقة"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-teal-500 font-black text-center text-sm">
+                        </div>
+                    </div>`;
+
             } else if (action === 'status_active') {
                 title = '✅ تفعيل الحسابات جماعياً';
                 bodyHTML = `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
@@ -2677,6 +2928,12 @@
                 }
                 successMsg = `تم تعديل الجدول (${combinedDays}) لـ ${ids.length} طالب ✅`;
 
+            } else if (action === 'duration') {
+                const dur = (document.getElementById('bulkDurationInput')?.value || '').trim();
+                if (!dur) { MonirPopup ? MonirPopup.error('يرجى كتابة أو تحديد مدة الحلقة') : alert('يرجى تحديد مدة الحلقة'); return; }
+                enrollPayload.session_duration = dur;
+                successMsg = `تم تعديل مدة الحلقة إلى (${dur}) لـ ${ids.length} طالب ✅`;
+
             } else if (action === 'status_active') {
                 updatePayload.status = 'active';
                 successMsg = `تم تفعيل ${ids.length} حساب ✅`;
@@ -2743,6 +3000,7 @@
                         }
                         if (enrollPayload.subscription_days) s.subscription_days = enrollPayload.subscription_days;
                         if (enrollPayload.lecture_time) s.lecture_time = enrollPayload.lecture_time;
+                        if (enrollPayload.session_duration) s.session_duration = enrollPayload.session_duration;
                         if (updatePayload._credits_mode === 'set') s.remaining_credits = updatePayload._credits_amount;
                         if (updatePayload._credits_mode === 'add') s.remaining_credits = Math.max(0, s.remaining_credits + updatePayload._credits_amount);
                         if (updatePayload._credits_mode === 'subtract') s.remaining_credits = Math.max(0, s.remaining_credits - updatePayload._credits_amount);
@@ -2762,6 +3020,7 @@
                     }
                     if (enrollPayload.subscription_days) s.subscription_days = enrollPayload.subscription_days;
                     if (enrollPayload.lecture_time) s.lecture_time = enrollPayload.lecture_time;
+                    if (enrollPayload.session_duration) s.session_duration = enrollPayload.session_duration;
                 });
 
                 closeBulkActionModal();
@@ -2813,6 +3072,10 @@
             // Set status
             document.getElementById('inlineStatus').value = s.status || 'active';
 
+            // Set duration
+            const durEl = document.getElementById('inlineDuration');
+            if (durEl) durEl.value = s.session_duration || '20 دقيقة';
+
             document.getElementById('inlineEditModal').classList.remove('hidden');
         }
 
@@ -2829,6 +3092,7 @@
             const credits = parseInt(document.getElementById('inlineCredits').value) || 0;
             const day = document.getElementById('inlineDay').value;
             const time = document.getElementById('inlineTime').value.trim();
+            const duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
             const teacherId = document.getElementById('inlineTeacher').value;
             const status = document.getElementById('inlineStatus').value;
 
@@ -2839,6 +3103,7 @@
                 remaining_credits: credits,
                 subscription_days: day,
                 lecture_time: time,
+                session_duration: duration,
                 teacher_id: teacherId ? parseInt(teacherId) : null
             };
             if (group) enrollUpdate.group_id = group;
@@ -2858,6 +3123,7 @@
                     s.remaining_credits = credits;
                     s.subscription_days = day;
                     s.lecture_time = time;
+                    s.session_duration = duration;
                     s.teacher_id = teacherId ? parseInt(teacherId) : null;
                     const t = bsTeachersList.find(t => String(t.id) === String(teacherId));
                     s.teacher_name = t ? t.name : '—';
@@ -2879,6 +3145,428 @@
                 }
             }
         }
+
+        // ══════════════════════════════════════════════════════════════════
+        // ADD STUDENTS TO GROUP MODAL LOGIC
+        // ══════════════════════════════════════════════════════════════════
+        let asgSelectedStudentIds = new Set();
+        let asgCurrentFilter = 'all'; // 'all', 'nogroup', 'othergroup'
+        let asgActiveTab = 1;
+
+        window.openAddStudentsToGroupModal = function(targetGroup = '') {
+            if (!window.bsAllStudents || bsAllStudents.length === 0) {
+                ensureOpenAndLoadBulkStudents();
+            }
+
+            const groupVal = (targetGroup || document.getElementById('bsFilterGroupText')?.value || document.getElementById('bsFilterGroup')?.value || '').trim();
+            const targetInput = document.getElementById('asgTargetGroup');
+            if (targetInput) targetInput.value = groupVal;
+
+            asgSelectedStudentIds.clear();
+            asgCurrentFilter = 'all';
+            const searchInput = document.getElementById('asgStudentSearch');
+            if (searchInput) searchInput.value = '';
+            const checkAll = document.getElementById('asgCheckAll');
+            if (checkAll) checkAll.checked = false;
+
+            const teacherSelect = document.getElementById('asgNewTeacher');
+            if (teacherSelect && window.bsTeachersList) {
+                teacherSelect.innerHTML = '<option value="">— اختر المعلم —</option>' +
+                    bsTeachersList.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            }
+
+            switchAsgTab(1);
+            setAsgFilter('all');
+            renderAsgStudentsList();
+
+            document.getElementById('addStudentsToGroupModal').classList.remove('hidden');
+        };
+
+        window.closeAddStudentsToGroupModal = function() {
+            document.getElementById('addStudentsToGroupModal').classList.add('hidden');
+        };
+
+        window.switchAsgTab = function(tab) {
+            asgActiveTab = tab;
+            const btn1 = document.getElementById('asgTabBtn1');
+            const btn2 = document.getElementById('asgTabBtn2');
+            const tab1 = document.getElementById('asgTabContent1');
+            const tab2 = document.getElementById('asgTabContent2');
+
+            if (tab === 1) {
+                btn1.className = 'flex-1 pb-2.5 font-black text-xs border-b-2 border-[#41519C] text-[#41519C] transition flex items-center justify-center gap-1.5';
+                btn2.className = 'flex-1 pb-2.5 font-bold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-1.5';
+                tab1.classList.remove('hidden');
+                tab2.classList.add('hidden');
+                renderAsgStudentsList();
+            } else {
+                btn2.className = 'flex-1 pb-2.5 font-black text-xs border-b-2 border-emerald-600 text-emerald-600 transition flex items-center justify-center gap-1.5';
+                btn1.className = 'flex-1 pb-2.5 font-bold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-1.5';
+                tab2.classList.remove('hidden');
+                tab1.classList.add('hidden');
+            }
+        };
+
+        window.setAsgFilter = function(filterType) {
+            asgCurrentFilter = filterType;
+            ['all', 'nogroup', 'othergroup'].forEach(f => {
+                const btn = document.getElementById(`asgFilterBtn_${f}`);
+                if (!btn) return;
+                if (f === filterType) {
+                    btn.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg border bg-[#41519C] text-white border-[#41519C] transition';
+                } else {
+                    btn.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition';
+                }
+            });
+            renderAsgStudentsList();
+        };
+
+        window.onAsgTargetGroupChanged = function() {
+            renderAsgStudentsList();
+        };
+
+        window.renderAsgStudentsList = function() {
+            const container = document.getElementById('asgStudentsListContainer');
+            if (!container) return;
+
+            const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+            const query = (document.getElementById('asgStudentSearch')?.value || '').trim().toLowerCase();
+
+            let list = window.bsAllStudents ? [...bsAllStudents] : [];
+
+            if (asgCurrentFilter === 'nogroup') {
+                list = list.filter(s => !s.group_id || s.group_id === '—' || s.group_id.trim() === '');
+            } else if (asgCurrentFilter === 'othergroup') {
+                list = list.filter(s => s.group_id && s.group_id !== '—' && s.group_id !== targetGroup);
+            }
+
+            if (query) {
+                list = list.filter(s =>
+                    (s.name && s.name.toLowerCase().includes(query)) ||
+                    (s.student_code && s.student_code.toLowerCase().includes(query)) ||
+                    (s.phone && s.phone.includes(query)) ||
+                    (s.group_id && s.group_id.toLowerCase().includes(query))
+                );
+            }
+
+            const statsEl = document.getElementById('asgListStats');
+            if (statsEl) {
+                statsEl.innerText = `المعروض: ${list.length} طالب | المحدد: ${asgSelectedStudentIds.size}`;
+            }
+
+            const badge = document.getElementById('asgSelectedCountBadge');
+            if (badge) {
+                if (asgSelectedStudentIds.size > 0) {
+                    badge.innerText = asgSelectedStudentIds.size;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            const submitBtn = document.getElementById('asgSubmitBtn');
+            if (submitBtn) {
+                const groupDisplay = targetGroup ? `(${targetGroup})` : '';
+                submitBtn.innerHTML = `<span>✅ إضافة وتسكين الطلاب المحددين (${asgSelectedStudentIds.size}) في المجموعة ${groupDisplay}</span>`;
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 font-bold text-xs">
+                    لا يوجد طلاب مطابقين للبحث أو الفلتر
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(s => {
+                const isChecked = asgSelectedStudentIds.has(s.id);
+                const isAlreadyInGroup = targetGroup && s.group_id === targetGroup;
+                const groupBadge = isAlreadyInGroup
+                    ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-lg text-[10px]">مسجل في هذه المجموعة (${s.group_id})</span>`
+                    : (!s.group_id || s.group_id === '—')
+                        ? `<span class="bg-slate-200 text-slate-600 font-bold px-2 py-0.5 rounded-lg text-[10px]">بدون مجموعة</span>`
+                        : `<span class="bg-blue-100 text-blue-800 font-mono font-bold px-2 py-0.5 rounded-lg text-[10px]">مجموعة: ${s.group_id}</span>`;
+
+                return `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200 hover:border-blue-300 transition ${isChecked ? 'bg-blue-50/60 border-[#41519C]' : ''}">
+                        <label class="flex items-center gap-2.5 flex-1 cursor-pointer">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleAsgStudent(${s.id}, this.checked)"
+                                class="w-4 h-4 accent-[#41519C] rounded cursor-pointer">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-black text-slate-900 text-xs">${s.name || '—'}</span>
+                                    <span class="font-mono text-[#41519C] text-[11px] font-bold">${s.student_code || ''}</span>
+                                    ${groupBadge}
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-3">
+                                    <span>المعلم: <strong class="text-slate-700">${s.teacher_name || '—'}</strong></span>
+                                    <span>الرصيد: <strong class="text-slate-700">${s.remaining_credits || 0} حصة</strong></span>
+                                    ${s.phone ? `<span>الهاتف: <strong class="font-mono text-slate-700">${s.phone}</strong></span>` : ''}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.toggleAsgStudent = function(sid, checked) {
+            if (checked) {
+                asgSelectedStudentIds.add(sid);
+            } else {
+                asgSelectedStudentIds.delete(sid);
+            }
+            renderAsgStudentsList();
+        };
+
+        window.toggleAllAsgStudents = function(checked) {
+            const query = (document.getElementById('asgStudentSearch')?.value || '').trim().toLowerCase();
+            const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+
+            let list = window.bsAllStudents ? [...bsAllStudents] : [];
+            if (asgCurrentFilter === 'nogroup') {
+                list = list.filter(s => !s.group_id || s.group_id === '—' || s.group_id.trim() === '');
+            } else if (asgCurrentFilter === 'othergroup') {
+                list = list.filter(s => s.group_id && s.group_id !== '—' && s.group_id !== targetGroup);
+            }
+            if (query) {
+                list = list.filter(s =>
+                    (s.name && s.name.toLowerCase().includes(query)) ||
+                    (s.student_code && s.student_code.toLowerCase().includes(query)) ||
+                    (s.phone && s.phone.includes(query)) ||
+                    (s.group_id && s.group_id.toLowerCase().includes(query))
+                );
+            }
+
+            list.forEach(s => {
+                if (checked) asgSelectedStudentIds.add(s.id);
+                else asgSelectedStudentIds.delete(s.id);
+            });
+            renderAsgStudentsList();
+        };
+
+        window.submitAddExistingStudentsToGroup = async function() {
+            const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+            if (!targetGroup) {
+                window.MonirPopup ? MonirPopup.error('يرجى تحديد أو كتابة معرف المجموعة (Group ID)') : alert('يرجى تحديد أو كتابة معرف المجموعة');
+                return;
+            }
+
+            const sids = [...asgSelectedStudentIds];
+            if (sids.length === 0) {
+                window.MonirPopup ? MonirPopup.error('يرجى اختيار طالب واحد على الأقل لإضافته للمجموعة') : alert('يرجى اختيار طالب واحد على الأقل');
+                return;
+            }
+
+            const btn = document.getElementById('asgSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري إضافة الطلاب إلى المجموعة...';
+
+            try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    await client.from('students').update({ qr_code: targetGroup }).in('id', sids);
+                    await client.from('enrollments').update({ group_id: targetGroup }).in('student_id', sids);
+                }
+
+                if (window.bsAllStudents) {
+                    bsAllStudents.forEach(s => {
+                        if (sids.includes(s.id)) {
+                            s.group_id = targetGroup;
+                        }
+                    });
+                }
+
+                const datalist = document.getElementById('bsGroupDatalist');
+                if (datalist && !datalist.querySelector(`option[value="${targetGroup}"]`)) {
+                    const opt = document.createElement('option');
+                    opt.value = targetGroup;
+                    datalist.appendChild(opt);
+                }
+                const selectGroup = document.getElementById('bsFilterGroup');
+                if (selectGroup && !selectGroup.querySelector(`option[value="${targetGroup}"]`)) {
+                    const opt = document.createElement('option');
+                    opt.value = targetGroup;
+                    opt.textContent = targetGroup;
+                    selectGroup.appendChild(opt);
+                }
+
+                const filterTextInput = document.getElementById('bsFilterGroupText');
+                if (filterTextInput) filterTextInput.value = targetGroup;
+                applyBulkFilters();
+
+                closeAddStudentsToGroupModal();
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast(`✅ تمت إضافة وتسكين ${sids.length} طالب في المجموعة (${targetGroup}) بنجاح!`, 'success');
+                } else {
+                    alert(`✅ تمت إضافة وتسكين ${sids.length} طالب في المجموعة (${targetGroup}) بنجاح!`);
+                }
+
+            } catch(err) {
+                console.error('Error adding students to group:', err);
+                if (window.MonirPopup) {
+                    MonirPopup.error('حدث خطأ أثناء الإضافة إلى المجموعة: ' + (err.message || ''));
+                } else {
+                    alert('حدث خطأ أثناء الإضافة للمجموعة!');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>✅ إضافة وتسكين الطلاب المحددين في المجموعة</span>';
+            }
+        };
+
+        window.submitCreateNewStudentInGroup = async function() {
+            const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+            if (!targetGroup) {
+                window.MonirPopup ? MonirPopup.error('يرجى تحديد أو كتابة معرف المجموعة (Group ID)') : alert('يرجى تحديد أو كتابة معرف المجموعة');
+                return;
+            }
+
+            const name = (document.getElementById('asgNewName')?.value || '').trim();
+            const phone = (document.getElementById('asgNewPhone')?.value || '').trim();
+            if (!name) {
+                window.MonirPopup ? MonirPopup.error('يرجى إدخال اسم الطالب') : alert('يرجى إدخال اسم الطالب');
+                return;
+            }
+            if (!phone) {
+                window.MonirPopup ? MonirPopup.error('يرجى إدخال رقم الهاتف') : alert('يرجى إدخال رقم الهاتف');
+                return;
+            }
+
+            let code = (document.getElementById('asgNewCode')?.value || '').trim();
+            if (!code) {
+                code = 'ST' + Math.floor(1000 + Math.random() * 9000);
+            }
+
+            const age = parseInt(document.getElementById('asgNewAge')?.value) || 10;
+            const gender = document.getElementById('asgNewGender')?.value || 'm';
+            const teacherId = document.getElementById('asgNewTeacher')?.value ? parseInt(document.getElementById('asgNewTeacher').value) : null;
+            const credits = parseInt(document.getElementById('asgNewCredits')?.value) || 12;
+            const days = (document.getElementById('asgNewDays')?.value || '').trim() || 'السبت والثلاثاء';
+            const time = (document.getElementById('asgNewTime')?.value || '').trim() || '8:00 مساءً';
+            const duration = (document.getElementById('asgNewDuration')?.value || '').trim() || '30 دقيقة';
+            const password = (document.getElementById('asgNewPassword')?.value || '').trim() || '123456';
+
+            const btn = document.getElementById('asgNewSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري إنشاء وإضافة الطالب...';
+
+            try {
+                let newStudentId = Date.now();
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+
+                    const [{ data: maxSt }, { data: maxUsr }, { data: maxEnr }] = await Promise.all([
+                        client.from('students').select('id').order('id', { ascending: false }).limit(1),
+                        client.from('users').select('id').order('id', { ascending: false }).limit(1),
+                        client.from('enrollments').select('id').order('id', { ascending: false }).limit(1)
+                    ]);
+
+                    const nextStudentId = ((maxSt && maxSt[0]) ? maxSt[0].id : 0) + 1;
+                    const nextUserId = ((maxUsr && maxUsr[0]) ? maxUsr[0].id : 0) + 1;
+                    const nextEnrollmentId = ((maxEnr && maxEnr[0]) ? maxEnr[0].id : 0) + 1;
+                    newStudentId = nextStudentId;
+
+                    const { error: sErr } = await client.from('students').insert([{
+                        id: nextStudentId,
+                        name: name,
+                        student_code: code,
+                        phone: phone,
+                        parent_phone: phone,
+                        age: age,
+                        gender: gender,
+                        qr_code: targetGroup,
+                        status: 'active'
+                    }]);
+                    if (sErr) throw sErr;
+
+                    const { error: eErr } = await client.from('enrollments').insert([{
+                        id: nextEnrollmentId,
+                        student_id: nextStudentId,
+                        course_name: 'مسار القرآن الكريم والتدبر',
+                        group_id: targetGroup,
+                        teacher_id: teacherId,
+                        remaining_credits: credits,
+                        subscription_days: days,
+                        lecture_time: time,
+                        session_duration: duration,
+                        status: 'active'
+                    }]);
+                    if (eErr) console.warn('Enrollment insert warning:', eErr);
+
+                    await client.from('users').insert([{
+                        id: nextUserId,
+                        username: code.toLowerCase(),
+                        password_hash: password,
+                        role: 'student',
+                        related_id: nextStudentId,
+                        student_id: nextStudentId,
+                        full_name: name,
+                        email: `${code.toLowerCase()}@student.monir.edu.eg`,
+                        phone: phone,
+                        status: 'active'
+                    }]);
+                }
+
+                const teacherObj = window.bsTeachersList ? bsTeachersList.find(t => t.id === teacherId) : null;
+                const newStudentObj = {
+                    id: newStudentId,
+                    name: name,
+                    student_code: code,
+                    phone: phone,
+                    age: age,
+                    gender: gender,
+                    group_id: targetGroup,
+                    status: 'active',
+                    remaining_credits: credits,
+                    teacher_id: teacherId,
+                    teacher_name: teacherObj ? teacherObj.name : '—',
+                    subscription_days: days,
+                    lecture_time: time,
+                    session_duration: duration,
+                    enrollment_id: null
+                };
+
+                if (window.bsAllStudents) {
+                    bsAllStudents.unshift(newStudentObj);
+                }
+
+                const datalist = document.getElementById('bsGroupDatalist');
+                if (datalist && !datalist.querySelector(`option[value="${targetGroup}"]`)) {
+                    const opt = document.createElement('option');
+                    opt.value = targetGroup;
+                    datalist.appendChild(opt);
+                }
+
+                const filterTextInput = document.getElementById('bsFilterGroupText');
+                if (filterTextInput) filterTextInput.value = targetGroup;
+                applyBulkFilters();
+
+                closeAddStudentsToGroupModal();
+
+                document.getElementById('asgNewName').value = '';
+                document.getElementById('asgNewCode').value = '';
+                document.getElementById('asgNewPhone').value = '';
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast(`✅ تم إنشاء الطالب (${name} - ${code}) وإضافته للمجموعة (${targetGroup}) بنجاح! 🎉`, 'success');
+                } else {
+                    alert(`✅ تم إنشاء الطالب (${name}) وإضافته للمجموعة (${targetGroup}) بنجاح!`);
+                }
+
+            } catch(err) {
+                console.error('Error creating new student in group:', err);
+                if (window.MonirPopup) {
+                    MonirPopup.error('حدث خطأ أثناء إنشاء الطالب: ' + (err.message || ''));
+                } else {
+                    alert('حدث خطأ أثناء إنشاء الطالب!');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>✅ حفظ وإنشاء الطالب بالمجموعة</span>';
+            }
+        };
 
         // Auto-load students when page is ready
         document.addEventListener('DOMContentLoaded', () => {
