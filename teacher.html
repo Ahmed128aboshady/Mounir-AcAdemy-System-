@@ -695,6 +695,18 @@
             const sTime = (s.lecture_time && s.lecture_time !== '—') ? s.lecture_time : '';
             const sDur  = (s.session_duration && s.session_duration !== '—') ? s.session_duration : '';
 
+            const todayDateStr = new Date().toISOString().split('T')[0];
+            const todayKey = 'monir_att_' + s.id + '_' + todayDateStr;
+            const todayRecordedStatus = localStorage.getItem(todayKey);
+            let todayBadge = '';
+            if (todayRecordedStatus === 'present') {
+                todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md shadow-xs">✓ سُجل حضور اليوم</span></div>`;
+            } else if (todayRecordedStatus === 'absent') {
+                todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md shadow-xs">✗ سُجل غياب اليوم</span></div>`;
+            } else if (todayRecordedStatus === 'excused') {
+                todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md shadow-xs">⚠️ سُجل عذر اليوم</span></div>`;
+            }
+
             return `
                 <tr class="student-row hover:bg-slate-50/80 transition" id="row-${s.id}">
                     <td class="p-3 text-slate-400 font-mono">${idx + 1}</td>
@@ -726,10 +738,11 @@
                     </td>
                     <td class="p-3">${quranProgress}</td>
                     <td class="p-3">
-                        <div class="flex items-center justify-center gap-1 flex-wrap">
-                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم حصة">حضور</button>
-                            <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'})" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="عذر (الأول مجاني)">عذر</button>
-                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'})" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">غياب</button>
+                        ${todayBadge}
+                        <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
+                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم حصة">حضور</button>
+                            <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="عذر (الأول مجاني)">عذر</button>
+                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">غياب</button>
                             <button onclick="openSurahModal(${s.id}, '${studentCode}', '${(s.current_surah || '').replace(/'/g, '')}', ${s.current_aya || 1}, '${safeNameEsc}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2 py-1 rounded-lg text-[11px] transition border border-slate-300">تحديث السورة</button>
                             <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition">تقييم</button>
                         </div>
@@ -738,16 +751,39 @@
             `;
         }
 
-        async function recordSession(studentId, sessionStatus, enrollmentId = null) {
+        async function recordSession(studentId, sessionStatus, enrollmentId = null, btn = null) {
             const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر مقبول (الأول مجاني)', 'absent': 'غياب بدون عذر' };
-            
-            let confirmed = false;
-            if (window.MonirPopup) {
-                confirmed = await window.MonirPopup.confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟', 'تأكيد تسجيل الجلسة', 'question', 'نعم، تأكيد التسجيل', 'إلغاء');
+            const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب' };
+
+            const todayDateStr = new Date().toISOString().split('T')[0];
+            const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
+            const prevRecord = localStorage.getItem(todayKey);
+
+            if (prevRecord) {
+                const prevLabel = statusNames[prevRecord] || prevRecord;
+                const warnPrompt = `⚠️ تنبيه هام:\nلقد تم بالفعل تسجيل حالة هذا الطالب اليوم (${prevLabel})!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) وخصم حصة أخرى؟`;
+                let proceed = false;
+                if (window.MonirPopup) {
+                    proceed = await window.MonirPopup.confirm(warnPrompt, 'تنبيه: تسجيل مكرر اليوم', 'warning', 'نعم، تسجيل حصة أخرى', 'إلغاء');
+                } else {
+                    proceed = confirm(warnPrompt);
+                }
+                if (!proceed) return;
             } else {
-                confirmed = confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟');
+                let confirmed = false;
+                if (window.MonirPopup) {
+                    confirmed = await window.MonirPopup.confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟', 'تأكيد تسجيل الجلسة', 'question', 'نعم، تأكيد التسجيل', 'إلغاء');
+                } else {
+                    confirmed = confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟');
+                }
+                if (!confirmed) return;
             }
-            if (!confirmed) return;
+
+            // Disable buttons in row during processing to prevent rapid double-clicks
+            const cell = document.getElementById('actions-cell-' + studentId);
+            if (cell) {
+                cell.querySelectorAll('button').forEach(b => b.disabled = true);
+            }
 
             try {
                 // Try Supabase direct update
@@ -806,14 +842,25 @@
 
                             await client.from('enrollments').update(updates).eq('id', enrData.id);
                             
-                            // Record in attendance table
-                            await client.from('attendance').insert({
-                                student_id: studentId,
-                                teacher_id: currentTeacherId,
-                                status: sessionStatus,
-                                session_date: new Date().toISOString().split('T')[0],
-                                notes: labels[sessionStatus]
-                            });
+                            // Record in attendance table using existing schema
+                            try {
+                                const { data: maxAtt } = await client.from('attendance').select('id').order('id', { ascending: false }).limit(1);
+                                const nextAttId = ((maxAtt && maxAtt[0]) ? maxAtt[0].id : 0) + 1;
+                                await client.from('attendance').insert([{
+                                    id: nextAttId,
+                                    student_id: studentId,
+                                    lecture_id: 0,
+                                    course_name: enrData.course_name || 'مسار القرآن الكريم والتدبر',
+                                    status: sessionStatus,
+                                    joined_at: new Date().toISOString(),
+                                    duration_minutes: parseInt(enrData.session_duration) || 20
+                                }]);
+                            } catch(attErr) {
+                                console.warn('Attendance insert log notice:', attErr);
+                            }
+
+                            // Save today's record flag
+                            localStorage.setItem(todayKey, sessionStatus);
 
                             success = true;
                         }
