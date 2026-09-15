@@ -568,10 +568,12 @@
                         students: []
                     };
                 }
-                // PRIVACY: hide name, parent_name, phone for teachers
+                // Teacher view: student name & educational progress
                 groupsMap[gid].students.push({
                     id: s.id,
                     student_id: s.id,
+                    name: s.name,
+                    student_name: s.name,
                     student_code: s.student_code,
                     age: s.age,
                     course_name: e.course_name,
@@ -585,7 +587,7 @@
                     absent_count: e.absent_count || 0,
                     status: e.status || 'active',
                     rating: e.rating || null,
-                    // DO NOT include: name, parent_name, phone, parent_phone
+                    // Parent phone and billing details kept hidden
                 });
             });
 
