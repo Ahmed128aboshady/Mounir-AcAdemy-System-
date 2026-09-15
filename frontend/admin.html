@@ -3025,7 +3025,10 @@
                     bsAllStudents.forEach(s => {
                         if (!ids.includes(s.id)) return;
                         if (updatePayload.status) s.status = updatePayload.status;
-                        if (updatePayload.qr_code) s.group_id = updatePayload.qr_code;
+                        if (updatePayload.qr_code) {
+                            s.group_id = updatePayload.qr_code;
+                            s.group_ids = updatePayload.qr_code.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
+                        }
                         if (enrollPayload.remaining_credits !== undefined) s.remaining_credits = enrollPayload.remaining_credits;
                         if (enrollPayload.teacher_id !== undefined) {
                             s.teacher_id = enrollPayload.teacher_id;
@@ -3045,7 +3048,10 @@
                 bsAllStudents.forEach(s => {
                     if (!ids.includes(s.id)) return;
                     if (updatePayload.status) s.status = updatePayload.status;
-                    if (updatePayload.qr_code) s.group_id = updatePayload.qr_code;
+                    if (updatePayload.qr_code) {
+                        s.group_id = updatePayload.qr_code;
+                        s.group_ids = updatePayload.qr_code.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
+                    }
                     if (enrollPayload.remaining_credits !== undefined) s.remaining_credits = enrollPayload.remaining_credits;
                     if (enrollPayload.teacher_id !== undefined) {
                         s.teacher_id = enrollPayload.teacher_id;
@@ -3202,7 +3208,10 @@
                 const s = bsAllStudents.find(s => s.id === sid);
                 if (s) {
                     s.status = status;
-                    if (group) s.group_id = group;
+                    if (group) {
+                        s.group_id = group;
+                        s.group_ids = group.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
+                    }
                     s.remaining_credits = credits;
                     s.subscription_days = day;
                     s.lecture_time = time;
