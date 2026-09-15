@@ -429,32 +429,47 @@ function selectCourseTab(cName) {
 function calculateGroupUpcomingDates(dayName, count) {
     const dates = [];
     const today = new Date(2026, 8, 11);
-    let targetDay = 1;
     
     if (!dayName) dayName = 'الاثنين';
-    if (dayName.includes('السبت')) targetDay = 6;
-    else if (dayName.includes('الأحد') || dayName.includes('الاحد')) targetDay = 0;
-    else if (dayName.includes('الاثنين') || dayName.includes('الإثنين') || dayName.includes('اتنين')) targetDay = 1;
-    else if (dayName.includes('الثلاثاء')) targetDay = 2;
-    else if (dayName.includes('الأربعاء') || dayName.includes('الاربعاء')) targetDay = 3;
-    else if (dayName.includes('الخميس')) targetDay = 4;
-    else if (dayName.includes('الجمعة') || dayName.includes('الجمعه')) targetDay = 5;
+    
+    const dayMap = [
+        { name: 'الأحد', regex: /أحد|احد/, day: 0 },
+        { name: 'الإثنين', regex: /اثنين|إثنين|اتنين/, day: 1 },
+        { name: 'الثلاثاء', regex: /ثلاثاء|تلات/, day: 2 },
+        { name: 'الأربعاء', regex: /أربعاء|اربعاء|اربع/, day: 3 },
+        { name: 'الخميس', regex: /خميس/, day: 4 },
+        { name: 'الجمعة', regex: /جمعة|جمعه/, day: 5 },
+        { name: 'السبت', regex: /سبت/, day: 6 }
+    ];
 
-    let current = new Date(today);
-    let daysUntilTarget = (targetDay - current.getDay() + 7) % 7;
-    if (daysUntilTarget === 0) daysUntilTarget = 7;
-    current.setDate(current.getDate() + daysUntilTarget);
+    const targetDays = [];
+    dayMap.forEach(item => {
+        if (item.regex.test(dayName)) {
+            targetDays.push(item.day);
+        }
+    });
+
+    if (targetDays.length === 0) {
+        targetDays.push(1); // default Monday
+    }
 
     const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
     const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-    for (let i = 0; i < count; i++) {
-        const dFormatted = dayNames[current.getDay()] + ' ' + current.getDate() + ' ' + monthNames[current.getMonth()] + ' ' + current.getFullYear();
-        dates.push({
-            dateFormatted: dFormatted,
-            shortDate: current.getDate() + '/' + (current.getMonth() + 1) + '/' + current.getFullYear()
-        });
-        current.setDate(current.getDate() + 7);
+    let current = new Date(today);
+    current.setDate(current.getDate() + 1);
+
+    while (dates.length < count) {
+        const d = current.getDay();
+        if (targetDays.includes(d)) {
+            const dFormatted = dayNames[d] + ' ' + current.getDate() + ' ' + monthNames[current.getMonth()] + ' ' + current.getFullYear();
+            dates.push({
+                dayName: dayNames[d],
+                dateFormatted: dFormatted,
+                shortDate: current.getDate() + '/' + (current.getMonth() + 1) + '/' + current.getFullYear()
+            });
+        }
+        current.setDate(current.getDate() + 1);
     }
     return dates;
 }
@@ -572,7 +587,15 @@ async function loadSelectedCourseLectures() {
             l.is_unlocked = (l.lecture_number <= rc);
             l.block_number = Math.ceil(l.lecture_number / 4);
             if (idx < upcomingDates.length) {
-                l.scheduled_time = upcomingDates[idx].dateFormatted + ' • ' + timeText + ' (' + durLabel + ')';
+                let slotTime = timeText;
+                if (timeText && timeText.includes('|')) {
+                    const parts = timeText.split('|').map(p => p.trim());
+                    const match = parts.find(p => p.includes(upcomingDates[idx].dayName) || (upcomingDates[idx].dayName === 'الإثنين' && p.includes('الاثنين')));
+                    if (match) {
+                        slotTime = match.replace(/^(السبت|الأحد|الاحد|الإثنين|الاثنين|الثلاثاء|الأربعاء|الاربعاء|الخميس|الجمعة)\s*/, '').trim();
+                    }
+                }
+                l.scheduled_time = upcomingDates[idx].dateFormatted + ' • ' + slotTime + ' (' + durLabel + ')';
             } else {
                 l.scheduled_time = timeText + ' (' + durLabel + ')';
             }

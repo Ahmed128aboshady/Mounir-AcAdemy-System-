@@ -573,7 +573,7 @@
     <!-- BULK ACTION MODAL                                                 -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <div id="bulkActionModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
                     <h3 class="font-black text-base text-slate-900" id="bulkModalTitle">تعديل جماعي</h3>
@@ -2320,6 +2320,137 @@
             }
         }
 
+        // ── Bulk Schedule Helpers ─────────────────────────────────
+        window.addBulkScheduleSlot = function(defaultDay = '', defaultTime = '') {
+            const container = document.getElementById('bulkScheduleSlotsContainer');
+            if (!container) return;
+            const currentSlots = container.querySelectorAll('.schedule-slot');
+            const newIndex = currentSlots.length + 1;
+            
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'schedule-slot p-3 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-2 relative';
+            slotDiv.setAttribute('data-slot', newIndex);
+            
+            const arabicNums = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع'];
+            const titleLabel = `الموعد ${arabicNums[newIndex - 1] || newIndex}`;
+
+            slotDiv.innerHTML = `
+                <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+                    <span class="slot-title flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span>${titleLabel}</span>
+                    </span>
+                    <button type="button" onclick="removeBulkScheduleSlot(this)" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                        <span>🗑️</span>
+                        <span>حذف</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">اليوم الأسبوعي</label>
+                        <select class="bulkSlotDay w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] text-xs font-bold">
+                            <option value="">— اختر اليوم —</option>
+                            <option value="السبت" ${defaultDay === 'السبت' ? 'selected' : ''}>السبت</option>
+                            <option value="الأحد" ${defaultDay === 'الأحد' ? 'selected' : ''}>الأحد</option>
+                            <option value="الاثنين" ${defaultDay === 'الاثنين' ? 'selected' : ''}>الاثنين</option>
+                            <option value="الثلاثاء" ${defaultDay === 'الثلاثاء' ? 'selected' : ''}>الثلاثاء</option>
+                            <option value="الأربعاء" ${defaultDay === 'الأربعاء' ? 'selected' : ''}>الأربعاء</option>
+                            <option value="الخميس" ${defaultDay === 'الخميس' ? 'selected' : ''}>الخميس</option>
+                            <option value="الجمعة" ${defaultDay === 'الجمعة' ? 'selected' : ''}>الجمعة</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">وقت الحصة</label>
+                        <input type="text" value="${defaultTime}" placeholder="مثال: 8:00 مساءً" class="bulkSlotTime w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] text-xs font-bold">
+                    </div>
+                </div>
+            `;
+            container.appendChild(slotDiv);
+            renumberBulkScheduleSlots();
+        };
+
+        window.removeBulkScheduleSlot = function(btn) {
+            const slot = btn.closest('.schedule-slot');
+            if (slot) {
+                slot.remove();
+                renumberBulkScheduleSlots();
+            }
+        };
+
+        window.renumberBulkScheduleSlots = function() {
+            const container = document.getElementById('bulkScheduleSlotsContainer');
+            if (!container) return;
+            const slots = container.querySelectorAll('.schedule-slot');
+            const arabicNums = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع'];
+            slots.forEach((slot, index) => {
+                slot.setAttribute('data-slot', index + 1);
+                const titleSpan = slot.querySelector('.slot-title span:last-child');
+                if (titleSpan) {
+                    titleSpan.innerText = `الموعد ${arabicNums[index] || (index + 1)}`;
+                }
+                const dot = slot.querySelector('.slot-title span:first-child');
+                if (dot) {
+                    dot.className = index === 0 ? 'w-2 h-2 rounded-full bg-emerald-500' : 'w-2 h-2 rounded-full bg-blue-500';
+                }
+                let delBtn = slot.querySelector('button');
+                if (slots.length === 1) {
+                    if (delBtn) delBtn.classList.add('hidden');
+                } else {
+                    if (delBtn) delBtn.classList.remove('hidden');
+                }
+            });
+        };
+
+        window.setSchedulePreset = function(...days) {
+            const container = document.getElementById('bulkScheduleSlotsContainer');
+            if (!container) return;
+            const firstTimeInput = container.querySelector('.bulkSlotTime');
+            const commonTime = firstTimeInput ? firstTimeInput.value.trim() : '';
+
+            container.innerHTML = '';
+            days.forEach((d, idx) => {
+                const arabicNums = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع'];
+                const titleLabel = `الموعد ${arabicNums[idx] || (idx + 1)}`;
+                const isFirst = idx === 0;
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'schedule-slot p-3 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-2 relative';
+                slotDiv.setAttribute('data-slot', idx + 1);
+                slotDiv.innerHTML = `
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+                        <span class="slot-title flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full ${isFirst ? 'bg-emerald-500' : 'bg-blue-500'}"></span>
+                            <span>${titleLabel}</span>
+                        </span>
+                        <button type="button" onclick="removeBulkScheduleSlot(this)" class="${days.length === 1 ? 'hidden' : ''} text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                            <span>🗑️</span>
+                            <span>حذف</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">اليوم الأسبوعي</label>
+                            <select class="bulkSlotDay w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] text-xs font-bold">
+                                <option value="">— اختر اليوم —</option>
+                                <option value="السبت" ${d === 'السبت' ? 'selected' : ''}>السبت</option>
+                                <option value="الأحد" ${d === 'الأحد' ? 'selected' : ''}>الأحد</option>
+                                <option value="الاثنين" ${d === 'الاثنين' ? 'selected' : ''}>الاثنين</option>
+                                <option value="الثلاثاء" ${d === 'الثلاثاء' ? 'selected' : ''}>الثلاثاء</option>
+                                <option value="الأربعاء" ${d === 'الأربعاء' ? 'selected' : ''}>الأربعاء</option>
+                                <option value="الخميس" ${d === 'الخميس' ? 'selected' : ''}>الخميس</option>
+                                <option value="الجمعة" ${d === 'الجمعة' ? 'selected' : ''}>الجمعة</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 mb-1">وقت الحصة</label>
+                            <input type="text" value="${commonTime}" placeholder="مثال: 8:00 مساءً" class="bulkSlotTime w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] text-xs font-bold">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(slotDiv);
+            });
+            renumberBulkScheduleSlots();
+        };
+
         // ── Bulk Action Modal ────────────────────────────────────
         function openBulkAction(action) {
             if (bsSelectedIds.size === 0) return;
@@ -2377,22 +2508,64 @@
                     </div>`;
 
             } else if (action === 'schedule') {
-                title = '🕐 تعديل اليوم والوقت جماعياً';
+                title = '🕐 تعديل اليوم والوقت جماعياً (موعد أو أكثر)';
                 bodyHTML = `
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1.5">اليوم الأسبوعي</label>
-                            <select id="bulkDayInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
-                                <option value="">— بدون تغيير —</option>
-                                <option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option>
-                                <option>الأربعاء</option><option>الخميس</option><option>الجمعة</option><option>السبت</option>
-                            </select>
+                    <div class="space-y-4">
+                        <div class="p-3 bg-blue-50/80 border border-blue-200 rounded-2xl text-xs text-blue-950 flex items-start gap-2">
+                            <span class="text-base leading-none">💡</span>
+                            <div class="leading-relaxed">
+                                يمكنك تحديد <strong>موعد واحد</strong> أو <strong>عدة مواعيد في الأسبوع</strong> (للمجموعات التي تدرس مرتين أو أكثر أسبوعياً).
+                            </div>
                         </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1.5">وقت الحصة</label>
-                            <input type="text" id="bulkTimeInput" placeholder="مثال: 8:00 مساءً"
-                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+
+                        <!-- Presets -->
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
+                            <span class="block text-[11px] font-extrabold text-slate-600">⚡ اختصارات سريعة للأيام المزدوجة:</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="setSchedulePreset('السبت', 'الثلاثاء')" class="text-[11px] bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm transition">السبت والثلاثاء</button>
+                                <button type="button" onclick="setSchedulePreset('الأحد', 'الأربعاء')" class="text-[11px] bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm transition">الأحد والأربعاء</button>
+                                <button type="button" onclick="setSchedulePreset('الاثنين', 'الخميس')" class="text-[11px] bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm transition">الاثنين والخميس</button>
+                                <button type="button" onclick="setSchedulePreset('السبت', 'الاثنين', 'الأربعاء')" class="text-[11px] bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm transition">3 أيام (سبت/اثنين/أربعاء)</button>
+                            </div>
                         </div>
+
+                        <!-- Slots List -->
+                        <div id="bulkScheduleSlotsContainer" class="space-y-2.5 max-h-[45vh] overflow-y-auto pr-0.5">
+                            <!-- Default Slot 1 -->
+                            <div class="schedule-slot p-3 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-2" data-slot="1">
+                                <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+                                    <span class="slot-title flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span>الموعد الأول</span>
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 mb-1">اليوم الأسبوعي</label>
+                                        <select class="bulkSlotDay w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] text-xs font-bold">
+                                            <option value="">— اختر اليوم —</option>
+                                            <option value="السبت">السبت</option>
+                                            <option value="الأحد">الأحد</option>
+                                            <option value="الاثنين">الاثنين</option>
+                                            <option value="الثلاثاء">الثلاثاء</option>
+                                            <option value="الأربعاء">الأربعاء</option>
+                                            <option value="الخميس">الخميس</option>
+                                            <option value="الجمعة">الجمعة</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 mb-1">وقت الحصة</label>
+                                        <input type="text" placeholder="مثال: 8:00 مساءً" class="bulkSlotTime w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] text-xs font-bold">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Slot Button -->
+                        <button type="button" onclick="addBulkScheduleSlot()" class="w-full flex items-center justify-center gap-1.5 bg-blue-50/60 hover:bg-blue-50 border border-dashed border-[#41519C]/60 text-[#41519C] py-2.5 rounded-xl text-xs font-extrabold transition">
+                            <span>➕</span>
+                            <span>إضافة موعد آخر في الأسبوع</span>
+                        </button>
                     </div>`;
 
             } else if (action === 'status_active') {
@@ -2461,11 +2634,48 @@
                 successMsg = `تم تعديل رصيد الحصص لـ ${ids.length} طالب ✅`;
 
             } else if (action === 'schedule') {
-                const day = document.getElementById('bulkDayInput').value;
-                const time = document.getElementById('bulkTimeInput').value.trim();
-                if (day) enrollPayload.subscription_days = day;
-                if (time) enrollPayload.lecture_time = time;
-                successMsg = `تم تعديل الجدول لـ ${ids.length} طالب ✅`;
+                const slotEls = document.querySelectorAll('#bulkScheduleSlotsContainer .schedule-slot');
+                const slotsData = [];
+                slotEls.forEach(slot => {
+                    const day = (slot.querySelector('.bulkSlotDay')?.value || '').trim();
+                    const time = (slot.querySelector('.bulkSlotTime')?.value || '').trim();
+                    if (day) {
+                        slotsData.push({ day, time });
+                    }
+                });
+
+                if (slotsData.length === 0) {
+                    MonirPopup ? MonirPopup.error('يرجى اختيار يوم واحد على الأقل للموعد') : alert('يرجى اختيار يوم واحد على الأقل للموعد');
+                    return;
+                }
+
+                // Combine days: e.g. "السبت والثلاثاء"
+                let combinedDays = '';
+                if (slotsData.length === 1) {
+                    combinedDays = slotsData[0].day;
+                } else if (slotsData.length === 2) {
+                    combinedDays = `${slotsData[0].day} و${slotsData[1].day}`;
+                } else {
+                    const allExceptLast = slotsData.slice(0, -1).map(s => s.day).join('، ');
+                    const lastDay = slotsData[slotsData.length - 1].day;
+                    combinedDays = `${allExceptLast} و${lastDay}`;
+                }
+
+                // Combine times
+                const timesWithDay = slotsData.map(s => s.time ? `${s.day} ${s.time}` : s.day);
+                const uniqueTimes = [...new Set(slotsData.map(s => s.time).filter(Boolean))];
+                let combinedTimes = '';
+                if (uniqueTimes.length === 1) {
+                    combinedTimes = uniqueTimes[0];
+                } else if (uniqueTimes.length > 1) {
+                    combinedTimes = timesWithDay.join(' | ');
+                }
+
+                enrollPayload.subscription_days = combinedDays;
+                if (combinedTimes) {
+                    enrollPayload.lecture_time = combinedTimes;
+                }
+                successMsg = `تم تعديل الجدول (${combinedDays}) لـ ${ids.length} طالب ✅`;
 
             } else if (action === 'status_active') {
                 updatePayload.status = 'active';
