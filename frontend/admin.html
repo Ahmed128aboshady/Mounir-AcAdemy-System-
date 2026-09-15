@@ -11,8 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
     <script src="js/meet_manager.js"></script>
-    <script src="js/supabase_client.js"></script>
-    <script src="js/api_mock.js?v=20260910_auth4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase_client.js?v=20260915_t2"></script>
+    <script src="js/api_mock.js?v=20260915_t2"></script>
     <script>
         // Access Guard for Admin
         (function checkAdminAuth() {
@@ -732,6 +733,14 @@
                 <!-- Student Rows List -->
                 <div id="asgStudentsListContainer" class="flex-1 overflow-y-auto space-y-1.5 border border-slate-200 rounded-2xl p-2 bg-slate-50/50 min-h-[180px] max-h-[260px]">
                     <!-- Dynamic rows -->
+                </div>
+
+                <!-- Multi-group Option Toggle -->
+                <div class="bg-indigo-50/90 border border-indigo-200 rounded-xl p-2.5 flex items-center justify-between text-xs flex-shrink-0">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-indigo-950">
+                        <input type="checkbox" id="asgKeepExistingGroups" class="w-4 h-4 accent-[#41519C] rounded cursor-pointer" checked>
+                        <span>إبقاء المجموعات السابقة للطالب (إضافة كمجموعة إضافية دون حذفه من مجموعته الحالية) 🌟</span>
+                    </label>
                 </div>
 
                 <!-- Action Submit Button -->
@@ -2102,14 +2111,36 @@
                         }
                         debugLog.push(`✔ Enrollments: ${enrData.length}`);
 
-                        // Map enrollments by student_id
+                        // Map enrollments by student_id (both first and full list)
                         const enrMap = {};
-                        enrData.forEach(e => { if (!enrMap[e.student_id]) enrMap[e.student_id] = e; });
+                        const enrListMap = {};
+                        enrData.forEach(e => {
+                            if (!enrMap[e.student_id]) enrMap[e.student_id] = e;
+                            if (!enrListMap[e.student_id]) enrListMap[e.student_id] = [];
+                            enrListMap[e.student_id].push(e);
+                        });
 
                         students = sData.map(s => {
-                            const enr = enrMap[s.id] || {};
+                            const enrList = enrListMap[s.id] || [];
+                            const enr = enrList[0] || enrMap[s.id] || {};
                             const teacherObj = enr.teachers || null;
-                            const groupId = enr.group_id || s.qr_code || s.group_id || '—';
+
+                            // Collect all unique group IDs across all enrollments and student qr_code
+                            const rawGroups = [];
+                            enrList.forEach(e => {
+                                if (e.group_id) {
+                                    e.group_id.split(/[,،\s]+/).forEach(g => { if (g.trim()) rawGroups.push(g.trim()); });
+                                }
+                            });
+                            if (s.qr_code) {
+                                s.qr_code.split(/[,،\s]+/).forEach(g => { if (g.trim()) rawGroups.push(g.trim()); });
+                            }
+                            if (s.group_id) {
+                                s.group_id.split(/[,،\s]+/).forEach(g => { if (g.trim()) rawGroups.push(g.trim()); });
+                            }
+                            const groupIds = [...new Set(rawGroups)].filter(Boolean);
+                            const groupId = groupIds.length > 0 ? groupIds.join(', ') : (enr.group_id || s.qr_code || s.group_id || '—');
+
                             let status = 'active';
                             const rawSt = String(s.status || s.account_status || (enr && enr.status) || '').toLowerCase().trim();
                             if (['inactive', 'غير نشط', 'موقوف', 'frozen', 'paused', 'stopped', 'expired'].includes(rawSt)) {
@@ -2123,6 +2154,7 @@
                                 age:              s.age || 0,
                                 gender:           guessGender(s.name),
                                 group_id:         groupId,
+                                group_ids:        groupIds,
                                 status:           status,
                                 remaining_credits: enr.remaining_credits ?? s.remaining_credits ?? 0,
                                 teacher_id:       enr.teacher_id || (teacherObj ? teacherObj.id : null),
@@ -2130,7 +2162,8 @@
                                 subscription_days: enr.subscription_days || s.subscription_days || '—',
                                 lecture_time:     enr.lecture_time || s.lecture_time || '—',
                                 session_duration: enr.session_duration || s.session_duration || '20 دقيقة',
-                                enrollment_id:    enr.id || null
+                                enrollment_id:    enr.id || null,
+                                enrollments:      enrList
                             };
                         });
                         debugLog.push(`✔ Mapped: ${students.length} students`);
@@ -2297,10 +2330,11 @@
             let filtered = bsAllStudents.filter(s => {
                 // Name / code search
                 if (q && !s.name.toLowerCase().includes(q) && !s.student_code.toLowerCase().includes(q)) return false;
-                // Group ID: text input uses partial match (contains), dropdown uses exact match
+                // Group ID: text input uses partial match (contains), dropdown matches if any group matches
                 const gid = (s.group_id || '').toLowerCase();
+                const sGroups = (s.group_ids && s.group_ids.length > 0) ? s.group_ids : (s.group_id ? s.group_id.split(/[,،\s]+/).filter(Boolean) : []);
                 if (groupText && !gid.includes(groupText)) return false;
-                if (groupSel  && s.group_id !== groupSel) return false;
+                if (groupSel && !sGroups.includes(groupSel)) return false;
                 // Other filters
                 if (teacherF && String(s.teacher_id) !== teacherF) return false;
                 if (status   && s.status !== status) return false;
@@ -3449,17 +3483,98 @@
             btn.disabled = true;
             btn.innerHTML = '⏳ جاري إضافة الطلاب إلى المجموعة...';
 
+            const keepExisting = document.getElementById('asgKeepExistingGroups')?.checked ?? true;
+
             try {
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
-                    await client.from('students').update({ qr_code: targetGroup }).in('id', sids);
-                    await client.from('enrollments').update({ group_id: targetGroup }).in('student_id', sids);
-                }
 
-                if (window.bsAllStudents) {
+                    // Find if targetGroup has existing enrollment template (for teacher, schedule, duration)
+                    let targetTemplate = null;
+                    try {
+                        const { data: tmplList } = await client
+                            .from('enrollments')
+                            .select('teacher_id, course_name, subscription_days, lecture_time, session_duration, remaining_credits')
+                            .eq('group_id', targetGroup)
+                            .limit(1);
+                        if (tmplList && tmplList.length > 0) targetTemplate = tmplList[0];
+                    } catch(e) {}
+
+                    // Get current max enrollment ID to prevent sequence primary key collision
+                    let maxEnrId = 800;
+                    try {
+                        const { data: maxRows } = await client
+                            .from('enrollments')
+                            .select('id')
+                            .order('id', { ascending: false })
+                            .limit(1);
+                        if (maxRows && maxRows.length > 0 && maxRows[0].id) {
+                            maxEnrId = maxRows[0].id;
+                        }
+                    } catch(e) {}
+
+                    for (const sid of sids) {
+                        const s = (window.bsAllStudents || []).find(x => x.id === sid);
+                        const curGroups = (s && s.group_ids && s.group_ids.length > 0)
+                            ? s.group_ids
+                            : ((s && s.group_id && s.group_id !== '—') ? s.group_id.split(/[,،\s]+/).filter(Boolean) : []);
+
+                        if (keepExisting) {
+                            // Merge groups
+                            const newGroupList = [...new Set([...curGroups, targetGroup])];
+                            const newGroupStr = newGroupList.join(', ');
+
+                            await client.from('students').update({ qr_code: newGroupStr }).eq('id', sid);
+
+                            // Check if an enrollment for (sid, targetGroup) already exists
+                            const { data: existsList } = await client
+                                .from('enrollments')
+                                .select('id')
+                                .eq('student_id', sid)
+                                .eq('group_id', targetGroup);
+
+                            if (!existsList || existsList.length === 0) {
+                                maxEnrId++;
+                                const newEnr = {
+                                    id: maxEnrId,
+                                    student_id: sid,
+                                    group_id: targetGroup,
+                                    teacher_id: targetTemplate ? targetTemplate.teacher_id : (s?.teacher_id || 1),
+                                    course_name: targetTemplate ? targetTemplate.course_name : (s?.course_name || 'مسار القرآن الكريم والتدبر'),
+                                    remaining_credits: (s?.remaining_credits !== undefined) ? s.remaining_credits : 8,
+                                    subscription_days: targetTemplate ? targetTemplate.subscription_days : (s?.subscription_days || '—'),
+                                    lecture_time: targetTemplate ? targetTemplate.lecture_time : (s?.lecture_time || '—'),
+                                    session_duration: targetTemplate ? targetTemplate.session_duration : (s?.session_duration || '20 دقيقة'),
+                                    status: 'active'
+                                };
+                                await client.from('enrollments').insert([newEnr]);
+                            }
+
+                            if (s) {
+                                s.group_ids = newGroupList;
+                                s.group_id = newGroupStr;
+                            }
+                        } else {
+                            // Transfer / overwrite
+                            await client.from('students').update({ qr_code: targetGroup }).eq('id', sid);
+                            await client.from('enrollments').update({ group_id: targetGroup }).eq('student_id', sid);
+                            if (s) {
+                                s.group_ids = [targetGroup];
+                                s.group_id = targetGroup;
+                            }
+                        }
+                    }
+                } else if (window.bsAllStudents) {
                     bsAllStudents.forEach(s => {
                         if (sids.includes(s.id)) {
-                            s.group_id = targetGroup;
+                            if (keepExisting) {
+                                const cur = s.group_ids || (s.group_id ? s.group_id.split(/[,،\s]+/).filter(Boolean) : []);
+                                s.group_ids = [...new Set([...cur, targetGroup])];
+                                s.group_id = s.group_ids.join(', ');
+                            } else {
+                                s.group_ids = [targetGroup];
+                                s.group_id = targetGroup;
+                            }
                         }
                     });
                 }

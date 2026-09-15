@@ -262,17 +262,18 @@
                         // Teacher name: from DB JOIN only — no hardcoded fallback
                         const teacherName = (e.teachers && e.teachers.name) ? e.teachers.name : (locE.teacher_name || '');
                         const rc = (e.remaining_credits !== undefined) ? e.remaining_credits : (locE.remaining_credits !== undefined ? locE.remaining_credits : 0);
+                        const enrGid = e.group_id || groupIdFromDB;
                         return {
                             ...locE,
                             ...e,
-                            group_id: groupIdFromDB,
+                            group_id: enrGid,
                             teacher_name: teacherName,
                             teacher_id: e.teacher_id,
                             // Days/time from DB columns (set by upload script), fallback to empty
                             subscription_days: e.subscription_days || locE.subscription_days || '',
                             lecture_time: e.lecture_time || locE.lecture_time || '',
                             session_duration: e.session_duration || locE.session_duration || '',
-                            google_meet_url: (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(groupIdFromDB) : (e.google_meet_url || locE.google_meet_url || 'https://meet.google.com'),
+                            google_meet_url: (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(enrGid) : (e.google_meet_url || locE.google_meet_url || 'https://meet.google.com'),
                             account_status: stData.account_status,
                             remaining_credits: rc,
                             total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, rc),

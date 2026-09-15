@@ -11,8 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js?v=20260915_t1"></script>
     <script src="js/meet_manager.js?v=20260915_reset_jitsi"></script>
-    <script src="js/supabase_client.js?v=20260915_t1"></script>
-    <script src="js/api_mock.js?v=20260915_t1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase_client.js?v=20260915_t2"></script>
+    <script src="js/api_mock.js?v=20260915_t2"></script>
     <script>
         // Auth guard — teachers and admins only
         (function() {
@@ -241,6 +242,14 @@
             container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-4xl mb-3 animate-bounce">📚</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
 
             try {
+                // Ensure MonirDB client is initialized
+                if (window.MonirDB && !window.MonirDB.getClient()) {
+                    for (let i = 0; i < 20; i++) {
+                        if (window.MonirDB.getClient()) break;
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                }
+
                 // Try Supabase first for teacher info
                 let teacherName = '';
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
@@ -271,60 +280,66 @@
                                 studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
                             } catch(e) {}
 
-                            // Group by qr_code (which stores group_id)
+                            // Group by enrollment group_id or qr_code (supports multiple groups)
                             const groupsMap = {};
                             enrData.forEach(e => {
                                 const s = e.students;
                                 if (!s) return;
-                                const gid = s.qr_code || e.group_id || 'G000';
+                                const rawGid = (e.group_id || s.qr_code || 'G000').toString();
+                                const gids = rawGid.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
+                                if (gids.length === 0) gids.push('G000');
 
-                                const sOv = studentScheds[s.id] || {};
-                                const gOv = groupScheds[gid] || {};
+                                gids.forEach(gid => {
+                                    const sOv = studentScheds[s.id] || {};
+                                    const gOv = groupScheds[gid] || {};
 
-                                const subDays = sOv.subscription_days || e.subscription_days || gOv.subscription_days || '';
-                                const lecTime = sOv.lecture_time || e.lecture_time || gOv.lecture_time || '';
-                                const sesDur  = sOv.session_duration || e.session_duration || gOv.session_duration || '';
+                                    const subDays = sOv.subscription_days || e.subscription_days || gOv.subscription_days || '';
+                                    const lecTime = sOv.lecture_time || e.lecture_time || gOv.lecture_time || '';
+                                    const sesDur  = sOv.session_duration || e.session_duration || gOv.session_duration || '';
 
-                                if (!groupsMap[gid]) {
-                                    const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                                        ? window.getGroupMeetUrl(gid)
-                                        : ('https://meet.google.com/mnr-' + gid.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                                    groupsMap[gid] = {
-                                        group_id: gid,
-                                        group_name: e.course_name || gid,
-                                        subscription_days: subDays,
-                                        lecture_time: lecTime,
-                                        session_duration: sesDur,
-                                        google_meet_url: meetUrl,
-                                        students: []
-                                    };
-                                }
-                                if (!groupsMap[gid].subscription_days && subDays) groupsMap[gid].subscription_days = subDays;
-                                if (!groupsMap[gid].lecture_time && lecTime) groupsMap[gid].lecture_time = lecTime;
-                                if (!groupsMap[gid].session_duration && sesDur) groupsMap[gid].session_duration = sesDur;
+                                    if (!groupsMap[gid]) {
+                                        const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                                            ? window.getGroupMeetUrl(gid)
+                                            : ('https://meet.google.com/mnr-' + gid.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                                        groupsMap[gid] = {
+                                            group_id: gid,
+                                            group_name: e.course_name || gid,
+                                            subscription_days: subDays,
+                                            lecture_time: lecTime,
+                                            session_duration: sesDur,
+                                            google_meet_url: meetUrl,
+                                            students: []
+                                        };
+                                    }
+                                    if (!groupsMap[gid].subscription_days && subDays) groupsMap[gid].subscription_days = subDays;
+                                    if (!groupsMap[gid].lecture_time && lecTime) groupsMap[gid].lecture_time = lecTime;
+                                    if (!groupsMap[gid].session_duration && sesDur) groupsMap[gid].session_duration = sesDur;
 
-                                groupsMap[gid].students.push({
-                                    id: s.id,
-                                    student_id: s.id,
-                                    name: s.name,
-                                    student_name: s.name,
-                                    student_code: s.student_code,
-                                    age: s.age,
-                                    course_name: e.course_name,
-                                    group_id: gid,
-                                    subscription_days: subDays,
-                                    lecture_time: lecTime,
-                                    session_duration: sesDur,
-                                    remaining_credits: e.remaining_credits || 0,
-                                    excuse_count: e.excuse_count || 0,
-                                    max_allowed_excuses: e.max_allowed_excuses || 1,
-                                    current_surah: e.current_surah,
-                                    current_aya: e.current_aya || 1,
-                                    present_count: e.present_count || 0,
-                                    absent_count: e.absent_count || 0,
-                                    status: e.status || 'active',
-                                    rating: e.rating || null,
-                                    enrollment_id: e.id,
+                                    if (!groupsMap[gid].students.some(st => st.id === s.id && st.enrollment_id === e.id)) {
+                                        groupsMap[gid].students.push({
+                                            id: s.id,
+                                            student_id: s.id,
+                                            name: s.name,
+                                            student_name: s.name,
+                                            student_code: s.student_code,
+                                            age: s.age,
+                                            course_name: e.course_name,
+                                            group_id: gid,
+                                            subscription_days: subDays,
+                                            lecture_time: lecTime,
+                                            session_duration: sesDur,
+                                            remaining_credits: e.remaining_credits || 0,
+                                            excuse_count: e.excuse_count || 0,
+                                            max_allowed_excuses: e.max_allowed_excuses || 1,
+                                            current_surah: e.current_surah,
+                                            current_aya: e.current_aya || 1,
+                                            present_count: e.present_count || 0,
+                                            absent_count: e.absent_count || 0,
+                                            status: e.status || 'active',
+                                            rating: e.rating || null,
+                                            enrollment_id: e.id,
+                                        });
+                                    }
                                 });
                             });
 
@@ -712,9 +727,9 @@
                     <td class="p-3">${quranProgress}</td>
                     <td class="p-3">
                         <div class="flex items-center justify-center gap-1 flex-wrap">
-                            <button onclick="recordSession(${s.id}, 'present')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم حصة">حضور</button>
-                            <button onclick="recordSession(${s.id}, 'excused')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="عذر (الأول مجاني)">عذر</button>
-                            <button onclick="recordSession(${s.id}, 'absent')" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">غياب</button>
+                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم حصة">حضور</button>
+                            <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'})" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="عذر (الأول مجاني)">عذر</button>
+                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'})" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">غياب</button>
                             <button onclick="openSurahModal(${s.id}, '${studentCode}', '${(s.current_surah || '').replace(/'/g, '')}', ${s.current_aya || 1}, '${safeNameEsc}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2 py-1 rounded-lg text-[11px] transition border border-slate-300">تحديث السورة</button>
                             <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition">تقييم</button>
                         </div>
@@ -723,7 +738,7 @@
             `;
         }
 
-        async function recordSession(studentId, sessionStatus) {
+        async function recordSession(studentId, sessionStatus, enrollmentId = null) {
             const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر مقبول (الأول مجاني)', 'absent': 'غياب بدون عذر' };
             
             let confirmed = false;
@@ -743,12 +758,15 @@
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const client = window.MonirDB.getClient();
-                        // Get current enrollment
-                        const { data: enrData } = await client
-                            .from('enrollments')
-                            .select('*')
-                            .eq('student_id', studentId)
-                            .single();
+                        // Get current enrollment (by enrollmentId if provided, else by student_id limit 1)
+                        let enrQuery = client.from('enrollments').select('*');
+                        if (enrollmentId) {
+                            enrQuery = enrQuery.eq('id', enrollmentId);
+                        } else {
+                            enrQuery = enrQuery.eq('student_id', studentId);
+                        }
+                        const { data: enrList } = await enrQuery.limit(1);
+                        const enrData = (enrList && enrList.length > 0) ? enrList[0] : null;
 
                         if (enrData) {
                             let updates = {};
