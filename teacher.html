@@ -466,7 +466,7 @@
                                         <a href="${meetUrl}" target="_blank" id="meet-link-${idSafe}" class="text-xs font-mono font-bold text-emerald-700 hover:text-emerald-800 underline truncate max-w-[280px] sm:max-w-[400px]" dir="ltr">${meetUrl}</a>
                                     </div>
                                     <p class="text-[11px] text-slate-600 mt-0.5">
-                                        هذه القاعة مفعلة وجاهزة 100% لك ولجميع طلاب هذه المجموعة (${g.group_id}). يمكنك بدء الحصة فوراً أو وضع رابط خارجي (Meet / Zoom).
+                                        هذه القاعة مفعلة وجاهزة 100% لك ولجميع طلاب هذه المجموعة (${g.group_id}). يمكنك بدء الحصة فوراً بضغطة زر.
                                     </p>
                                 </div>
                             </div>
@@ -478,10 +478,6 @@
                                 <button type="button" onclick="copyMeetLink('${meetUrl}', this)" class="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs shadow-sm transition">
                                     <span>📋</span>
                                     <span>نسخ الرابط</span>
-                                </button>
-                                <button type="button" onclick="promptEditGroupMeetUrl('${g.group_id}', '${meetUrl}', function(newUrl){ updateTeacherGroupMeetUI('${idSafe}', '${g.group_id}', newUrl); })" class="inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold px-3 py-2 rounded-xl text-xs shadow-sm transition" title="تعديل رابط القاعة أو وضع رابط خارجي">
-                                    <span>✏️</span>
-                                    <span>تعديل الرابط</span>
                                 </button>
                             </div>
                         </div>
