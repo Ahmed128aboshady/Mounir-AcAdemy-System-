@@ -3023,6 +3023,55 @@
                     if (enrollPayload.session_duration) s.session_duration = enrollPayload.session_duration;
                 });
 
+                // Sync schedule overrides to localStorage
+                try {
+                    const groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
+                    const studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
+                    ids.forEach(id => {
+                        const s = bsAllStudents.find(st => st.id === id);
+                        const gid = s ? (s.group_id || s.qr_code) : null;
+                        if (gid) {
+                            if (!groupScheds[gid]) groupScheds[gid] = {};
+                            if (enrollPayload.subscription_days) groupScheds[gid].subscription_days = enrollPayload.subscription_days;
+                            if (enrollPayload.lecture_time) groupScheds[gid].lecture_time = enrollPayload.lecture_time;
+                            if (enrollPayload.session_duration) groupScheds[gid].session_duration = enrollPayload.session_duration;
+                        }
+                        if (!studentScheds[id]) studentScheds[id] = {};
+                        if (enrollPayload.subscription_days) studentScheds[id].subscription_days = enrollPayload.subscription_days;
+                        if (enrollPayload.lecture_time) studentScheds[id].lecture_time = enrollPayload.lecture_time;
+                        if (enrollPayload.session_duration) studentScheds[id].session_duration = enrollPayload.session_duration;
+                    });
+                    localStorage.setItem('monir_group_schedules', JSON.stringify(groupScheds));
+                    localStorage.setItem('monir_student_schedules', JSON.stringify(studentScheds));
+                } catch(e) {}
+
+                // Also sync to window.DB if present
+                if (window.DB) {
+                    if (window.DB.students) {
+                        window.DB.students.forEach(s => {
+                            if (!ids.includes(s.id)) return;
+                            if (updatePayload.status) s.status = updatePayload.status;
+                            if (updatePayload.qr_code) { s.qr_code = updatePayload.qr_code; s.group_id = updatePayload.qr_code; }
+                            if (enrollPayload.subscription_days) s.subscription_days = enrollPayload.subscription_days;
+                            if (enrollPayload.lecture_time) s.lecture_time = enrollPayload.lecture_time;
+                            if (enrollPayload.session_duration) s.session_duration = enrollPayload.session_duration;
+                            if (enrollPayload.remaining_credits !== undefined) s.remaining_credits = enrollPayload.remaining_credits;
+                            if (enrollPayload.teacher_id !== undefined) s.teacher_id = enrollPayload.teacher_id;
+                        });
+                    }
+                    if (window.DB.enrollments) {
+                        window.DB.enrollments.forEach(e => {
+                            if (!ids.includes(e.student_id)) return;
+                            if (enrollPayload.subscription_days) e.subscription_days = enrollPayload.subscription_days;
+                            if (enrollPayload.lecture_time) e.lecture_time = enrollPayload.lecture_time;
+                            if (enrollPayload.session_duration) e.session_duration = enrollPayload.session_duration;
+                            if (enrollPayload.remaining_credits !== undefined) e.remaining_credits = enrollPayload.remaining_credits;
+                            if (enrollPayload.teacher_id !== undefined) e.teacher_id = enrollPayload.teacher_id;
+                            if (updatePayload.qr_code) e.group_id = updatePayload.qr_code;
+                        });
+                    }
+                }
+
                 closeBulkActionModal();
                 clearBulkSelection();
                 applyBulkFilters();
@@ -3127,6 +3176,45 @@
                     s.teacher_id = teacherId ? parseInt(teacherId) : null;
                     const t = bsTeachersList.find(t => String(t.id) === String(teacherId));
                     s.teacher_name = t ? t.name : '—';
+                }
+
+                // Sync to localStorage overrides
+                try {
+                    const groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
+                    const studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
+                    if (group) {
+                        if (!groupScheds[group]) groupScheds[group] = {};
+                        if (day) groupScheds[group].subscription_days = day;
+                        if (time) groupScheds[group].lecture_time = time;
+                        if (duration) groupScheds[group].session_duration = duration;
+                    }
+                    if (!studentScheds[sid]) studentScheds[sid] = {};
+                    if (day) studentScheds[sid].subscription_days = day;
+                    if (time) studentScheds[sid].lecture_time = time;
+                    if (duration) studentScheds[sid].session_duration = duration;
+                    localStorage.setItem('monir_group_schedules', JSON.stringify(groupScheds));
+                    localStorage.setItem('monir_student_schedules', JSON.stringify(studentScheds));
+                } catch(e) {}
+
+                // Sync to window.DB
+                if (window.DB) {
+                    const ms = (window.DB.students || []).find(s => s.id === sid);
+                    if (ms) {
+                        if (status) ms.status = status;
+                        if (group) { ms.qr_code = group; ms.group_id = group; }
+                        if (day) ms.subscription_days = day;
+                        if (time) ms.lecture_time = time;
+                        if (duration) ms.session_duration = duration;
+                    }
+                    const me = (window.DB.enrollments || []).find(e => e.student_id === sid);
+                    if (me) {
+                        if (group) me.group_id = group;
+                        if (credits !== undefined) me.remaining_credits = credits;
+                        if (day) me.subscription_days = day;
+                        if (time) me.lecture_time = time;
+                        if (duration) me.session_duration = duration;
+                        if (teacherId) me.teacher_id = parseInt(teacherId);
+                    }
                 }
 
                 closeInlineEdit();

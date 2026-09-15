@@ -430,10 +430,17 @@
                 if (body.group_id)          s.qr_code           = body.group_id;
                 if (body.subscription_days) s.subscription_days = body.subscription_days;
                 if (body.lecture_time)      s.lecture_time      = body.lecture_time;
-                // Update enrollment credits
+                if (body.session_duration)  s.session_duration  = body.session_duration;
+                // Update enrollment
                 const enr = (DB.enrollments || []).find(e => e.student_id === sid);
-                if (enr && body.remaining_credits !== undefined) enr.remaining_credits = body.remaining_credits;
-                if (enr && body.teacher_id  !== undefined)       enr.teacher_id        = body.teacher_id;
+                if (enr) {
+                    if (body.remaining_credits !== undefined) enr.remaining_credits = body.remaining_credits;
+                    if (body.teacher_id  !== undefined)       enr.teacher_id        = body.teacher_id;
+                    if (body.subscription_days)              enr.subscription_days = body.subscription_days;
+                    if (body.lecture_time)                   enr.lecture_time      = body.lecture_time;
+                    if (body.session_duration)               enr.session_duration  = body.session_duration;
+                    if (body.group_id)                       enr.group_id          = body.group_id;
+                }
             }
             return jsonResponse({ ok: true, message: 'تم التحديث بنجاح' });
         }
@@ -546,6 +553,14 @@
             const tid = parseInt(teacherGroupsMatch[1]);
             const teacher = DB.teachers.find(t => t.id === tid) || DB.teachers[0];
 
+            let groupScheds = {}, studentScheds = {};
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
+                    studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
+                }
+            } catch(e) {}
+
             // Get all students enrolled with this teacher
             const enrs = DB.enrollments.filter(e => e.teacher_id === tid);
             
@@ -555,6 +570,14 @@
                 const s = DB.students.find(st => st.id === e.student_id);
                 if (!s) return;
                 const gid = s.qr_code || e.group_id || 'G000'; // group_id stored in qr_code
+                
+                const sOv = studentScheds[s.id] || {};
+                const gOv = groupScheds[gid] || {};
+
+                const subDays = sOv.subscription_days || e.subscription_days || s.subscription_days || gOv.subscription_days || '';
+                const lecTime = sOv.lecture_time || e.lecture_time || s.lecture_time || gOv.lecture_time || '';
+                const sesDur  = sOv.session_duration || e.session_duration || s.session_duration || gOv.session_duration || '';
+
                 if (!groupsMap[gid]) {
                     const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
                         ? window.getGroupMeetUrl(gid)
@@ -562,12 +585,19 @@
                     groupsMap[gid] = {
                         group_id: gid,
                         group_name: e.course_name || gid,
+                        subscription_days: subDays,
+                        lecture_time: lecTime,
+                        session_duration: sesDur,
                         teacher_id: tid,
                         teacher_name: teacher.name,
                         google_meet_url: meetUrl,
                         students: []
                     };
                 }
+                if (!groupsMap[gid].subscription_days && subDays) groupsMap[gid].subscription_days = subDays;
+                if (!groupsMap[gid].lecture_time && lecTime) groupsMap[gid].lecture_time = lecTime;
+                if (!groupsMap[gid].session_duration && sesDur) groupsMap[gid].session_duration = sesDur;
+
                 // Teacher view: student name & educational progress
                 groupsMap[gid].students.push({
                     id: s.id,
@@ -578,6 +608,9 @@
                     age: s.age,
                     course_name: e.course_name,
                     group_id: gid,
+                    subscription_days: subDays,
+                    lecture_time: lecTime,
+                    session_duration: sesDur,
                     remaining_credits: e.remaining_credits,
                     excuse_count: e.excuse_count || 0,
                     max_allowed_excuses: e.max_allowed_excuses || 1,

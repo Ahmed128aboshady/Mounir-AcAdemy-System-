@@ -264,12 +264,27 @@
                             .eq('teacher_id', currentTeacherId);
 
                         if (enrData && enrData.length > 0) {
+                            // Check local overrides
+                            let groupScheds = {}, studentScheds = {};
+                            try {
+                                groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
+                                studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
+                            } catch(e) {}
+
                             // Group by qr_code (which stores group_id)
                             const groupsMap = {};
                             enrData.forEach(e => {
                                 const s = e.students;
                                 if (!s) return;
                                 const gid = s.qr_code || e.group_id || 'G000';
+
+                                const sOv = studentScheds[s.id] || {};
+                                const gOv = groupScheds[gid] || {};
+
+                                const subDays = sOv.subscription_days || e.subscription_days || gOv.subscription_days || '';
+                                const lecTime = sOv.lecture_time || e.lecture_time || gOv.lecture_time || '';
+                                const sesDur  = sOv.session_duration || e.session_duration || gOv.session_duration || '';
+
                                 if (!groupsMap[gid]) {
                                     const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
                                         ? window.getGroupMeetUrl(gid)
@@ -277,10 +292,17 @@
                                     groupsMap[gid] = {
                                         group_id: gid,
                                         group_name: e.course_name || gid,
+                                        subscription_days: subDays,
+                                        lecture_time: lecTime,
+                                        session_duration: sesDur,
                                         google_meet_url: meetUrl,
                                         students: []
                                     };
                                 }
+                                if (!groupsMap[gid].subscription_days && subDays) groupsMap[gid].subscription_days = subDays;
+                                if (!groupsMap[gid].lecture_time && lecTime) groupsMap[gid].lecture_time = lecTime;
+                                if (!groupsMap[gid].session_duration && sesDur) groupsMap[gid].session_duration = sesDur;
+
                                 groupsMap[gid].students.push({
                                     id: s.id,
                                     student_id: s.id,
@@ -290,6 +312,9 @@
                                     age: s.age,
                                     course_name: e.course_name,
                                     group_id: gid,
+                                    subscription_days: subDays,
+                                    lecture_time: lecTime,
+                                    session_duration: sesDur,
                                     remaining_credits: e.remaining_credits || 0,
                                     excuse_count: e.excuse_count || 0,
                                     max_allowed_excuses: e.max_allowed_excuses || 1,
@@ -330,6 +355,28 @@
                 document.getElementById('teacherGroupsCount').innerText = data.total_groups || 0;
                 
                 teacherGroups = data.groups || [];
+
+                // Apply localStorage schedule overrides if available
+                try {
+                    const groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
+                    const studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
+                    teacherGroups.forEach(g => {
+                        const gOv = groupScheds[g.group_id] || {};
+                        if (gOv.subscription_days) g.subscription_days = gOv.subscription_days;
+                        if (gOv.lecture_time) g.lecture_time = gOv.lecture_time;
+                        if (gOv.session_duration) g.session_duration = gOv.session_duration;
+                        (g.students || []).forEach(s => {
+                            const sOv = studentScheds[s.id || s.student_id] || {};
+                            if (sOv.subscription_days) s.subscription_days = sOv.subscription_days;
+                            if (sOv.lecture_time) s.lecture_time = sOv.lecture_time;
+                            if (sOv.session_duration) s.session_duration = sOv.session_duration;
+                            if (!g.subscription_days && s.subscription_days) g.subscription_days = s.subscription_days;
+                            if (!g.lecture_time && s.lecture_time) g.lecture_time = s.lecture_time;
+                            if (!g.session_duration && s.session_duration) g.session_duration = s.session_duration;
+                        });
+                    });
+                } catch(e) {}
+
                 renderGroups(teacherGroups);
 
             } catch(err) {
@@ -346,11 +393,17 @@
             }
             const filtered = teacherGroups.filter(g =>
                 g.group_id.toLowerCase().includes(q) ||
-                g.group_name.toLowerCase().includes(q) ||
+                (g.group_name || '').toLowerCase().includes(q) ||
+                (g.subscription_days || '').toLowerCase().includes(q) ||
+                (g.lecture_time || '').toLowerCase().includes(q) ||
+                (g.session_duration || '').toLowerCase().includes(q) ||
                 g.students.some(s => 
                     (s.student_code || '').toLowerCase().includes(q) ||
                     (s.name || '').toLowerCase().includes(q) ||
-                    (s.student_name || '').toLowerCase().includes(q)
+                    (s.student_name || '').toLowerCase().includes(q) ||
+                    (s.subscription_days || '').toLowerCase().includes(q) ||
+                    (s.lecture_time || '').toLowerCase().includes(q) ||
+                    (s.session_duration || '').toLowerCase().includes(q)
                 )
             );
             renderGroups(filtered);
@@ -422,6 +475,39 @@
             groups.forEach((g, gIdx) => {
                 const idSafe = 'grp_' + (g.group_id || 'g').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
                 const meetUrl = g.google_meet_url || ((typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(g.group_id) : ('https://meet.google.com/mnr-' + (g.group_id || 'g').toLowerCase().replace(/[^a-z0-9]/g, '')));
+                
+                // Determine true schedule from group or enrolled students
+                let days = (g.subscription_days && g.subscription_days !== '—') ? g.subscription_days : '';
+                let time = (g.lecture_time && g.lecture_time !== '—') ? g.lecture_time : '';
+                let duration = (g.session_duration && g.session_duration !== '—') ? g.session_duration : '';
+                
+                if (g.students && g.students.length > 0) {
+                    if (!days) {
+                        const sWithDays = g.students.find(s => s.subscription_days && s.subscription_days !== '—');
+                        if (sWithDays) days = sWithDays.subscription_days;
+                    }
+                    if (!time) {
+                        const sWithTime = g.students.find(s => s.lecture_time && s.lecture_time !== '—');
+                        if (sWithTime) time = sWithTime.lecture_time;
+                    }
+                    if (!duration) {
+                        const sWithDur = g.students.find(s => s.session_duration && s.session_duration !== '—');
+                        if (sWithDur) duration = sWithDur.session_duration;
+                    }
+                }
+
+                // Format schedule display
+                let scheduleDisplay = '';
+                if (days && time) {
+                    scheduleDisplay = `${days} • ${time}`;
+                } else if (days) {
+                    scheduleDisplay = days;
+                } else if (time) {
+                    scheduleDisplay = time;
+                } else {
+                    scheduleDisplay = g.group_name || ('المجموعة ' + g.group_id);
+                }
+
                 const el = document.createElement('div');
                 el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden transition-all duration-200';
                 el.innerHTML = `
@@ -440,7 +526,10 @@
                             </a>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <h3 class="font-extrabold text-sm">${g.group_name || g.group_id}</h3>
+                                    <h3 class="font-extrabold text-sm flex items-center gap-2 flex-wrap">
+                                        <span>${scheduleDisplay}</span>
+                                        ${duration ? `<span class="text-[10px] bg-amber-400/20 text-amber-200 border border-amber-400/30 px-2 py-0.5 rounded-full font-bold">⏱️ ${duration}</span>` : ''}
+                                    </h3>
                                     <span id="badge-${idSafe}" class="text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-semibold">اضغط للعرض</span>
                                 </div>
                                 <p class="text-[11px] text-slate-300">مسار القرآن الكريم والتدبر</p>
@@ -465,9 +554,10 @@
                                         <span class="font-black text-xs text-slate-900">رابط قاعة الحصة المباشرة (${g.group_id}):</span>
                                         <a href="${meetUrl}" target="_blank" id="meet-link-${idSafe}" class="text-xs font-mono font-bold text-emerald-700 hover:text-emerald-800 underline truncate max-w-[280px] sm:max-w-[400px]" dir="ltr">${meetUrl}</a>
                                     </div>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">
-                                        هذه القاعة مفعلة وجاهزة 100% لك ولجميع طلاب هذه المجموعة (${g.group_id}). يمكنك بدء الحصة فوراً بضغطة زر.
-                                    </p>
+                                    <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-600 flex-wrap">
+                                        <span>📅 الموعد المعتمد: <strong class="text-slate-900">${scheduleDisplay}</strong></span>
+                                        ${duration ? `<span class="text-slate-300">|</span><span>⏱️ مدة الحلقة: <strong class="text-slate-900">${duration}</strong></span>` : ''}
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
@@ -503,8 +593,6 @@
                 `;
                 container.appendChild(el);
             });
-        }
-
         function updateTeacherGroupMeetUI(idSafe, groupId, newUrl) {
             const linkEl = document.getElementById('meet-link-' + idSafe);
             const btnEl = document.getElementById('meet-btn-' + idSafe);
@@ -554,13 +642,27 @@
                 ? `<span class="text-amber-400">${'⭐'.repeat(s.rating)}</span>` 
                 : `<span class="text-slate-300 text-[11px]">—</span>`;
 
+            const sDays = (s.subscription_days && s.subscription_days !== '—') ? s.subscription_days : '';
+            const sTime = (s.lecture_time && s.lecture_time !== '—') ? s.lecture_time : '';
+            const sDur  = (s.session_duration && s.session_duration !== '—') ? s.session_duration : '';
+
             return `
                 <tr class="student-row hover:bg-slate-50/80 transition" id="row-${s.id}">
                     <td class="p-3 text-slate-400 font-mono">${idx + 1}</td>
                     <td class="p-3">
                         <div class="font-black text-slate-900 text-xs sm:text-sm leading-tight">${studentName}</div>
-                        <div class="flex items-center gap-1.5 mt-1">
+                        <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                             <span class="font-mono font-extrabold text-slate-600 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${studentCode}</span>
+                            ${(sDays || sTime) ? `
+                                <span class="text-[10px] text-[#2D396E] font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100" title="موعد الطالب">
+                                    📅 ${sDays}${sTime ? ' • ' + sTime : ''}
+                                </span>
+                            ` : ''}
+                            ${sDur ? `
+                                <span class="text-[10px] text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200" title="مدة الحلقة">
+                                    ⏱️ ${sDur}
+                                </span>
+                            ` : ''}
                             <span class="text-slate-400 text-[10px]">${ratingDisplay}</span>
                         </div>
                     </td>
