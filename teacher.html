@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js?v=20260915_t1"></script>
-    <script src="js/meet_manager.js?v=20260915_t1"></script>
+    <script src="js/meet_manager.js?v=20260915_reset_jitsi"></script>
     <script src="js/supabase_client.js?v=20260915_t1"></script>
     <script src="js/api_mock.js?v=20260915_t1"></script>
     <script>
@@ -474,7 +474,12 @@
             container.innerHTML = '';
             groups.forEach((g, gIdx) => {
                 const idSafe = 'grp_' + (g.group_id || 'g').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
-                const meetUrl = g.google_meet_url || ((typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(g.group_id) : ('https://meet.google.com/mnr-' + (g.group_id || 'g').toLowerCase().replace(/[^a-z0-9]/g, '')));
+                const rawMeet = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                    ? window.getGroupMeetUrl(g.group_id)
+                    : (g.google_meet_url || ('https://meet.jit.si/MounirAcademy_Group_' + (g.group_id || 'g').toUpperCase().replace(/[^A-Z0-9]/g, '')));
+                const meetUrl = (rawMeet && !rawMeet.includes('meet.google.com') && g.group_id !== 'G346')
+                    ? rawMeet
+                    : ('https://meet.jit.si/MounirAcademy_Group_' + (g.group_id || 'g').toUpperCase().replace(/[^A-Z0-9]/g, ''));
                 
                 // Determine true schedule from group or enrolled students
                 let days = (g.subscription_days && g.subscription_days !== '—') ? g.subscription_days : '';
@@ -569,6 +574,10 @@
                                     <span>📋</span>
                                     <span>نسخ الرابط</span>
                                 </button>
+                                <button type="button" onclick="handleResetGroupMeet('${g.group_id}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2.5 py-2 rounded-xl text-xs shadow-sm transition" title="استعادة رابط الأكاديمية الأصلي وحذف أي رابط معدل">
+                                    <span>🔄</span>
+                                    <span>استعادة الرابط الرسمي</span>
+                                </button>
                             </div>
                         </div>
 
@@ -604,6 +613,29 @@
             }
             if (btnEl) {
                 btnEl.href = newUrl;
+            }
+        }
+
+        function handleResetGroupMeet(groupId, idSafe, btn) {
+            const cleanGid = String(groupId || '').trim();
+            const defaultUrl = (window.resetGroupMeetUrl)
+                ? window.resetGroupMeetUrl(cleanGid)
+                : ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+            updateTeacherGroupMeetUI(idSafe, cleanGid, defaultUrl);
+            const card = document.getElementById('content-' + idSafe)?.closest('.group-card');
+            if (card) {
+                const headerLink = card.querySelector('a[href*="meet."]');
+                if (headerLink) headerLink.href = defaultUrl;
+            }
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<span>✅</span> <span>تمت الاستعادة!</span>';
+                setTimeout(() => { btn.innerHTML = orig; }, 2000);
+            }
+            if (window.MonirPopup) {
+                MonirPopup.toast('تمت استعادة رابط قاعة الأكاديمية بنجاح (' + defaultUrl + ') ✅', 'success');
+            } else {
+                alert('تمت استعادة رابط قاعة الأكاديمية بنجاح:\n' + defaultUrl);
             }
         }
 
