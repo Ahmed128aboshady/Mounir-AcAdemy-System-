@@ -3669,56 +3669,137 @@
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
 
-                    const [{ data: maxSt }, { data: maxUsr }, { data: maxEnr }] = await Promise.all([
-                        client.from('students').select('id').order('id', { ascending: false }).limit(1),
-                        client.from('users').select('id').order('id', { ascending: false }).limit(1),
-                        client.from('enrollments').select('id').order('id', { ascending: false }).limit(1)
-                    ]);
+                    // Check if student with this code already exists
+                    const { data: existingStudent } = await client.from('students')
+                        .select('id')
+                        .ilike('student_code', code)
+                        .maybeSingle();
 
-                    const nextStudentId = ((maxSt && maxSt[0]) ? maxSt[0].id : 0) + 1;
-                    const nextUserId = ((maxUsr && maxUsr[0]) ? maxUsr[0].id : 0) + 1;
-                    const nextEnrollmentId = ((maxEnr && maxEnr[0]) ? maxEnr[0].id : 0) + 1;
-                    newStudentId = nextStudentId;
+                    if (existingStudent) {
+                        newStudentId = existingStudent.id;
+                        const { error: sErr } = await client.from('students').update({
+                            name: name,
+                            phone: phone,
+                            parent_phone: phone,
+                            age: age,
+                            qr_code: targetGroup,
+                            status: 'active'
+                        }).eq('id', existingStudent.id);
+                        if (sErr) throw sErr;
 
-                    const { error: sErr } = await client.from('students').insert([{
-                        id: nextStudentId,
-                        name: name,
-                        student_code: code,
-                        phone: phone,
-                        parent_phone: phone,
-                        age: age,
-                        gender: gender,
-                        qr_code: targetGroup,
-                        status: 'active'
-                    }]);
-                    if (sErr) throw sErr;
+                        // Check enrollment
+                        const { data: existingEnr } = await client.from('enrollments')
+                            .select('id')
+                            .eq('student_id', existingStudent.id)
+                            .maybeSingle();
 
-                    const { error: eErr } = await client.from('enrollments').insert([{
-                        id: nextEnrollmentId,
-                        student_id: nextStudentId,
-                        course_name: 'مسار القرآن الكريم والتدبر',
-                        group_id: targetGroup,
-                        teacher_id: teacherId,
-                        remaining_credits: credits,
-                        subscription_days: days,
-                        lecture_time: time,
-                        session_duration: duration,
-                        status: 'active'
-                    }]);
-                    if (eErr) console.warn('Enrollment insert warning:', eErr);
+                        if (existingEnr) {
+                            await client.from('enrollments').update({
+                                group_id: targetGroup,
+                                teacher_id: teacherId,
+                                remaining_credits: credits,
+                                subscription_days: days,
+                                lecture_time: time,
+                                session_duration: duration,
+                                status: 'active'
+                            }).eq('id', existingEnr.id);
+                        } else {
+                            const { data: maxEnr } = await client.from('enrollments').select('id').order('id', { ascending: false }).limit(1);
+                            const nextEnrollmentId = ((maxEnr && maxEnr[0]) ? maxEnr[0].id : 0) + 1;
+                            await client.from('enrollments').insert([{
+                                id: nextEnrollmentId,
+                                student_id: existingStudent.id,
+                                course_name: 'مسار القرآن الكريم والتدبر',
+                                group_id: targetGroup,
+                                teacher_id: teacherId,
+                                remaining_credits: credits,
+                                subscription_days: days,
+                                lecture_time: time,
+                                session_duration: duration,
+                                status: 'active'
+                            }]);
+                        }
 
-                    await client.from('users').insert([{
-                        id: nextUserId,
-                        username: code.toLowerCase(),
-                        password_hash: password,
-                        role: 'student',
-                        related_id: nextStudentId,
-                        student_id: nextStudentId,
-                        full_name: name,
-                        email: `${code.toLowerCase()}@student.monir.edu.eg`,
-                        phone: phone,
-                        status: 'active'
-                    }]);
+                        // Check user account
+                        const { data: existingUsr } = await client.from('users')
+                            .select('id')
+                            .ilike('username', code)
+                            .maybeSingle();
+
+                        if (existingUsr) {
+                            await client.from('users').update({
+                                password_hash: password,
+                                full_name: name,
+                                phone: phone,
+                                status: 'active'
+                            }).eq('id', existingUsr.id);
+                        } else {
+                            const { data: maxUsr } = await client.from('users').select('id').order('id', { ascending: false }).limit(1);
+                            const nextUserId = ((maxUsr && maxUsr[0]) ? maxUsr[0].id : 0) + 1;
+                            await client.from('users').insert([{
+                                id: nextUserId,
+                                username: code.toLowerCase(),
+                                password_hash: password,
+                                role: 'student',
+                                related_id: existingStudent.id,
+                                student_id: existingStudent.id,
+                                full_name: name,
+                                email: `${code.toLowerCase()}@student.monir.edu.eg`,
+                                phone: phone,
+                                status: 'active'
+                            }]);
+                        }
+                    } else {
+                        const [{ data: maxSt }, { data: maxUsr }, { data: maxEnr }] = await Promise.all([
+                            client.from('students').select('id').order('id', { ascending: false }).limit(1),
+                            client.from('users').select('id').order('id', { ascending: false }).limit(1),
+                            client.from('enrollments').select('id').order('id', { ascending: false }).limit(1)
+                        ]);
+
+                        const nextStudentId = ((maxSt && maxSt[0]) ? maxSt[0].id : 0) + 1;
+                        const nextUserId = ((maxUsr && maxUsr[0]) ? maxUsr[0].id : 0) + 1;
+                        const nextEnrollmentId = ((maxEnr && maxEnr[0]) ? maxEnr[0].id : 0) + 1;
+                        newStudentId = nextStudentId;
+
+                        const { error: sErr } = await client.from('students').insert([{
+                            id: nextStudentId,
+                            name: name,
+                            student_code: code,
+                            phone: phone,
+                            parent_phone: phone,
+                            age: age,
+                            qr_code: targetGroup,
+                            status: 'active'
+                        }]);
+                        if (sErr) throw sErr;
+
+                        const { error: eErr } = await client.from('enrollments').insert([{
+                            id: nextEnrollmentId,
+                            student_id: nextStudentId,
+                            course_name: 'مسار القرآن الكريم والتدبر',
+                            group_id: targetGroup,
+                            teacher_id: teacherId,
+                            remaining_credits: credits,
+                            subscription_days: days,
+                            lecture_time: time,
+                            session_duration: duration,
+                            status: 'active'
+                        }]);
+                        if (eErr) console.warn('Enrollment insert warning:', eErr);
+
+                        await client.from('users').insert([{
+                            id: nextUserId,
+                            username: code.toLowerCase(),
+                            password_hash: password,
+                            role: 'student',
+                            related_id: nextStudentId,
+                            student_id: nextStudentId,
+                            full_name: name,
+                            email: `${code.toLowerCase()}@student.monir.edu.eg`,
+                            phone: phone,
+                            status: 'active'
+                        }]);
+                    }
                 }
 
                 const teacherObj = window.bsTeachersList ? bsTeachersList.find(t => t.id === teacherId) : null;
@@ -3741,7 +3822,12 @@
                 };
 
                 if (window.bsAllStudents) {
-                    bsAllStudents.unshift(newStudentObj);
+                    const existingIdx = bsAllStudents.findIndex(s => s.id === newStudentId || (s.student_code && s.student_code.toLowerCase() === code.toLowerCase()));
+                    if (existingIdx !== -1) {
+                        bsAllStudents[existingIdx] = { ...bsAllStudents[existingIdx], ...newStudentObj };
+                    } else {
+                        bsAllStudents.unshift(newStudentObj);
+                    }
                 }
 
                 const datalist = document.getElementById('bsGroupDatalist');
