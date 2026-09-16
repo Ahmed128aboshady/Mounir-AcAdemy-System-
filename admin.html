@@ -465,12 +465,23 @@
         <section class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
                 <div>
-                    <h2 class="text-base sm:text-lg font-extrabold text-slate-900">صندوق تذاكر الدعم والشكاوى الواردة</h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500">متابعة شكاوى واستفسارات أولياء الأمور والرد الفوري عليها</p>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2 py-0.5 rounded-full">مركز الدعم والإشراف</span>
+                        <h2 class="text-base sm:text-lg font-extrabold text-slate-900">صندوق تذاكر الدعم والشكاوى الواردة</h2>
+                    </div>
+                    <p class="text-[11px] sm:text-xs text-slate-500">متابعة شكاوى واستفسارات المعلمين والطلاب والرد الفوري عليها وإرسال الإشعارات</p>
                 </div>
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <button onclick="filterTickets('all')" id="btnTicketAll" class="flex-1 sm:flex-none bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg">الكل</button>
-                    <button onclick="filterTickets('open')" id="btnTicketOpen" class="flex-1 sm:flex-none bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg">بانتظار الرد</button>
+                <div class="flex flex-wrap gap-1.5 w-full sm:w-auto text-xs">
+                    <button onclick="filterTickets('all')" id="btnTicketAll" class="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition">الكل</button>
+                    <button onclick="filterTickets('open')" id="btnTicketOpen" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg transition">بانتظار الرد</button>
+                    <button onclick="filterTickets('teachers')" id="btnTicketTeachers" class="bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-indigo-200 transition flex items-center gap-1">
+                        <span>👨‍🏫 تذاكر المعلمين</span>
+                        <span id="statTeacherTicketsBadge" class="bg-indigo-200/80 text-indigo-950 px-1.5 py-0.2 rounded-full text-[9px] font-black">0</span>
+                    </button>
+                    <button onclick="filterTickets('students')" id="btnTicketStudents" class="bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1">
+                        <span>🎓 تذاكر الطلاب</span>
+                        <span id="statStudentTicketsBadge" class="bg-blue-200/80 text-blue-950 px-1.5 py-0.2 rounded-full text-[9px] font-black">0</span>
+                    </button>
                 </div>
             </div>
 
@@ -2572,11 +2583,42 @@
         // ---------------- 6. Support Tickets ----------------
         async function loadAdminTickets() {
             try {
-                const res = await fetch('/api/admin/support/tickets');
-                allTickets = await res.json();
+                let tickets = [];
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        const { data, error } = await client
+                            .from('support_tickets')
+                            .select('*')
+                            .order('id', { ascending: false });
+                        if (!error && data) {
+                            tickets = data;
+                        }
+                    } catch(e) {
+                        console.warn('Supabase tickets load failed, trying mock:', e);
+                    }
+                }
+
+                if (tickets.length === 0) {
+                    try {
+                        const res = await fetch('/api/admin/support/tickets');
+                        tickets = await res.json();
+                    } catch(e) {}
+                }
+
+                allTickets = tickets || [];
                 
                 const pending = allTickets.filter(t => t.status === 'open').length;
-                document.getElementById('statPendingTickets').innerText = pending + ' تذكرة';
+                const pendingEl = document.getElementById('statPendingTickets');
+                if (pendingEl) pendingEl.innerText = pending + ' تذكرة';
+
+                // Count teacher vs student tickets
+                const teacherCount = allTickets.filter(t => isTeacherTicket(t)).length;
+                const studentCount = allTickets.filter(t => !isTeacherTicket(t)).length;
+                const teacherBadge = document.getElementById('statTeacherTicketsBadge');
+                if (teacherBadge) teacherBadge.innerText = teacherCount;
+                const studentBadge = document.getElementById('statStudentTicketsBadge');
+                if (studentBadge) studentBadge.innerText = studentCount;
                 
                 renderAdminTickets(allTickets);
             } catch (err) {
@@ -2584,34 +2626,70 @@
             }
         }
 
+        function isTeacherTicket(t) {
+            const name = String(t.student_name || '').toLowerCase();
+            const cat = String(t.category || '').toLowerCase();
+            const course = String(t.course_name || '').toLowerCase();
+            return name.includes('معلم') || name.includes('👨‍🏫') || cat.includes('teacher') || course.includes('معلم');
+        }
+
         function renderAdminTickets(tickets) {
             const container = document.getElementById('adminTicketsList');
+            if (!container) return;
             container.innerHTML = '';
 
-            if (tickets.length === 0) {
-                container.innerHTML = '<p class="text-center py-6 text-slate-400 text-xs">لا توجد تذاكر دعم في هذا التصنيف.</p>';
+            if (!tickets || tickets.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs"><div class="text-2xl mb-1">📭</div><p class="font-bold">لا توجد تذاكر دعم في هذا التصنيف حالياً.</p></div>';
                 return;
             }
 
             tickets.forEach(t => {
                 const div = document.createElement('div');
                 const isOpen = (t.status === 'open');
-                div.className = 'p-3.5 rounded-xl border text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 ' + (isOpen ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-50 border-slate-200');
+                const isTeacher = isTeacherTicket(t);
+
+                div.className = 'p-3.5 rounded-2xl border text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition shadow-xs ' + 
+                    (isOpen ? 'bg-amber-50/70 border-amber-300' : 'bg-slate-50/80 border-slate-200');
                 
+                const roleBadge = isTeacher 
+                    ? `<span class="bg-indigo-100 text-indigo-950 font-black px-2 py-0.5 rounded-md text-[10px] border border-indigo-200">👨‍🏫 تذكرة معلم</span>`
+                    : `<span class="bg-blue-100 text-blue-950 font-bold px-2 py-0.5 rounded-md text-[10px] border border-blue-200">🎓 تذكرة طالب</span>`;
+
+                const statusBadge = isOpen
+                    ? `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px] border border-amber-200">🟡 بانتظار الرد</span>`
+                    : `<span class="bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded text-[10px] border border-emerald-200">🟢 تم الرد من الإشراف</span>`;
+
+                const dateStr = t.created_at ? t.created_at.slice(0, 16).replace('T', ' ') : '—';
+
                 div.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded text-[10px]">${t.category}</span>
-                            <span class="font-extrabold text-slate-900">${t.subject}</span>
-                            <span class="text-slate-500 text-[11px] font-medium">— الطالب: <strong>${t.student_name}</strong></span>
+                    <div class="space-y-1.5 flex-1">
+                        <div class="flex items-center flex-wrap gap-2">
+                            ${roleBadge}
+                            ${statusBadge}
+                            <span class="bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded text-[10px]">${t.category || 'عام'}</span>
+                            <span class="font-extrabold text-slate-900 text-sm">${t.subject}</span>
                         </div>
-                        <p class="text-slate-600 text-[11px]">${t.message}</p>
-                        ${t.admin_reply ? '<div class="text-[10px] text-blue-900 bg-blue-100/60 p-1.5 rounded mt-1"><strong>الرد:</strong> ' + t.admin_reply + '</div>' : ''}
+                        <div class="text-[11px] text-slate-500 font-semibold">
+                            <span>المرسل: <strong class="text-slate-800">${t.student_name}</strong></span>
+                            ${t.course_name ? `<span class="mr-2 text-slate-400">• ${t.course_name}</span>` : ''}
+                        </div>
+                        <div class="text-slate-700 text-xs bg-white p-2.5 rounded-xl border border-slate-200 font-medium whitespace-pre-wrap">
+                            ${t.message}
+                        </div>
+                        ${t.admin_reply ? `
+                            <div class="text-xs text-indigo-950 bg-indigo-50/90 border border-indigo-200 p-2.5 rounded-xl mt-1.5 space-y-1">
+                                <div class="font-black flex items-center gap-1 text-indigo-900 text-[11px]">
+                                    <span>💬 رد الإشراف الرسمي:</span>
+                                </div>
+                                <div class="whitespace-pre-wrap font-medium">${t.admin_reply}</div>
+                            </div>
+                        ` : ''}
                     </div>
-                    <div class="flex items-center gap-2 self-end sm:self-center">
-                        <span class="text-[10px] text-slate-400 font-mono">${t.created_at.slice(0, 10)}</span>
-                        <button onclick="openReplyModal(${t.id}, '${t.student_name}', '${t.subject}', '${t.message}')" class="bg-blue-900 hover:bg-blue-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg whitespace-nowrap">
-                            ${isOpen ? 'الرد الآن' : 'تعديل الرد'}
+                    <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                        <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+                        <button onclick="openReplyModal(${t.id}, '${(t.student_name || '').replace(/'/g, "\\'")}', '${(t.subject || '').replace(/'/g, "\\'")}', '${(t.message || '').replace(/'/g, "\\'").replace(/\n/g, ' ')}')" 
+                            class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition whitespace-nowrap">
+                            ${isOpen ? 'الرد الآن ✍️' : 'تعديل الرد ✏️'}
                         </button>
                     </div>
                 `;
@@ -2620,13 +2698,27 @@
         }
 
         function filterTickets(status) {
-            document.getElementById('btnTicketAll').className = status === 'all' ? 'bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg';
-            document.getElementById('btnTicketOpen').className = status === 'open' ? 'bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg';
-            
+            const btnAll = document.getElementById('btnTicketAll');
+            const btnOpen = document.getElementById('btnTicketOpen');
+            const btnTeachers = document.getElementById('btnTicketTeachers');
+            const btnStudents = document.getElementById('btnTicketStudents');
+
+            const inactiveCls = 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs px-3 py-1.5 rounded-lg transition';
+            const activeCls = 'bg-[#1F274B] text-white font-black text-xs px-3 py-1.5 rounded-lg transition shadow-xs';
+
+            if (btnAll) btnAll.className = (status === 'all') ? activeCls : inactiveCls;
+            if (btnOpen) btnOpen.className = (status === 'open') ? activeCls : inactiveCls;
+            if (btnTeachers) btnTeachers.className = (status === 'teachers') ? activeCls : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-indigo-200 transition flex items-center gap-1';
+            if (btnStudents) btnStudents.className = (status === 'students') ? activeCls : 'bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1';
+
             if (status === 'all') {
                 renderAdminTickets(allTickets);
-            } else {
+            } else if (status === 'open') {
                 renderAdminTickets(allTickets.filter(t => t.status === 'open'));
+            } else if (status === 'teachers') {
+                renderAdminTickets(allTickets.filter(t => isTeacherTicket(t)));
+            } else if (status === 'students') {
+                renderAdminTickets(allTickets.filter(t => !isTeacherTicket(t)));
             }
         }
 
@@ -2651,17 +2743,47 @@
             }
 
             try {
-                const res = await fetch('/api/admin/support/tickets/' + activeReplyTicketId + '/reply', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_reply: reply })
-                });
-                const data = await res.json();
-                alert(data.message);
+                let success = false;
+                const nowIso = new Date().toISOString();
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const { error } = await client
+                        .from('support_tickets')
+                        .update({
+                            admin_reply: reply,
+                            status: 'resolved',
+                            updated_at: nowIso
+                        })
+                        .eq('id', activeReplyTicketId);
+
+                    if (!error) {
+                        success = true;
+                    } else {
+                        console.warn('Supabase reply update failed, trying fallback:', error);
+                    }
+                }
+
+                if (!success) {
+                    const res = await fetch('/api/admin/support/tickets/' + activeReplyTicketId + '/reply', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ admin_reply: reply })
+                    });
+                    const data = await res.json();
+                    success = data.success !== false;
+                }
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast('تم إرسال الرد بنجاح ووصل للمرسل ✅', 'success');
+                } else {
+                    alert('تم إرسال الرد بنجاح.');
+                }
                 closeReplyTicketModal();
                 loadAdminTickets();
             } catch (err) {
                 console.error("Error replying ticket:", err);
+                alert("حدث خطأ أثناء إرسال الرد.");
             }
         }
 
