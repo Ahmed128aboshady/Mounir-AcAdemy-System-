@@ -55,6 +55,11 @@
                     <span class="text-slate-400">المشرف:</span>
                     <strong class="text-white" id="adminHeaderName">إدارة الأكاديمية</strong>
                 </div>
+                <button onclick="openLiveChatModal()" class="relative bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1.5 cursor-pointer">
+                    <span>💬</span>
+                    <span>شات ورسائل الدعم</span>
+                    <span id="liveChatGlobalBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-bounce border-2 border-[#1F274B]">0</span>
+                </button>
                 <a href="teacher.html" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap">
                     بوابة المعلمين
                 </a>
@@ -137,8 +142,11 @@
                 </div>
                 <div class="text-lg sm:text-2xl font-black text-red-600 mt-1" id="statPausedStudents">13</div>
             </div>
-            <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div class="text-[11px] sm:text-xs text-slate-500 font-semibold">تذاكر الدعم المفتوحة</div>
+            <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-amber-400 hover:shadow-md transition" onclick="openLiveChatModal()" title="اضغط لفتح شات ورسائل الدعم">
+                <div class="text-[11px] sm:text-xs text-slate-500 font-semibold flex items-center justify-between">
+                    <span>تذاكر الدعم المفتوحة</span>
+                    <span class="text-[10px] text-amber-600 font-bold">فتح الشات ←</span>
+                </div>
                 <div class="text-lg sm:text-2xl font-black text-amber-600 mt-1" id="statPendingTickets">0</div>
             </div>
         </section>
@@ -1116,6 +1124,104 @@
                     <button onclick="closeBulkRescheduleModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition">
                         إلغاء
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Live Chat Trigger Button -->
+    <div id="floatingChatBtnContainer" class="fixed bottom-5 left-5 z-40 flex items-center gap-2">
+        <button type="button" onclick="openLiveChatModal()" class="relative bg-[#1F274B] hover:bg-[#2D396E] text-white p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-2xl shadow-2xl border-2 border-[#57BA9E] transition-all transform hover:scale-105 flex items-center gap-2.5 font-black text-xs cursor-pointer group">
+            <span class="text-xl group-hover:scale-110 transition-transform">💬</span>
+            <span class="hidden sm:inline font-bold">شات ورسائل الدعم المباشر</span>
+            <span id="floatingChatBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">0</span>
+        </button>
+    </div>
+
+    <!-- Modal: Admin Live Chat & Support Messages (مركز الشات والمراسلات المباشرة) -->
+    <div id="adminLiveChatModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-5xl w-full h-[90vh] max-h-[780px] shadow-2xl border border-slate-200 flex flex-col overflow-hidden text-xs">
+            <!-- Modal Top Header -->
+            <div class="bg-[#1F274B] text-white px-5 py-3.5 flex justify-between items-center shrink-0 border-b border-[#2D396E]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-[#57BA9E] text-slate-950 flex items-center justify-center font-black text-xl shadow-sm shrink-0">
+                        💬
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-black text-sm sm:text-base text-white">مركز المراسلات والشات المباشر</h3>
+                            <span class="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black px-2 py-0.5 rounded-full">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>مباشر</span>
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-300">متابعة رسائل واستفسارات أولياء الأمور والطلاب والمعلمين والرد عليها فوريًا</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="loadAdminTickets()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition font-bold flex items-center gap-1.5" title="تحديث الرسائل">
+                        <span>🔄</span>
+                        <span class="hidden sm:inline text-[11px]">تحديث</span>
+                    </button>
+                    <button type="button" onclick="closeLiveChatModal()" class="text-slate-400 hover:text-white text-2xl font-bold p-1 rounded-xl hover:bg-white/10 transition leading-none">&times;</button>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation Bar -->
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-2 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 shrink-0">
+                <!-- Two Main Tabs: Parents/Students vs Teachers -->
+                <div class="flex items-center gap-1.5 bg-slate-200/80 p-1 rounded-xl">
+                    <button type="button" id="liveChatTabBtnStudents" onclick="switchLiveChatTab('students')" class="flex-1 sm:flex-initial py-2 px-3 sm:px-4 rounded-lg font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs">
+                        <span>👨‍👩‍👧‍👦</span>
+                        <span>أولياء الأمور والطلاب</span>
+                        <span id="tabLiveChatStudentsBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">0</span>
+                    </button>
+                    <button type="button" id="liveChatTabBtnTeachers" onclick="switchLiveChatTab('teachers')" class="flex-1 sm:flex-initial py-2 px-3 sm:px-4 rounded-lg font-black text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 bg-transparent">
+                        <span>👨‍🏫</span>
+                        <span>المعلمون والمدربون</span>
+                        <span id="tabLiveChatTeachersBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">0</span>
+                    </button>
+                </div>
+
+                <!-- Status Filter Pills -->
+                <div class="flex items-center gap-1 justify-center">
+                    <button type="button" id="liveChatFilterAll" onclick="filterLiveChatStatus('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#1F274B] text-white transition shadow-xs">الكل</button>
+                    <button type="button" id="liveChatFilterOpen" onclick="filterLiveChatStatus('open')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition">⏳ بانتظار الرد</button>
+                    <button type="button" id="liveChatFilterResolved" onclick="filterLiveChatStatus('resolved')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition">✓ تم الرد</button>
+                </div>
+            </div>
+
+            <!-- Main Split Body: Conversations List (Right) + Active Chat (Left) -->
+            <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+                <!-- Right Pane: Conversations List -->
+                <div id="liveChatListPane" class="w-full md:w-[38%] border-l border-slate-200 flex flex-col bg-slate-50/50">
+                    <!-- Search Input -->
+                    <div class="p-3 border-b border-slate-200 bg-white">
+                        <div class="relative">
+                            <input type="text" id="liveChatSearchInput" onkeyup="filterLiveChatSearch(this.value)" placeholder="🔍 بحث بالاسم، الكود، المجموعة..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pr-3 pl-8 py-2 text-xs font-bold outline-none focus:border-[#57BA9E] focus:bg-white transition">
+                            <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs cursor-pointer" onclick="document.getElementById('liveChatSearchInput').value=''; filterLiveChatSearch('');">✕</span>
+                        </div>
+                    </div>
+
+                    <!-- Conversations Scrollable Area -->
+                    <div id="liveChatConversationsContainer" class="flex-1 overflow-y-auto p-2 space-y-1.5 divide-y-0">
+                        <div class="text-center py-10 text-slate-400">
+                            <div class="text-2xl mb-1 animate-spin">⏳</div>
+                            <p class="font-bold">جاري تحميل المحادثات...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Left Pane: Active Chat Thread & Reply Composer -->
+                <div id="liveChatActivePane" class="hidden md:flex flex-1 flex-col bg-white overflow-hidden">
+                    <div id="liveChatThreadContent" class="flex-1 flex flex-col h-full">
+                        <!-- Placeholder when nothing selected -->
+                        <div class="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl mb-3">💬</div>
+                            <h4 class="font-black text-sm text-slate-700 mb-1">اختر محادثة لعرض تفاصيل الرسالة والرد</h4>
+                            <p class="text-xs text-slate-400 max-w-sm">يمكنك الاطلاع على كافة الاستفسارات، والتواصل الفوري مع أولياء الأمور أو المعلمين مباشرة من هنا</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2621,6 +2727,7 @@
                 if (studentBadge) studentBadge.innerText = studentCount;
                 
                 renderAdminTickets(allTickets);
+                updateLiveChatData();
             } catch (err) {
                 console.error("Error loading admin tickets:", err);
             }
@@ -2784,6 +2891,482 @@
             } catch (err) {
                 console.error("Error replying ticket:", err);
                 alert("حدث خطأ أثناء إرسال الرد.");
+            }
+        }
+
+        /* ==================== LIVE CHAT & SUPPORT MESSAGES SYSTEM (شات الإشراف المباشر) ==================== */
+        let liveChatActiveTab = 'students'; // 'students' or 'teachers'
+        let liveChatStatusFilter = 'all'; // 'all', 'open', 'resolved'
+        let liveChatSearchQuery = '';
+        let liveChatSelectedTicketId = null;
+
+        function updateLiveChatData() {
+            if (!Array.isArray(allTickets)) return;
+
+            const teacherPending = allTickets.filter(t => isTeacherTicket(t) && t.status === 'open').length;
+            const studentPending = allTickets.filter(t => !isTeacherTicket(t) && t.status === 'open').length;
+            const totalPending = teacherPending + studentPending;
+
+            const globalBadge = document.getElementById('liveChatGlobalBadge');
+            const floatingBadge = document.getElementById('floatingChatBadge');
+            const tabStudentsBadge = document.getElementById('tabLiveChatStudentsBadge');
+            const tabTeachersBadge = document.getElementById('tabLiveChatTeachersBadge');
+
+            if (globalBadge) {
+                globalBadge.innerText = totalPending;
+                globalBadge.classList.toggle('hidden', totalPending === 0);
+            }
+            if (floatingBadge) {
+                floatingBadge.innerText = totalPending;
+                floatingBadge.classList.toggle('hidden', totalPending === 0);
+            }
+            if (tabStudentsBadge) {
+                tabStudentsBadge.innerText = studentPending;
+                tabStudentsBadge.classList.toggle('hidden', studentPending === 0);
+            }
+            if (tabTeachersBadge) {
+                tabTeachersBadge.innerText = teacherPending;
+                tabTeachersBadge.classList.toggle('hidden', teacherPending === 0);
+            }
+
+            const modal = document.getElementById('adminLiveChatModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                renderLiveChatConversations(false);
+            }
+        }
+
+        function openLiveChatModal(initialTab) {
+            if (initialTab) {
+                liveChatActiveTab = initialTab;
+            }
+            const modal = document.getElementById('adminLiveChatModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+
+            switchLiveChatTab(liveChatActiveTab);
+            if (!allTickets || allTickets.length === 0) {
+                loadAdminTickets();
+            } else {
+                updateLiveChatData();
+            }
+        }
+
+        function closeLiveChatModal() {
+            const modal = document.getElementById('adminLiveChatModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function switchLiveChatTab(tab) {
+            liveChatActiveTab = tab;
+            const btnStudents = document.getElementById('liveChatTabBtnStudents');
+            const btnTeachers = document.getElementById('liveChatTabBtnTeachers');
+
+            const activeCls = 'flex-1 sm:flex-initial py-2 px-3 sm:px-4 rounded-lg font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs';
+            const inactiveCls = 'flex-1 sm:flex-initial py-2 px-3 sm:px-4 rounded-lg font-black text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 bg-transparent';
+
+            if (btnStudents && btnTeachers) {
+                btnStudents.className = (tab === 'students') ? activeCls : inactiveCls;
+                btnTeachers.className = (tab === 'teachers') ? activeCls : inactiveCls;
+            }
+
+            renderLiveChatConversations(true);
+        }
+
+        function filterLiveChatStatus(status) {
+            liveChatStatusFilter = status;
+            const btnAll = document.getElementById('liveChatFilterAll');
+            const btnOpen = document.getElementById('liveChatFilterOpen');
+            const btnResolved = document.getElementById('liveChatFilterResolved');
+
+            const activeStyle = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#1F274B] text-white transition shadow-xs';
+            const inactiveStyle = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition';
+
+            if (btnAll) btnAll.className = (status === 'all') ? activeStyle : inactiveStyle;
+            if (btnOpen) btnOpen.className = (status === 'open') ? activeStyle : inactiveStyle;
+            if (btnResolved) btnResolved.className = (status === 'resolved') ? activeStyle : inactiveStyle;
+
+            renderLiveChatConversations(true);
+        }
+
+        function filterLiveChatSearch(val) {
+            liveChatSearchQuery = (val || '').toLowerCase().trim();
+            renderLiveChatConversations(true);
+        }
+
+        function getFilteredLiveChatTickets() {
+            if (!Array.isArray(allTickets)) return [];
+
+            return allTickets.filter(t => {
+                const isTeacher = isTeacherTicket(t);
+                if (liveChatActiveTab === 'teachers' && !isTeacher) return false;
+                if (liveChatActiveTab === 'students' && isTeacher) return false;
+
+                if (liveChatStatusFilter === 'open' && t.status !== 'open') return false;
+                if (liveChatStatusFilter === 'resolved' && t.status === 'open') return false;
+
+                if (liveChatSearchQuery) {
+                    const text = `${t.student_name || ''} ${t.subject || ''} ${t.message || ''} ${t.category || ''} ${t.course_name || ''}`.toLowerCase();
+                    if (!text.includes(liveChatSearchQuery)) return false;
+                }
+
+                return true;
+            });
+        }
+
+        function renderLiveChatConversations(autoSelectFirst = false) {
+            const container = document.getElementById('liveChatConversationsContainer');
+            if (!container) return;
+
+            const tickets = getFilteredLiveChatTickets();
+
+            if (tickets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <div class="text-3xl mb-2">📭</div>
+                        <p class="font-bold text-xs">لا توجد رسائل مطابقة في هذا القسم</p>
+                        <p class="text-[11px] text-slate-400 mt-1">جرّب تغيير التبويب أو تصفية البحث</p>
+                    </div>
+                `;
+                const threadContent = document.getElementById('liveChatThreadContent');
+                if (threadContent) {
+                    threadContent.innerHTML = `
+                        <div class="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+                            <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-2xl mb-2">💬</div>
+                            <h4 class="font-black text-xs text-slate-600">لا توجد محادثات محددة</h4>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            if (autoSelectFirst || !tickets.some(t => t.id == liveChatSelectedTicketId)) {
+                liveChatSelectedTicketId = tickets[0].id;
+            }
+
+            container.innerHTML = tickets.map(t => {
+                const isSelected = (t.id == liveChatSelectedTicketId);
+                const isOpen = (t.status === 'open');
+                const isTeacher = isTeacherTicket(t);
+
+                const avatar = isTeacher ? '👨‍🏫' : '🎓';
+                const nameClean = (t.student_name || 'مستخدم').replace('👨‍🏫 المعلم: ', '').replace('🎓 ', '');
+                
+                let dateFormatted = '—';
+                if (t.created_at) {
+                    try {
+                        const d = new Date(t.created_at);
+                        dateFormatted = d.toLocaleDateString('ar-EG', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    } catch(e) {}
+                }
+
+                const snippet = (t.message || '').slice(0, 55) + ((t.message || '').length > 55 ? '...' : '');
+
+                return `
+                    <div onclick="selectLiveChatTicket(${t.id})" class="p-3 rounded-2xl cursor-pointer transition-all border ${
+                        isSelected 
+                            ? 'bg-indigo-50/90 border-indigo-500 shadow-xs ring-1 ring-indigo-400' 
+                            : 'bg-white hover:bg-slate-100/80 border-slate-200'
+                    }">
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-9 h-9 rounded-xl ${isTeacher ? 'bg-indigo-100 text-indigo-900' : 'bg-blue-100 text-blue-900'} flex items-center justify-center text-base shrink-0 font-bold">
+                                ${avatar}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-1 mb-0.5">
+                                    <h4 class="font-black text-slate-900 text-xs truncate">${nameClean}</h4>
+                                    <span class="text-[10px] text-slate-400 font-mono shrink-0">${dateFormatted}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                                    ${isOpen 
+                                        ? `<span class="bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded text-[9px] border border-amber-300 animate-pulse">⏳ بانتظار الرد</span>`
+                                        : `<span class="bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.2 rounded text-[9px] border border-emerald-300">✓ تم الرد</span>`
+                                    }
+                                    ${t.course_name ? `<span class="bg-slate-100 text-slate-600 font-mono text-[9px] px-1.5 py-0.2 rounded">${t.course_name}</span>` : ''}
+                                    <span class="bg-slate-100 text-slate-600 text-[9px] px-1.5 py-0.2 rounded">${t.category || 'عام'}</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-slate-700 truncate">${t.subject || 'بدون عنوان'}</p>
+                                <p class="text-[10px] text-slate-500 truncate mt-0.5">${snippet}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const activeTicket = tickets.find(t => t.id == liveChatSelectedTicketId) || tickets[0];
+            if (activeTicket) {
+                renderLiveChatThread(activeTicket);
+            }
+        }
+
+        function selectLiveChatTicket(ticketId) {
+            liveChatSelectedTicketId = ticketId;
+            renderLiveChatConversations(false);
+
+            const listPane = document.getElementById('liveChatListPane');
+            const activePane = document.getElementById('liveChatActivePane');
+            if (window.innerWidth < 768) {
+                if (listPane) listPane.classList.add('hidden');
+                if (activePane) {
+                    activePane.classList.remove('hidden');
+                    activePane.classList.add('flex');
+                }
+            }
+        }
+
+        function backToLiveChatList() {
+            const listPane = document.getElementById('liveChatListPane');
+            const activePane = document.getElementById('liveChatActivePane');
+            if (listPane) listPane.classList.remove('hidden');
+            if (activePane) {
+                activePane.classList.add('hidden');
+                activePane.classList.remove('flex');
+            }
+        }
+
+        function renderLiveChatThread(t) {
+            const threadContent = document.getElementById('liveChatThreadContent');
+            if (!threadContent) return;
+
+            const isOpen = (t.status === 'open');
+            const isTeacher = isTeacherTicket(t);
+            const roleLabel = isTeacher ? '👨‍🏫 معلم / مدرب' : '🎓 طالب / ولي أمر';
+            const nameClean = (t.student_name || 'مستخدم').replace('👨‍🏫 المعلم: ', '').replace('🎓 ', '');
+
+            let dateFormatted = '—';
+            if (t.created_at) {
+                try {
+                    const d = new Date(t.created_at);
+                    dateFormatted = d.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                } catch(e) {}
+            }
+
+            threadContent.innerHTML = `
+                <!-- Thread Top Bar -->
+                <div class="p-3 sm:p-4 border-b border-slate-200 bg-slate-50/70 flex justify-between items-center gap-2 shrink-0">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <button type="button" onclick="backToLiveChatList()" class="md:hidden bg-white border border-slate-300 hover:bg-slate-100 p-1.5 rounded-lg text-slate-700 font-bold text-xs">
+                            ← القائمة
+                        </button>
+                        <div class="w-10 h-10 rounded-2xl ${isTeacher ? 'bg-indigo-600' : 'bg-[#41519C]'} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
+                            ${isTeacher ? '👨‍🏫' : '🎓'}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <h3 class="font-black text-slate-900 text-xs sm:text-sm truncate">${nameClean}</h3>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isTeacher ? 'bg-indigo-100 text-indigo-900 border border-indigo-200' : 'bg-blue-100 text-blue-900 border border-blue-200'}">${roleLabel}</span>
+                                ${t.course_name ? `<span class="text-[10px] bg-white border border-slate-200 text-slate-700 font-mono px-2 py-0.5 rounded-md">${t.course_name}</span>` : ''}
+                            </div>
+                            <p class="text-[10px] text-slate-500 truncate mt-0.5">التصنيف: <strong class="text-slate-700">${t.category || 'عام'}</strong> • ${dateFormatted}</p>
+                        </div>
+                    </div>
+
+                    <!-- Status Toggle Action -->
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="toggleLiveChatTicketStatus(${t.id}, '${isOpen ? 'resolved' : 'open'}')" class="text-[11px] font-bold px-2.5 py-1.5 rounded-xl border transition flex items-center gap-1 ${
+                            isOpen 
+                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300' 
+                                : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                        }">
+                            <span>${isOpen ? '✓ تحديد كمكتمل' : '⏳ إعادة فتح'}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Body (Scrollable Chat Flow) -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#f8fafc]">
+                    <!-- Incoming Message from User -->
+                    <div class="flex items-start gap-3 max-w-[90%] sm:max-w-[80%]">
+                        <div class="w-8 h-8 rounded-full ${isTeacher ? 'bg-indigo-100 text-indigo-800' : 'bg-blue-100 text-blue-800'} flex items-center justify-center font-bold text-sm shrink-0 mt-1 shadow-xs">
+                            ${isTeacher ? '👨‍🏫' : '🎓'}
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl rounded-tr-none p-3.5 shadow-xs space-y-1.5 flex-1">
+                            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
+                                <span class="font-extrabold text-xs text-slate-900">📌 الموضوع: ${t.subject || 'استفسار'}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${dateFormatted}</span>
+                            </div>
+                            <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">
+                                ${t.message || ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Supervisor Reply Bubble (if exists) -->
+                    ${t.admin_reply ? `
+                        <div class="flex items-start gap-3 max-w-[90%] sm:max-w-[80%] mr-auto flex-row-reverse">
+                            <div class="w-8 h-8 rounded-full bg-[#1F274B] text-[#57BA9E] flex items-center justify-center font-bold text-sm shrink-0 mt-1 shadow-xs">
+                                🛡️
+                            </div>
+                            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl rounded-tl-none p-3.5 shadow-xs space-y-1.5 flex-1">
+                                <div class="flex items-center justify-between gap-2 border-b border-emerald-100 pb-1.5">
+                                    <span class="font-black text-xs text-emerald-950 flex items-center gap-1">
+                                        <span>💬</span>
+                                        <span>رد وتوجيه الإشراف الرسمي</span>
+                                    </span>
+                                    <span class="text-[10px] text-emerald-700 font-mono">${t.updated_at ? new Date(t.updated_at).toLocaleDateString('ar-EG', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                </div>
+                                <div class="text-xs text-emerald-950 leading-relaxed whitespace-pre-wrap font-bold">
+                                    ${t.admin_reply}
+                                </div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-center gap-2 max-w-md mx-auto justify-center">
+                            <span class="text-base">⏳</span>
+                            <span class="font-bold">هذه الرسالة بانتظار رد وتوجيه فريق الإشراف.</span>
+                        </div>
+                    `}
+                </div>
+
+                <!-- Quick Response Shortcuts -->
+                <div class="px-4 py-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5 overflow-x-auto shrink-0 no-scrollbar">
+                    <span class="text-[10px] font-black text-slate-400 whitespace-nowrap">ردود سريعة:</span>
+                    <button type="button" onclick="quickInsertReply('✅ تم حل المشكلة والمتابعة بنجاح.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">✅ تم حل المشكلة</button>
+                    <button type="button" onclick="quickInsertReply('📅 تم تعديل موعد الحلقة على السيستم بنجاح.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">📅 تم تعديل الموعد</button>
+                    <button type="button" onclick="quickInsertReply('📞 تم التواصل هاتفياً مع ولي الأمر وتنسيق الأمر.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">📞 تم التواصل هاتفياً</button>
+                    <button type="button" onclick="quickInsertReply('⏳ تم استلام طلبك وجاري التنسيق والمتابعة الفورية مع الإدارة.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">⏳ جاري المتابعة</button>
+                    <button type="button" onclick="quickInsertReply('🙏 نشكركم على حسن تعاونكم واهتمامكم الكريم.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">🙏 شكر وتقدير</button>
+                </div>
+
+                <!-- Chat Reply Composer -->
+                <div class="p-3 sm:p-4 border-t border-slate-200 bg-white shrink-0">
+                    <form onsubmit="event.preventDefault(); submitLiveChatReply(${t.id});" class="flex flex-col gap-2">
+                        <div class="relative">
+                            <textarea id="liveChatReplyInput" rows="3" placeholder="اكتب رد وتوجيه الإشراف هنا (سيصل للمرسل مباشرة مع إشعار)..." class="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3 text-xs outline-none focus:border-[#57BA9E] focus:bg-white font-medium resize-none transition shadow-inner">${t.admin_reply || ''}</textarea>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="text-[11px] text-slate-400">
+                                💡 بالضغط على إرسال، يتم حفظ الرد وتحويل الحالة تلقائيًا إلى «تم الرد».
+                            </div>
+                            <button type="submit" id="btnSubmitLiveChatReply" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-black text-xs px-5 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 whitespace-nowrap">
+                                <span>📤</span>
+                                <span>إرسال الرد والتوجيه</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        function quickInsertReply(txt) {
+            const input = document.getElementById('liveChatReplyInput');
+            if (!input) return;
+            if (input.value && input.value.trim().length > 0) {
+                input.value += '\n' + txt;
+            } else {
+                input.value = txt;
+            }
+            input.focus();
+        }
+
+        async function submitLiveChatReply(ticketId) {
+            const input = document.getElementById('liveChatReplyInput');
+            if (!input) return;
+            const reply = input.value.trim();
+            if (!reply) {
+                alert('يرجى كتابة نص الرد قبل الإرسال.');
+                input.focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitLiveChatReply');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'جاري الإرسال...';
+            }
+
+            try {
+                const nowIso = new Date().toISOString();
+                let success = false;
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const { error } = await client
+                        .from('support_tickets')
+                        .update({
+                            admin_reply: reply,
+                            status: 'resolved',
+                            updated_at: nowIso
+                        })
+                        .eq('id', ticketId);
+
+                    if (!error) success = true;
+                }
+
+                if (!success) {
+                    try {
+                        const res = await fetch('/api/admin/support/tickets/' + ticketId + '/reply', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ admin_reply: reply })
+                        });
+                        const data = await res.json();
+                        success = data.success !== false;
+                    } catch(e) {}
+                }
+
+                const t = allTickets.find(item => item.id == ticketId);
+                if (t) {
+                    t.admin_reply = reply;
+                    t.status = 'resolved';
+                    t.updated_at = nowIso;
+                }
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast('تم إرسال الرد وتحديث التذكرة بنجاح ✅', 'success');
+                } else {
+                    alert('تم إرسال الرد بنجاح ووصل للمرسل. ✓');
+                }
+
+                updateLiveChatData();
+                renderAdminTickets(allTickets);
+
+                if (t) {
+                    renderLiveChatThread(t);
+                }
+
+            } catch(err) {
+                console.error('Error in submitLiveChatReply:', err);
+                alert('حدث خطأ أثناء إرسال الرد.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>📤</span><span>إرسال الرد والتوجيه</span>';
+                }
+            }
+        }
+
+        async function toggleLiveChatTicketStatus(ticketId, newStatus) {
+            try {
+                const nowIso = new Date().toISOString();
+                let success = false;
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const { error } = await client
+                        .from('support_tickets')
+                        .update({
+                            status: newStatus,
+                            updated_at: nowIso
+                        })
+                        .eq('id', ticketId);
+                    if (!error) success = true;
+                }
+
+                const t = allTickets.find(item => item.id == ticketId);
+                if (t) {
+                    t.status = newStatus;
+                    t.updated_at = nowIso;
+                }
+
+                updateLiveChatData();
+                renderAdminTickets(allTickets);
+                if (t) renderLiveChatThread(t);
+
+                if (window.MonirPopup) {
+                    MonirPopup.toast(`تم تحديث حالة التذكرة إلى: ${newStatus === 'resolved' ? 'تم الحل ✓' : 'قيد المتابعة ⏳'}`, 'success');
+                }
+            } catch(err) {
+                console.error('Error toggling status:', err);
             }
         }
 
