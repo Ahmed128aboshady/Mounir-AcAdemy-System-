@@ -895,33 +895,30 @@
                 if (prevRecord) {
                     const prevLabel = statusNames[prevRecord] || prevRecord;
                     confirmTitle = '⚠️ تنبيه: تم التسجيل اليوم مسبقاً';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى وخصم حصة إضافية من الرصيد؟`;
-                    confirmBtn = 'نعم، تسجيل حصة إضافية';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى؟`;
+                    confirmBtn = 'نعم، تأكيد التسجيل مجدداً';
                     modalType = 'warning';
                 } else if (sessionStatus === 'present') {
-                    const nextCredits = Math.max(0, curCredits - 1);
                     confirmTitle = 'تأكيد تسجيل حضور الطالب';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n• الرصيد الحالي: ${curCredits} حصة\n\n✓ سيتم تسجيل حضور الطالب وخصم حصة واحدة من رصيده ليصبح: (${nextCredits} حصة).\n\nهل تود تأكيد الحضور الآن؟`;
-                    confirmBtn = '✓ تأكيد الحضور وخصم حصة';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تسجيل حضور الطالب الآن؟`;
+                    confirmBtn = '✓ تأكيد الحضور';
                     modalType = 'question';
                 } else if (sessionStatus === 'excused') {
                     if (curExcuses < maxExcuses) {
                         confirmTitle = 'تأكيد تسجيل عذر للطالب';
-                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n• الرصيد الحالي: ${curCredits} حصة\n\n🎁 هذا العذر مجاني (العذر رقم ${curExcuses + 1} من ${maxExcuses}).\n• لن يتم خصم أي حصة من رصيد الطالب، وسيظل الرصيد (${curCredits} حصة).\n\nهل تود تأكيد تسجيل العذر؟`;
+                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n🎁 هذا العذر مجاني (العذر رقم ${curExcuses + 1} من ${maxExcuses}).\nهل تود تأكيد تسجيل العذر للطالب؟`;
                         confirmBtn = '✓ تأكيد العذر المجاني';
                         modalType = 'question';
                     } else {
-                        const nextCredits = Math.max(0, curCredits - 1);
                         confirmTitle = '⚠️ استهلاك العذر المجاني';
-                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد استنفد هذا الطالب العذر المجاني المسموح به مسبقاً (${curExcuses} عذر مستخدم).\n• تسجيل هذا العذر سيُحسب غياباً وسيتم خصم حصة واحدة من رصيده ليصبح: (${nextCredits} حصة).\n\nهل تود تأكيد العذر واحتساب الخصم؟`;
-                        confirmBtn = 'تأكيد العذر وخصم حصة';
+                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد استنفد هذا الطالب العذر المجاني المسموح به مسبقاً (${curExcuses} عذر مستخدم).\nهل تود تأكيد تسجيل العذر؟`;
+                        confirmBtn = 'تأكيد العذر';
                         modalType = 'warning';
                     }
                 } else if (sessionStatus === 'absent') {
-                    const nextCredits = Math.max(0, curCredits - 1);
                     confirmTitle = 'تأكيد تسجيل غياب بدون عذر';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n• الرصيد الحالي: ${curCredits} حصة\n\n✗ سيتم تسجيل غياب بدون عذر وخصم حصة من رصيد الطالب ليصبح: (${nextCredits} حصة).\n\nهل تود تأكيد تسجيل الغياب؟`;
-                    confirmBtn = '✗ تأكيد الغياب وخصم حصة';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تسجيل غياب الطالب؟`;
+                    confirmBtn = '✗ تأكيد الغياب';
                     modalType = 'warning';
                 }
 
