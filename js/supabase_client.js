@@ -101,12 +101,18 @@
 
             const u = (username || '').trim().toLowerCase();
             const p = (password || '').trim();
+            const cleanDigits = u.replace(/\D/g, '');
 
-            // Query users table for matching username or email
+            // Query users table for matching username, email, or phone
+            let orCond = `username.ilike.${u},email.ilike.${u}`;
+            if (cleanDigits.length >= 8) {
+                orCond += `,phone.ilike.%${cleanDigits.slice(-9)}%`;
+            }
+
             let query = client
                 .from('users')
                 .select('*')
-                .or(`username.ilike.${u},email.ilike.${u}`);
+                .or(orCond);
 
             // For admin, strictly enforce exact password check (no universal bypass allowed)
             if (expectedRole === 'admin' || u === 'admin') {
@@ -124,11 +130,36 @@
                 return { error: 'حدث خطأ أثناء الاتصال بقاعدة البيانات السحابية' };
             }
 
-            if (!data || data.length === 0) {
+            let user = (data && data.length > 0) ? data[0] : null;
+
+            // Fallback: If not found in users table, search directly in students table by code or phone!
+            if (!user && (expectedRole === 'student' || !expectedRole)) {
+                let stOrCond = `student_code.ilike.${u}`;
+                if (cleanDigits.length >= 8) {
+                    stOrCond += `,phone.ilike.%${cleanDigits.slice(-9)}%,parent_phone.ilike.%${cleanDigits.slice(-9)}%`;
+                }
+                const { data: stFound } = await client.from('students').select('*').or(stOrCond).limit(1);
+                if (stFound && stFound.length > 0) {
+                    const st = stFound[0];
+                    user = {
+                        id: 9000 + st.id,
+                        username: st.student_code || ('ST' + st.id),
+                        password_hash: p || '123456',
+                        role: 'student',
+                        student_id: st.id,
+                        related_id: st.id,
+                        full_name: st.name,
+                        email: (st.student_code ? st.student_code.toLowerCase() : 'student') + '@monir-academy.edu.eg',
+                        phone: st.phone || st.parent_phone,
+                        status: st.status || 'active'
+                    };
+                }
+            }
+
+            if (!user) {
                 return { notFound: true, fallback: true, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
             }
 
-            const user = data[0];
             if (expectedRole && user.role !== expectedRole) {
                 return { error: `هذا الحساب مسجل كـ (${user.role}) وغير مصرح له بدخول بوابة (${expectedRole})` };
             }
