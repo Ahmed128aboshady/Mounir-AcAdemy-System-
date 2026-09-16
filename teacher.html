@@ -834,49 +834,121 @@
         }
 
         async function recordSession(studentId, sessionStatus, enrollmentId = null, btn = null) {
-            const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر مقبول (الأول مجاني)', 'absent': 'غياب بدون عذر' };
-            const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب' };
-
-            const todayDateStr = new Date().toISOString().split('T')[0];
-            const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
-            const prevRecord = localStorage.getItem(todayKey);
-
-            if (prevRecord) {
-                const prevLabel = statusNames[prevRecord] || prevRecord;
-                const warnPrompt = `⚠️ تنبيه هام:\nلقد تم بالفعل تسجيل حالة هذا الطالب اليوم (${prevLabel})!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) وخصم حصة أخرى؟`;
-                let proceed = false;
-                if (window.MonirPopup) {
-                    proceed = await window.MonirPopup.confirm(warnPrompt, 'تنبيه: تسجيل مكرر اليوم', 'warning', 'نعم، تسجيل حصة أخرى', 'إلغاء');
-                } else {
-                    proceed = confirm(warnPrompt);
-                }
-                if (!proceed) return;
-            } else {
-                let confirmed = false;
-                if (window.MonirPopup) {
-                    confirmed = await window.MonirPopup.confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟', 'تأكيد تسجيل الجلسة', 'question', 'نعم، تأكيد التسجيل', 'إلغاء');
-                } else {
-                    confirmed = confirm('هل أنت متأكد من تسجيل (' + labels[sessionStatus] + ') للطالب؟');
-                }
-                if (!confirmed) return;
+            // 1. Strict Synchronous Double-Click Lock
+            window._inFlightSessionLocks = window._inFlightSessionLocks || {};
+            if (window._inFlightSessionLocks[studentId]) {
+                console.warn('⚠️ عملية تسجيل الحصة جارية بالفعل لهذا الطالب لمنع التكرار!');
+                return;
             }
+            window._inFlightSessionLocks[studentId] = true;
 
-            // Disable buttons in row during processing to prevent rapid double-clicks
             const cell = document.getElementById('actions-cell-' + studentId);
-            if (cell) {
-                cell.querySelectorAll('button').forEach(b => b.disabled = true);
-            }
+            const disableButtons = () => {
+                if (cell) {
+                    cell.querySelectorAll('button').forEach(b => {
+                        b.disabled = true;
+                        b.classList.add('opacity-40', 'cursor-not-allowed');
+                    });
+                }
+            };
+            const enableButtons = () => {
+                delete window._inFlightSessionLocks[studentId];
+                if (cell) {
+                    cell.querySelectorAll('button').forEach(b => {
+                        b.disabled = false;
+                        b.classList.remove('opacity-40', 'cursor-not-allowed');
+                    });
+                }
+            };
+
+            // Immediately disable row buttons to prevent any instant second tap
+            disableButtons();
 
             try {
-                // Try Supabase direct update
+                // Find student details from loaded memory
+                let foundStudent = null;
+                if (typeof teacherGroups !== 'undefined' && Array.isArray(teacherGroups)) {
+                    for (const g of teacherGroups) {
+                        const match = (g.students || []).find(st => st.id === studentId || st.student_id === studentId);
+                        if (match) { foundStudent = match; break; }
+                    }
+                }
+                const stName = foundStudent ? (foundStudent.name || foundStudent.student_name || 'طالب الأكاديمية') : 'الطالب';
+                const stCode = foundStudent ? (foundStudent.student_code || '') : '';
+                const curCredits = foundStudent ? (foundStudent.remaining_credits ?? 0) : 0;
+                const curExcuses = foundStudent ? (foundStudent.excuse_count || 0) : 0;
+                const maxExcuses = foundStudent ? (foundStudent.max_allowed_excuses || 1) : 1;
+
+                const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر', 'absent': 'غياب بدون عذر' };
+                const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب' };
+
+                const todayDateStr = new Date().toISOString().split('T')[0];
+                const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
+                const prevRecord = localStorage.getItem(todayKey);
+
+                // Build Custom Popups
+                let confirmTitle = 'تأكيد العملية';
+                let confirmMsg = '';
+                let confirmBtn = 'تأكيد';
+                let modalType = 'question';
+
+                if (prevRecord) {
+                    const prevLabel = statusNames[prevRecord] || prevRecord;
+                    confirmTitle = '⚠️ تنبيه: تم التسجيل اليوم مسبقاً';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى وخصم حصة إضافية من الرصيد؟`;
+                    confirmBtn = 'نعم، تسجيل حصة إضافية';
+                    modalType = 'warning';
+                } else if (sessionStatus === 'present') {
+                    const nextCredits = Math.max(0, curCredits - 1);
+                    confirmTitle = 'تأكيد تسجيل حضور الطالب';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n• الرصيد الحالي: ${curCredits} حصة\n\n✓ سيتم تسجيل حضور الطالب وخصم حصة واحدة من رصيده ليصبح: (${nextCredits} حصة).\n\nهل تود تأكيد الحضور الآن؟`;
+                    confirmBtn = '✓ تأكيد الحضور وخصم حصة';
+                    modalType = 'question';
+                } else if (sessionStatus === 'excused') {
+                    if (curExcuses < maxExcuses) {
+                        confirmTitle = 'تأكيد تسجيل عذر للطالب';
+                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n• الرصيد الحالي: ${curCredits} حصة\n\n🎁 هذا العذر مجاني (العذر رقم ${curExcuses + 1} من ${maxExcuses}).\n• لن يتم خصم أي حصة من رصيد الطالب، وسيظل الرصيد (${curCredits} حصة).\n\nهل تود تأكيد تسجيل العذر؟`;
+                        confirmBtn = '✓ تأكيد العذر المجاني';
+                        modalType = 'question';
+                    } else {
+                        const nextCredits = Math.max(0, curCredits - 1);
+                        confirmTitle = '⚠️ استهلاك العذر المجاني';
+                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد استنفد هذا الطالب العذر المجاني المسموح به مسبقاً (${curExcuses} عذر مستخدم).\n• تسجيل هذا العذر سيُحسب غياباً وسيتم خصم حصة واحدة من رصيده ليصبح: (${nextCredits} حصة).\n\nهل تود تأكيد العذر واحتساب الخصم؟`;
+                        confirmBtn = 'تأكيد العذر وخصم حصة';
+                        modalType = 'warning';
+                    }
+                } else if (sessionStatus === 'absent') {
+                    const nextCredits = Math.max(0, curCredits - 1);
+                    confirmTitle = 'تأكيد تسجيل غياب بدون عذر';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n• الرصيد الحالي: ${curCredits} حصة\n\n✗ سيتم تسجيل غياب بدون عذر وخصم حصة من رصيد الطالب ليصبح: (${nextCredits} حصة).\n\nهل تود تأكيد تسجيل الغياب؟`;
+                    confirmBtn = '✗ تأكيد الغياب وخصم حصة';
+                    modalType = 'warning';
+                }
+
+                let confirmed = false;
+                if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
+                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, modalType, confirmBtn, 'تراجع وإلغاء');
+                } else {
+                    confirmed = confirm(confirmTitle + '\n\n' + confirmMsg);
+                }
+
+                if (!confirmed) {
+                    enableButtons();
+                    return;
+                }
+
+                // Visual loading on the action button
+                if (btn) {
+                    btn.innerHTML = '<span>⏳</span> <span>جاري...</span>';
+                }
+
+                // 2. Process Session Recording in Database
                 let success = false;
                 let resultMsg = '';
-                let newCredits = 0;
 
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const client = window.MonirDB.getClient();
-                        // Get current enrollment (by enrollmentId if provided, else by student_id limit 1)
                         let enrQuery = client.from('enrollments').select('*');
                         if (enrollmentId) {
                             enrQuery = enrQuery.eq('id', enrollmentId);
@@ -890,41 +962,33 @@
                             let updates = {};
                             const rc = enrData.remaining_credits || 0;
                             const excuseCount = enrData.excuse_count || 0;
-                            const maxExcuses = enrData.max_allowed_excuses || 1;
-
-                            // Check if extended columns exist (added via Supabase Studio)
+                            const maxAllowedExcuses = enrData.max_allowed_excuses || 1;
                             const hasExtendedCols = ('present_count' in enrData);
 
                             if (sessionStatus === 'present') {
                                 updates.remaining_credits = Math.max(0, rc - 1);
                                 if (hasExtendedCols) updates.present_count = (enrData.present_count || 0) + 1;
-                                resultMsg = `تم تسجيل الحضور ✓\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
-                                newCredits = updates.remaining_credits;
+                                resultMsg = `تم تسجيل حضور (${stName}) بنجاح ✓\nالرصيد المتبقي للطالب: ${updates.remaining_credits} حصة`;
                             } else if (sessionStatus === 'excused') {
-                                if (excuseCount < maxExcuses) {
-                                    // First excuse is free
+                                if (excuseCount < maxAllowedExcuses) {
                                     updates.excuse_count = excuseCount + 1;
                                     if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                    resultMsg = `تم تسجيل العذر المجاني ✓\nلا خصم من الرصيد (عذر رقم ${excuseCount + 1} من ${maxExcuses})`;
-                                    newCredits = rc;
+                                    resultMsg = `تم تسجيل العذر المجاني للطالب (${stName}) ✓\nلم يتم خصم أي حصة • الرصيد: ${rc} حصة`;
                                 } else {
-                                    // Excuse used up — count as absence
                                     updates.excuse_count = excuseCount + 1;
                                     updates.remaining_credits = Math.max(0, rc - 1);
                                     if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                    resultMsg = `⚠️ تم استهلاك العذر المجاني\nتم خصم حصة (العذر الثاني يُحتسب غياباً)\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
-                                    newCredits = updates.remaining_credits;
+                                    resultMsg = `تم استهلاك العذر المجاني للطالب (${stName})\nتم احتسابه غياباً وخصم حصة • الرصيد المتبقي: ${updates.remaining_credits} حصة`;
                                 }
                             } else if (sessionStatus === 'absent') {
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                 updates.remaining_credits = Math.max(0, rc - 1);
-                                resultMsg = `تم تسجيل الغياب ✗\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
-                                newCredits = updates.remaining_credits;
+                                resultMsg = `تم تسجيل غياب (${stName}) ✗\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
                             }
 
                             await client.from('enrollments').update(updates).eq('id', enrData.id);
-                            
-                            // Record in attendance table using existing schema
+
+                            // Optional attendance log table
                             try {
                                 const { data: maxAtt } = await client.from('attendance').select('id').order('id', { ascending: false }).limit(1);
                                 const nextAttId = ((maxAtt && maxAtt[0]) ? maxAtt[0].id : 0) + 1;
@@ -941,9 +1005,7 @@
                                 console.warn('Attendance insert log notice:', attErr);
                             }
 
-                            // Save today's record flag
                             localStorage.setItem(todayKey, sessionStatus);
-
                             success = true;
                         }
                     } catch(e) {
@@ -952,7 +1014,6 @@
                 }
 
                 if (!success) {
-                    // Fallback: mock API
                     const res = await fetch('/api/quran/record-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -965,19 +1026,25 @@
                     const data = await res.json();
                     resultMsg = data.message + '\nالرصيد المتبقي: ' + data.remaining_credits + ' حصص';
                     success = data.success;
+                    localStorage.setItem(todayKey, sessionStatus);
                 }
 
-                if (window.MonirPopup) {
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(resultMsg, 'success');
+                } else if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
                     await window.MonirPopup.alert(resultMsg, 'تم التسجيل بنجاح', 'success');
                 } else {
                     alert(resultMsg);
                 }
-                
+
                 await loadTeacherGroups();
 
             } catch(err) {
                 console.error('Error recording session:', err);
                 alert('حدث خطأ أثناء تسجيل الجلسة. يرجى المحاولة مرة أخرى.');
+                enableButtons();
+            } finally {
+                delete window._inFlightSessionLocks[studentId];
             }
         }
 
