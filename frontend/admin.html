@@ -151,6 +151,10 @@
             </div>
             
             <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-2.5 w-full md:w-auto">
+                <a href="#sectionSupervisorSchedule" class="w-full sm:w-auto text-center justify-center bg-indigo-700 hover:bg-indigo-800 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <span>📅</span>
+                    <span>جدول الحصص اليومي بالساعة</span>
+                </a>
                 <button onclick="openBulkRescheduleModal()" class="w-full sm:w-auto text-center justify-center bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow-sm transition">
                     تعديل موعد كورس كامل (تأجيل جماعي)
                 </button>
@@ -241,6 +245,124 @@
                         <!-- Injected via JS -->
                     </tbody>
                 </table>
+            </div>
+        <!-- 3a. Supervisor Live Daily Schedule & Groups Timetable (جدول متابعة المجموعات اليومي والأسبوعي للمشرفين) -->
+        <section class="bg-white rounded-2xl sm:rounded-3xl border-2 border-indigo-200 p-4 sm:p-6 shadow-sm space-y-5" id="sectionSupervisorSchedule">
+            <!-- Header -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-4 border-b border-slate-100">
+                <div>
+                    <div class="flex items-center flex-wrap gap-2 mb-1">
+                        <span class="bg-gradient-to-r from-[#1F274B] to-[#41519C] text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
+                            📅 جدول المشرفين اليومي
+                        </span>
+                        <h2 class="text-base sm:text-xl font-black text-slate-900">متابعة الحصص والمجموعات بالساعة</h2>
+                        <span id="schedTodayBadge" class="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                            اليوم: جاري التحديد...
+                        </span>
+                    </div>
+                    <p class="text-[11px] sm:text-xs text-slate-500">
+                        متابعة حية للمجموعات التي تعمل اليوم أو غداً أو أي يوم في الأسبوع مرتبة بالساعة مع روابط الغرف المباشرة وبيانات الطلاب للتواصل الفوري
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 w-full lg:w-auto">
+                    <button onclick="loadSupervisorSchedule(true)" class="w-full sm:w-auto text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+                        <span>🔄</span>
+                        <span>تحديث الجدول</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary KPI Chips -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-center text-xs">
+                <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-2.5 sm:p-3">
+                    <div class="text-base sm:text-xl font-black text-indigo-900" id="schedStatActiveDay">اليوم</div>
+                    <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">اليوم المختار</div>
+                </div>
+                <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 sm:p-3">
+                    <div class="text-base sm:text-xl font-black text-blue-800" id="schedStatGroupsCount">—</div>
+                    <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">مجموعات هذا اليوم</div>
+                </div>
+                <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-2.5 sm:p-3">
+                    <div class="text-base sm:text-xl font-black text-emerald-800" id="schedStatStudentsCount">—</div>
+                    <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">إجمالي الطلاب</div>
+                </div>
+                <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-2.5 sm:p-3">
+                    <div class="text-base sm:text-xl font-black text-amber-800" id="schedStatTeachersCount">—</div>
+                    <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">معلمون يعملون اليوم</div>
+                </div>
+            </div>
+
+            <!-- Days Navigation Tabs Bar -->
+            <div class="space-y-2">
+                <div class="text-[11px] font-black text-slate-700 flex items-center justify-between">
+                    <span>🗓️ اختر اليوم للمتابعة:</span>
+                    <span class="text-[10px] text-slate-400 font-normal">اضغط على أي يوم لعرض مجموعاته المجدولة</span>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin" id="schedDaysTabBar">
+                    <!-- Injected dynamically via JS: Today, Tomorrow, Sat, Sun, Mon, Tue, Wed, Thu, Fri, All -->
+                </div>
+            </div>
+
+            <!-- Filters & Search Toolbar -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                    <!-- Search Input -->
+                    <div class="lg:col-span-2">
+                        <label class="block font-bold text-slate-600 mb-1 text-[11px]">🔍 بحث سريع:</label>
+                        <div class="relative">
+                            <input type="text" id="schedSearchInput" oninput="applyScheduleFilters()" 
+                                placeholder="بحث برقم المجموعة (G..)، اسم المعلم، أو اسم/كود الطالب..." 
+                                class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-indigo-500 text-xs font-semibold">
+                            <button type="button" onclick="document.getElementById('schedSearchInput').value=''; applyScheduleFilters();" class="absolute left-2.5 top-2 text-slate-400 hover:text-slate-600 font-bold text-xs">✕</button>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Filter -->
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1 text-[11px]">👨‍🏫 تصفية بالمعلم:</label>
+                        <select id="schedTeacherSelect" onchange="applyScheduleFilters()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-indigo-500 text-xs font-bold">
+                            <option value="">جميع المعلمين</option>
+                        </select>
+                    </div>
+
+                    <!-- Period Filter -->
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1 text-[11px]">⏰ الفترة الزمنية:</label>
+                        <select id="schedPeriodSelect" onchange="applyScheduleFilters()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-indigo-500 text-xs font-bold">
+                            <option value="all">كل الأوقات</option>
+                            <option value="morning">صباحاً (قبل 1:00 م)</option>
+                            <option value="afternoon">عصراً (1:00 م - 5:00 م)</option>
+                            <option value="evening">مساءً (5:00 م - 9:00 م)</option>
+                            <option value="night">ليلاً (بعد 9:00 م)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- View Switcher & Actions Bar -->
+                <div class="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-200 text-xs">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500 font-bold text-[11px]">طريقة العرض:</span>
+                        <button type="button" id="schedViewBtnTimeline" onclick="setScheduleViewMode('timeline')" class="px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 bg-[#1F274B] text-white shadow-xs text-[11px]">
+                            <span>🕒</span>
+                            <span>كروت زمنية بالساعة</span>
+                        </button>
+                        <button type="button" id="schedViewBtnTable" onclick="setScheduleViewMode('table')" class="px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 text-[11px]">
+                            <span>📋</span>
+                            <span>جدول منظم</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="schedResultsSummary" class="text-[11px] font-bold text-slate-600">جاري التحميل...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Content Container -->
+            <div id="schedContentContainer" class="space-y-6 min-h-[250px]">
+                <div class="text-center py-12 text-slate-400 animate-pulse">
+                    <div class="text-4xl mb-2">⏳</div>
+                    <p class="font-bold text-sm">جاري تنظيم جدول المجموعات وحساب المواعيد بالساعة...</p>
+                </div>
             </div>
         </section>
 
@@ -1047,7 +1169,712 @@
             loadStudentsStatusSummary();
             loadTeachersData();
             loadAdminTickets();
+            loadSupervisorSchedule();
         });
+
+        // ═══════════════════════════════════════════════════════════
+        // SUPERVISOR SCHEDULE & LIVE TIMETABLE (جدول المشرفين بالساعة)
+        // ═══════════════════════════════════════════════════════════
+        let schedAllGroups = [];
+        let schedActiveDay = 'today';
+        let schedViewMode = 'timeline'; // 'timeline' or 'table'
+        let schedIsLoading = false;
+
+        const SCHED_DAYS = [
+            { key: 'sat', name: 'السبت', short: 'السبت', aliases: ['سبت'] },
+            { key: 'sun', name: 'الأحد', short: 'الأحد', aliases: ['احد', 'أحد'] },
+            { key: 'mon', name: 'الاثنين', short: 'الاثنين', aliases: ['اثنين', 'إثنين', 'اتنين'] },
+            { key: 'tue', name: 'الثلاثاء', short: 'الثلاثاء', aliases: ['ثلاثاء', 'تلات'] },
+            { key: 'wed', name: 'الأربعاء', short: 'الأربعاء', aliases: ['اربعاء', 'أربعاء', 'اربع', 'أربع'] },
+            { key: 'thu', name: 'الخميس', short: 'الخميس', aliases: ['خميس'] },
+            { key: 'fri', name: 'الجمعة', short: 'الجمعة', aliases: ['جمعة', 'جمعه'] }
+        ];
+
+        function getSchedDayKeyByIndex(idx) {
+            const map = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            return map[((idx % 7) + 7) % 7];
+        }
+
+        function getSchedActualTodayKey() {
+            return getSchedDayKeyByIndex(new Date().getDay());
+        }
+
+        function getSchedActualTomorrowKey() {
+            return getSchedDayKeyByIndex(new Date().getDay() + 1);
+        }
+
+        function resolveSchedDayKey(key) {
+            if (key === 'today') return getSchedActualTodayKey();
+            if (key === 'tomorrow') return getSchedActualTomorrowKey();
+            return key;
+        }
+
+        function parseTimeForDay(rawTime, dayKey) {
+            let s = (rawTime || '').trim();
+            if (!s) return { minutes: 9999, display: 'غير محدد', raw: '—', period: 'unknown', hourLabel: 'مواعيد غير محددة' };
+
+            // Normalize Arabic digits
+            const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+            arabicDigits.forEach((ad, i) => { s = s.split(ad).join(String(i)); });
+
+            const resolvedKey = resolveSchedDayKey(dayKey);
+            const dayObj = SCHED_DAYS.find(d => d.key === resolvedKey);
+            let extractedNum = '';
+
+            if (dayObj) {
+                // If string has day-specific times like "السبت 12 والاربعاء 8"
+                const dayPattern = new RegExp('(?:' + dayObj.aliases.join('|') + ')[^0-9]*([0-9]{1,2}(?:[:.][0-9]{2})?)', 'i');
+                const m = s.match(dayPattern);
+                if (m && m[1]) extractedNum = m[1];
+            }
+
+            if (!extractedNum) {
+                const m2 = s.match(/([0-9]{1,2}(?:[:.][0-9]{2})?)/);
+                if (m2 && m2[1]) extractedNum = m2[1];
+            }
+
+            if (!extractedNum) {
+                return { minutes: 9999, display: s, raw: s, period: 'unknown', hourLabel: 'مواعيد غير محددة' };
+            }
+
+            const parts = extractedNum.split(/[:.]/);
+            let h = parseInt(parts[0], 10);
+            let mins = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+            if (isNaN(mins)) mins = 0;
+
+            const isPm = s.includes('مساء') || s.includes('عصر') || s.includes('م');
+            const isAm = s.includes('صباح') || s.includes('ص');
+
+            if (isPm && h < 12) {
+                h += 12;
+            } else if (!isAm && !isPm) {
+                if (h >= 1 && h <= 11) {
+                    h += 12;
+                }
+            }
+
+            const totalMinutes = h * 60 + mins;
+            const displayH = (h % 12 === 0) ? 12 : (h % 12);
+            const ampm = (h >= 12) ? 'مساءً' : 'صباحاً';
+            const display = `${displayH}:${mins < 10 ? '0' + mins : mins} ${ampm}`;
+            const hourLabel = `الساعة ${displayH}:${mins < 10 ? '0' + mins : mins} ${ampm}`;
+
+            let period = 'evening';
+            if (h < 13) period = 'morning';
+            else if (h < 17) period = 'afternoon';
+            else if (h < 21) period = 'evening';
+            else period = 'night';
+
+            return { minutes: totalMinutes, display: display, raw: s, period: period, hour24: h, hourLabel: hourLabel };
+        }
+
+        function groupMatchesDayKey(group, dayKey) {
+            if (dayKey === 'all') return true;
+            const resolvedKey = resolveSchedDayKey(dayKey);
+            const dayObj = SCHED_DAYS.find(d => d.key === resolvedKey);
+            if (!dayObj) return false;
+            const fullText = (group.days || '') + ' ' + (group.time || '');
+            return dayObj.aliases.some(alias => fullText.includes(alias));
+        }
+
+        function formatSchedWhatsAppLink(phone) {
+            let clean = String(phone || '').replace(/[^0-9]/g, '');
+            if (!clean) return null;
+            if (clean.startsWith('01')) clean = '2' + clean;
+            return 'https://wa.me/' + clean;
+        }
+
+        function getSchedMeetUrl(gid) {
+            const clean = String(gid || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+            return 'https://meet.jit.si/MounirAcademy_Group_' + clean;
+        }
+
+        function copySchedMeetLink(url, btn) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showSchedCopySuccess(btn);
+                }).catch(() => fallbackSchedCopy(url, btn));
+            } else {
+                fallbackSchedCopy(url, btn);
+            }
+        }
+
+        function fallbackSchedCopy(url, btn) {
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showSchedCopySuccess(btn);
+        }
+
+        function showSchedCopySuccess(btn) {
+            if (!btn) return;
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<span>✅ تم النسخ</span>';
+            btn.classList.add('bg-emerald-600', 'text-white');
+            setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.classList.remove('bg-emerald-600', 'text-white');
+            }, 1800);
+            if (window.MonirPopup && MonirPopup.toast) {
+                MonirPopup.toast('تم نسخ رابط القاعة بنجاح ✅', 'success');
+            }
+        }
+
+        function populateSchedTeachersFilter() {
+            const sel = document.getElementById('schedTeacherSelect');
+            if (!sel) return;
+            const currentVal = sel.value;
+            const teacherNames = [...new Set(schedAllGroups.map(g => g.teacher_name).filter(t => t && t !== 'غير محدد'))].sort((a, b) => a.localeCompare(b, 'ar'));
+
+            let html = '<option value="">جميع المعلمين (' + teacherNames.length + ')</option>';
+            teacherNames.forEach(t => {
+                html += `<option value="${t}" ${t === currentVal ? 'selected' : ''}>${t}</option>`;
+            });
+            sel.innerHTML = html;
+        }
+
+        function renderSchedDaysTabs() {
+            const bar = document.getElementById('schedDaysTabBar');
+            if (!bar) return;
+
+            const actualTodayKey = getSchedActualTodayKey();
+            const actualTomorrowKey = getSchedActualTomorrowKey();
+            const todayName = SCHED_DAYS.find(d => d.key === actualTodayKey)?.name || 'اليوم';
+            const tomorrowName = SCHED_DAYS.find(d => d.key === actualTomorrowKey)?.name || 'غداً';
+
+            // Calculate counts for each day
+            const counts = {};
+            counts['today'] = schedAllGroups.filter(g => groupMatchesDayKey(g, 'today')).length;
+            counts['tomorrow'] = schedAllGroups.filter(g => groupMatchesDayKey(g, 'tomorrow')).length;
+            counts['all'] = schedAllGroups.length;
+
+            SCHED_DAYS.forEach(d => {
+                counts[d.key] = schedAllGroups.filter(g => groupMatchesDayKey(g, d.key)).length;
+            });
+
+            const tabs = [
+                { key: 'today', label: `⭐ اليوم (${todayName})`, badge: counts['today'], isSpecial: true },
+                { key: 'tomorrow', label: `غداً (${tomorrowName})`, badge: counts['tomorrow'], isSpecial: true },
+                ...SCHED_DAYS.map(d => ({
+                    key: d.key,
+                    label: d.name,
+                    badge: counts[d.key],
+                    isToday: d.key === actualTodayKey
+                })),
+                { key: 'all', label: '🌐 كافة الأيام', badge: counts['all'], isSpecial: false }
+            ];
+
+            let html = '';
+            tabs.forEach(t => {
+                const isActive = (schedActiveDay === t.key);
+                let btnClasses = '';
+                if (isActive) {
+                    btnClasses = 'bg-[#1F274B] text-white shadow-md font-black border-[#1F274B] ring-2 ring-[#41519C]/40';
+                } else if (t.isSpecial) {
+                    btnClasses = 'bg-indigo-50/80 text-indigo-950 hover:bg-indigo-100 font-bold border-indigo-200';
+                } else {
+                    btnClasses = 'bg-white text-slate-700 hover:bg-slate-100 font-bold border-slate-200';
+                }
+
+                html += `
+                    <button type="button" onclick="setSchedActiveDay('${t.key}')" 
+                        class="px-3.5 py-2 rounded-xl border text-xs whitespace-nowrap transition flex items-center gap-1.5 shrink-0 ${btnClasses}">
+                        <span>${t.label}</span>
+                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600'}">
+                            ${t.badge}
+                        </span>
+                    </button>
+                `;
+            });
+
+            bar.innerHTML = html;
+        }
+
+        function setSchedActiveDay(key) {
+            schedActiveDay = key;
+            renderSchedDaysTabs();
+            renderSupervisorSchedule();
+        }
+
+        function applyScheduleFilters() {
+            renderSupervisorSchedule();
+        }
+
+        function setScheduleViewMode(mode) {
+            schedViewMode = mode;
+            const btnTimeline = document.getElementById('schedViewBtnTimeline');
+            const btnTable = document.getElementById('schedViewBtnTable');
+            if (mode === 'timeline') {
+                btnTimeline?.classList.add('bg-[#1F274B]', 'text-white', 'shadow-xs');
+                btnTimeline?.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                btnTable?.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                btnTable?.classList.remove('bg-[#1F274B]', 'text-white', 'shadow-xs');
+            } else {
+                btnTable?.classList.add('bg-[#1F274B]', 'text-white', 'shadow-xs');
+                btnTable?.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                btnTimeline?.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-200');
+                btnTimeline?.classList.remove('bg-[#1F274B]', 'text-white', 'shadow-xs');
+            }
+            renderSupervisorSchedule();
+        }
+
+        function toggleSchedStudentsDropdown(groupId) {
+            const el = document.getElementById('sched-students-list-' + groupId);
+            const icon = document.getElementById('sched-students-icon-' + groupId);
+            if (el) {
+                el.classList.toggle('hidden');
+                if (icon) {
+                    icon.innerText = el.classList.contains('hidden') ? '▼' : '▲';
+                }
+            }
+        }
+
+        async function loadSupervisorSchedule(force = false) {
+            const container = document.getElementById('schedContentContainer');
+            if (!container) return;
+
+            if (schedIsLoading) return;
+            schedIsLoading = true;
+
+            // Update live today badge
+            const actualTodayKey = getSchedActualTodayKey();
+            const todayObj = SCHED_DAYS.find(d => d.key === actualTodayKey);
+            const todayBadge = document.getElementById('schedTodayBadge');
+            if (todayBadge && todayObj) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                todayBadge.innerHTML = `🟢 اليوم: <strong>${todayObj.name}</strong> • ${timeStr}`;
+            }
+
+            container.innerHTML = `
+                <div class="text-center py-12 text-slate-400 animate-pulse">
+                    <div class="text-4xl mb-2">⏳</div>
+                    <p class="font-bold text-sm">جاري تجميع وتنظيم جدول المجموعات من قاعدة البيانات...</p>
+                </div>
+            `;
+
+            try {
+                let groupsMap = {};
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const [{ data: sData, error: sErr }, { data: eData, error: eErr }] = await Promise.all([
+                        client.from('students').select('id, name, student_code, phone, parent_phone, age, qr_code, status').not('qr_code', 'is', null),
+                        client.from('enrollments').select('id, student_id, group_id, subscription_days, lecture_time, session_duration, teacher_id, remaining_credits, teachers(id, name)')
+                    ]);
+
+                    if (!sErr && sData && sData.length > 0) {
+                        const stMap = {};
+                        sData.forEach(s => { stMap[s.id] = s; });
+
+                        (eData || []).forEach(e => {
+                            const rawGids = (e.group_id || '').trim();
+                            if (!rawGids || rawGids === '—') return;
+                            const sObj = stMap[e.student_id] || {};
+                            const tObj = e.teachers || {};
+
+                            rawGids.split(/[,،\s]+/).forEach(gid => {
+                                gid = gid.trim();
+                                if (!gid.startsWith('G')) return;
+
+                                if (!groupsMap[gid]) {
+                                    groupsMap[gid] = {
+                                        group_id: gid,
+                                        days: e.subscription_days || sObj.qr_code || '',
+                                        time: e.lecture_time || '',
+                                        duration: e.session_duration || '20 دقيقة',
+                                        teacher_name: tObj.name || 'غير محدد',
+                                        teacher_id: tObj.id || e.teacher_id,
+                                        students: []
+                                    };
+                                } else {
+                                    if (!groupsMap[gid].days && e.subscription_days) groupsMap[gid].days = e.subscription_days;
+                                    if (!groupsMap[gid].time && e.lecture_time) groupsMap[gid].time = e.lecture_time;
+                                    if (tObj.name && groupsMap[gid].teacher_name === 'غير محدد') groupsMap[gid].teacher_name = tObj.name;
+                                }
+
+                                if (sObj.id && !groupsMap[gid].students.some(st => st.id === sObj.id)) {
+                                    groupsMap[gid].students.push({
+                                        id: sObj.id,
+                                        name: sObj.name || 'طالب الأكاديمية',
+                                        code: sObj.student_code || '—',
+                                        phone: sObj.phone || sObj.parent_phone || '',
+                                        age: sObj.age || '—',
+                                        credits: e.remaining_credits ?? 0
+                                    });
+                                }
+                            });
+                        });
+                    }
+                }
+
+                // Fallback: if groupsMap is empty, try bsAllStudents or allAdminGroups
+                if (Object.keys(groupsMap).length === 0 && window.bsAllStudents && bsAllStudents.length > 0) {
+                    bsAllStudents.forEach(s => {
+                        const gids = s.group_ids && s.group_ids.length > 0 ? s.group_ids : (s.group_id ? s.group_id.split(/[,،\s]+/) : []);
+                        gids.forEach(gid => {
+                            gid = gid.trim();
+                            if (!gid.startsWith('G')) return;
+                            if (!groupsMap[gid]) {
+                                groupsMap[gid] = {
+                                    group_id: gid,
+                                    days: s.subscription_days || '',
+                                    time: s.lecture_time || '',
+                                    duration: s.session_duration || '20 دقيقة',
+                                    teacher_name: s.teacher_name || 'غير محدد',
+                                    teacher_id: s.teacher_id || null,
+                                    students: []
+                                };
+                            }
+                            if (!groupsMap[gid].students.some(st => st.id === s.id)) {
+                                groupsMap[gid].students.push({
+                                    id: s.id,
+                                    name: s.name || '',
+                                    code: s.student_code || '—',
+                                    phone: s.phone || '',
+                                    age: s.age || '—',
+                                    credits: s.remaining_credits || 0
+                                });
+                            }
+                        });
+                    });
+                }
+
+                schedAllGroups = Object.values(groupsMap);
+
+                populateSchedTeachersFilter();
+                renderSchedDaysTabs();
+                renderSupervisorSchedule();
+
+            } catch(err) {
+                console.error('[SupervisorSchedule] Load error:', err);
+                container.innerHTML = `
+                    <div class="text-center py-10 text-rose-500">
+                        <div class="text-3xl mb-1">⚠️</div>
+                        <p class="font-bold text-sm">حدث خطأ أثناء تحميل جدول المجموعات.</p>
+                        <button onclick="loadSupervisorSchedule(true)" class="mt-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-1.5 rounded-xl text-xs transition">إعادة المحاولة</button>
+                    </div>
+                `;
+            } finally {
+                schedIsLoading = false;
+            }
+        }
+
+        function renderSupervisorSchedule() {
+            const container = document.getElementById('schedContentContainer');
+            if (!container) return;
+
+            const searchQ = (document.getElementById('schedSearchInput')?.value || '').trim().toLowerCase();
+            const teacherFilter = (document.getElementById('schedTeacherSelect')?.value || '').trim();
+            const periodFilter = (document.getElementById('schedPeriodSelect')?.value || 'all');
+
+            // 1. Filter by Active Day
+            let filtered = schedAllGroups.filter(g => groupMatchesDayKey(g, schedActiveDay));
+
+            // 2. Filter by Search Query
+            if (searchQ) {
+                filtered = filtered.filter(g => {
+                    const matchGid = g.group_id.toLowerCase().includes(searchQ);
+                    const matchTeacher = g.teacher_name.toLowerCase().includes(searchQ);
+                    const matchDays = (g.days || '').toLowerCase().includes(searchQ);
+                    const matchTime = (g.time || '').toLowerCase().includes(searchQ);
+                    const matchStudents = g.students.some(s =>
+                        s.name.toLowerCase().includes(searchQ) ||
+                        s.code.toLowerCase().includes(searchQ) ||
+                        String(s.phone).includes(searchQ)
+                    );
+                    return matchGid || matchTeacher || matchDays || matchTime || matchStudents;
+                });
+            }
+
+            // 3. Filter by Teacher
+            if (teacherFilter) {
+                filtered = filtered.filter(g => g.teacher_name === teacherFilter);
+            }
+
+            // 4. Parse time for each group & filter by period
+            const groupsWithTime = filtered.map(g => {
+                const timeInfo = parseTimeForDay(g.time, schedActiveDay);
+                return {
+                    ...g,
+                    timeInfo: timeInfo
+                };
+            });
+
+            let finalGroups = groupsWithTime;
+            if (periodFilter !== 'all') {
+                finalGroups = groupsWithTime.filter(g => g.timeInfo.period === periodFilter);
+            }
+
+            // 5. Sort chronologically by time (minutes 0..1439)
+            finalGroups.sort((a, b) => {
+                if (a.timeInfo.minutes !== b.timeInfo.minutes) {
+                    return a.timeInfo.minutes - b.timeInfo.minutes;
+                }
+                return a.group_id.localeCompare(b.group_id);
+            });
+
+            // 6. Update KPI stats
+            const actualTodayKey = getSchedActualTodayKey();
+            const actualTomorrowKey = getSchedActualTomorrowKey();
+            let dayDisplayName = 'كافة الأيام';
+            if (schedActiveDay === 'today') {
+                dayDisplayName = `اليوم (${SCHED_DAYS.find(d => d.key === actualTodayKey)?.name || ''})`;
+            } else if (schedActiveDay === 'tomorrow') {
+                dayDisplayName = `غداً (${SCHED_DAYS.find(d => d.key === actualTomorrowKey)?.name || ''})`;
+            } else if (schedActiveDay !== 'all') {
+                const dObj = SCHED_DAYS.find(d => d.key === schedActiveDay);
+                dayDisplayName = dObj ? dObj.name : schedActiveDay;
+            }
+
+            const statDayEl = document.getElementById('schedStatActiveDay');
+            if (statDayEl) statDayEl.innerText = dayDisplayName;
+            const statGroupsEl = document.getElementById('schedStatGroupsCount');
+            if (statGroupsEl) statGroupsEl.innerText = `${finalGroups.length} مجموعة`;
+            const totalStudentsCount = finalGroups.reduce((acc, g) => acc + g.students.length, 0);
+            const statStudentsEl = document.getElementById('schedStatStudentsCount');
+            if (statStudentsEl) statStudentsEl.innerText = `${totalStudentsCount} طالب`;
+            const uniqueTeachersCount = new Set(finalGroups.map(g => g.teacher_name).filter(t => t && t !== 'غير محدد')).size;
+            const statTeachersEl = document.getElementById('schedStatTeachersCount');
+            if (statTeachersEl) statTeachersEl.innerText = `${uniqueTeachersCount} معلم`;
+
+            const summaryEl = document.getElementById('schedResultsSummary');
+            if (summaryEl) {
+                summaryEl.innerText = `تم العثور على ${finalGroups.length} مجموعة (${totalStudentsCount} طالب)`;
+            }
+
+            // 7. Empty State
+            if (finalGroups.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-slate-50/70 border border-dashed border-slate-200 rounded-3xl space-y-2">
+                        <div class="text-4xl">📭</div>
+                        <h4 class="font-extrabold text-slate-800 text-sm">لا توجد مجموعات مطابقة</h4>
+                        <p class="text-xs text-slate-400">لا توجد مجموعات مجدولة في هذا اليوم أو بناءً على معايير البحث الحالية.</p>
+                        <button type="button" onclick="document.getElementById('schedSearchInput').value=''; document.getElementById('schedTeacherSelect').value=''; document.getElementById('schedPeriodSelect').value='all'; applyScheduleFilters();" class="mt-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                            إعادة تعيين الفلاتر
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // 8. Render View (Timeline Cards or Compact Table)
+            if (schedViewMode === 'table') {
+                renderScheduleTableView(finalGroups, container);
+            } else {
+                renderScheduleTimelineView(finalGroups, container);
+            }
+        }
+
+        function renderScheduleTimelineView(groups, container) {
+            // Group into time slots by hourLabel
+            const slotsMap = {};
+            groups.forEach(g => {
+                const label = g.timeInfo.hourLabel || 'مواعيد غير محددة';
+                if (!slotsMap[label]) {
+                    slotsMap[label] = {
+                        label: label,
+                        minutes: g.timeInfo.minutes,
+                        period: g.timeInfo.period,
+                        groups: []
+                    };
+                }
+                slotsMap[label].groups.push(g);
+            });
+
+            const slots = Object.values(slotsMap).sort((a, b) => a.minutes - b.minutes);
+
+            let html = '';
+            slots.forEach(slot => {
+                const totalSlotStudents = slot.groups.reduce((acc, g) => acc + g.students.length, 0);
+
+                let periodBadge = '';
+                if (slot.period === 'morning') periodBadge = '<span class="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-bold">☀️ الصباح</span>';
+                else if (slot.period === 'afternoon') periodBadge = '<span class="text-[10px] bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md font-bold">🌤️ فترة الظهر / العصر</span>';
+                else if (slot.period === 'evening') periodBadge = '<span class="text-[10px] bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-md font-bold">🌙 المساء</span>';
+                else if (slot.period === 'night') periodBadge = '<span class="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-md font-bold">✨ ليلاً</span>';
+
+                html += `
+                    <div class="space-y-3 pt-2">
+                        <!-- Slot Header -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-slate-100 to-slate-50 border border-slate-200 px-3.5 py-2 rounded-2xl">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-indigo-600 shadow-xs"></span>
+                                <strong class="text-xs sm:text-sm font-black text-slate-900">${slot.label}</strong>
+                                <span class="text-[11px] font-bold text-slate-500">(${slot.groups.length} مجموعات • ${totalSlotStudents} طالب)</span>
+                            </div>
+                            <div>${periodBadge}</div>
+                        </div>
+
+                        <!-- Cards Grid for this Hour -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                            ${slot.groups.map(g => renderSingleScheduleCard(g)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderSingleScheduleCard(g) {
+            const meetUrl = getSchedMeetUrl(g.group_id);
+            const safeMeetUrl = meetUrl.replace(/'/g, "\\'");
+            const safeGid = g.group_id.replace(/[^a-zA-Z0-9]/g, '_');
+
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 p-3.5 shadow-xs hover:shadow-md transition space-y-3 flex flex-col justify-between" id="sched-card-${safeGid}">
+                    <!-- Card Top: Group ID, Time & Duration -->
+                    <div>
+                        <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono font-black text-xs text-white bg-[#1F274B] px-2 py-0.5 rounded-md shadow-xs">${g.group_id}</span>
+                                    <span class="text-[11px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                                        ⏰ ${g.timeInfo.display}
+                                    </span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 font-bold mt-1">
+                                    📅 ${g.days || 'غير محدد'}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 whitespace-nowrap">
+                                    ⏱️ ${g.duration}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Teacher Info -->
+                        <div class="mt-2.5 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-sm">👨‍🏫</span>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block leading-tight">المعلم:</span>
+                                    <strong class="text-slate-800 text-xs font-black">${g.teacher_name}</strong>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+                                    👥 ${g.students.length} ${g.students.length === 1 ? 'طالب' : 'طلاب'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Students List -->
+                        <div class="mt-2.5 pt-2 border-t border-slate-100">
+                            <button type="button" onclick="toggleSchedStudentsDropdown('${safeGid}')" 
+                                class="w-full flex items-center justify-between text-[11px] font-bold text-slate-600 hover:text-indigo-700 transition">
+                                <span>قائمة الطلاب (${g.students.length}):</span>
+                                <span id="sched-students-icon-${safeGid}" class="text-[10px]">▼</span>
+                            </button>
+                            <div id="sched-students-list-${safeGid}" class="hidden mt-2 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                ${g.students.map(st => {
+                                    const waLink = formatSchedWhatsAppLink(st.phone);
+                                    return `
+                                        <div class="flex items-center justify-between gap-1 p-1.5 bg-slate-50 rounded-lg text-[10px] border border-slate-100">
+                                            <div class="truncate">
+                                                <strong class="text-slate-800 font-bold block truncate">${st.name}</strong>
+                                                <span class="font-mono text-slate-400 text-[9px]">${st.code || '—'}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1 shrink-0">
+                                                ${waLink ? `
+                                                    <a href="${waLink}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-1.5 py-0.5 rounded text-[9px] font-bold transition flex items-center gap-0.5" title="مراسلة واتساب">
+                                                        <span>واتساب</span>
+                                                    </a>
+                                                ` : ''}
+                                                ${st.phone ? `
+                                                    <a href="tel:${st.phone}" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-1.5 py-0.5 rounded text-[9px] font-bold transition" title="اتصال">
+                                                        <span>📞</span>
+                                                    </a>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons: Join Meet & Copy Link -->
+                    <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
+                        <a href="${meetUrl}" target="_blank" 
+                            class="flex-1 text-center justify-center bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs py-2 rounded-xl transition shadow-xs flex items-center gap-1.5">
+                            <span>🎥</span>
+                            <span>دخول القاعة</span>
+                        </a>
+                        <button type="button" onclick="copySchedMeetLink('${safeMeetUrl}', this)" 
+                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 transition shadow-xs flex items-center gap-1 whitespace-nowrap">
+                            <span>📋</span>
+                            <span>نسخ</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderScheduleTableView(groups, container) {
+            let html = `
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
+                    <table class="w-full text-right text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 font-black border-b border-slate-200">
+                                <th class="p-3 text-center">#</th>
+                                <th class="p-3">الموعد والساعة</th>
+                                <th class="p-3">المجموعة</th>
+                                <th class="p-3">المعلم</th>
+                                <th class="p-3">الطلاب المسجلين</th>
+                                <th class="p-3">مدة الجلسة</th>
+                                <th class="p-3 text-center">إجراءات المشرف</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+            `;
+
+            groups.forEach((g, idx) => {
+                const meetUrl = getSchedMeetUrl(g.group_id);
+                const safeMeetUrl = meetUrl.replace(/'/g, "\\'");
+                html += `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-3 text-center font-mono text-slate-400 font-bold">${idx + 1}</td>
+                        <td class="p-3">
+                            <span class="inline-flex items-center gap-1 font-black text-indigo-900 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md text-[11px]">
+                                ⏰ ${g.timeInfo.display}
+                            </span>
+                            <div class="text-[10px] text-slate-400 font-bold mt-0.5">${g.days || '—'}</div>
+                        </td>
+                        <td class="p-3 font-mono font-black text-slate-900">${g.group_id}</td>
+                        <td class="p-3 font-bold text-slate-800">${g.teacher_name}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-slate-700 text-xs mb-0.5">${g.students.length} طلاب:</div>
+                            <div class="text-[10px] text-slate-500 max-w-xs truncate">${g.students.map(s => s.name).join('، ')}</div>
+                        </td>
+                        <td class="p-3 text-slate-600 font-bold text-[11px]">${g.duration}</td>
+                        <td class="p-3">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <a href="${meetUrl}" target="_blank" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1 whitespace-nowrap">
+                                    <span>🎥</span>
+                                    <span>دخول</span>
+                                </a>
+                                <button type="button" onclick="copySchedMeetLink('${safeMeetUrl}', this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-200 transition shadow-xs">
+                                    نسخ
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
 
         // ════════════════════════════════════
         // ADMIN: Groups Management
