@@ -981,15 +981,29 @@
             }
         }
 
+        let activeModalStudentCode = null;
+
         function openSurahModal(studentId, studentCode, currentSurah, currentAya, studentName) {
             activeModalStudentId = studentId;
+            activeModalStudentCode = studentCode;
             const nameEl = document.getElementById('modalStudentName');
             if (nameEl) nameEl.innerText = studentName || studentCode;
             const codeEl = document.getElementById('modalStudentCode');
             if (codeEl) codeEl.innerText = studentCode ? ('(' + studentCode + ')') : '';
             document.getElementById('modalSurahInput').value = currentSurah || '';
             document.getElementById('modalAyaInput').value = currentAya || '';
-            document.getElementById('modalNotesInput').value = '';
+
+            // Load existing notes if available
+            let prevNotes = '';
+            try {
+                const cached = localStorage.getItem('monir_surah_progress_' + studentId) || localStorage.getItem('monir_surah_progress_' + studentCode);
+                if (cached) {
+                    const p = JSON.parse(cached);
+                    prevNotes = p.notes || '';
+                }
+            } catch(e) {}
+            document.getElementById('modalNotesInput').value = prevNotes;
+
             document.getElementById('updateSurahModal').classList.remove('hidden');
         }
 
@@ -1006,13 +1020,25 @@
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const client = window.MonirDB.getClient();
-                        await client.from('enrollments').update({
+                        const { error } = await client.from('enrollments').update({
                             current_surah: surah,
                             current_aya: aya
                         }).eq('student_id', activeModalStudentId);
-                        success = true;
+                        if (!error) success = true;
                     } catch(e) {}
                 }
+
+                // Cache in localStorage for seamless instant sync across student & teacher tabs
+                const progObj = {
+                    student_id: activeModalStudentId,
+                    student_code: activeModalStudentCode,
+                    surah: surah,
+                    aya: aya,
+                    notes: notes,
+                    updated_at: new Date().toISOString()
+                };
+                if (activeModalStudentId) localStorage.setItem('monir_surah_progress_' + activeModalStudentId, JSON.stringify(progObj));
+                if (activeModalStudentCode) localStorage.setItem('monir_surah_progress_' + activeModalStudentCode, JSON.stringify(progObj));
 
                 if (!success) {
                     await fetch('/api/quran/update-surah', {
@@ -1022,7 +1048,7 @@
                     });
                 }
                 closeModal('updateSurahModal');
-                alert('تم تحديث موضع التلاوة والحفظ بنجاح! ✓');
+                alert('تم تحديث موضع التلاوة وحفظ الورد بنجاح! سيظهر للطالب بجانب رقم المحاضرة فوراً. ✓');
                 await loadTeacherGroups();
             } catch(err) {
                 alert('حدث خطأ أثناء الحفظ.');

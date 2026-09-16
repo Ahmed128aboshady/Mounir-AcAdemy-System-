@@ -752,11 +752,53 @@ function renderLectureCard(l, isCurrentDue = false) {
     let actionBtn = '';
     let cardClass = 'lecture-card p-4 rounded-xl border transition-all';
 
-    const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || {};
-    const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
+    const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const curGid = currentCourseInfo.group_id || curStudent.group_id;
     const meetLink = (typeof window !== 'undefined' && window.getGroupMeetUrl) 
         ? window.getGroupMeetUrl(curGid) 
         : (l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com');
+
+    // Extract Quran Progress (الورد وموضع التلاوة والحفظ)
+    let quranSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
+    let quranAya = l.current_aya || currentCourseInfo.current_aya || curStudent.current_aya || null;
+    let quranNotes = '';
+
+    const sId = curStudent.id || currentStudentId;
+    const sCode = curStudent.student_code;
+    const cacheKeys = [
+        sId ? ('monir_surah_progress_' + sId) : null,
+        sCode ? ('monir_surah_progress_' + sCode) : null
+    ].filter(Boolean);
+
+    for (const k of cacheKeys) {
+        try {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed.surah && !quranSurah) quranSurah = parsed.surah;
+                if (parsed.aya && !quranAya) quranAya = parsed.aya;
+                if (parsed.notes && !quranNotes) quranNotes = parsed.notes;
+            }
+        } catch(e) {}
+    }
+
+    let quranBadge = '';
+    if (quranSurah) {
+        quranBadge = `
+            <span class="inline-flex items-center gap-1 text-[11px] font-black text-emerald-900 bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-300 px-2.5 py-0.5 rounded-md shadow-2xs">
+                <span>📖 الورد المقرر:</span>
+                <strong class="text-emerald-950">${quranSurah}</strong>
+                ${quranAya ? `<span class="bg-emerald-200/90 text-emerald-950 font-black px-1.5 py-0.2 rounded text-[10px]">آية ${quranAya}</span>` : ''}
+            </span>
+        `;
+    } else if (isCurrentDue || l.status === 'live') {
+        quranBadge = `
+            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+                <span>📖 الورد: يُحدد بالحلقة</span>
+            </span>
+        `;
+    }
 
     // The single video room button - only shown for current due lecture or live
     const meetBtn = `
@@ -823,7 +865,29 @@ function renderLectureCard(l, isCurrentDue = false) {
                     الحصة الحالية • جاهزة للدخول
                 </span>
             `;
+
+            const quranBox = quranSurah ? `
+                <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/90 rounded-xl p-3 text-xs mb-2.5 shadow-2xs space-y-1.5">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">📖</span>
+                            <div>
+                                <span class="text-[10px] text-emerald-700 font-extrabold block">موضع الحفظ والتلاوة المقرر لهذه الحصة:</span>
+                                <strong class="text-sm font-black text-emerald-950">${quranSurah} ${quranAya ? `(الآية ${quranAya})` : ''}</strong>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-full">مسار القرآن الكريم</span>
+                    </div>
+                    ${quranNotes ? `
+                        <div class="text-[11px] text-emerald-950 bg-white/80 p-2 rounded-lg border border-emerald-100 font-medium">
+                            <strong>ملاحظات وتوجيهات المعلم:</strong> ${quranNotes}
+                        </div>
+                    ` : ''}
+                </div>
+            ` : '';
+
             actionBtn = `
+                ${quranBox}
                 <div class="bg-white p-3 rounded-xl border border-emerald-200 text-xs text-slate-700">
                     <div class="mb-1 font-bold text-slate-900">موعد الحصة: <strong class="text-emerald-700">${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
                     <p class="text-[11px] text-slate-600">هذه هي المحاضرة التي عليها الدور الآن في خطتك. يمكنك الدخول المباشر للقاعة.</p>
@@ -849,8 +913,11 @@ function renderLectureCard(l, isCurrentDue = false) {
     div.innerHTML = `
         <div class="flex justify-between items-start mb-2 gap-2">
             <div>
-                <span class="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">حصة #${l.lecture_number}</span>
-                <h4 class="font-extrabold text-sm text-slate-900 mt-1">${l.title}</h4>
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                    <span class="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">حصة #${l.lecture_number}</span>
+                    ${quranBadge}
+                </div>
+                <h4 class="font-extrabold text-sm text-slate-900 mt-0.5">${l.title}</h4>
             </div>
             <div>${statusBadge}</div>
         </div>

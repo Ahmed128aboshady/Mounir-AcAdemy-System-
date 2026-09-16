@@ -283,6 +283,11 @@
                             status: e.status || 'active',
                         };
                     });
+                    const enrWithSurah = enrData.find(e => e.current_surah) || enrData[0];
+                    if (enrWithSurah) {
+                        stData.current_surah = enrWithSurah.current_surah;
+                        stData.current_aya = enrWithSurah.current_aya;
+                    }
                 } else if (localEnrs.length > 0) {
                     enrichedEnr = localEnrs.map(le => ({
                         ...le,
