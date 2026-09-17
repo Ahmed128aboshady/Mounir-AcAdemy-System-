@@ -538,16 +538,21 @@ async function loadSelectedCourseLectures() {
         }
 
         // ════════════════════════════════════════════════
-        // DYNAMIC BLOCK CALCULATION
-        // Algorithm:
-        //   remaining_credits = N
-        //   Show N unlocked lectures + 1 locked lecture (next)
-        //   Group into blocks of 4
-        //   Example: N=15 → 4 blocks: [1-4][5-8][9-12][13-15, 16🔒]
-        //   Example: N=3  → 1 block: [1-3, 4🔒]
-        //   Example: N=4  → 2 blocks: [1-4][5🔒]
-        const rc = remainingCredits;
-        const totalToShow = Math.max(1, rc); // Show exactly what remains for the student
+        // DYNAMIC BLOCK & ATTENDANCE CALCULATION
+        // Total package = total_lectures_unlocked or (attendedCount + remaining_credits)
+        // Attended lectures (1 .. attendedCount) are marked COMPLETED
+        // Remaining lectures are scheduled & unlocked
+        const rc = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : 0;
+        const presentCount = (currentCourseInfo.present_count !== undefined) ? currentCourseInfo.present_count : 0;
+        const absentCount = (currentCourseInfo.absent_count !== undefined) ? currentCourseInfo.absent_count : 0;
+        const attendedCount = presentCount + absentCount;
+
+        // Total package lectures to display in the block (e.g. 4 for monthly plan)
+        let totalToShow = currentCourseInfo.total_lectures_unlocked || (attendedCount + rc);
+        if (totalToShow < (attendedCount + rc)) {
+            totalToShow = attendedCount + rc;
+        }
+        if (totalToShow < 1) totalToShow = Math.max(1, rc);
         const numBlocks = Math.ceil(totalToShow / 4);
         
         const durVal = currentCourseInfo.session_duration || '20';
@@ -563,21 +568,6 @@ async function loadSelectedCourseLectures() {
             ? window.getGroupMeetUrl(curGid)
             : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
-        // Update Mobile & Desktop Hero Quick-Join Card
-        const heroCourseTitle = document.getElementById('heroCourseTitle');
-        if (heroCourseTitle) heroCourseTitle.innerText = data.course_name || selectedCourseName;
-        const heroTeacherName = document.getElementById('heroTeacherName');
-        if (heroTeacherName) heroTeacherName.innerText = (currentCourseInfo && currentCourseInfo.teacher_name) ? ('أ. ' + currentCourseInfo.teacher_name) : 'معلم الأكاديمية';
-        const heroSessionTime = document.getElementById('heroSessionTime');
-        if (heroSessionTime) heroSessionTime.innerText = (timeText || '') + (subDays ? (' • ' + subDays) : '') + (' (' + durLabel + ')');
-        const heroCreditsBadge = document.getElementById('heroCreditsBadge');
-        if (heroCreditsBadge) {
-            heroCreditsBadge.innerText = (rc > 0) ? (`${rc} حصص متبقية بالرصيد`) : 'الرصيد منتهٍ (يرجى التجديد)';
-            heroCreditsBadge.className = (rc > 0) 
-                ? 'text-[11px] text-amber-300 font-extrabold bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30'
-                : 'text-[11px] text-red-300 font-extrabold bg-red-500/20 px-2.5 py-0.5 rounded-full border border-red-400/30';
-        }
-
         // Build the full list of lectures (existing + generated)
         if (!data.lectures || !Array.isArray(data.lectures)) {
             data.lectures = [];
@@ -590,17 +580,36 @@ async function loadSelectedCourseLectures() {
                 block_number: Math.ceil(num / 4),
                 title: 'المحاضرة ' + num,
                 scheduled_time: '',
-                is_unlocked: (num <= rc),
-                status: 'scheduled',
+                is_unlocked: (num <= attendedCount + rc),
+                status: (num <= attendedCount) ? 'completed' : 'scheduled',
                 google_meet_url: meetUrl
             });
         }
 
-        // Assign dates
+        // Assign dates, attendance status, and properties
         data.lectures.forEach((l, idx) => {
-            l.lecture_number = l.lecture_number || (idx + 1);
-            l.is_unlocked = (l.lecture_number <= rc);
-            l.block_number = Math.ceil(l.lecture_number / 4);
+            const num = idx + 1;
+            l.lecture_number = num;
+            l.block_number = Math.ceil(num / 4);
+            l.title = 'المحاضرة ' + num;
+            l.google_meet_url = l.google_meet_url || meetUrl;
+
+            const isAttended = (num <= attendedCount);
+            const isUnlocked = (num <= attendedCount + rc);
+            l.is_unlocked = isUnlocked;
+
+            if (isAttended) {
+                l.status = 'completed';
+                l.attendance = {
+                    status: (num <= presentCount ? 'present' : 'absent'),
+                    duration_minutes: durNum
+                };
+            } else if (isUnlocked) {
+                l.status = 'scheduled';
+            } else {
+                l.status = 'locked';
+            }
+
             if (idx < upcomingDates.length) {
                 let slotTime = timeText;
                 if (timeText && timeText.includes('|')) {
@@ -614,9 +623,29 @@ async function loadSelectedCourseLectures() {
             } else {
                 l.scheduled_time = timeText + ' (' + durLabel + ')';
             }
-            l.title = 'المحاضرة ' + l.lecture_number;
-            l.google_meet_url = l.google_meet_url || meetUrl;
         });
+
+        // Determine which lecture is currently due (first unlocked lecture that is not completed)
+        const dueLecture = data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
+            || data.lectures[data.lectures.length - 1];
+        const dueLectureNumber = dueLecture ? dueLecture.lecture_number : 1;
+
+        // Update Mobile & Desktop Hero Quick-Join Card
+        const heroCourseTitle = document.getElementById('heroCourseTitle');
+        if (heroCourseTitle) heroCourseTitle.innerText = data.course_name || selectedCourseName;
+        const heroTeacherName = document.getElementById('heroTeacherName');
+        if (heroTeacherName) heroTeacherName.innerText = (currentCourseInfo && currentCourseInfo.teacher_name) ? ('أ. ' + currentCourseInfo.teacher_name) : 'معلم الأكاديمية';
+        const heroSessionTime = document.getElementById('heroSessionTime');
+        if (heroSessionTime) {
+            heroSessionTime.innerText = (dueLecture && dueLecture.scheduled_time) ? dueLecture.scheduled_time : ((timeText || '') + (subDays ? (' • ' + subDays) : '') + (' (' + durLabel + ')'));
+        }
+        const heroCreditsBadge = document.getElementById('heroCreditsBadge');
+        if (heroCreditsBadge) {
+            heroCreditsBadge.innerText = (rc > 0) ? (`${rc} حصص متبقية بالرصيد`) : 'الرصيد منتهٍ (يرجى التجديد)';
+            heroCreditsBadge.className = (rc > 0) 
+                ? 'text-[11px] text-amber-300 font-extrabold bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30'
+                : 'text-[11px] text-red-300 font-extrabold bg-red-500/20 px-2.5 py-0.5 rounded-full border border-red-400/30';
+        }
         
         // Subtitle removed per user request
         const subtitleEl = document.getElementById('selectedCourseSubtitle');
