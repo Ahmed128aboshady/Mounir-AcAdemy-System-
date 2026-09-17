@@ -94,7 +94,8 @@ async function initAdminStudentSupervisor(activeId) {
         sel.innerHTML = __cachedSupervisorStudents.map(s => {
             const isSel = (s.id == activeId || s.student_code == activeId) ? 'selected' : '';
             const grp = s.qr_code ? ` [${s.qr_code}]` : '';
-            return `<option value="${s.id}" ${isSel}>${s.name} (${s.student_code || s.id})${grp}</option>`;
+            const name = s.name || ('طالب ' + (s.student_code || s.id));
+            return `<option value="${s.id}" ${isSel}>${name} (${s.student_code || s.id})${grp}</option>`;
         }).join('');
     } catch(e) {
         console.error('Error populating admin student switcher:', e);
@@ -153,11 +154,12 @@ function renderModalStudentsList(list) {
     const displayList = list.slice(0, 30);
     container.innerHTML = displayList.map(s => {
         const isCurrent = (s.id == currentStudentId || s.student_code == currentStudentId);
+        const sName = s.name || ('طالب ' + (s.student_code || s.id));
         return `
             <div class="p-2.5 rounded-xl border ${isCurrent ? 'bg-indigo-50 border-indigo-300' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'} flex items-center justify-between gap-2 transition">
                 <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
-                        <strong class="text-slate-900 text-xs truncate">${s.name}</strong>
+                        <strong class="text-slate-900 text-xs truncate">${sName}</strong>
                         <span class="bg-[#41519C] text-white text-[10px] font-mono px-1.5 py-0.5 rounded">${s.student_code || s.id}</span>
                         ${s.qr_code ? `<span class="bg-[#57BA9E] text-slate-950 text-[10px] font-mono px-1.5 py-0.5 rounded">${s.qr_code}</span>` : ''}
                     </div>
@@ -271,34 +273,26 @@ async function loadStudentProfile() {
             const selDropdown = document.getElementById('studentSelectDropdown');
             if (selDropdown) selDropdown.disabled = true;
 
-            document.getElementById('studentName').innerText = s.name || 'طالب الأكاديمية';
+            const displayName = s.name || (s.student_code ? ('طالب ' + s.student_code) : 'طالب الأكاديمية');
+            document.getElementById('studentName').innerText = displayName;
             document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
-            document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
+            document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id || currentStudentId).padStart(4, '0'));
             document.getElementById('parentName').innerText = 'ولي أمر معتمد (محجوب)';
             const parentPhoneEl = document.getElementById('parentPhone');
             if (parentPhoneEl) parentPhoneEl.innerText = 'محجوب للخصوصية';
             document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
         } else if (viewerRole === 'admin') {
-            // Admin sees EVERYTHING unmasked + supervisor badge
-            let admBanner = document.getElementById('adminSupervisorBanner');
-            if (!admBanner) {
-                admBanner = document.createElement('div');
-                admBanner.id = 'adminSupervisorBanner';
-                admBanner.className = 'bg-slate-900 border border-amber-500/50 text-amber-300 p-3 rounded-2xl mb-5 shadow flex justify-between items-center text-xs font-bold';
-                admBanner.innerHTML = `
-                    <span>👑 وضع المشرف العام (إدارة كاملة): يحق لك فحص كافة بيانات الطالب وأولياء الأمور والمحاضرات والرسوم.</span>
-                    <a href="admin.html" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-xl transition">العودة للوحة الإدارة</a>
-                `;
-                const mainEl = document.querySelector('main');
-                if (mainEl) mainEl.insertBefore(admBanner, mainEl.firstChild);
-            }
+            // Admin sees EVERYTHING unmasked - supervisor toolbar is already fixed at top
+            const existingBanner = document.getElementById('adminSupervisorBanner');
+            if (existingBanner) existingBanner.remove();
 
-            document.getElementById('studentName').innerText = s.name || '';
+            const displayName = s.name || (s.student_code ? ('طالب ' + s.student_code) : 'طالب الأكاديمية');
+            document.getElementById('studentName').innerText = displayName;
             document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
-            document.getElementById('studentCode').innerText = s.student_code || 'MNR-2026';
+            document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id || currentStudentId).padStart(4, '0'));
             document.getElementById('parentName').innerText = s.parent_name || 'ولي أمر الطالب';
             const parentPhoneEl = document.getElementById('parentPhone');
-            if (parentPhoneEl) parentPhoneEl.innerText = s.parent_phone || s.phone || '0100000000';
+            if (parentPhoneEl) parentPhoneEl.innerText = s.parent_phone || s.phone || 'غير مسجل';
             document.getElementById('enrolledCoursesCount').innerText = (data.enrolled_courses_count || 1) + ' مسار تدريبي';
         } else {
             // Normal Student View

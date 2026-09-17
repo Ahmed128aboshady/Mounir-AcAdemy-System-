@@ -69,64 +69,80 @@
     </header>
 
     <!-- Admin Supervisor Toolbar for Students (يظهر فقط للإدارة أو المعلم عند استعراض صفحات الطلاب) -->
-    <div id="adminStudentSupervisorBar" class="hidden bg-gradient-to-r from-indigo-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-indigo-500 py-2 px-3 sm:px-4 shadow-md sticky top-[53px] sm:top-[57px] z-30">
-        <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-2 sm:gap-3 text-xs">
-            <div class="flex items-center gap-2">
-                <span class="bg-indigo-500 text-white font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs shadow-sm">
-                    <span>👑</span>
-                    <span>وضع إشراف الإدارة</span>
-                </span>
-                <span class="text-slate-200 font-bold hidden sm:inline">تبديل الطالب المعروض:</span>
+    <div id="adminStudentSupervisorBar" class="hidden bg-gradient-to-r from-indigo-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-indigo-500/60 py-1.5 sm:py-2 px-3 sm:px-4 shadow-md sticky top-[49px] sm:top-[57px] z-30">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-3 text-xs">
+            <!-- Row 1: Status Badge & Quick Navigation Controls -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5">
+                    <span class="bg-indigo-600 text-white font-black px-2 py-0.5 rounded-lg flex items-center gap-1 text-[11px] shadow-xs">
+                        <span>👑</span>
+                        <span>إشراف الإدارة</span>
+                    </span>
+                    <span class="text-slate-300 font-bold hidden md:inline text-[11px]">تبديل الطالب:</span>
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <button type="button" onclick="openStudentSearchModal()" class="bg-indigo-900/90 hover:bg-indigo-800 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-indigo-500/40 flex items-center gap-1 cursor-pointer" title="بحث سريع بين كل الطلاب">
+                        <span>🔍</span>
+                        <span>بحث</span>
+                    </button>
+                    <a href="admin.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-slate-700 flex items-center gap-1">
+                        <span>🏠</span>
+                        <span>الإدارة</span>
+                    </a>
+                    <a href="teacher.html" target="_blank" class="bg-emerald-800/90 hover:bg-emerald-700 text-emerald-100 hover:text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-emerald-600/50 flex items-center gap-1">
+                        <span>👨‍🏫</span>
+                        <span>المعلمين</span>
+                    </a>
+                </div>
             </div>
-            <div class="flex items-center gap-2 flex-1 sm:flex-none justify-end flex-wrap">
-                <select id="adminStudentQuickSelect" onchange="switchAdminStudentView(this.value)" class="bg-slate-800 border border-indigo-400/60 text-white rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-400 max-w-[200px] sm:max-w-[280px]">
+
+            <!-- Row 2: Full-Width Student Switcher Dropdown on Mobile -->
+            <div class="w-full sm:w-auto flex-1 sm:max-w-xs">
+                <select id="adminStudentQuickSelect" onchange="switchAdminStudentView(this.value)" class="w-full bg-slate-900 border border-indigo-400/50 text-white rounded-xl px-2.5 py-1.5 text-[11px] sm:text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer truncate">
                     <option value="">جاري تحميل قائمة الطلاب...</option>
                 </select>
-                <button type="button" onclick="openStudentSearchModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition whitespace-nowrap border border-slate-600 cursor-pointer" title="بحث سريع بين كل الطلاب">
-                    🔍 بحث
-                </button>
-                <a href="admin.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition whitespace-nowrap border border-slate-600">
-                    🏠 الإدارة
-                </a>
-                <a href="teacher.html" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition whitespace-nowrap shadow-sm">
-                    👨‍🏫 المعلمين
-                </a>
             </div>
         </div>
     </div>
 
     <!-- Main Container -->
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-6 space-y-3.5 sm:space-y-6">
 
         <!-- Top Notification Banner -->
-        <div id="topNotificationBanner" class="hidden bg-amber-50 border-r-4 border-amber-500 rounded-xl p-4 shadow-sm flex items-start justify-between gap-3">
+        <div id="topNotificationBanner" class="hidden bg-amber-50 border-r-4 border-amber-500 rounded-xl p-3 sm:p-4 shadow-sm flex items-start justify-between gap-3 text-xs">
             <div>
-                <h4 class="font-bold text-sm text-amber-900" id="topNotifTitle">تنبيه بخصوص موعد المحاضرة</h4>
-                <p class="text-xs text-amber-800 mt-0.5" id="topNotifMsg">تفاصيل الإشعار...</p>
+                <h4 class="font-bold text-xs sm:text-sm text-amber-900" id="topNotifTitle">تنبيه بخصوص موعد المحاضرة</h4>
+                <p class="text-[11px] sm:text-xs text-amber-800 mt-0.5 leading-relaxed" id="topNotifMsg">تفاصيل الإشعار...</p>
             </div>
-            <button onclick="closeTopBanner()" class="text-amber-700 hover:text-amber-900 text-xs font-bold px-2 py-1 bg-amber-100 rounded-md">حسناً</button>
+            <button onclick="closeTopBanner()" class="text-amber-700 hover:text-amber-900 text-xs font-bold px-2 py-1 bg-amber-100 rounded-md cursor-pointer shrink-0">حسناً</button>
         </div>
 
         <!-- 1. Digital Student ID Smart Card -->
-        <section class="student-id-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+        <section class="student-id-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 relative z-10">
                 <div class="w-full sm:w-auto">
+                    <!-- Top Badges -->
                     <div class="flex items-center gap-2 mb-2 flex-wrap">
                         <span class="bg-[#57BA9E] text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">كارت الطالب الرقمي</span>
                         <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full" id="accountStatusBadge">اشتراك ساري (نشط)</span>
                     </div>
-                    <h2 class="text-xl sm:text-2xl font-black mb-1 leading-snug" id="studentName"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script></h2>
-                    <p class="text-xs text-blue-200" id="studentDetails"></p>
+
+                    <!-- Student Name -->
+                    <h2 class="text-lg sm:text-2xl font-black mb-0.5 text-white leading-tight flex items-center gap-2" id="studentName">
+                        <script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script>
+                    </h2>
+                    <p class="text-[11px] sm:text-xs text-blue-200 font-medium" id="studentDetails">السن: 9 سنوات</p>
                     
-                    <div class="mt-3 sm:mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs text-slate-200">
-                        <div class="bg-white/10 sm:bg-transparent p-2 sm:p-0 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px]">كود الطالب (ID)</span>
+                    <!-- 4 Info Tiles -->
+                    <div class="mt-2.5 sm:mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 text-xs text-slate-200">
+                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">🆔 كود الطالب (ID)</span>
                             <strong class="font-mono text-xs sm:text-sm tracking-wider text-amber-300 block truncate" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></strong>
                         </div>
 
-                        <div class="bg-white/10 sm:bg-transparent p-2 sm:p-0 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px]">ولي الأمر</span>
-                            <strong class="text-xs sm:text-sm block truncate" id="parentName"><script>(function(){
+                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">👤 ولي الأمر</span>
+                            <strong class="text-xs sm:text-sm block truncate text-white" id="parentName"><script>(function(){
                                 const u=window.__PRELOADED_USER__;
                                 if(u&&u.full_name){
                                     const fn=u.full_name.trim();
@@ -140,12 +156,13 @@
                                     const parts=fn.split(/\s+/);
                                     document.write(parts.length>=2?('أ. '+parts.slice(1).join(' ')+' (ولي الأمر)'):('ولي أمر '+fn));
                                 }else{
-                                    document.write('---');
+                                    document.write('ولي أمر معتمد');
                                 }
                             })();</script></strong>
                         </div>
-                        <div class="bg-white/10 sm:bg-transparent p-2 sm:p-0 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px]">هاتف ولي الأمر</span>
+
+                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">📞 هاتف ولي الأمر</span>
                             <strong class="font-mono text-xs sm:text-sm text-emerald-300 block truncate" id="parentPhone"><script>(function(){
                                 let u = window.__PRELOADED_USER__;
                                 let phone = u ? (u.parent_phone || u.phone) : null;
@@ -157,21 +174,20 @@
                                 document.write(phone || '01118599442');
                             })();</script></strong>
                         </div>
-                        <div class="bg-white/10 sm:bg-transparent p-2 sm:p-0 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px]">إجمالي الكورسات</span>
+
+                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">📚 إجمالي الكورسات</span>
                             <strong class="text-emerald-400 text-xs sm:text-sm block truncate" id="enrolledCoursesCount"><script>(function(){const u=window.__PRELOADED_USER__;document.write(u?'1 مسار تدريبي':'---');})();</script></strong>
                         </div>
                     </div>
                 </div>
 
-                <!-- QR Code Box (Responsive) -->
-                <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-xl flex sm:flex-col items-center justify-between sm:justify-center gap-3 w-full sm:w-auto self-center sm:self-auto shrink-0">
-                    <div class="flex items-center gap-3 sm:flex-col sm:gap-1">
-                        <script>(function(){const u=window.__PRELOADED_USER__;const code=(u&&u.username)?u.username:'MONIR-LMS';document.write('<img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(code)+'" alt="QR Code" class="w-14 h-14 sm:w-24 sm:h-24 rounded-lg object-contain">');})();</script>
-                        <div>
-                            <span class="text-[10px] text-slate-600 font-bold block text-right sm:text-center">باركود الحضور</span>
-                            <span class="text-[9px] text-slate-400 sm:hidden block text-right">للمسح والمتابعة</span>
-                        </div>
+                <!-- QR Code Box (Compact & Responsive on Mobile) -->
+                <div class="bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl shadow-xl flex items-center justify-between sm:flex-col sm:justify-center gap-2.5 sm:gap-1.5 w-full sm:w-auto self-center sm:self-auto shrink-0 border border-slate-200">
+                    <script>(function(){const u=window.__PRELOADED_USER__;const code=(u&&u.username)?u.username:'MONIR-LMS';document.write('<img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(code)+'" alt="QR Code" class="w-12 h-12 sm:w-20 sm:h-20 rounded-lg object-contain shrink-0">');})();</script>
+                    <div class="text-right sm:text-center min-w-0">
+                        <span class="text-[11px] text-slate-800 font-extrabold block">باركود الحضور الذكي</span>
+                        <span class="text-[10px] text-slate-500 block">للمسح والمتابعة السريعة</span>
                     </div>
                 </div>
             </div>
