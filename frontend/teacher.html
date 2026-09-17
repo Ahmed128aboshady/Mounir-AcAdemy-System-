@@ -498,25 +498,52 @@
                             enrData.forEach(e => {
                                 const s = e.students;
                                 if (!s) return;
-                                const rawGid = (e.group_id || s.qr_code || 'G000').toString();
+                                
+                                let rawGid = (e.group_id || '').toString().trim();
+                                if (!rawGid && s.qr_code) {
+                                    const qc = s.qr_code.toString().trim();
+                                    if (!qc.includes('http') && !qc.includes('/') && !qc.includes('qrserver') && !qc.includes('data=') && qc.length < 25) {
+                                        rawGid = qc;
+                                    }
+                                }
+                                if (!rawGid) {
+                                    if (s.student_code) {
+                                        const parts = s.student_code.split('-');
+                                        rawGid = 'G-' + (parts.length > 1 ? parts[parts.length - 1] : s.student_code);
+                                    } else {
+                                        rawGid = 'G000';
+                                    }
+                                }
+
                                 const gids = rawGid.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
                                 if (gids.length === 0) gids.push('G000');
 
                                 gids.forEach(gid => {
+                                    let safeGid = gid;
+                                    if (safeGid.includes('http') || safeGid.includes('/') || safeGid.includes('qrserver') || safeGid.includes('data=')) {
+                                        const match = safeGid.match(/data=([A-Za-z0-9_-]+)/);
+                                        if (match && match[1]) {
+                                            const parts = match[1].split('-');
+                                            safeGid = 'G-' + (parts.length > 1 ? parts[parts.length - 1] : match[1]);
+                                        } else {
+                                            safeGid = 'G-فردي';
+                                        }
+                                    }
+
                                     const sOv = studentScheds[s.id] || {};
-                                    const gOv = groupScheds[gid] || {};
+                                    const gOv = groupScheds[safeGid] || {};
 
                                     const subDays = sOv.subscription_days || e.subscription_days || gOv.subscription_days || '';
                                     const lecTime = sOv.lecture_time || e.lecture_time || gOv.lecture_time || '';
                                     const sesDur  = sOv.session_duration || e.session_duration || gOv.session_duration || '';
 
-                                    if (!groupsMap[gid]) {
+                                    if (!groupsMap[safeGid]) {
                                         const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                                            ? window.getGroupMeetUrl(gid)
-                                            : ('https://meet.google.com/mnr-' + gid.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                                        groupsMap[gid] = {
-                                            group_id: gid,
-                                            group_name: e.course_name || gid,
+                                            ? window.getGroupMeetUrl(safeGid)
+                                            : ('https://meet.google.com/mnr-' + safeGid.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                                        groupsMap[safeGid] = {
+                                            group_id: safeGid,
+                                            group_name: e.course_name || safeGid,
                                             subscription_days: subDays,
                                             lecture_time: lecTime,
                                             session_duration: sesDur,
@@ -524,12 +551,12 @@
                                             students: []
                                         };
                                     }
-                                    if (!groupsMap[gid].subscription_days && subDays) groupsMap[gid].subscription_days = subDays;
-                                    if (!groupsMap[gid].lecture_time && lecTime) groupsMap[gid].lecture_time = lecTime;
-                                    if (!groupsMap[gid].session_duration && sesDur) groupsMap[gid].session_duration = sesDur;
+                                    if (!groupsMap[safeGid].subscription_days && subDays) groupsMap[safeGid].subscription_days = subDays;
+                                    if (!groupsMap[safeGid].lecture_time && lecTime) groupsMap[safeGid].lecture_time = lecTime;
+                                    if (!groupsMap[safeGid].session_duration && sesDur) groupsMap[safeGid].session_duration = sesDur;
 
-                                    if (!groupsMap[gid].students.some(st => st.id === s.id && st.enrollment_id === e.id)) {
-                                        groupsMap[gid].students.push({
+                                    if (!groupsMap[safeGid].students.some(st => st.id === s.id && st.enrollment_id === e.id)) {
+                                        groupsMap[safeGid].students.push({
                                             id: s.id,
                                             student_id: s.id,
                                             name: s.name,
@@ -537,7 +564,7 @@
                                             student_code: s.student_code,
                                             age: s.age,
                                             course_name: e.course_name,
-                                            group_id: gid,
+                                            group_id: safeGid,
                                             subscription_days: subDays,
                                             lecture_time: lecTime,
                                             session_duration: sesDur,
@@ -703,13 +730,24 @@
 
             container.innerHTML = '';
             groups.forEach((g, gIdx) => {
-                const idSafe = 'grp_' + (g.group_id || 'g').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
+                let cleanGid = (g.group_id || 'G000').toString().trim();
+                if (cleanGid.includes('http') || cleanGid.includes('qrserver') || cleanGid.includes('/') || cleanGid.includes('data=')) {
+                    const match = cleanGid.match(/data=([A-Za-z0-9_-]+)/);
+                    if (match && match[1]) {
+                        const parts = match[1].split('-');
+                        cleanGid = 'G-' + (parts.length > 1 ? parts[parts.length - 1] : match[1]);
+                    } else {
+                        cleanGid = 'G-فردي';
+                    }
+                }
+
+                const idSafe = 'grp_' + cleanGid.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
                 const rawMeet = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                    ? window.getGroupMeetUrl(g.group_id)
-                    : (g.google_meet_url || ('https://meet.jit.si/MounirAcademy_Group_' + (g.group_id || 'g').toUpperCase().replace(/[^A-Z0-9]/g, '')));
-                const meetUrl = (rawMeet && !rawMeet.includes('meet.google.com') && g.group_id !== 'G346')
+                    ? window.getGroupMeetUrl(cleanGid)
+                    : (g.google_meet_url || ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '')));
+                const meetUrl = (rawMeet && !rawMeet.includes('meet.google.com') && cleanGid !== 'G346')
                     ? rawMeet
-                    : ('https://meet.jit.si/MounirAcademy_Group_' + (g.group_id || 'g').toUpperCase().replace(/[^A-Z0-9]/g, ''));
+                    : ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, ''));
                 
                 // Determine true schedule from group or enrolled students
                 let days = (g.subscription_days && g.subscription_days !== '—') ? g.subscription_days : '';
@@ -740,7 +778,7 @@
                 } else if (time) {
                     scheduleDisplay = time;
                 } else {
-                    scheduleDisplay = g.group_name || ('المجموعة ' + g.group_id);
+                    scheduleDisplay = g.group_name || ('المجموعة ' + cleanGid);
                 }
 
                 const el = document.createElement('div');
@@ -754,7 +792,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </div>
-                            <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-[11px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-lg shrink-0">${g.group_id}</span>
+                            <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-[11px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-lg shrink-0 max-w-[120px] truncate">${cleanGid}</span>
                             <a href="${meetUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] sm:text-[11px] bg-emerald-500/25 hover:bg-emerald-500 text-emerald-200 hover:text-slate-950 border border-emerald-400/40 px-2 py-0.5 sm:py-1 rounded-lg font-black inline-flex items-center gap-1 transition shadow-sm shrink-0" title="بدء الحصة في القاعة المباشرة">
                                 <span>📹</span>
                                 <span class="hidden sm:inline">دخول القاعة</span>
@@ -787,7 +825,7 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                        <span class="font-black text-xs text-slate-900 shrink-0">رابط قاعة الحصة (${g.group_id}):</span>
+                                        <span class="font-black text-xs text-slate-900 shrink-0">رابط قاعة الحصة (${cleanGid}):</span>
                                         <a href="${meetUrl}" target="_blank" id="meet-link-${idSafe}" class="text-xs font-mono font-bold text-emerald-700 hover:text-emerald-800 underline truncate max-w-[200px] sm:max-w-[400px]" dir="ltr">${meetUrl}</a>
                                     </div>
                                     <div class="flex items-center gap-2 mt-0.5 text-[10px] sm:text-[11px] text-slate-600 flex-wrap">
@@ -805,7 +843,7 @@
                                     <span>📋</span>
                                     <span>نسخ الرابط</span>
                                 </button>
-                                <button type="button" onclick="handleResetGroupMeet('${g.group_id}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs shadow-sm transition" title="استعادة رابط الأكاديمية الأصلي وحذف أي رابط معدل">
+                                <button type="button" onclick="handleResetGroupMeet('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs shadow-sm transition" title="استعادة رابط الأكاديمية الأصلي وحذف أي رابط معدل">
                                     <span>🔄</span>
                                     <span>الرابط الأصلي</span>
                                 </button>

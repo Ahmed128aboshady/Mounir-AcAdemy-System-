@@ -568,8 +568,19 @@
             const groupsMap = {};
             enrs.forEach(e => {
                 const s = DB.students.find(st => st.id === e.student_id);
-                if (!s) return;
-                const gid = s.qr_code || e.group_id || 'G000'; // group_id stored in qr_code
+                let rawGid = (e.group_id || '').toString().trim();
+                if (!rawGid && s.qr_code && !s.qr_code.includes('http') && !s.qr_code.includes('/') && s.qr_code.length < 25) {
+                    rawGid = s.qr_code;
+                }
+                if (!rawGid) {
+                    if (s.student_code) {
+                        const parts = s.student_code.split('-');
+                        rawGid = 'G-' + (parts.length > 1 ? parts[parts.length - 1] : s.student_code);
+                    } else {
+                        rawGid = 'G000';
+                    }
+                }
+                const gid = rawGid;
                 
                 const sOv = studentScheds[s.id] || {};
                 const gOv = groupScheds[gid] || {};
