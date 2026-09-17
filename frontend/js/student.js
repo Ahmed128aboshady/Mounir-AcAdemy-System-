@@ -249,7 +249,15 @@ async function loadStudentProfile() {
         
         const s = data.student || {};
         window.currentStudentData = data;
-        window.currentStudentAge = (s.age !== undefined && s.age !== null) ? parseInt(s.age) : 9;
+        let loadedAge = (s.age !== undefined && s.age !== null) ? parseInt(s.age) : 9;
+        const pageParams = new URLSearchParams(window.location.search);
+        if (pageParams.has('sim_age')) {
+            loadedAge = parseInt(pageParams.get('sim_age'), 10);
+        }
+        window.currentStudentAge = loadedAge;
+        if (typeof updateFridayScheduleNoticeByAge === 'function') {
+            updateFridayScheduleNoticeByAge(loadedAge);
+        }
 
         // Privacy Shield for Teachers
         if (viewerRole === 'teacher') {
@@ -2234,10 +2242,33 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     }
 }
 
+function updateFridayScheduleNoticeByAge(studentAge) {
+    const slotKids = document.getElementById('slotNoticeKids');
+    const slotAdults = document.getElementById('slotNoticeAdults');
+    if (!slotKids || !slotAdults) return;
+
+    const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
+
+    if (age < 10) {
+        slotKids.classList.remove('hidden');
+        slotAdults.classList.add('hidden');
+    } else {
+        slotKids.classList.add('hidden');
+        slotAdults.classList.remove('hidden');
+    }
+}
+
 function syncZoomLiveStatusAll() {
-    const studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
+    let studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
                        ((window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.age) ? parseInt(window.currentStudentData.student.age) : 9);
     
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('sim_age')) {
+        studentAge = parseInt(urlParams.get('sim_age'), 10);
+        window.currentStudentAge = studentAge;
+    }
+    updateFridayScheduleNoticeByAge(studentAge);
+
     const zoomUrl = "https://zoom.us/j/98264506630";
     const status = getZoomLiveLinkStatus(zoomUrl, studentAge);
 
@@ -2356,23 +2387,20 @@ function renderGeneralTrackView() {
                 ${zoomStatus.html || ''}
             </div>
 
-            <!-- Schedules Info (Kids vs Adults) -->
-            ${(meta.schedule_kids || meta.schedule_adults) ? `
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center gap-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الأطفال والناشئة:</span>
-                            <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_kids || 'الجمعة 2:00 م'}</strong>
-                        </div>
+            <!-- Schedules Info (Only the student's age group) -->
+            <div class="text-xs">
+                ${(studentAge < 10) ? `
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الأطفال (أقل من 10 سنوات):</span>
+                        <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_kids || 'الجمعة 1:50 م - 2:25 م'}</strong>
                     </div>
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center gap-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الكبار والمتقدمين:</span>
-                            <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_adults || 'الجمعة 2:30 م'}</strong>
-                        </div>
+                ` : `
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الطلاب (10 سنوات فما فوق):</span>
+                        <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_adults || 'الجمعة 2:20 م - 2:50 م'}</strong>
                     </div>
-                </div>
-            ` : ''}
+                `}
+            </div>
 
             <!-- Voice Summary & Player (Locked state until supervisors upload and publish) -->
             ${(meta.records_unlocked && meta.audio_url) ? `
