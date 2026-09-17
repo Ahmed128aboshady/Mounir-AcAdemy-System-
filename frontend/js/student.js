@@ -249,6 +249,7 @@ async function loadStudentProfile() {
         
         const s = data.student || {};
         window.currentStudentData = data;
+        window.currentStudentAge = (s.age !== undefined && s.age !== null) ? parseInt(s.age) : 9;
 
         // Privacy Shield for Teachers
         if (viewerRole === 'teacher') {
@@ -391,6 +392,9 @@ async function loadStudentProfile() {
         renderEnrolledCoursesTabs(enrolledCoursesList);
         checkAndRenderQuranWidget(enrolledCoursesList);
         loadSelectedCourseLectures();
+        if (typeof renderGeneralTrackView === 'function') {
+            renderGeneralTrackView();
+        }
         
         const badge = document.getElementById('notifBadge');
         if (data.unread_notifications > 0) {
@@ -2020,6 +2024,187 @@ function parseQuizMeta(quiz) {
     }
 }
 
+// ==========================================
+// Zoom Live Link & Age/Time Gating Engine
+// ==========================================
+
+function getCairoTimeInfo() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Support simulation for testing via URL: ?sim_time=14:05 (HH:MM in 24h format)
+    if (urlParams.has('sim_time')) {
+        const parts = urlParams.get('sim_time').split(':');
+        const h = parseInt(parts[0], 10);
+        const m = parseInt(parts[1] || '0', 10);
+        return {
+            hours: h,
+            minutes: m,
+            totalMinutes: h * 60 + m,
+            isSimulated: true
+        };
+    }
+
+    try {
+        const now = new Date();
+        const cairoFormatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Africa/Cairo',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false
+        });
+        const parts = cairoFormatter.formatToParts(now);
+        let h = 0, m = 0;
+        for (const p of parts) {
+            if (p.type === 'hour') h = parseInt(p.value, 10);
+            if (p.type === 'minute') m = parseInt(p.value, 10);
+        }
+        return {
+            hours: h,
+            minutes: m,
+            totalMinutes: h * 60 + m,
+            isSimulated: false
+        };
+    } catch(e) {
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        return {
+            hours: h,
+            minutes: m,
+            totalMinutes: h * 60 + m,
+            isSimulated: false
+        };
+    }
+}
+
+function getZoomLiveLinkStatus(liveUrl, studentAge) {
+    if (!liveUrl) return { isVisible: false, html: '' };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Age override for testing: ?sim_age=8 or ?sim_age=14
+    if (urlParams.has('sim_age')) {
+        studentAge = parseInt(urlParams.get('sim_age'), 10);
+    }
+    const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
+
+    // Supervisor check
+    const userRole = (window.currentLoggedInUser && window.currentLoggedInUser.role) || 
+                     (window.currentSessionUser && window.currentSessionUser.role) || 
+                     urlParams.get('role');
+    const isAdminOrTeacher = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor'));
+
+    if (urlParams.has('test_zoom') || (isAdminOrTeacher && urlParams.get('force_live') === '1')) {
+        return {
+            isVisible: true,
+            html: `
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <span class="bg-indigo-900 text-indigo-100 text-[10px] font-black px-2.5 py-1 rounded-lg text-center">👁️ وضع المعاينة الفورية (تجريبي)</span>
+                    <a href="${liveUrl}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 shrink-0">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>دخول البث المباشر (Zoom)</span>
+                    </a>
+                </div>
+            `
+        };
+    }
+
+    const timeInfo = getCairoTimeInfo();
+    const currentMins = timeInfo.totalMinutes;
+
+    // Rules:
+    // Kids (< 10): 1:50 PM (830 mins) to 2:25 PM (865 mins)
+    // Adults (>= 10): 2:20 PM (860 mins) to 2:50 PM (890 mins)
+    const isKid = (age < 10);
+    const startMins = isKid ? 830 : 860; // 13:50 or 14:20
+    const endMins = isKid ? 865 : 890;   // 14:25 or 14:50
+    const timeLabel = isKid ? '1:50 م - 2:25 م' : '2:20 م - 2:50 م';
+    const groupLabel = isKid ? 'فئة الأطفال (أقل من 10 سنوات)' : 'فئة الطلاب (10 سنوات فأكثر)';
+
+    const isWithinWindow = (currentMins >= startMins && currentMins <= endMins);
+
+    if (isWithinWindow) {
+        return {
+            isVisible: true,
+            isWithinWindow: true,
+            html: `
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div class="text-right sm:text-left">
+                        <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-[11px] font-black px-3 py-1 rounded-full border border-emerald-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
+                            <span>البث المباشر متاح الآن لـ ${isKid ? 'الأطفال' : 'الطلاب'} (${timeLabel})</span>
+                        </span>
+                    </div>
+                    <a href="${liveUrl}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 shrink-0 active:scale-95">
+                        <span class="text-base">📹</span>
+                        <span>دخول محاضرة الزووم المباشرة (Zoom)</span>
+                    </a>
+                </div>
+            `
+        };
+    }
+
+    if (isAdminOrTeacher) {
+        return {
+            isVisible: false,
+            isSupervisor: true,
+            html: `
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div class="bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-xl text-[11px] font-bold">
+                        <span>🔒 مقفل للطلاب (${groupLabel} | الموعد: ${timeLabel})</span>
+                    </div>
+                    <a href="${liveUrl}" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-black px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5">
+                        <span>🛡️ دخول كمعلم/مشرف (Zoom)</span>
+                    </a>
+                </div>
+            `
+        };
+    }
+
+    if (currentMins < startMins) {
+        const minsLeft = startMins - currentMins;
+        const hoursLeft = Math.floor(minsLeft / 60);
+        const remMins = minsLeft % 60;
+        let countdownStr = hoursLeft > 0 ? `متبقي ${hoursLeft} ساعة و ${remMins} دقيقة` : `متبقي ${remMins} دقيقة`;
+
+        return {
+            isVisible: false,
+            html: `
+                <div class="bg-slate-100/90 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+                    <span class="text-base">⏳</span>
+                    <div>
+                        <span class="block text-[11px] text-slate-800 font-black">رابط Zoom سيفتح تلقائياً في موعد فئتك (${timeLabel})</span>
+                        <span class="text-[10px] text-indigo-700 font-extrabold">${groupLabel} • ${countdownStr}</span>
+                    </div>
+                </div>
+            `
+        };
+    } else {
+        return {
+            isVisible: false,
+            html: `
+                <div class="bg-slate-50 border border-slate-200 text-slate-500 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+                    <span class="text-base">🔒</span>
+                    <div>
+                        <span class="block text-[11px] text-slate-600 font-extrabold">انتهى موعد البث المباشر المخصص لفئتك (${timeLabel})</span>
+                        <span class="text-[10px] text-slate-400">يمكنك الاستماع للملخص الصوتي وحل الاختبار المرفق أدناه</span>
+                    </div>
+                </div>
+            `
+        };
+    }
+}
+
+if (!window.__zoomLiveTimerStarted) {
+    window.__zoomLiveTimerStarted = true;
+    setInterval(() => {
+        const c = document.getElementById('generalTrackCardContainer');
+        if (c && typeof renderGeneralTrackView === 'function') {
+            renderGeneralTrackView();
+        }
+    }, 20000);
+}
+
 function renderGeneralTrackView() {
     const container = document.getElementById('generalTrackCardContainer');
     if (!container) return;
@@ -2047,6 +2232,10 @@ function renderGeneralTrackView() {
     const quiz = matchingQuizzes[0];
     const meta = parseQuizMeta(quiz);
     const sub = cachedStudentSubmissions.find(s => s.quiz_id === quiz.id);
+
+    const studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
+                       ((window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.age) ? parseInt(window.currentStudentData.student.age) : 9);
+    const zoomStatus = getZoomLiveLinkStatus(meta.live_url, studentAge);
 
     const trackTitles = {
         'tajweed': 'مسار أحكام التجويد ومخارج الحروف',
@@ -2096,12 +2285,7 @@ function renderGeneralTrackView() {
                     </div>
                     <h4 class="text-sm sm:text-base font-black text-slate-900">${quiz.title}</h4>
                 </div>
-                ${meta.live_url ? `
-                    <a href="${meta.live_url}" target="_blank" class="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 shrink-0">
-                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>رابط البث المباشر (Google Meet)</span>
-                    </a>
-                ` : ''}
+                ${zoomStatus.html || ''}
             </div>
 
             <!-- Schedules Info (Kids vs Adults) -->

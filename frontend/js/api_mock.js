@@ -15,9 +15,9 @@
                 summary_text: "شرح حكم الإظهار الحلقي وحروفه الستة (ء، هـ، ع، ح، غ، خ) مع أمثلة وتطبيقات عملية من جزء عم.",
                 audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tajweed_w1.mp3",
                 pdf_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-                live_url: "https://meet.google.com/qpn-cbfv-kmo",
-                schedule_kids: "الجمعة 2:00 م بتوقيت القاهرة",
-                schedule_adults: "الجمعة 2:30 م بتوقيت القاهرة"
+                live_url: "https://zoom.us/j/98264506630",
+                schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
             }),
             total_questions: 3,
             passing_score: 70
@@ -32,9 +32,9 @@
                 summary_text: "تفسير سورة الفاتحة ولماذا سميت بأم الكتاب والسبع المثاني والمعاني التربوية لقوله تعالى 'إياك نعبد وإياك نستعين'.",
                 audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tafsir_w1.mp3",
                 pdf_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-                live_url: "https://meet.google.com/qpn-cbfv-kmo",
-                schedule_kids: "السبت 4:00 م بتوقيت القاهرة",
-                schedule_adults: "السبت 5:00 م بتوقيت القاهرة"
+                live_url: "https://zoom.us/j/98264506630",
+                schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
             }),
             total_questions: 3,
             passing_score: 70
@@ -49,9 +49,9 @@
                 summary_text: "شرح حديث عمر بن الخطاب رضي الله عنه في الإخلاص والنية وأثرهما في قبول العمل وحياة المسلم.",
                 audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/hadith_w1.mp3",
                 pdf_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-                live_url: "https://meet.google.com/qpn-cbfv-kmo",
-                schedule_kids: "الأحد 4:00 م بتوقيت القاهرة",
-                schedule_adults: "الأحد 5:00 م بتوقيت القاهرة"
+                live_url: "https://zoom.us/j/98264506630",
+                schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
             }),
             total_questions: 3,
             passing_score: 70
