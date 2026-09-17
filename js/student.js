@@ -405,9 +405,122 @@ async function loadStudentProfile() {
     }
 }
 
+function extractQuranPlan(rawSurah, rawAya, studentId, studentCode) {
+    let plan = {
+        hifz: '',
+        madi_qareeb: '',
+        madi_baeed: '',
+        notes: '',
+        updated_at: ''
+    };
+
+    if (rawSurah && typeof rawSurah === 'string') {
+        const trimmed = rawSurah.trim();
+        if (trimmed.startsWith('{')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                plan.hifz = parsed.hifz || parsed.surah || '';
+                plan.madi_qareeb = parsed.madi_qareeb || parsed.madiQareeb || '';
+                plan.madi_baeed = parsed.madi_baeed || parsed.madiBaeed || '';
+                plan.notes = parsed.notes || '';
+                plan.updated_at = parsed.updated_at || '';
+            } catch(e) {
+                plan.hifz = trimmed;
+            }
+        } else {
+            plan.hifz = trimmed;
+            if (rawAya && rawAya > 1 && !plan.hifz.includes('آية') && !plan.hifz.includes('اية')) {
+                plan.hifz += ` (الآية ${rawAya})`;
+            }
+        }
+    }
+
+    // Check localStorage cache if any fields are empty
+    const cacheKeys = [
+        studentId ? ('monir_quran_plan_' + studentId) : null,
+        studentCode ? ('monir_quran_plan_' + studentCode) : null,
+        studentId ? ('monir_surah_progress_' + studentId) : null,
+        studentCode ? ('monir_surah_progress_' + studentCode) : null
+    ].filter(Boolean);
+
+    for (const k of cacheKeys) {
+        try {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+                const p = JSON.parse(raw);
+                if (!plan.hifz && (p.hifz || p.surah)) plan.hifz = p.hifz || p.surah;
+                if (!plan.madi_qareeb && (p.madi_qareeb || p.madiQareeb)) plan.madi_qareeb = p.madi_qareeb || p.madiQareeb;
+                if (!plan.madi_baeed && (p.madi_baeed || p.madiBaeed)) plan.madi_baeed = p.madi_baeed || p.madiBaeed;
+                if (!plan.notes && p.notes) plan.notes = p.notes;
+                if (!plan.updated_at && p.updated_at) plan.updated_at = p.updated_at;
+            }
+        } catch(e) {}
+    }
+
+    return plan;
+}
+
 function checkAndRenderQuranWidget(courses) {
-    const sec = document.getElementById('quranCreditSection');
-    if (sec) sec.remove();
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const sId = curStudent.id || currentStudentId;
+    const sCode = curStudent.student_code;
+
+    let rawSurah = '';
+    let rawAya = 1;
+
+    if (Array.isArray(courses) && courses.length > 0) {
+        const c = courses.find(x => x.course_name === selectedCourseName) || courses[0];
+        if (c && c.current_surah) {
+            rawSurah = c.current_surah;
+            rawAya = c.current_aya;
+        }
+    }
+    if (!rawSurah && curStudent && curStudent.current_surah) {
+        rawSurah = curStudent.current_surah;
+        rawAya = curStudent.current_aya;
+    }
+
+    const plan = extractQuranPlan(rawSurah, rawAya, sId, sCode);
+
+    const hifzEl = document.getElementById('planHifzDisplay');
+    const qareebEl = document.getElementById('planMadiQareebDisplay');
+    const baeedEl = document.getElementById('planMadiBaeedDisplay');
+    const notesEl = document.getElementById('planNotesDisplay');
+    const notesContainer = document.getElementById('planNotesContainer');
+    const badgeEl = document.getElementById('quranPlanUpdatedBadge');
+
+    if (hifzEl) {
+        hifzEl.innerText = plan.hifz || 'يُحدد بالحلقة القادمة مع المعلم';
+    }
+    if (qareebEl) {
+        qareebEl.innerText = plan.madi_qareeb || 'لا يوجد ماضي قريب مسجل';
+    }
+    if (baeedEl) {
+        baeedEl.innerText = plan.madi_baeed || 'لا يوجد ماضي بعيد مسجل';
+    }
+    if (notesEl && notesContainer) {
+        if (plan.notes) {
+            notesEl.innerText = plan.notes;
+            notesContainer.classList.remove('hidden');
+        } else {
+            notesContainer.classList.add('hidden');
+        }
+    }
+    if (badgeEl) {
+        if (plan.updated_at) {
+            try {
+                const d = new Date(plan.updated_at);
+                badgeEl.innerText = 'آخر اعتماد: ' + d.toLocaleDateString('ar-EG');
+            } catch(e) {
+                badgeEl.innerText = 'معتمد من المعلم';
+            }
+        } else {
+            badgeEl.innerText = 'معتمد من المعلم';
+        }
+    }
+
+    // Pass latest plan to notifications
+    loadNotifications(sId, sCode, plan);
 }
 
 function renderEnrolledCoursesTabs(courses) {
@@ -882,38 +995,29 @@ function renderLectureCard(l, isCurrentDue = false) {
         ? window.getGroupMeetUrl(curGid) 
         : (l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
-    // Extract Quran Progress (الورد وموضع التلاوة والحفظ)
-    let quranSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
-    let quranAya = l.current_aya || currentCourseInfo.current_aya || curStudent.current_aya || null;
-    let quranNotes = '';
-
+    // Extract Quran Progress (الورد وموضع التلاوة والحفظ والماضي)
+    let rawLectureSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
+    let rawLectureAya = l.current_aya || currentCourseInfo.current_aya || curStudent.current_aya || null;
     const sId = curStudent.id || currentStudentId;
     const sCode = curStudent.student_code;
-    const cacheKeys = [
-        sId ? ('monir_surah_progress_' + sId) : null,
-        sCode ? ('monir_surah_progress_' + sCode) : null
-    ].filter(Boolean);
 
-    for (const k of cacheKeys) {
-        try {
-            const raw = localStorage.getItem(k);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed.surah && !quranSurah) quranSurah = parsed.surah;
-                if (parsed.aya && !quranAya) quranAya = parsed.aya;
-                if (parsed.notes && !quranNotes) quranNotes = parsed.notes;
-            }
-        } catch(e) {}
-    }
+    const plan = extractQuranPlan(rawLectureSurah, rawLectureAya, sId, sCode);
 
     let quranBadge = '';
-    if (quranSurah) {
+    if (plan.hifz || plan.madi_qareeb) {
         quranBadge = `
-            <span class="inline-flex items-center gap-1 text-[11px] font-black text-emerald-900 bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-300 px-2.5 py-0.5 rounded-md shadow-2xs">
-                <span>📖 الورد المقرر:</span>
-                <strong class="text-emerald-950">${quranSurah}</strong>
-                ${quranAya ? `<span class="bg-emerald-200/90 text-emerald-950 font-black px-1.5 py-0.2 rounded text-[10px]">آية ${quranAya}</span>` : ''}
-            </span>
+            <div class="flex items-center gap-1.5 flex-wrap">
+                ${plan.hifz ? `
+                <span class="inline-flex items-center gap-1 text-[11px] font-black text-emerald-950 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-md shadow-2xs">
+                    <span>🟢 الورد:</span>
+                    <strong>${plan.hifz}</strong>
+                </span>` : ''}
+                ${plan.madi_qareeb ? `
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+                    <span>🔵 الماضي:</span>
+                    <span>${plan.madi_qareeb}</span>
+                </span>` : ''}
+            </div>
         `;
     } else if (isCurrentDue || l.status === 'live') {
         quranBadge = `
@@ -928,10 +1032,10 @@ function renderLectureCard(l, isCurrentDue = false) {
         <div class="mt-3 pt-3 border-t border-emerald-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    <span>دخول قاعة الحصة الآن</span>
+                    <span>🎥</span>
+                    <span>دخول الحصة المباشرة (Google Meet)</span>
                 </button>
-                <button type="button" onclick="event.stopPropagation(); if (window.copyMeetLink) window.copyMeetLink('${meetLink}', this); else { navigator.clipboard.writeText('${meetLink}'); alert('تم نسخ رابط الحصة بنجاح!'); }" class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 active:scale-[0.98] text-slate-700 border border-slate-300 font-bold px-3 py-3 rounded-xl text-xs transition cursor-pointer" title="نسخ الرابط">
+                <button type="button" onclick="copyMeetLink('${meetLink}')" class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition border border-slate-200 flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ رابط الحصة">
                     <span>📋</span>
                     <span class="hidden sm:inline">نسخ الرابط</span>
                 </button>
@@ -967,8 +1071,13 @@ function renderLectureCard(l, isCurrentDue = false) {
                 
             statusBadge = '<span class="badge-status badge-completed">مكتملة ✓</span>';
             actionBtn = `
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
                     <div>${attBadge}</div>
+                    ${(plan.hifz || plan.madi_qareeb) ? `
+                        <div class="bg-emerald-50/60 p-2 rounded-lg border border-emerald-100 text-[11px] text-emerald-950">
+                            <strong>الورد المنجز:</strong> ${plan.hifz || '—'} ${plan.madi_qareeb ? ` | <strong>مراجعة:</strong> ${plan.madi_qareeb}` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             `;
         } else if (l.status === 'postponed') {
@@ -989,21 +1098,33 @@ function renderLectureCard(l, isCurrentDue = false) {
                 </span>
             `;
 
-            const quranBox = quranSurah ? `
-                <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/90 rounded-xl p-3 text-xs mb-2.5 shadow-2xs space-y-1.5">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">📖</span>
-                            <div>
-                                <span class="text-[10px] text-emerald-700 font-extrabold block">موضع الحفظ والتلاوة المقرر لهذه الحصة:</span>
-                                <strong class="text-sm font-black text-emerald-950">${quranSurah} ${quranAya ? `(الآية ${quranAya})` : ''}</strong>
-                            </div>
+            const quranBox = (plan.hifz || plan.madi_qareeb || plan.madi_baeed) ? `
+                <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/90 rounded-2xl p-3 text-xs mb-2.5 shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between flex-wrap gap-2 pb-1.5 border-b border-emerald-200/60">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-base">📖</span>
+                            <strong class="text-xs font-black text-emerald-950">خطة الحفظ والمراجعة المقررة لهذه الحصة</strong>
                         </div>
                         <span class="text-[10px] font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-full">مسار القرآن الكريم</span>
                     </div>
-                    ${quranNotes ? `
-                        <div class="text-[11px] text-emerald-950 bg-white/80 p-2 rounded-lg border border-emerald-100 font-medium">
-                            <strong>ملاحظات وتوجيهات المعلم:</strong> ${quranNotes}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="bg-white/95 p-2 rounded-xl border border-emerald-200 shadow-2xs">
+                            <span class="text-[10px] text-emerald-800 font-black block mb-0.5">🟢 الحفظ الجديد:</span>
+                            <strong class="text-xs text-slate-900 block">${plan.hifz || 'يُحدد بالحلقة'}</strong>
+                        </div>
+                        <div class="bg-white/95 p-2 rounded-xl border border-blue-200 shadow-2xs">
+                            <span class="text-[10px] text-blue-800 font-black block mb-0.5">🔵 الماضي القريب:</span>
+                            <strong class="text-xs text-slate-800 block">${plan.madi_qareeb || '—'}</strong>
+                        </div>
+                        <div class="bg-white/95 p-2 rounded-xl border border-purple-200 shadow-2xs">
+                            <span class="text-[10px] text-purple-800 font-black block mb-0.5">🟣 الماضي البعيد:</span>
+                            <strong class="text-xs text-slate-800 block">${plan.madi_baeed || '—'}</strong>
+                        </div>
+                    </div>
+                    ${plan.notes ? `
+                        <div class="text-[11px] text-emerald-950 bg-emerald-100/70 p-2 rounded-xl border border-emerald-200 font-medium flex items-start gap-1.5">
+                            <span>💡</span>
+                            <div><strong>توجيهات المعلم:</strong> ${plan.notes}</div>
                         </div>
                     ` : ''}
                 </div>
@@ -1350,40 +1471,136 @@ async function loadSupportTickets() {
 }
 
 // ---------------- Notifications ----------------
-async function loadNotifications() {
+async function loadNotifications(overrideId = null, overrideCode = null, preloadedPlan = null) {
     try {
-        const res = await fetch('/api/student/' + currentStudentId + '/notifications');
-        const notifs = await res.json();
-        
-        const list = document.getElementById('notificationsList');
-        list.innerHTML = '';
-        
+        const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+        const sId = overrideId || curStudent.id || currentStudentId;
+        const sCode = overrideCode || curStudent.student_code;
+
+        let notifs = [];
+
+        // 1. Try Supabase notifications table
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            try {
+                const client = window.MonirDB.getClient();
+                const { data } = await client.from('notifications')
+                    .select('*')
+                    .eq('student_id', sId)
+                    .order('created_at', { ascending: false })
+                    .limit(15);
+                if (data && data.length > 0) notifs = data;
+            } catch(e) {
+                console.warn('[Notifications] Supabase fetch error:', e);
+            }
+        }
+
+        // 2. Load from local storage cache
+        const notifKeys = [
+            sId ? ('monir_student_notifs_' + sId) : null,
+            sCode ? ('monir_student_notifs_' + sCode) : null
+        ].filter(Boolean);
+
+        for (const nk of notifKeys) {
+            try {
+                const raw = localStorage.getItem(nk);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach(pn => {
+                            if (!notifs.some(n => n.id === pn.id || (n.title === pn.title && n.created_at === pn.created_at))) {
+                                notifs.push(pn);
+                            }
+                        });
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // 3. Fallback to API mock if notifs still empty
         if (notifs.length === 0) {
-            list.innerHTML = '<p class="text-center text-xs text-slate-400 py-4">لا توجد إشعارات جديدة حالياً.</p>';
-            return;
+            try {
+                const res = await fetch('/api/student/' + sId + '/notifications');
+                if (res.ok) {
+                    const apiNotifs = await res.json();
+                    if (Array.isArray(apiNotifs)) notifs.push(...apiNotifs);
+                }
+            } catch(e) {}
         }
-        
-        const postponeNotif = notifs.find(n => n.type === 'postpone' && n.is_read === 0);
-        if (postponeNotif) {
-            document.getElementById('topNotifTitle').innerText = postponeNotif.title;
-            document.getElementById('topNotifMsg').innerText = postponeNotif.message;
-            document.getElementById('topNotificationBanner').classList.remove('hidden');
-        } else {
-            document.getElementById('topNotificationBanner').classList.add('hidden');
+
+        // 4. Ensure the active Quran plan has a top-priority notification
+        const plan = preloadedPlan || extractQuranPlan(
+            curStudent.current_surah,
+            curStudent.current_aya,
+            sId,
+            sCode
+        );
+
+        if (plan && (plan.hifz || plan.madi_qareeb || plan.madi_baeed)) {
+            const hasPlanNotif = notifs.some(n => n.type === 'quran_plan');
+            if (!hasPlanNotif) {
+                notifs.unshift({
+                    id: 'quran_plan_pinned',
+                    type: 'quran_plan',
+                    title: '📖 إشعار خطة الحفظ والمراجعة القرآنية',
+                    message: `🟢 الحفظ الجديد: ${plan.hifz || '—'}\n🔵 الماضي القريب: ${plan.madi_qareeb || '—'}\n🟣 الماضي البعيد: ${plan.madi_baeed || '—'}${plan.notes ? '\n📝 توجيهات: ' + plan.notes : ''}`,
+                    is_read: 0,
+                    created_at: plan.updated_at || new Date().toISOString()
+                });
+            }
         }
+
+        // 5. Render to UI
+        const list = document.getElementById('notificationsList');
+        const badge = document.getElementById('notifBadge');
         
-        notifs.forEach(n => {
-            const div = document.createElement('div');
-            div.className = 'p-3 rounded-xl border text-xs ' + (n.is_read ? 'bg-slate-50 border-slate-200 text-slate-600' : 'bg-blue-50 border-blue-200 text-blue-950 font-bold');
-            div.innerHTML = `
-                <div class="flex justify-between items-center mb-1">
-                    <span class="font-extrabold">${n.title}</span>
-                    <span class="text-[10px] text-slate-400">${n.created_at.slice(0, 10)}</span>
-                </div>
-                <p class="font-normal text-[11px] leading-relaxed">${n.message}</p>
-            `;
-            list.appendChild(div);
-        });
+        const unreadCount = notifs.filter(n => !n.is_read).length;
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.innerText = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        if (list) {
+            list.innerHTML = '';
+            if (notifs.length === 0) {
+                list.innerHTML = '<p class="text-center text-xs text-slate-400 py-6">لا توجد إشعارات حالياً.</p>';
+            } else {
+                notifs.forEach(n => {
+                    const div = document.createElement('div');
+                    const isUnread = !n.is_read;
+                    div.className = 'p-3 rounded-2xl border text-xs transition ' + 
+                        (isUnread ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 text-emerald-950 font-bold shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-700');
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-extrabold flex items-center gap-1.5">
+                                <span>${n.type === 'quran_plan' ? '📖' : '🔔'}</span>
+                                <span>${n.title}</span>
+                                ${isUnread ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>' : ''}
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono">${(n.created_at || '').slice(0, 10)}</span>
+                        </div>
+                        <p class="font-normal text-[11px] leading-relaxed whitespace-pre-line text-slate-700 mt-1">${n.message}</p>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        // 6. Top banner on student page
+        const topBanner = document.getElementById('topNotificationBanner');
+        if (topBanner && notifs.length > 0) {
+            const topN = notifs[0];
+            const titleEl = document.getElementById('topNotifTitle');
+            const msgEl = document.getElementById('topNotifMsg');
+            if (titleEl && msgEl) {
+                titleEl.innerText = topN.title;
+                msgEl.innerText = topN.message.replace(/\n/g, ' • ');
+                topBanner.classList.remove('hidden');
+            }
+        }
     } catch (err) {
         console.error("Error loading notifications:", err);
     }

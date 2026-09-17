@@ -172,34 +172,78 @@
 
     </main>
 
-    <!-- Modal: Update Quran Progress -->
+    <!-- Modal: Update Quran Progress & Revision Plan -->
     <div id="updateSurahModal" class="modal-overlay hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
-                <h3 class="font-extrabold text-base text-slate-900">تحديث تقدم الحفظ والتلاوة</h3>
-                <button onclick="closeModal('updateSurahModal')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-4 pb-2.5 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-sm">📖</span>
+                    <div>
+                        <h3 class="font-black text-sm sm:text-base text-slate-900">خطة الحفظ والمراجعة القرآنية</h3>
+                        <p class="text-[11px] text-slate-500">تحديد الورد والماضي القريب والبعيد مع إشعار ولي الأمر</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('updateSurahModal')" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
-            <div class="space-y-4 text-xs">
-                <div>
-                    <span class="block text-slate-500 mb-1">الطالب:</span>
-                    <strong class="text-slate-900 text-sm font-black" id="modalStudentName">—</strong>
-                    <span class="text-slate-400 text-xs font-mono block mt-0.5" id="modalStudentCode"></span>
+            <div class="space-y-3.5 text-xs">
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div>
+                        <span class="text-slate-500 text-[10px] block">الطالب:</span>
+                        <strong class="text-slate-900 text-xs sm:text-sm font-black" id="modalStudentName">—</strong>
+                    </div>
+                    <span class="text-slate-500 font-mono text-xs font-bold bg-white px-2 py-0.5 rounded border border-slate-200" id="modalStudentCode"></span>
                 </div>
+
+                <!-- 1. الحفظ الجديد -->
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">السورة الحالية:</label>
-                    <input type="text" id="modalSurahInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="مثال: سورة المطففين">
+                    <label class="block font-black text-emerald-950 mb-1 flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                        <span>🟢 الحفظ الجديد المقرر (الورد الحالي):</span>
+                    </label>
+                    <input type="text" id="modalHifzInput" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-600 focus:bg-white text-slate-900 transition" placeholder="مثال: سورة الطلاق من آية 1 إلى 5">
                 </div>
+
+                <!-- 2. الماضي القريب -->
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">الآية التي تم الوصول إليها:</label>
-                    <input type="number" id="modalAyaInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-600" placeholder="مثال: 18">
+                    <label class="block font-black text-blue-950 mb-1 flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                        <span>🔵 الماضي القريب (مراجعة قريبة):</span>
+                    </label>
+                    <input type="text" id="modalMadiQareebInput" class="w-full bg-blue-50/50 border border-blue-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-blue-600 focus:bg-white text-slate-900 transition" placeholder="مثال: سورة التغابن والمنافقون كاملة">
                 </div>
+
+                <!-- 3. الماضي البعيد -->
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">ملاحظات التجويد والأداء:</label>
-                    <textarea id="modalNotesInput" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-normal outline-none focus:border-emerald-600" placeholder="ملاحظات حول أحكام النون الساكنة أو مخارج الحروف..."></textarea>
+                    <label class="block font-black text-purple-950 mb-1 flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
+                        <span>🟣 الماضي البعيد (تثبيت عام):</span>
+                    </label>
+                    <input type="text" id="modalMadiBaeedInput" class="w-full bg-purple-50/50 border border-purple-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-purple-600 focus:bg-white text-slate-900 transition" placeholder="مثال: سورة الجمعة والصف أو جزء عم">
                 </div>
-                <div class="pt-2 flex gap-2">
-                    <button onclick="saveSurahProgress()" class="flex-1 bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-bold py-2.5 rounded-xl transition">حفظ وتحديث السجل</button>
-                    <button onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition">إلغاء</button>
+
+                <!-- 4. ملاحظات وتوجيهات المعلم -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
+                        <span>📝</span>
+                        <span>توجيهات وملاحظات المعلم لولي الأمر والطالب:</span>
+                    </label>
+                    <textarea id="modalNotesInput" rows="2" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-normal outline-none focus:border-emerald-600 focus:bg-white transition" placeholder="مثال: ممتاز جداً في الحلقة اليوم، يرجى تكرار ورد الحفظ 5 مرات والتركيز على الغنة..."></textarea>
+                </div>
+
+                <!-- Quick Assistance Chips -->
+                <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                    <span class="text-[10px] text-slate-400 font-bold">عبارات سريعة:</span>
+                    <button type="button" onclick="setQuickNote('ممتاز جداً ومتقن ما شاء الله 🌟')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">ممتاز جداً 🌟</button>
+                    <button type="button" onclick="setQuickNote('جيد، مع التنبيه على مخارج الحروف والمدود')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تركيز على التجويد 🎯</button>
+                    <button type="button" onclick="setQuickNote('يرجى تثبيت الماضي القريب جيداً في البيت')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تثبيت الماضي 🔁</button>
+                </div>
+
+                <div class="pt-3 flex gap-2 border-t border-slate-100">
+                    <button type="button" onclick="saveSurahProgress()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span>💾</span>
+                        <span>حفظ الخطة وإشعار ولي الأمر</span>
+                    </button>
+                    <button type="button" onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -826,9 +870,52 @@
                 excuseBadge = `<span class="badge-absent font-bold px-2 py-0.5 rounded-md text-[11px]">${excuseCount} (استُنفد العذر)</span>`;
             }
 
-            const quranProgress = s.current_surah 
-                ? `<div><strong class="text-slate-900">${s.current_surah}</strong><span class="text-emerald-700 font-bold block text-[11px]">آية ${s.current_aya || 1}</span></div>`
-                : `<span class="text-slate-400">غير محدد</span>`;
+            // Parse Quran Progress (الحفظ والماضي القريب والبعيد)
+            let rawPlan = s.current_surah || '';
+            let hifzVal = '';
+            let madiQareebVal = '';
+            let madiBaeedVal = '';
+            if (rawPlan.startsWith('{')) {
+                try {
+                    const p = JSON.parse(rawPlan);
+                    hifzVal = p.hifz || p.surah || '';
+                    madiQareebVal = p.madi_qareeb || p.madiQareeb || '';
+                    madiBaeedVal = p.madi_baeed || p.madiBaeed || '';
+                } catch(e) {
+                    hifzVal = rawPlan;
+                }
+            } else if (rawPlan) {
+                hifzVal = rawPlan + (s.current_aya && s.current_aya > 1 && !rawPlan.includes('آية') ? ` (آية ${s.current_aya})` : '');
+            }
+
+            // Fallback to local cache if missing
+            if (!hifzVal && !madiQareebVal) {
+                try {
+                    const cached = localStorage.getItem('monir_quran_plan_' + s.id) || 
+                                   localStorage.getItem('monir_quran_plan_' + studentCode) ||
+                                   localStorage.getItem('monir_surah_progress_' + s.id) ||
+                                   localStorage.getItem('monir_surah_progress_' + studentCode);
+                    if (cached) {
+                        const p = JSON.parse(cached);
+                        hifzVal = p.hifz || p.surah || '';
+                        madiQareebVal = p.madi_qareeb || p.madiQareeb || '';
+                        madiBaeedVal = p.madi_baeed || p.madiBaeed || '';
+                    }
+                } catch(e) {}
+            }
+
+            let quranProgress = '';
+            if (hifzVal || madiQareebVal || madiBaeedVal) {
+                quranProgress = `
+                    <div class="space-y-1 text-[11px] min-w-[130px]">
+                        ${hifzVal ? `<div class="flex items-center gap-1"><span class="bg-emerald-100 text-emerald-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">🟢 حفظ</span><strong class="text-slate-900 truncate" title="${hifzVal}">${hifzVal}</strong></div>` : ''}
+                        ${madiQareebVal ? `<div class="flex items-center gap-1"><span class="bg-blue-100 text-blue-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">🔵 قريب</span><span class="text-slate-700 truncate" title="${madiQareebVal}">${madiQareebVal}</span></div>` : ''}
+                        ${madiBaeedVal ? `<div class="flex items-center gap-1"><span class="bg-purple-100 text-purple-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">🟣 بعيد</span><span class="text-slate-700 truncate" title="${madiBaeedVal}">${madiBaeedVal}</span></div>` : ''}
+                    </div>
+                `;
+            } else {
+                quranProgress = `<span class="text-slate-400 text-xs">غير محدد</span>`;
+            }
 
             const present = s.present_count || 0;
             const absent = s.absent_count || 0;
@@ -886,11 +973,11 @@
                     <td class="p-3">
                         ${todayBadge}
                         <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
-                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="تسجيل حضور وخصم حصة">حضور</button>
-                            <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="عذر (الأول مجاني)">عذر</button>
-                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition" title="غياب بدون عذر">غياب</button>
-                            <button onclick="openSurahModal(${s.id}, '${studentCode}', '${(s.current_surah || '').replace(/'/g, '')}', ${s.current_aya || 1}, '${safeNameEsc}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-2 py-1 rounded-lg text-[11px] transition border border-slate-300">تحديث السورة</button>
-                            <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition">تقييم</button>
+                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
+                            <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (الأول مجاني)">عذر</button>
+                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
+                            <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
+                            <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
                         </div>
                     </td>
                 </tr>
@@ -1111,6 +1198,16 @@
 
         let activeModalStudentCode = null;
 
+        function setQuickNote(txt) {
+            const input = document.getElementById('modalNotesInput');
+            if (!input) return;
+            if (input.value.trim()) {
+                input.value += ' - ' + txt;
+            } else {
+                input.value = txt;
+            }
+        }
+
         function openSurahModal(studentId, studentCode, currentSurah, currentAya, studentName) {
             activeModalStudentId = studentId;
             activeModalStudentCode = studentCode;
@@ -1118,30 +1215,84 @@
             if (nameEl) nameEl.innerText = studentName || studentCode;
             const codeEl = document.getElementById('modalStudentCode');
             if (codeEl) codeEl.innerText = studentCode ? ('(' + studentCode + ')') : '';
-            document.getElementById('modalSurahInput').value = currentSurah || '';
-            document.getElementById('modalAyaInput').value = currentAya || '';
 
-            // Load existing notes if available
-            let prevNotes = '';
+            let decodedSurah = currentSurah || '';
+            if (decodedSurah.includes('%')) {
+                try { decodedSurah = decodeURIComponent(decodedSurah); } catch(e) {}
+            }
+
+            let hifz = '';
+            let madiQareeb = '';
+            let madiBaeed = '';
+            let notes = '';
+
+            if (decodedSurah.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(decodedSurah);
+                    hifz = parsed.hifz || parsed.surah || '';
+                    madiQareeb = parsed.madi_qareeb || parsed.madiQareeb || '';
+                    madiBaeed = parsed.madi_baeed || parsed.madiBaeed || '';
+                    notes = parsed.notes || '';
+                } catch(e) {
+                    hifz = decodedSurah;
+                }
+            } else if (decodedSurah) {
+                hifz = decodedSurah;
+                if (currentAya && currentAya > 1 && !hifz.includes('آية') && !hifz.includes('اية')) {
+                    hifz += ' (الآية ' + currentAya + ')';
+                }
+            }
+
+            // Fallback from localStorage caches
             try {
-                const cached = localStorage.getItem('monir_surah_progress_' + studentId) || localStorage.getItem('monir_surah_progress_' + studentCode);
+                const cached = localStorage.getItem('monir_quran_plan_' + studentId) ||
+                               localStorage.getItem('monir_quran_plan_' + studentCode) ||
+                               localStorage.getItem('monir_surah_progress_' + studentId) || 
+                               localStorage.getItem('monir_surah_progress_' + studentCode);
                 if (cached) {
                     const p = JSON.parse(cached);
-                    prevNotes = p.notes || '';
+                    if (!hifz) hifz = p.hifz || p.surah || '';
+                    if (!madiQareeb) madiQareeb = p.madi_qareeb || p.madiQareeb || '';
+                    if (!madiBaeed) madiBaeed = p.madi_baeed || p.madiBaeed || '';
+                    if (!notes) notes = p.notes || '';
                 }
             } catch(e) {}
-            document.getElementById('modalNotesInput').value = prevNotes;
+
+            const hifzIn = document.getElementById('modalHifzInput');
+            const qareebIn = document.getElementById('modalMadiQareebInput');
+            const baeedIn = document.getElementById('modalMadiBaeedInput');
+            const notesIn = document.getElementById('modalNotesInput');
+
+            if (hifzIn) hifzIn.value = hifz;
+            if (qareebIn) qareebIn.value = madiQareeb;
+            if (baeedIn) baeedIn.value = madiBaeed;
+            if (notesIn) notesIn.value = notes;
 
             document.getElementById('updateSurahModal').classList.remove('hidden');
         }
 
         async function saveSurahProgress() {
             if (!activeModalStudentId) return;
-            const surah = document.getElementById('modalSurahInput').value.trim();
-            const aya = parseInt(document.getElementById('modalAyaInput').value) || 1;
-            const notes = document.getElementById('modalNotesInput').value.trim();
+            const hifz = (document.getElementById('modalHifzInput')?.value || '').trim();
+            const madiQareeb = (document.getElementById('modalMadiQareebInput')?.value || '').trim();
+            const madiBaeed = (document.getElementById('modalMadiBaeedInput')?.value || '').trim();
+            const notes = (document.getElementById('modalNotesInput')?.value || '').trim();
 
-            if (!surah) { alert('يرجى إدخال اسم السورة'); return; }
+            if (!hifz && !madiQareeb && !madiBaeed) {
+                alert('يرجى كتابة الحفظ الجديد أو الماضي على الأقل لاعتماد الخطة.');
+                return;
+            }
+
+            const planObj = {
+                hifz: hifz,
+                madi_qareeb: madiQareeb,
+                madi_baeed: madiBaeed,
+                notes: notes,
+                teacher_id: currentTeacherId,
+                teacher_name: (currentTeacher && currentTeacher.name) || '',
+                updated_at: new Date().toISOString()
+            };
+            const planJson = JSON.stringify(planObj);
 
             try {
                 let success = false;
@@ -1149,37 +1300,76 @@
                     try {
                         const client = window.MonirDB.getClient();
                         const { error } = await client.from('enrollments').update({
-                            current_surah: surah,
-                            current_aya: aya
+                            current_surah: planJson,
+                            current_aya: 1
                         }).eq('student_id', activeModalStudentId);
                         if (!error) success = true;
-                    } catch(e) {}
+
+                        // Send parent notification to Supabase table
+                        try {
+                            const notifMsg = `🟢 الحفظ الجديد: ${hifz || '—'}\n🔵 الماضي القريب: ${madiQareeb || '—'}\n🟣 الماضي البعيد: ${madiBaeed || '—'}${notes ? '\n📝 توجيهات: ' + notes : ''}`;
+                            await client.from('notifications').insert([{
+                                student_id: activeModalStudentId,
+                                title: '📖 إشعار خطة الحفظ والمراجعة القرآنية',
+                                message: notifMsg,
+                                is_read: 0,
+                                created_at: new Date().toISOString()
+                            }]);
+                        } catch(ne) {
+                            console.warn('Could not insert notification into cloud table:', ne);
+                        }
+                    } catch(e) {
+                        console.error('Supabase update plan error:', e);
+                    }
                 }
 
-                // Cache in localStorage for seamless instant sync across student & teacher tabs
-                const progObj = {
+                // Cache in localStorage for seamless cross-tab synchronization
+                const cacheKeys = [
+                    activeModalStudentId ? ('monir_quran_plan_' + activeModalStudentId) : null,
+                    activeModalStudentCode ? ('monir_quran_plan_' + activeModalStudentCode) : null,
+                    activeModalStudentId ? ('monir_surah_progress_' + activeModalStudentId) : null,
+                    activeModalStudentCode ? ('monir_surah_progress_' + activeModalStudentCode) : null
+                ].filter(Boolean);
+
+                cacheKeys.forEach(k => localStorage.setItem(k, planJson));
+
+                // Save to student local notifications list
+                const notifKeys = [
+                    activeModalStudentId ? ('monir_student_notifs_' + activeModalStudentId) : null,
+                    activeModalStudentCode ? ('monir_student_notifs_' + activeModalStudentCode) : null
+                ].filter(Boolean);
+
+                const newNotif = {
+                    id: 'qplan_' + Date.now(),
                     student_id: activeModalStudentId,
-                    student_code: activeModalStudentCode,
-                    surah: surah,
-                    aya: aya,
-                    notes: notes,
-                    updated_at: new Date().toISOString()
+                    type: 'quran_plan',
+                    title: '📖 إشعار خطة الحفظ والمراجعة القرآنية',
+                    message: `🟢 الحفظ الجديد: ${hifz || '—'}\n🔵 الماضي القريب: ${madiQareeb || '—'}\n🟣 الماضي البعيد: ${madiBaeed || '—'}${notes ? '\n📝 توجيهات: ' + notes : ''}`,
+                    is_read: 0,
+                    created_at: new Date().toISOString()
                 };
-                if (activeModalStudentId) localStorage.setItem('monir_surah_progress_' + activeModalStudentId, JSON.stringify(progObj));
-                if (activeModalStudentCode) localStorage.setItem('monir_surah_progress_' + activeModalStudentCode, JSON.stringify(progObj));
 
-                if (!success) {
-                    await fetch('/api/quran/update-surah', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ student_id: activeModalStudentId, teacher_id: currentTeacherId, surah_name: surah, aya_number: aya, notes })
-                    });
-                }
+                notifKeys.forEach(nk => {
+                    try {
+                        const existing = JSON.parse(localStorage.getItem(nk) || '[]');
+                        existing.unshift(newNotif);
+                        localStorage.setItem(nk, JSON.stringify(existing.slice(0, 30)));
+                    } catch(e) {}
+                });
+
                 closeModal('updateSurahModal');
-                alert('تم تحديث موضع التلاوة وحفظ الورد بنجاح! سيظهر للطالب بجانب رقم المحاضرة فوراً. ✓');
+                
+                const msg = '✓ تم اعتماد خطة الحفظ والمراجعة بنجاح!\nتم إرسال الإشعار لولي الأمر وستظهر الخطة في صفحة الطالب لكل المحاضرات.';
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(msg, 'success');
+                } else {
+                    alert(msg);
+                }
+
                 await loadTeacherGroups();
             } catch(err) {
-                alert('حدث خطأ أثناء الحفظ.');
+                console.error(err);
+                alert('حدث خطأ أثناء حفظ الخطة: ' + (err.message || err));
             }
         }
 
