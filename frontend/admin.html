@@ -322,42 +322,54 @@
             </div>
         </section>
 
-        <!-- 3b. Groups Management — All Groups with Full Student Data (Admin View) -->
+        <!-- 3b. Groups Management — All Groups with Full Student Data (Admin View - Collapsible Accordion Dropdown) -->
         <section class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4" id="sectionGroupsAdmin">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-                <div>
-                    <h2 class="text-base sm:text-lg font-extrabold text-slate-900">🗂️ إدارة المجموعات التعليمية الكاملة</h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500">عرض شامل لجميع المجموعات وطلابها وبيانات الاشتراكات — مخصص للإدارة فقط</p>
+            <!-- Collapsible Dropdown Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleAdminGroupsDropdown()">
+                <div class="flex items-center gap-3">
+                    <button type="button" id="adminGroupsToggleBtn" class="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 text-slate-600 flex items-center justify-center transition shadow-sm shrink-0">
+                        <svg class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-blue-950 transition">🗂️ إدارة المجموعات التعليمية الكاملة</h2>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="adminGroupsStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500">عرض شامل لجميع المجموعات وطلابها وبيانات الاشتراكات — مخصص للإدارة فقط</p>
+                    </div>
                 </div>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto" onclick="event.stopPropagation()">
                     <input type="text" id="adminGroupsSearch" placeholder="بحث بمعرف المجموعة أو كود الطالب..." 
                         class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none w-full sm:w-64 focus:border-blue-400"
                         oninput="filterAdminGroups()">
-                    <button onclick="loadAdminGroups()" class="text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2 rounded-xl transition whitespace-nowrap">تحديث</button>
+                    <button type="button" onclick="ensureOpenAndLoadAdminGroups()" class="text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2 rounded-xl transition whitespace-nowrap cursor-pointer">تحديث</button>
                 </div>
             </div>
 
-            <!-- Summary Stats Bar -->
-            <div class="grid grid-cols-3 gap-2 sm:gap-3 text-center text-xs">
-                <div class="bg-blue-50 border border-blue-200 rounded-xl p-2.5 sm:p-3">
-                    <div class="text-base sm:text-xl font-black text-blue-800" id="adminGroupsTotal">—</div>
-                    <div class="text-slate-500 font-bold text-[10px] sm:text-xs">إجمالي المجموعات</div>
+            <!-- Collapsible Dropdown Content Container -->
+            <div id="adminGroupsDropdownContent" class="hidden space-y-4 transition-all duration-300 pt-1">
+                <!-- Summary Stats Bar -->
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 text-center text-xs">
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-blue-800" id="adminGroupsTotal">—</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-xs">إجمالي المجموعات</div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-emerald-800" id="adminStudentsTotal">—</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-xs">إجمالي الطلاب</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-amber-800" id="adminTeachersInGroups">—</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-xs">معلمون نشطون</div>
+                    </div>
                 </div>
-                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 sm:p-3">
-                    <div class="text-base sm:text-xl font-black text-emerald-800" id="adminStudentsTotal">—</div>
-                    <div class="text-slate-500 font-bold text-[10px] sm:text-xs">إجمالي الطلاب</div>
-                </div>
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 sm:p-3">
-                    <div class="text-base sm:text-xl font-black text-amber-800" id="adminTeachersInGroups">—</div>
-                    <div class="text-slate-500 font-bold text-[10px] sm:text-xs">معلمون نشطون</div>
-                </div>
-            </div>
 
-            <!-- Groups Container -->
-            <div id="adminGroupsContainer" class="space-y-4 max-h-[600px] overflow-y-auto pr-1">
-                <div class="text-center py-10 text-slate-400">
-                    <div class="text-4xl mb-2">🗂️</div>
-                    <p class="font-bold text-sm">اضغط "تحديث" لتحميل المجموعات من قاعدة البيانات</p>
+                <!-- Groups Container with smooth inner scrollbar -->
+                <div id="adminGroupsContainer" class="space-y-4 max-h-[550px] overflow-y-auto pr-1">
+                    <div class="text-center py-10 text-slate-400">
+                        <div class="text-4xl mb-2">🗂️</div>
+                        <p class="font-bold text-sm">اضغط "تحديث" لتحميل المجموعات من قاعدة البيانات</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -2512,6 +2524,24 @@
                 toggleDashboardSection('supervisorScheduleContent', 'supervisorScheduleToggleBtn', 'supervisorScheduleStateBadge');
             }
             loadSupervisorSchedule(true);
+        }
+
+        function toggleAdminGroupsDropdown() {
+            toggleDashboardSection('adminGroupsDropdownContent', 'adminGroupsToggleBtn', 'adminGroupsStateBadge');
+            const content = document.getElementById('adminGroupsDropdownContent');
+            if (content && !content.classList.contains('hidden')) {
+                if (!allAdminGroups || allAdminGroups.length === 0) {
+                    loadAdminGroups();
+                }
+            }
+        }
+
+        function ensureOpenAndLoadAdminGroups() {
+            const content = document.getElementById('adminGroupsDropdownContent');
+            if (content && content.classList.contains('hidden')) {
+                toggleDashboardSection('adminGroupsDropdownContent', 'adminGroupsToggleBtn', 'adminGroupsStateBadge');
+            }
+            loadAdminGroups();
         }
 
         // ── Helper: Sync Stat Cards with In-Memory / Live Students Data ──
