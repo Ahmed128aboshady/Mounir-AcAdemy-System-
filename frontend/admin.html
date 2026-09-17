@@ -746,35 +746,39 @@
         </div>
     </div>
 
-    <!-- Inline Edit Modal (single student quick edit) -->
-    <div id="inlineEditModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs">
+    <!-- Inline Edit Modal (Comprehensive student edit) -->
+    <div id="inlineEditModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 text-xs max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
-                    <h3 class="font-black text-base text-slate-900">✏️ تعديل سريع للطالب</h3>
+                    <h3 class="font-black text-base text-slate-900 flex items-center gap-1.5">
+                        <span>✏️</span>
+                        <span>تعديل وتحديث بيانات الطالب</span>
+                    </h3>
                     <p class="text-[11px] text-[#41519C] font-bold mt-0.5" id="inlineEditStudentName">—</p>
                 </div>
-                <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">✕</button>
+                <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">✕</button>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="sm:col-span-2">
+                    <label class="block font-bold text-slate-700 mb-1">اسم الطالب بالكامل <span class="text-rose-500">*</span></label>
+                    <input type="text" id="inlineName" placeholder="مثال: يوسف أحمد محمد" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">كود الطالب</label>
+                    <input type="text" id="inlineCode" placeholder="مثال: ST1081" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">رقم الهاتف / ولي الأمر</label>
+                    <input type="text" id="inlinePhone" placeholder="مثال: 01012345678" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">السن</label>
+                    <input type="number" id="inlineAge" min="3" max="80" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center">
+                </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">المجموعة (Group ID)</label>
-                    <input type="text" id="inlineGroup" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">رصيد الحصص</label>
-                    <input type="number" id="inlineCredits" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">اليوم الأسبوعي</label>
-                    <select id="inlineDay" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
-                        <option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option>
-                        <option>الأربعاء</option><option>الخميس</option><option>الجمعة</option><option>السبت</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">وقت الحصة</label>
-                    <input type="text" id="inlineTime" placeholder="مثال: 8:00 مساءً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
+                    <input type="text" id="inlineGroup" list="bsGroupDatalist" placeholder="مثال: G022" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono font-bold">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">المعلم</label>
@@ -783,13 +787,18 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">حالة الحساب</label>
-                    <select id="inlineStatus" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
-                        <option value="active">نشط ✅</option>
-                        <option value="inactive">غير نشط 🚫</option>
-                    </select>
+                    <label class="block font-bold text-slate-700 mb-1">رصيد الحصص</label>
+                    <input type="number" id="inlineCredits" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center font-bold">
                 </div>
-                <div class="col-span-2">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">أيام المحاضرة</label>
+                    <input type="text" id="inlineDay" placeholder="مثال: السبت والثلاثاء" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">وقت الحصة</label>
+                    <input type="text" id="inlineTime" placeholder="مثال: 8:00 مساءً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                </div>
+                <div>
                     <label class="block font-bold text-slate-700 mb-1">⏱️ مدة الحلقة</label>
                     <select id="inlineDuration" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
                         <option value="20 دقيقة">20 دقيقة (جلسة فردية سريعة)</option>
@@ -799,10 +808,26 @@
                         <option value="60 دقيقة">60 دقيقة (ساعة كاملة)</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">حالة الحساب</label>
+                    <select id="inlineStatus" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
+                        <option value="active">نشط ✅</option>
+                        <option value="inactive">غير نشط / مجمد 🚫</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block font-bold text-slate-700 mb-1">كلمة مرور حساب الطالب (اختياري لتغييرها)</label>
+                    <input type="text" id="inlinePassword" placeholder="اتركها فارغة إذا لا تريد تغيير كلمة المرور" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono">
+                </div>
             </div>
-            <button onclick="saveInlineEdit()" class="w-full bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black py-3 rounded-xl transition shadow-md">
-                💾 حفظ التعديلات السريعة
-            </button>
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="saveInlineEdit()" id="inlineSaveBtn" class="flex-1 bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                    <span>💾 حفظ التعديلات الكاملة</span>
+                </button>
+                <button type="button" onclick="closeInlineEdit()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl transition">
+                    إلغاء
+                </button>
+            </div>
         </div>
     </div>
 
@@ -4673,29 +4698,40 @@
             }
         }
 
-        // ── Inline Edit (single student) ──────────────────────────
+        // ── Inline Edit (Comprehensive single student edit) ─────────
         function openInlineEdit(studentId) {
-            const s = bsAllStudents.find(s => s.id === studentId);
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(s => s.id === studentId);
             if (!s) return;
             bsInlineStudentId = studentId;
 
-            document.getElementById('inlineEditStudentName').innerText = `${s.name} — ${s.student_code}`;
-            document.getElementById('inlineGroup').value = s.group_id || '';
-            document.getElementById('inlineCredits').value = s.remaining_credits || 0;
-            document.getElementById('inlineTime').value = s.lecture_time || '';
+            document.getElementById('inlineEditStudentName').innerText = `${s.name || 'بدون اسم'} — (${s.student_code || 'بدون كود'})`;
 
-            // Set day select
-            const dayEl = document.getElementById('inlineDay');
-            const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-            dayEl.value = days.includes(s.subscription_days) ? s.subscription_days : days[0];
+            if (document.getElementById('inlineName')) document.getElementById('inlineName').value = s.name || '';
+            if (document.getElementById('inlineCode')) document.getElementById('inlineCode').value = s.student_code || '';
+            if (document.getElementById('inlinePhone')) document.getElementById('inlinePhone').value = s.phone || '';
+            if (document.getElementById('inlineAge')) document.getElementById('inlineAge').value = s.age || '';
+            if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = (s.group_id && s.group_id !== '—') ? s.group_id : '';
+            if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = s.remaining_credits || 0;
+            if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = (s.subscription_days && s.subscription_days !== '—') ? s.subscription_days : '';
+            if (document.getElementById('inlineTime')) document.getElementById('inlineTime').value = (s.lecture_time && s.lecture_time !== '—') ? s.lecture_time : '';
+            if (document.getElementById('inlinePassword')) document.getElementById('inlinePassword').value = '';
 
-            // Set teacher
+            // Set teacher with rich list
             const teacherEl = document.getElementById('inlineTeacher');
-            teacherEl.innerHTML = '<option value="">— بدون معلم —</option>' +
-                bsTeachersList.map(t => `<option value="${t.id}" ${t.id == s.teacher_id ? 'selected' : ''}>${t.name}</option>`).join('');
+            if (teacherEl) {
+                let tList = [];
+                if (Array.isArray(window.bsTeachersList) && window.bsTeachersList.length > 0) tList = window.bsTeachersList;
+                else if (typeof bsTeachersList !== 'undefined' && Array.isArray(bsTeachersList) && bsTeachersList.length > 0) tList = bsTeachersList;
+                else if (Array.isArray(window.allTeachers) && window.allTeachers.length > 0) tList = window.allTeachers;
+                else if (typeof allTeachers !== 'undefined' && Array.isArray(allTeachers) && allTeachers.length > 0) tList = allTeachers;
+
+                teacherEl.innerHTML = '<option value="">— بدون معلم —</option>' +
+                    tList.map(t => `<option value="${t.id}" ${String(t.id) === String(s.teacher_id) ? 'selected' : ''}>${t.name}</option>`).join('');
+            }
 
             // Set status
-            document.getElementById('inlineStatus').value = s.status || 'active';
+            if (document.getElementById('inlineStatus')) document.getElementById('inlineStatus').value = s.status || 'active';
 
             // Set duration
             const durEl = document.getElementById('inlineDuration');
@@ -4713,15 +4749,33 @@
             const sid = bsInlineStudentId;
             if (!sid) return;
 
-            const group = document.getElementById('inlineGroup').value.trim();
-            const credits = parseInt(document.getElementById('inlineCredits').value) || 0;
-            const day = document.getElementById('inlineDay').value;
-            const time = document.getElementById('inlineTime').value.trim();
+            const name = (document.getElementById('inlineName')?.value || '').trim();
+            const code = (document.getElementById('inlineCode')?.value || '').trim();
+            const phone = (document.getElementById('inlinePhone')?.value || '').trim();
+            const age = parseInt(document.getElementById('inlineAge')?.value) || null;
+            const group = (document.getElementById('inlineGroup')?.value || '').trim();
+            const credits = parseInt(document.getElementById('inlineCredits')?.value) || 0;
+            const day = (document.getElementById('inlineDay')?.value || '').trim();
+            const time = (document.getElementById('inlineTime')?.value || '').trim();
             const duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
-            const teacherId = document.getElementById('inlineTeacher').value;
-            const status = document.getElementById('inlineStatus').value;
+            const teacherId = document.getElementById('inlineTeacher')?.value || null;
+            const status = document.getElementById('inlineStatus')?.value || 'active';
+            const password = (document.getElementById('inlinePassword')?.value || '').trim();
 
-            const studentUpdate = { status };
+            const saveBtn = document.getElementById('inlineSaveBtn');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span>⏳ جاري حفظ التعديلات...</span>';
+            }
+
+            const studentUpdate = {
+                name: name,
+                student_code: code,
+                phone: phone,
+                parent_phone: phone,
+                age: age,
+                status: status
+            };
             if (group) studentUpdate.qr_code = group;
 
             const enrollUpdate = {
@@ -4729,7 +4783,8 @@
                 subscription_days: day,
                 lecture_time: time,
                 session_duration: duration,
-                teacher_id: teacherId ? parseInt(teacherId) : null
+                teacher_id: teacherId ? parseInt(teacherId) : null,
+                status: status
             };
             if (group) enrollUpdate.group_id = group;
 
@@ -4738,11 +4793,41 @@
                     const client = window.MonirDB.getClient();
                     await client.from('students').update(studentUpdate).eq('id', sid);
                     await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
+
+                    // Update user credentials
+                    const userPayload = {
+                        full_name: name,
+                        phone: phone,
+                        status: status
+                    };
+                    if (code) userPayload.username = code.toLowerCase();
+                    if (password) userPayload.password_hash = password;
+
+                    const { data: existingUser } = await client.from('users')
+                        .select('id')
+                        .or(`related_id.eq.${sid},student_id.eq.${sid}`)
+                        .maybeSingle();
+
+                    if (existingUser) {
+                        await client.from('users').update(userPayload).eq('id', existingUser.id);
+                    } else if (code) {
+                        userPayload.role = 'student';
+                        userPayload.related_id = sid;
+                        userPayload.student_id = sid;
+                        userPayload.email = `${code.toLowerCase()}@student.monir.edu.eg`;
+                        if (!userPayload.password_hash) userPayload.password_hash = '123456';
+                        await client.from('users').insert([userPayload]);
+                    }
                 }
 
-                // Update in-memory
-                const s = bsAllStudents.find(s => s.id === sid);
+                // Update in-memory bsAllStudents
+                const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+                const s = allSts.find(s => s.id === sid);
                 if (s) {
+                    s.name = name;
+                    s.student_code = code;
+                    s.phone = phone;
+                    s.age = age;
                     s.status = status;
                     if (group) {
                         s.group_id = group;
@@ -4753,7 +4838,9 @@
                     s.lecture_time = time;
                     s.session_duration = duration;
                     s.teacher_id = teacherId ? parseInt(teacherId) : null;
-                    const t = bsTeachersList.find(t => String(t.id) === String(teacherId));
+
+                    let tList = window.bsTeachersList || (typeof bsTeachersList !== 'undefined' ? bsTeachersList : []) || [];
+                    const t = tList.find(t => String(t.id) === String(teacherId));
                     s.teacher_name = t ? t.name : '—';
                 }
 
@@ -4775,40 +4862,22 @@
                     localStorage.setItem('monir_student_schedules', JSON.stringify(studentScheds));
                 } catch(e) {}
 
-                // Sync to window.DB
-                if (window.DB) {
-                    const ms = (window.DB.students || []).find(s => s.id === sid);
-                    if (ms) {
-                        if (status) ms.status = status;
-                        if (group) { ms.qr_code = group; ms.group_id = group; }
-                        if (day) ms.subscription_days = day;
-                        if (time) ms.lecture_time = time;
-                        if (duration) ms.session_duration = duration;
-                    }
-                    const me = (window.DB.enrollments || []).find(e => e.student_id === sid);
-                    if (me) {
-                        if (group) me.group_id = group;
-                        if (credits !== undefined) me.remaining_credits = credits;
-                        if (day) me.subscription_days = day;
-                        if (time) me.lecture_time = time;
-                        if (duration) me.session_duration = duration;
-                        if (teacherId) me.teacher_id = parseInt(teacherId);
-                    }
-                }
-
                 closeInlineEdit();
                 applyBulkFilters();
                 syncStudentStats();
                 loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast('✅ تم حفظ بيانات الطالب بنجاح', 'success');
+                    MonirPopup.toast(`✅ تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`, 'success');
                 }
-
             } catch(err) {
-                console.error('Inline edit save error:', err);
-                if (window.MonirPopup) {
-                    MonirPopup.error('فشل الحفظ، تحقق من الاتصال بـ Supabase');
+                console.error('[InlineEdit] Error saving student:', err);
+                if (window.MonirPopup) MonirPopup.error('حدث خطأ أثناء حفظ التعديل: ' + err.message);
+                else alert('خطأ: ' + err.message);
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<span>💾 حفظ التعديلات الكاملة</span>';
                 }
             }
         }
