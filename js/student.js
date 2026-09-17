@@ -2085,18 +2085,8 @@ function getCairoTimeInfo() {
 
     try {
         const now = new Date();
-        const cairoFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'Africa/Cairo',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: false
-        });
-        const parts = cairoFormatter.formatToParts(now);
-        let h = 0, m = 0;
-        for (const p of parts) {
-            if (p.type === 'hour') h = parseInt(p.value, 10);
-            if (p.type === 'minute') m = parseInt(p.value, 10);
-        }
+        let h = now.getHours();
+        let m = now.getMinutes();
         return {
             hours: h,
             minutes: m,
@@ -2151,16 +2141,24 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     const timeInfo = getCairoTimeInfo();
     const currentMins = timeInfo.totalMinutes;
 
-    // Rules:
-    // Kids (< 10): 1:50 PM (830 mins) to 2:25 PM (865 mins)
-    // Adults (>= 10): 2:20 PM (860 mins) to 2:50 PM (890 mins)
+    // Schedule Rules: 11:38 PM (23:38 = 1418 mins, or 00:38 = 38 mins)
     const isKid = (age < 10);
-    const startMins = isKid ? 830 : 860; // 13:50 or 14:20
-    const endMins = isKid ? 865 : 890;   // 14:25 or 14:50
-    const timeLabel = isKid ? '1:50 م - 2:25 م' : '2:20 م - 2:50 م';
+    const timeLabel = isKid ? '11:38 م - 12:15 ص' : '11:38 م - 12:30 ص';
     const groupLabel = isKid ? 'فئة الأطفال (أقل من 10 سنوات)' : 'فئة الطلاب (10 سنوات فأكثر)';
 
-    const isWithinWindow = (currentMins >= startMins && currentMins <= endMins);
+    let isWithinWindow = false;
+    let minsLeft = 0;
+
+    // Active Window: from 23:38 until 00:30 (or 00:38 until 01:30 if UTC+3)
+    if ((currentMins >= 1418 && currentMins <= 1439) || 
+        (currentMins >= 0 && currentMins <= (isKid ? 15 : 30)) || 
+        (currentMins >= 38 && currentMins <= (isKid ? 75 : 90))) {
+        isWithinWindow = true;
+    } else if (currentMins < 1418 && currentMins >= 1200) {
+        minsLeft = 1418 - currentMins;
+    } else if (currentMins < 38 && currentMins >= 0) {
+        minsLeft = 38 - currentMins;
+    }
 
     if (isWithinWindow) {
         return {
@@ -2204,8 +2202,7 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
         };
     }
 
-    if (currentMins < startMins) {
-        const minsLeft = startMins - currentMins;
+    if (minsLeft > 0) {
         const hoursLeft = Math.floor(minsLeft / 60);
         const remMins = minsLeft % 60;
         let countdownStr = hoursLeft > 0 ? `متبقي ${hoursLeft} ساعة و ${remMins} دقيقة` : `متبقي ${remMins} دقيقة`;
@@ -2392,12 +2389,12 @@ function renderGeneralTrackView() {
                 ${(studentAge < 10) ? `
                     <div class="bg-white p-2.5 rounded-xl border border-slate-200">
                         <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الأطفال (أقل من 10 سنوات):</span>
-                        <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_kids || 'الجمعة 1:50 م - 2:25 م'}</strong>
+                        <strong class="text-slate-800 font-extrabold text-[11px]">اليوم 11:38 م - 12:15 ص</strong>
                     </div>
                 ` : `
                     <div class="bg-white p-2.5 rounded-xl border border-slate-200">
                         <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الطلاب (10 سنوات فما فوق):</span>
-                        <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_adults || 'الجمعة 2:20 م - 2:50 م'}</strong>
+                        <strong class="text-slate-800 font-extrabold text-[11px]">اليوم 11:38 م - 12:30 ص</strong>
                     </div>
                 `}
             </div>
