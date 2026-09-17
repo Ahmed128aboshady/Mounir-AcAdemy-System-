@@ -2037,18 +2037,11 @@ async function loadGeneralLectures() {
 function selectGeneralTrack(trackKey) {
     currentGeneralTrack = trackKey;
     
-    // Update tabs UI
-    const tracks = ['tajweed', 'tafsir', 'hadith'];
-    tracks.forEach(t => {
-        const btn = document.getElementById('tabTrack' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (btn) {
-            if (t === trackKey) {
-                btn.className = 'py-2.5 px-2 rounded-xl transition text-center bg-white text-[#1F274B] font-black shadow-xs flex items-center justify-center gap-1';
-            } else {
-                btn.className = 'py-2.5 px-2 rounded-xl transition text-center text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1';
-            }
-        }
-    });
+    // Sync dropdown menu if present
+    const sel = document.getElementById('selectStudentGeneralTrack');
+    if (sel && sel.value !== trackKey) {
+        sel.value = trackKey;
+    }
 
     renderGeneralTrackView();
 }
@@ -2395,43 +2388,77 @@ function renderGeneralTrackView() {
                 </div>
             ` : ''}
 
-            <!-- Voice Summary & Player -->
-            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 space-y-2.5">
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-base">🎧</span>
-                        <strong class="text-xs sm:text-sm font-extrabold text-slate-900">الملخص الصوتي للمحاضرة (Voice Note)</strong>
+            <!-- Voice Summary & Player (Locked state until supervisors upload and publish) -->
+            ${(meta.records_unlocked && meta.audio_url) ? `
+                <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">🎧</span>
+                            <strong class="text-xs sm:text-sm font-extrabold text-slate-900">الملخص الصوتي للمحاضرة (Voice Note)</strong>
+                        </div>
+                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">مشغل مدمج</span>
                     </div>
-                    <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">مشغل مدمج</span>
+                    <p class="text-[11px] text-slate-600 leading-relaxed">${meta.summary_text || 'استمع إلى تلخيص المعلم المباشر لأهم نقاط المحاضرة وتطبيقاتها العملية.'}</p>
+                    <div class="pt-1">
+                        <audio controls class="w-full h-10 rounded-xl" style="accent-color: #1F274B;">
+                            <source src="${meta.audio_url}" type="audio/mpeg">
+                            متصفحك لا يدعم مشغل الصوت المدمج.
+                        </audio>
+                    </div>
                 </div>
-                <p class="text-[11px] text-slate-600 leading-relaxed">${meta.summary_text || 'استمع إلى تلخيص المعلم المباشر لأهم نقاط المحاضرة وتطبيقاتها العملية.'}</p>
-                <div class="pt-1">
-                    <audio controls class="w-full h-10 rounded-xl" style="accent-color: #1F274B;">
-                        <source src="${meta.audio_url || 'https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tajweed_w1.mp3'}" type="audio/mpeg">
-                        متصفحك لا يدعم مشغل الصوت المدمج.
-                    </audio>
+            ` : `
+                <div class="bg-slate-50/90 p-4 rounded-2xl border-2 border-dashed border-slate-200 text-center space-y-2">
+                    <div class="flex items-center justify-center gap-2 text-slate-700 font-black text-xs sm:text-sm">
+                        <span class="text-lg">🔒</span>
+                        <span>التسجيل الصوتي للمحاضرة (الريكورد) مقفول حالياً</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 font-bold leading-relaxed max-w-lg mx-auto">
+                        موعد المحاضرة غداً الجمعة.. الريكوردات مقفولة وسيتم فتحها ورفعها بواسطة المشرفين والمعلم فور انتهاء الحصة المباشرة وإضافتها.
+                    </p>
                 </div>
-            </div>
+            `}
 
             <!-- Download PDF Summary & Launch Quiz Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <!-- PDF Button -->
-                <a href="${meta.pdf_url || '#'}" target="_blank" class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-extrabold text-xs p-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-xs group">
-                    <span class="text-red-600 text-lg group-hover:scale-110 transition">📄</span>
-                    <div class="text-right">
-                        <div class="font-black text-slate-900 text-xs">تحميل ملخص المحاضرة (PDF)</div>
-                        <div class="text-[10px] text-slate-500 font-normal">جاهز للقراءة والطباعة والمراجعة</div>
+                <!-- PDF Section -->
+                ${(meta.records_unlocked && meta.pdf_url) ? `
+                    <a href="${meta.pdf_url}" target="_blank" class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-extrabold text-xs p-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-xs group">
+                        <span class="text-red-600 text-lg group-hover:scale-110 transition">📄</span>
+                        <div class="text-right">
+                            <div class="font-black text-slate-900 text-xs">تحميل ملخص المحاضرة (PDF)</div>
+                            <div class="text-[10px] text-slate-500 font-normal">جاهز للقراءة والطباعة والمراجعة</div>
+                        </div>
+                    </a>
+                ` : `
+                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 p-3.5 rounded-2xl flex items-center justify-center gap-2 text-slate-500 text-xs font-black shadow-2xs">
+                        <span class="text-base">🔒</span>
+                        <span>ملف التلخيص (PDF) مقفول (سيفتحه المشرفون قريباً)</span>
                     </div>
-                </a>
+                `}
 
                 <!-- Quiz Launcher Button -->
-                <button type="button" onclick="openQuizModalForId(${quiz.id})" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs p-3 rounded-2xl transition shadow flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
-                    <span class="text-lg">✍️</span>
-                    <div class="text-right">
-                        <div class="font-black text-white text-xs">${sub ? 'مراجعة أو إعادة الاختبار' : 'بدء الاختبار الأسبوعي الآن'}</div>
-                        <div class="text-[10px] text-emerald-100 font-normal">3 أسئلة سريعة • 15 درجة بالشهادة</div>
+                ${sub ? `
+                    <button type="button" onclick="openQuizModalForId(${quiz.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs p-3.5 rounded-2xl transition shadow flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
+                        <span class="text-lg">✍️</span>
+                        <div class="text-right">
+                            <div class="font-black text-white text-xs">مراجعة درجات الاختبار الأسبوعي</div>
+                            <div class="text-[10px] text-emerald-100 font-normal">تم الحل بنجاح (${sub.score} من ${sub.total_points || 15} درجة)</div>
+                        </div>
+                    </button>
+                ` : ((viewerRole === 'admin' || viewerRole === 'teacher') ? `
+                    <button type="button" onclick="openQuizModalForId(${quiz.id})" class="bg-indigo-900 hover:bg-indigo-800 text-white font-black text-xs p-3.5 rounded-2xl transition shadow flex items-center justify-center gap-2 cursor-pointer">
+                        <span class="text-lg">🛡️</span>
+                        <div class="text-right">
+                            <div class="font-black text-white text-xs">معاينة وتجربة الاختبار (صلاحية مشرف)</div>
+                            <div class="text-[10px] text-indigo-200 font-normal">متاح للإشراف والمعلمين للمعاينة</div>
+                        </div>
+                    </button>
+                ` : `
+                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 p-3.5 rounded-2xl flex items-center justify-center gap-2 text-slate-500 text-xs font-black shadow-2xs">
+                        <span class="text-base">⏳</span>
+                        <span>الاختبار الأسبوعي سيفتح فور انتهاء المحاضرة المباشرة غداً</span>
                     </div>
-                </button>
+                `)}
             </div>
 
             <!-- Existing Submission Status (if solved) -->
