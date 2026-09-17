@@ -792,7 +792,7 @@ async function loadSelectedCourseLectures() {
         const timeText = currentCourseInfo.lecture_time || '8:00 مساءً';
         const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
         const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-            ? window.getGroupMeetUrl(curGid)
+            ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name)
             : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
         // Build the full list of lectures (existing + generated)
@@ -1005,7 +1005,7 @@ function renderLectureCard(l, isCurrentDue = false) {
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
     const meetLink = (typeof window !== 'undefined' && window.getGroupMeetUrl) 
-        ? window.getGroupMeetUrl(curGid) 
+        ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
         : (l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
     // Extract Quran Progress (الورد وموضع التلاوة والحفظ والماضي)
@@ -1206,7 +1206,7 @@ function getNextDueMeetUrl() {
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
     return (typeof window !== 'undefined' && window.getGroupMeetUrl) 
-        ? window.getGroupMeetUrl(curGid) 
+        ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
         : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
 }
 

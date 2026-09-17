@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js?v=20260915_t1"></script>
-    <script src="js/meet_manager.js?v=20260915_reset_jitsi"></script>
+    <script src="js/meet_manager.js?v=20260918_meet1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase_client.js?v=20260915_t2"></script>
-    <script src="js/api_mock.js?v=20260915_t2"></script>
+    <script src="js/supabase_client.js?v=20260918_v3"></script>
+    <script src="js/api_mock.js?v=20260918_v3"></script>
     <script>
         // Auth guard — teachers and admins only
         (function() {
@@ -742,12 +742,9 @@
                 }
 
                 const idSafe = 'grp_' + cleanGid.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
-                const rawMeet = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                    ? window.getGroupMeetUrl(cleanGid)
+                const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                    ? window.getGroupMeetUrl(cleanGid, currentTeacherId || (currentTeacher && currentTeacher.name))
                     : (g.google_meet_url || ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '')));
-                const meetUrl = (rawMeet && !rawMeet.includes('meet.google.com') && cleanGid !== 'G346')
-                    ? rawMeet
-                    : ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, ''));
                 
                 // Determine true schedule from group or enrolled students
                 let days = (g.subscription_days && g.subscription_days !== '—') ? g.subscription_days : '';

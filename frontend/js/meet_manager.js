@@ -1,31 +1,107 @@
-// Mounir Academy — Central Live Video & Meet Group Manager
+// Mounir Academy — Central Live Video & Meet Group Manager (v3.0 Google Meet Integration)
 (function() {
     const STORAGE_KEY = 'monir_group_meet_links';
 
-    // Auto-clean any Google Meet links or corrupted links from localStorage so all rooms use official Jitsi
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            let modified = false;
-            for (const gid in parsed) {
-                // If it's a google meet link or G346, remove it to revert to standard Jitsi room
-                if (gid === 'G346' || (parsed[gid] && parsed[gid].includes('meet.google.com'))) {
-                    delete parsed[gid];
-                    modified = true;
-                }
-            }
-            if (modified) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-                console.log('[MeetManager] Reset overridden rooms to official academy rooms');
-            }
-        }
-    } catch(e) {}
+    // Official Teacher Google Meet Registry (10 Confirmed Teachers)
+    window.TEACHER_MEET_LINKS = {
+        // By ID
+        "52": "https://meet.google.com/cvf-qbuj-ojn", // محمد عاشور
+        "70": "https://meet.google.com/rou-kyvc-muw", // نادين
+        "69": "https://meet.google.com/cuj-hpsk-mji", // منة الله
+        "51": "https://meet.google.com/wjf-ksyv-qfa", // محمد احمد محمود
+        "65": "https://meet.google.com/svv-nrcf-fzp", // مصطفى علام (مصطفى محمد علام)
+        "9":  "https://meet.google.com/dee-yvud-mdz", // احمد حميد
+        "38": "https://meet.google.com/sis-zeuj-pat", // عبدالرحمن سعيد
+        "59": "https://meet.google.com/axh-kxzj-ayt", // محمود عبد المحسن
+        "27": "https://meet.google.com/otm-vpcb-ipu", // حبيبة عاشور
+        "2":  "https://meet.google.com/cxu-trbc-rmu", // احمد طارق (أحمد طارق)
+        // By Name
+        "محمد عاشور": "https://meet.google.com/cvf-qbuj-ojn",
+        "نادين": "https://meet.google.com/rou-kyvc-muw",
+        "منة الله": "https://meet.google.com/cuj-hpsk-mji",
+        "محمد احمد محمود": "https://meet.google.com/wjf-ksyv-qfa",
+        "مصطفى علام": "https://meet.google.com/svv-nrcf-fzp",
+        "مصطفى محمد علام": "https://meet.google.com/svv-nrcf-fzp",
+        "احمد حميد": "https://meet.google.com/dee-yvud-mdz",
+        "أحمد حميد": "https://meet.google.com/dee-yvud-mdz",
+        "عبدالرحمن سعيد": "https://meet.google.com/sis-zeuj-pat",
+        "عبد الرحمن سعيد": "https://meet.google.com/sis-zeuj-pat",
+        "محمود عبد المحسن": "https://meet.google.com/axh-kxzj-ayt",
+        "محمود عبدالمحسن": "https://meet.google.com/axh-kxzj-ayt",
+        "حبيبة عاشور": "https://meet.google.com/otm-vpcb-ipu",
+        "احمد طارق": "https://meet.google.com/cxu-trbc-rmu",
+        "أحمد طارق": "https://meet.google.com/cxu-trbc-rmu"
+    };
 
-    // Built-in group meet mapping (can be extended or overridden)
-    window.GROUP_MEET_LINKS = window.GROUP_MEET_LINKS || {};
+    // Official Group to Meet Mapping (All 61 Groups belonging to the 10 Teachers)
+    const OFFICIAL_GROUP_MEET_LINKS = {
+        "G044": "https://meet.google.com/cvf-qbuj-ojn",
+        "G140": "https://meet.google.com/cvf-qbuj-ojn",
+        "G141": "https://meet.google.com/cvf-qbuj-ojn",
+        "G154": "https://meet.google.com/cvf-qbuj-ojn",
+        "G161": "https://meet.google.com/cvf-qbuj-ojn",
+        "G178": "https://meet.google.com/cvf-qbuj-ojn",
+        "G238": "https://meet.google.com/cvf-qbuj-ojn",
+        "G256": "https://meet.google.com/cvf-qbuj-ojn",
+        "G272": "https://meet.google.com/cvf-qbuj-ojn",
+        "G287": "https://meet.google.com/cvf-qbuj-ojn",
+        "G331": "https://meet.google.com/cvf-qbuj-ojn",
+        "G426": "https://meet.google.com/cvf-qbuj-ojn",
+        "G440": "https://meet.google.com/cvf-qbuj-ojn",
+        "G023": "https://meet.google.com/rou-kyvc-muw",
+        "G254": "https://meet.google.com/rou-kyvc-muw",
+        "G305": "https://meet.google.com/rou-kyvc-muw",
+        "G344": "https://meet.google.com/rou-kyvc-muw",
+        "G352": "https://meet.google.com/rou-kyvc-muw",
+        "G373": "https://meet.google.com/rou-kyvc-muw",
+        "G328": "https://meet.google.com/cuj-hpsk-mji",
+        "G336": "https://meet.google.com/cuj-hpsk-mji",
+        "G337": "https://meet.google.com/cuj-hpsk-mji",
+        "G400": "https://meet.google.com/cuj-hpsk-mji",
+        "G405": "https://meet.google.com/cuj-hpsk-mji",
+        "G110": "https://meet.google.com/wjf-ksyv-qfa",
+        "G173": "https://meet.google.com/wjf-ksyv-qfa",
+        "G422": "https://meet.google.com/wjf-ksyv-qfa",
+        "G314": "https://meet.google.com/svv-nrcf-fzp",
+        "G053": "https://meet.google.com/dee-yvud-mdz",
+        "G068": "https://meet.google.com/dee-yvud-mdz",
+        "G270": "https://meet.google.com/dee-yvud-mdz",
+        "G364": "https://meet.google.com/dee-yvud-mdz",
+        "G398": "https://meet.google.com/dee-yvud-mdz",
+        "G022": "https://meet.google.com/sis-zeuj-pat",
+        "G036": "https://meet.google.com/sis-zeuj-pat",
+        "G150": "https://meet.google.com/sis-zeuj-pat",
+        "G157": "https://meet.google.com/sis-zeuj-pat",
+        "G199": "https://meet.google.com/sis-zeuj-pat",
+        "G343": "https://meet.google.com/sis-zeuj-pat",
+        "G371": "https://meet.google.com/sis-zeuj-pat",
+        "G441": "https://meet.google.com/sis-zeuj-pat",
+        "G096": "https://meet.google.com/axh-kxzj-ayt",
+        "G106": "https://meet.google.com/axh-kxzj-ayt",
+        "G112": "https://meet.google.com/axh-kxzj-ayt",
+        "G166": "https://meet.google.com/axh-kxzj-ayt",
+        "G277": "https://meet.google.com/axh-kxzj-ayt",
+        "G282": "https://meet.google.com/axh-kxzj-ayt",
+        "G288": "https://meet.google.com/axh-kxzj-ayt",
+        "G356": "https://meet.google.com/axh-kxzj-ayt",
+        "G032": "https://meet.google.com/otm-vpcb-ipu",
+        "G042": "https://meet.google.com/otm-vpcb-ipu",
+        "G091": "https://meet.google.com/otm-vpcb-ipu",
+        "G101": "https://meet.google.com/otm-vpcb-ipu",
+        "G109": "https://meet.google.com/otm-vpcb-ipu",
+        "G137": "https://meet.google.com/otm-vpcb-ipu",
+        "G164": "https://meet.google.com/otm-vpcb-ipu",
+        "G179": "https://meet.google.com/otm-vpcb-ipu",
+        "G193": "https://meet.google.com/otm-vpcb-ipu",
+        "G033": "https://meet.google.com/cxu-trbc-rmu",
+        "G078": "https://meet.google.com/cxu-trbc-rmu",
+        "G244": "https://meet.google.com/cxu-trbc-rmu"
+};
 
-    // Get all overrides from localStorage
+    // Initialize global registry
+    window.GROUP_MEET_LINKS = Object.assign(OFFICIAL_GROUP_MEET_LINKS, window.GROUP_MEET_LINKS || {});
+
+    // Get all custom overrides from localStorage
     function getStoredLinks() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
@@ -35,26 +111,34 @@
         }
     }
 
-    // Standardized Group Live Room generator (Jitsi Meet / Google Meet / Zoom)
-    window.getGroupMeetUrl = function(groupId) {
-        if (!groupId || groupId === '—' || groupId === 'G000' || groupId === 'G') {
-            return 'https://meet.jit.si/MounirAcademy_GeneralRoom';
-        }
-        
-        const cleanGid = String(groupId).trim();
+    // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
+    window.getGroupMeetUrl = function(groupId, teacherIdOrName) {
+        const cleanGid = groupId ? String(groupId).trim() : '';
         const stored = getStoredLinks();
 
-        // 1. User/Teacher/Admin override (must not be Google Meet to prevent permission locks)
-        if (stored[cleanGid] && !stored[cleanGid].includes('meet.google.com') && cleanGid !== 'G346') {
+        // 1. User/Teacher/Admin override in localStorage
+        if (cleanGid && stored[cleanGid]) {
             return stored[cleanGid];
         }
 
-        // 2. Pre-configured in global map
-        if (window.GROUP_MEET_LINKS[cleanGid] && !window.GROUP_MEET_LINKS[cleanGid].includes('meet.google.com') && cleanGid !== 'G346') {
+        // 2. Pre-configured official Google Meet rooms by Group ID
+        if (cleanGid && window.GROUP_MEET_LINKS && window.GROUP_MEET_LINKS[cleanGid]) {
             return window.GROUP_MEET_LINKS[cleanGid];
         }
 
-        // 3. Instant working live interactive video room (No login required)
+        // 3. Match via Teacher ID or Teacher Name if provided
+        if (teacherIdOrName) {
+            const cleanT = String(teacherIdOrName).trim();
+            if (window.TEACHER_MEET_LINKS && window.TEACHER_MEET_LINKS[cleanT]) {
+                return window.TEACHER_MEET_LINKS[cleanT];
+            }
+        }
+
+        if (!cleanGid || cleanGid === '—' || cleanGid === 'G000' || cleanGid === 'G') {
+            return 'https://meet.jit.si/MounirAcademy_GeneralRoom';
+        }
+
+        // 4. Default fallback working live interactive video room
         const codeSuffix = cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '');
         return 'https://meet.jit.si/MounirAcademy_Group_' + codeSuffix;
     };
@@ -67,10 +151,8 @@
             const stored = getStoredLinks();
             delete stored[cleanGid];
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-            if (window.GROUP_MEET_LINKS) delete window.GROUP_MEET_LINKS[cleanGid];
         } catch(e) {}
-        const codeSuffix = cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        const defaultUrl = 'https://meet.jit.si/MounirAcademy_Group_' + codeSuffix;
+        const defaultUrl = window.getGroupMeetUrl(cleanGid);
         window.dispatchEvent(new CustomEvent('monir-meet-updated', {
             detail: { groupId: cleanGid, url: defaultUrl }
         }));
@@ -84,8 +166,7 @@
         let finalUrl = (newUrl || '').trim();
 
         if (!finalUrl) {
-            // Revert to default Jitsi room
-            finalUrl = 'https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            finalUrl = window.getGroupMeetUrl(cleanGid);
         } else if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
             finalUrl = 'https://' + finalUrl;
         }
@@ -94,6 +175,7 @@
             const stored = getStoredLinks();
             stored[cleanGid] = finalUrl;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            if (!window.GROUP_MEET_LINKS) window.GROUP_MEET_LINKS = {};
             window.GROUP_MEET_LINKS[cleanGid] = finalUrl;
 
             // Trigger custom event for real-time reactivity in current tab
@@ -114,7 +196,7 @@
         navigator.clipboard.writeText(url).then(() => {
             if (btnElement) {
                 const originalHtml = btnElement.innerHTML;
-                btnElement.innerHTML = '<span>✅</span> <span>تم النسخ!</span>';
+                btnElement.innerHTML = '<span>تم النسخ!</span>';
                 btnElement.classList.add('bg-emerald-100', 'text-emerald-800');
                 setTimeout(() => {
                     btnElement.innerHTML = originalHtml;
