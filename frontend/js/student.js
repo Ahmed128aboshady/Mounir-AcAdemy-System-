@@ -625,28 +625,6 @@ async function loadSelectedCourseLectures() {
             }
         });
 
-        // Determine which lecture is currently due (first unlocked lecture that is not completed)
-        const dueLecture = data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
-            || data.lectures[data.lectures.length - 1];
-        const dueLectureNumber = dueLecture ? dueLecture.lecture_number : 1;
-
-        // Update Mobile & Desktop Hero Quick-Join Card
-        const heroCourseTitle = document.getElementById('heroCourseTitle');
-        if (heroCourseTitle) heroCourseTitle.innerText = data.course_name || selectedCourseName;
-        const heroTeacherName = document.getElementById('heroTeacherName');
-        if (heroTeacherName) heroTeacherName.innerText = (currentCourseInfo && currentCourseInfo.teacher_name) ? ('أ. ' + currentCourseInfo.teacher_name) : 'معلم الأكاديمية';
-        const heroSessionTime = document.getElementById('heroSessionTime');
-        if (heroSessionTime) {
-            heroSessionTime.innerText = (dueLecture && dueLecture.scheduled_time) ? dueLecture.scheduled_time : ((timeText || '') + (subDays ? (' • ' + subDays) : '') + (' (' + durLabel + ')'));
-        }
-        const heroCreditsBadge = document.getElementById('heroCreditsBadge');
-        if (heroCreditsBadge) {
-            heroCreditsBadge.innerText = (rc > 0) ? (`${rc} حصص متبقية بالرصيد`) : 'الرصيد منتهٍ (يرجى التجديد)';
-            heroCreditsBadge.className = (rc > 0) 
-                ? 'text-[11px] text-amber-300 font-extrabold bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30'
-                : 'text-[11px] text-red-300 font-extrabold bg-red-500/20 px-2.5 py-0.5 rounded-full border border-red-400/30';
-        }
-        
         // Subtitle removed per user request
         const subtitleEl = document.getElementById('selectedCourseSubtitle');
         if (subtitleEl) {

@@ -150,44 +150,6 @@
             </div>
         </section>
 
-        <!-- Mobile & Desktop Hero Quick-Join Session Card (Front & Center for Parents) -->
-        <section id="heroJoinCard" class="bg-gradient-to-r from-[#1F274B] via-[#26315c] to-[#2D396E] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#57BA9E]/40 shadow-xl space-y-3">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-                <span class="inline-flex items-center gap-1.5 bg-[#57BA9E]/20 text-[#57BA9E] border border-[#57BA9E]/30 px-3 py-1 rounded-full text-[11px] font-black">
-                    <span class="w-2 h-2 rounded-full bg-[#57BA9E] animate-ping"></span>
-                    الحصة القادمة المباشرة
-                </span>
-                <span class="text-[11px] text-amber-300 font-extrabold bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30" id="heroCreditsBadge">جاري التحميل...</span>
-            </div>
-
-            <div class="space-y-1">
-                <h3 class="text-base sm:text-lg font-black text-white" id="heroCourseTitle">مسار القرآن الكريم والتدبر</h3>
-                <div class="text-xs text-slate-300 flex items-center gap-2 flex-wrap">
-                    <span>👨‍🏫 المعلم: <strong class="text-white font-bold" id="heroTeacherName">أكاديمية منير</strong></span>
-                    <span>•</span>
-                    <span>⏰ الموعد: <strong class="text-amber-300 font-bold" id="heroSessionTime">حسب الجدول</strong></span>
-                </div>
-            </div>
-
-            <!-- Direct Join & Action Buttons -->
-            <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <button type="button" id="heroJoinMeetBtn" onclick="joinNextDueMeet()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-black text-sm py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-center cursor-pointer">
-                    <svg class="w-5 h-5 animate-pulse shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    <span>دخول قاعة الحصة الآن (Google Meet)</span>
-                </button>
-                <div class="flex items-center gap-2">
-                    <button type="button" id="heroCopyMeetBtn" onclick="copyNextDueMeet()" class="flex-1 sm:flex-initial bg-white/10 hover:bg-white/20 active:scale-[0.98] text-white border border-white/20 font-bold text-xs py-3 px-3 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <span>📋</span>
-                        <span>نسخ الرابط</span>
-                    </button>
-                    <button type="button" onclick="openSupportModal()" class="flex-1 sm:flex-initial bg-white/10 hover:bg-white/20 active:scale-[0.98] text-amber-300 border border-amber-300/30 font-bold text-xs py-3 px-3 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer" title="إرسال عذر أو استفسار للمعلم والإدارة">
-                        <span>💬</span>
-                        <span>إرسال عذر</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
         <!-- 2. Enrolled Courses Tabs (Interactive Course Switcher for Student) -->
         <section class="space-y-3">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -730,8 +692,8 @@
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase_client.js?v=20260915_t2"></script>
-    <script src="js/api_mock.js?v=20260915_fix5"></script>
-    <script src="js/student.js?v=20260917_mobile"></script>
+    <script src="js/supabase_client.js?v=20260917_v3"></script>
+    <script src="js/api_mock.js?v=20260917_v3"></script>
+    <script src="js/student.js?v=20260917_v3"></script>
 </body>
 </html>
