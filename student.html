@@ -120,10 +120,9 @@
         <!-- Dedicated Real-time Zoom Live Notification Banner (إشعار وتنبيه البث المباشر الفوري) -->
         <div id="liveZoomBroadcastBanner" class="hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 border-2 border-blue-400 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
             <div class="flex items-center gap-3">
-                <span class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-inner">📹</span>
                 <div>
                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span class="bg-red-500 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-ping">🔴 بث مباشر الآن</span>
+                        <span class="bg-red-500 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">بث مباشر الآن</span>
                         <strong class="text-sm sm:text-base font-black text-white" id="liveZoomBannerTitle">محاضرة البث المباشر (Zoom) متاحة الآن!</strong>
                     </div>
                     <p class="text-xs sm:text-[13px] text-blue-100 font-medium leading-relaxed" id="liveZoomBannerSubtitle">
@@ -132,7 +131,7 @@
                 </div>
             </div>
             <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer">
-                <span>انضم للبث المباشر (Zoom) 🚀</span>
+                <span>انضم للبث المباشر (Zoom)</span>
             </a>
         </div>
 
@@ -282,7 +281,6 @@
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button onclick="toggleGradebookModal()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-[#1F274B] text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-200 cursor-pointer">
-                        <span>📜</span>
                         <span>سجل درجاتي التراكمي</span>
                     </button>
                 </div>
@@ -291,7 +289,6 @@
             <!-- Notice: Friday Schedule & Locked Files (تنبيه موعد الجمعة غداً وقفل الملفات والريكوردات) -->
             <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl shrink-0">📢</span>
                     <div>
                         <strong class="text-xs sm:text-sm font-black text-amber-950 block">موعد المحاضرات العامة التفاعلية هو يوم الجمعة غداً</strong>
                         <span class="text-[11px] text-amber-800 font-bold block">رابط Zoom سيفتح تلقائياً في موعد فئتك العمرية:</span>
@@ -299,16 +296,13 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-extrabold">
                     <div class="bg-white/90 border border-amber-200 p-2 rounded-xl flex items-center gap-2 text-slate-800">
-                        <span>👦</span>
                         <span>فئة الأطفال (أقل من 10 سنوات): <strong>الجمعة 1:50 م - 2:25 م</strong></span>
                     </div>
                     <div class="bg-white/90 border border-amber-200 p-2 rounded-xl flex items-center gap-2 text-slate-800">
-                        <span>👨‍🎓</span>
                         <span>فئة الطلاب (10 سنوات فما فوق): <strong>الجمعة 2:20 م - 2:50 م</strong></span>
                     </div>
                 </div>
                 <div class="bg-amber-100/60 p-2 rounded-xl text-[11px] text-amber-900 font-bold flex items-center gap-1.5 border border-amber-200/80">
-                    <span>🔒</span>
                     <span>تنويه: التسجيلات الصوتية (الريكوردات) والملخصات مقفولة حالياً، وتفتح فقط بعد انتهاء الحصة وإضافتها بواسطة المشرفين.</span>
                 </div>
             </div>
@@ -316,14 +310,13 @@
             <!-- Tracks Switcher Dropdown Menu (دروب منيو اختيار المسار العام) -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200">
                 <div class="flex items-center gap-2">
-                    <span class="text-lg">📌</span>
                     <span class="text-xs font-black text-slate-800">اختر المسار الأسبوعي (قائمة منسدلة):</span>
                 </div>
                 <div class="w-full sm:w-auto flex-1 sm:max-w-md">
                     <select id="selectStudentGeneralTrack" onchange="selectGeneralTrack(this.value)" class="w-full bg-white border-2 border-indigo-200 hover:border-indigo-400 text-indigo-950 font-black text-xs sm:text-sm rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer shadow-xs transition">
-                        <option value="tajweed">🌟 مسار أحكام التجويد ومخارج الحروف (الأسبوع 1)</option>
-                        <option value="tafsir">📖 مسار التفسير وتدبر القرآن الكريم (الأسبوع 1)</option>
-                        <option value="hadith">📜 مسار الحديث الشريف والسنة النبوية (الأسبوع 1)</option>
+                        <option value="tajweed">مسار أحكام التجويد ومخارج الحروف (الأسبوع 1)</option>
+                        <option value="tafsir">مسار التفسير وتدبر القرآن الكريم (الأسبوع 1)</option>
+                        <option value="hadith">مسار الحديث الشريف والسنة النبوية (الأسبوع 1)</option>
                     </select>
                 </div>
             </div>

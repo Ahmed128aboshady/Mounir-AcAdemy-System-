@@ -215,27 +215,22 @@
                 <div class="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 flex-wrap">
                     <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
                         <button type="button" onclick="switchAdminQuizSubTab('leaderboard')" id="btnAdminQuizSubTabLeaderboard" class="px-3 py-1.5 rounded-lg transition bg-white text-slate-900 font-black shadow-xs flex items-center gap-1 cursor-pointer">
-                            <span>🏆</span>
                             <span>لوحة شرف الأوائل</span>
                         </button>
                         <button type="button" onclick="switchAdminQuizSubTab('submissions')" id="btnAdminQuizSubTabSubmissions" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
-                            <span>📊</span>
                             <span>جدول رصد الدرجات الشامل</span>
                         </button>
                         <button type="button" onclick="switchAdminQuizSubTab('manage')" id="btnAdminQuizSubTabManage" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
-                            <span>⚙️</span>
                             <span>إدارة المحاضرات والأسئلة</span>
                         </button>
                     </div>
 
                     <!-- Actions Toolbar for Gradebook -->
                     <div class="flex items-center gap-2" id="adminQuizActionsBar">
-                        <button onclick="exportQuizSubmissionsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                            <span>📥</span>
+                        <button onclick="exportQuizSubmissionsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs cursor-pointer">
                             <span>تصدير Excel / CSV</span>
                         </button>
-                        <button onclick="printQuizGradebookReport()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                            <span>🖨️</span>
+                        <button onclick="printQuizGradebookReport()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs cursor-pointer">
                             <span>طباعة الكشف</span>
                         </button>
                     </div>
@@ -245,12 +240,12 @@
                 <div id="adminQuizViewLeaderboard" class="space-y-4">
                     <!-- Filter by Track as Dropdown Menu (دروب منيو تصفية المسار) -->
                     <div class="flex items-center gap-2.5 text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 w-full sm:w-auto">
-                        <span class="text-slate-600 font-black whitespace-nowrap">تصفية المسار (دروب منيو):</span>
+                        <span class="text-slate-600 font-black whitespace-nowrap">تصفية المسار:</span>
                         <select id="selectAdminLeaderboardTrack" onchange="filterLeaderboardByTrack(this.value)" class="bg-white border border-slate-300 text-slate-900 font-extrabold text-xs rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer shadow-xs">
-                            <option value="all">🌟 الكل (جميع المسارات المجمعة)</option>
-                            <option value="tajweed">🌟 مسار أحكام التجويد ومخارج الحروف</option>
-                            <option value="tafsir">📖 مسار التفسير وتدبر القرآن</option>
-                            <option value="hadith">📜 مسار الحديث الشريف والسنة</option>
+                            <option value="all">الكل (جميع المسارات المجمعة)</option>
+                            <option value="tajweed">مسار أحكام التجويد ومخارج الحروف</option>
+                            <option value="tafsir">مسار التفسير وتدبر القرآن</option>
+                            <option value="hadith">مسار الحديث الشريف والسنة</option>
                         </select>
                     </div>
 
@@ -6444,7 +6439,6 @@
             if (ranked.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full text-center py-12 bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 font-bold text-xs space-y-2">
-                        <div class="text-3xl">⏳</div>
                         <div class="font-black text-slate-800 text-sm">المحاضرات المباشرة ستبدأ غداً الجمعة</div>
                         <div class="text-[11px] text-slate-500 max-w-md mx-auto leading-relaxed">
                             لوحة شرف الأوائل فارغة حالياً؛ وستظهر أسماء ودرجات الطلاب المتفوقين هنا تلقائياً بمجرد انتهاء المحاضرات وقيام الطلاب بحل واعتماد الاختبارات الأسبوعية.
@@ -6454,32 +6448,22 @@
                 return;
             }
 
-            const medals = ['🥇', '🥈', '🥉'];
             const badgeBg = ['from-amber-400 to-amber-500 text-slate-950', 'from-slate-300 to-slate-400 text-slate-950', 'from-amber-700 to-amber-800 text-white'];
 
             container.innerHTML = ranked.map((st, idx) => {
-                const medal = idx < 3 ? medals[idx] : `🎯 المركز ${idx + 1}`;
                 const bgHeader = idx < 3 ? badgeBg[idx] : 'from-indigo-900 to-slate-900 text-white';
                 const percentage = st.maxScore > 0 ? Math.round((st.totalScore / st.maxScore) * 100) : 0;
 
                 return `
                     <div class="bg-white border-2 ${idx === 0 ? 'border-amber-400 ring-2 ring-amber-300/30' : 'border-slate-200'} rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition">
                         <div class="bg-gradient-to-r ${bgHeader} px-4 py-2.5 flex justify-between items-center font-black text-xs">
-                            <span class="flex items-center gap-1.5">
-                                <span class="text-base">${idx < 3 ? medals[idx] : '🎖️'}</span>
-                                <span>المركز #${idx + 1}</span>
-                            </span>
+                            <span>المركز #${idx + 1}</span>
                             <span class="font-mono text-[11px] font-bold">${st.student_code}</span>
                         </div>
                         <div class="p-4 space-y-2.5 text-xs">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-900 flex items-center justify-center font-black text-sm shrink-0">
-                                    ${(st.student_name || 'ط').substring(0, 1)}
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="font-black text-slate-900 text-xs sm:text-sm truncate">${st.student_name}</h4>
-                                    <span class="text-[10px] text-slate-500 font-medium">أنجز ${st.submissionsCount} اختبار أسبوعي</span>
-                                </div>
+                            <div class="min-w-0">
+                                <h4 class="font-black text-slate-900 text-xs sm:text-sm truncate">${st.student_name}</h4>
+                                <span class="text-[10px] text-slate-500 font-medium">أنجز ${st.submissionsCount} اختبار أسبوعي</span>
                             </div>
                             <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex justify-between items-center text-center">
                                 <div>
@@ -6492,13 +6476,12 @@
                                 </div>
                                 <div>
                                     <span class="text-[10px] text-slate-400 font-bold block">التقدير</span>
-                                    <span class="text-[10px] font-black ${percentage >= 90 ? 'text-amber-700' : 'text-emerald-700'}">${percentage >= 90 ? 'امتياز 🌟' : 'جيد جداً'}</span>
+                                    <span class="text-[10px] font-black ${percentage >= 90 ? 'text-amber-700' : 'text-emerald-700'}">${percentage >= 90 ? 'امتياز' : 'جيد جداً'}</span>
                                 </div>
                             </div>
                             <div class="pt-1">
-                                <a href="student.html?id=${st.student_code}" target="_blank" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white text-[11px] font-bold py-1.5 rounded-xl transition flex items-center justify-center gap-1">
+                                <a href="student.html?id=${st.student_code}" target="_blank" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white text-[11px] font-bold py-2 rounded-xl transition flex items-center justify-center">
                                     <span>استعراض بروفايل وكشف الطالب</span>
-                                    <span>➔</span>
                                 </a>
                             </div>
                         </div>
