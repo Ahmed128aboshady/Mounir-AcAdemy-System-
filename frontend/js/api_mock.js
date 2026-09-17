@@ -15,7 +15,9 @@
                 summary_text: "شرح حكم الإظهار الحلقي وحروفه الستة (ء، هـ، ع، ح، غ، خ) مع أمثلة وتطبيقات عملية من جزء عم.",
                 audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tajweed_w1.mp3",
                 pdf_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-                live_url: "https://zoom.us/j/98264506630",
+                live_url: "https://zoom.us/j/99924246069",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/99924246069",
                 schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
                 schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
             }),
@@ -32,7 +34,9 @@
                 summary_text: "رحلة إيمانية وتربوية في تدبر وتفسير سورة لقمان (من يدلني؟)، وفهم معنى القرآن الحكيم واليقين بالآخرة وتنظيم الأولويات والترفيه.",
                 audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tafsir_w1.mp3",
                 pdf_url: "docs/tafsir_surah_luqman.pdf",
-                live_url: "https://zoom.us/j/98264506630",
+                live_url: "https://zoom.us/j/99924246069",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/99924246069",
                 records_unlocked: true,
                 schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
                 schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
@@ -50,7 +54,9 @@
                 summary_text: "شرح حديث عمر بن الخطاب رضي الله عنه في الإخلاص والنية وأثرهما في قبول العمل وحياة المسلم.",
                 audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/hadith_w1.mp3",
                 pdf_url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-                live_url: "https://zoom.us/j/98264506630",
+                live_url: "https://zoom.us/j/99924246069",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/99924246069",
                 schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
                 schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
             }),
