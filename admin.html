@@ -3557,6 +3557,8 @@
         let bsSortAsc = true;            // sort direction
         let bsCurrentPage = 1;           // pagination page
         let bsTeachersList = [];         // teachers for dropdowns
+        window.bsAllStudents = bsAllStudents;
+        window.bsTeachersList = bsTeachersList;
         let bsActiveBulkAction = null;   // 'group'|'teacher'|'credits'|'schedule'|'status_active'|'status_inactive'
         let bsInlineStudentId = null;    // student being inline-edited
 
@@ -3805,7 +3807,9 @@
                 }
 
                 bsAllStudents = students;
+                window.bsAllStudents = students;
                 bsTeachersList = teachers;
+                window.bsTeachersList = teachers;
                 bsSelectedIds.clear();
                 bsPopulateDropdowns(students, teachers);
                 applyBulkFilters();
@@ -4816,11 +4820,131 @@
         let asgCurrentFilter = 'all'; // 'all', 'nogroup', 'othergroup'
         let asgActiveTab = 1;
 
-        window.openAddStudentsToGroupModal = function(targetGroup = '') {
-            if (!window.bsAllStudents || bsAllStudents.length === 0) {
-                ensureOpenAndLoadBulkStudents();
+        window.populateAsgTeacherSelect = async function(preselectedTeacherId = null) {
+            const teacherSelect = document.getElementById('asgNewTeacher');
+            if (!teacherSelect) return;
+
+            let list = [];
+            if (Array.isArray(window.bsTeachersList) && window.bsTeachersList.length > 0) {
+                list = window.bsTeachersList;
+            } else if (typeof bsTeachersList !== 'undefined' && Array.isArray(bsTeachersList) && bsTeachersList.length > 0) {
+                list = bsTeachersList;
+            } else if (Array.isArray(window.allTeachers) && window.allTeachers.length > 0) {
+                list = window.allTeachers;
+            } else if (typeof allTeachers !== 'undefined' && Array.isArray(allTeachers) && allTeachers.length > 0) {
+                list = allTeachers;
             }
 
+            // Fallback 1: Extract from window.allAdminGroups
+            if (list.length === 0 && window.allAdminGroups && Array.isArray(window.allAdminGroups)) {
+                const map = new Map();
+                window.allAdminGroups.forEach(g => {
+                    if (g.teacher_id && g.teacher_name && g.teacher_name !== '—') {
+                        map.set(g.teacher_id, { id: g.teacher_id, name: g.teacher_name });
+                    }
+                });
+                if (map.size > 0) list = Array.from(map.values());
+            }
+
+            // Fallback 2: Direct query to Supabase or API
+            if (list.length === 0) {
+                try {
+                    if (window.MonirDB && window.MonirDB.isConfigured()) {
+                        const { data, error } = await window.MonirDB.getClient()
+                            .from('teachers')
+                            .select('id, name')
+                            .order('name');
+                        if (data && data.length > 0) {
+                            list = data;
+                        }
+                    }
+                } catch(e) {
+                    console.warn('[AsgModal] Error fetching teachers from Supabase:', e);
+                }
+
+                if (list.length === 0) {
+                    try {
+                        const res = await fetch('/api/teachers');
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (Array.isArray(data) && data.length > 0) {
+                                list = data.map(t => ({ id: t.id, name: t.name }));
+                            }
+                        }
+                    } catch(e) {}
+                }
+            }
+
+            // Sync global references
+            if (list.length > 0) {
+                window.bsTeachersList = list;
+                if (typeof bsTeachersList !== 'undefined') bsTeachersList = list;
+                if (typeof allTeachers !== 'undefined' && (!allTeachers || allTeachers.length === 0)) allTeachers = list;
+            }
+
+            const curVal = preselectedTeacherId !== null ? String(preselectedTeacherId) : (teacherSelect.value || '');
+            teacherSelect.innerHTML = '<option value="">— اختر المعلم —</option>' +
+                list.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+            if (curVal) {
+                teacherSelect.value = curVal;
+            }
+        };
+
+        function autoFillGroupDetailsFromTarget(targetGroup) {
+            if (!targetGroup) return;
+            const cleanG = targetGroup.trim().toUpperCase();
+
+            // Try finding matching group in loaded students
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const match = allSts.find(s => {
+                if (!s) return false;
+                if (s.group_id && s.group_id.toUpperCase() === cleanG) return true;
+                if (Array.isArray(s.group_ids) && s.group_ids.some(g => g.toUpperCase() === cleanG)) return true;
+                return false;
+            });
+
+            if (match) {
+                if (match.teacher_id) {
+                    const tSelect = document.getElementById('asgNewTeacher');
+                    if (tSelect) tSelect.value = String(match.teacher_id);
+                }
+                if (match.subscription_days && match.subscription_days !== '—') {
+                    const daysInput = document.getElementById('asgNewDays');
+                    if (daysInput && (!daysInput.value || daysInput.value === 'null')) daysInput.value = match.subscription_days;
+                }
+                if (match.lecture_time && match.lecture_time !== '—') {
+                    const timeInput = document.getElementById('asgNewTime');
+                    if (timeInput && (!timeInput.value || timeInput.value === 'null')) timeInput.value = match.lecture_time;
+                }
+                if (match.session_duration && match.session_duration !== '—') {
+                    const durSelect = document.getElementById('asgNewDuration');
+                    if (durSelect) durSelect.value = match.session_duration;
+                }
+                return;
+            }
+
+            // Fallback: check window.allAdminGroups
+            if (window.allAdminGroups && Array.isArray(window.allAdminGroups)) {
+                const grp = window.allAdminGroups.find(g => (g.group_id || '').toUpperCase() === cleanG);
+                if (grp) {
+                    if (grp.teacher_id) {
+                        const tSelect = document.getElementById('asgNewTeacher');
+                        if (tSelect) tSelect.value = String(grp.teacher_id);
+                    }
+                    if (grp.subscription_days && grp.subscription_days !== '—') {
+                        const daysInput = document.getElementById('asgNewDays');
+                        if (daysInput && (!daysInput.value || daysInput.value === 'null')) daysInput.value = grp.subscription_days;
+                    }
+                    if (grp.lecture_time && grp.lecture_time !== '—') {
+                        const timeInput = document.getElementById('asgNewTime');
+                        if (timeInput && (!timeInput.value || timeInput.value === 'null')) timeInput.value = grp.lecture_time;
+                    }
+                }
+            }
+        }
+
+        window.openAddStudentsToGroupModal = function(targetGroup = '') {
             const groupVal = (targetGroup || document.getElementById('bsFilterGroupText')?.value || document.getElementById('bsFilterGroup')?.value || '').trim();
             const targetInput = document.getElementById('asgTargetGroup');
             if (targetInput) targetInput.value = groupVal;
@@ -4832,15 +4956,35 @@
             const checkAll = document.getElementById('asgCheckAll');
             if (checkAll) checkAll.checked = false;
 
-            const teacherSelect = document.getElementById('asgNewTeacher');
-            if (teacherSelect && window.bsTeachersList) {
-                teacherSelect.innerHTML = '<option value="">— اختر المعلم —</option>' +
-                    bsTeachersList.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            // Clean any stray "null" in input fields
+            ['asgNewName', 'asgNewCode', 'asgNewPhone', 'asgNewDays', 'asgNewTime'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value === 'null') el.value = '';
+            });
+
+            // Populate teachers dropdown immediately & asynchronously
+            populateAsgTeacherSelect().then(() => {
+                if (groupVal) autoFillGroupDetailsFromTarget(groupVal);
+            });
+
+            if (!window.bsAllStudents || window.bsAllStudents.length === 0) {
+                if (typeof loadBulkStudents === 'function') {
+                    loadBulkStudents().then(() => {
+                        renderAsgStudentsList();
+                        populateAsgTeacherSelect().then(() => {
+                            if (groupVal) autoFillGroupDetailsFromTarget(groupVal);
+                        });
+                    });
+                }
             }
 
             switchAsgTab(1);
             setAsgFilter('all');
             renderAsgStudentsList();
+
+            if (groupVal) {
+                autoFillGroupDetailsFromTarget(groupVal);
+            }
 
             document.getElementById('addStudentsToGroupModal').classList.remove('hidden');
         };
@@ -4856,6 +5000,12 @@
             const tab1 = document.getElementById('asgTabContent1');
             const tab2 = document.getElementById('asgTabContent2');
 
+            // Clean any stray "null" in input fields
+            ['asgNewName', 'asgNewCode', 'asgNewPhone', 'asgNewDays', 'asgNewTime'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value === 'null') el.value = '';
+            });
+
             if (tab === 1) {
                 btn1.className = 'flex-1 pb-2.5 font-black text-xs border-b-2 border-[#41519C] text-[#41519C] transition flex items-center justify-center gap-1.5';
                 btn2.className = 'flex-1 pb-2.5 font-bold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-1.5';
@@ -4867,6 +5017,12 @@
                 btn1.className = 'flex-1 pb-2.5 font-bold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-1.5';
                 tab2.classList.remove('hidden');
                 tab1.classList.add('hidden');
+
+                // Ensure teachers are loaded & auto-fill group details if available
+                populateAsgTeacherSelect().then(() => {
+                    const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+                    if (targetGroup) autoFillGroupDetailsFromTarget(targetGroup);
+                });
             }
         };
 
@@ -4886,6 +5042,10 @@
 
         window.onAsgTargetGroupChanged = function() {
             renderAsgStudentsList();
+            const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+            if (targetGroup) {
+                autoFillGroupDetailsFromTarget(targetGroup);
+            }
         };
 
         window.renderAsgStudentsList = function() {
@@ -5334,7 +5494,7 @@
                     }
                 }
 
-                const teacherObj = window.bsTeachersList ? bsTeachersList.find(t => t.id === teacherId) : null;
+                const teacherObj = (window.bsTeachersList || (typeof bsTeachersList !== 'undefined' ? bsTeachersList : [])).find(t => t.id === teacherId) || null;
                 const newStudentObj = {
                     id: newStudentId,
                     name: name,
