@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Query, Response, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import os
@@ -1792,5 +1792,5 @@ def serve_admin_login():
 
 @app.get("/mounir_os.html")
 def serve_mounir_os():
-    return FileResponse(os.path.join(os.path.dirname(FRONTEND_DIR), "mounir_os.html"))
+    return RedirectResponse(url="/", status_code=302)
 
