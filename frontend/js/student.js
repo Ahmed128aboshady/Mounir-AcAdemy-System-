@@ -65,9 +65,110 @@ function initStudentPage() {
         } catch(e) {}
     }
     
+    if (activeUser && (activeUser.role === 'admin' || activeUser.role === 'teacher')) {
+        const bar = document.getElementById('adminStudentSupervisorBar');
+        if (bar) bar.classList.remove('hidden');
+        initAdminStudentSupervisor(currentStudentId);
+    }
+
     loadStudentProfile();
     loadNotifications();
     loadSupportTickets();
+}
+
+let __cachedSupervisorStudents = [];
+
+async function initAdminStudentSupervisor(activeId) {
+    const sel = document.getElementById('adminStudentQuickSelect');
+    if (!sel) return;
+    try {
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            const client = window.MonirDB.getClient();
+            const { data } = await client.from('students').select('id, name, student_code, qr_code, age, parent_name').order('name', { ascending: true }).limit(1000);
+            if (data && data.length > 0) __cachedSupervisorStudents = data;
+        }
+        if (__cachedSupervisorStudents.length === 0) {
+            const res = await fetch('/api/students');
+            __cachedSupervisorStudents = await res.json();
+        }
+        sel.innerHTML = __cachedSupervisorStudents.map(s => {
+            const isSel = (s.id == activeId || s.student_code == activeId) ? 'selected' : '';
+            const grp = s.qr_code ? ` [${s.qr_code}]` : '';
+            return `<option value="${s.id}" ${isSel}>${s.name} (${s.student_code || s.id})${grp}</option>`;
+        }).join('');
+    } catch(e) {
+        console.error('Error populating admin student switcher:', e);
+    }
+}
+
+function switchAdminStudentView(newStudentId) {
+    if (!newStudentId) return;
+    window.location.href = 'student.html?id=' + newStudentId;
+}
+
+function openStudentSearchModal() {
+    const modal = document.getElementById('studentSearchModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    const input = document.getElementById('studentModalSearchInput');
+    if (input) { input.value = ''; input.focus(); }
+    renderModalStudentsList(__cachedSupervisorStudents);
+}
+
+function closeStudentSearchModal() {
+    const modal = document.getElementById('studentSearchModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function filterModalStudents(query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
+        renderModalStudentsList(__cachedSupervisorStudents);
+        return;
+    }
+    const filtered = __cachedSupervisorStudents.filter(s =>
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.student_code && s.student_code.toLowerCase().includes(q)) ||
+        (s.qr_code && s.qr_code.toLowerCase().includes(q)) ||
+        (s.parent_name && s.parent_name.toLowerCase().includes(q)) ||
+        (s.id && String(s.id).includes(q))
+    );
+    renderModalStudentsList(filtered);
+}
+
+function renderModalStudentsList(list) {
+    const container = document.getElementById('modalStudentsResultsList');
+    const countLabel = document.getElementById('studentSearchModalCount');
+    if (!container) return;
+
+    if (countLabel) {
+        countLabel.innerText = `${Math.min(list.length, 30)} من ${list.length} طالب`;
+    }
+
+    if (!list || list.length === 0) {
+        container.innerHTML = '<div class="text-center py-6 text-slate-400 font-bold">لا يوجد طلاب مطابقين للبحث</div>';
+        return;
+    }
+
+    const displayList = list.slice(0, 30);
+    container.innerHTML = displayList.map(s => {
+        const isCurrent = (s.id == currentStudentId || s.student_code == currentStudentId);
+        return `
+            <div class="p-2.5 rounded-xl border ${isCurrent ? 'bg-indigo-50 border-indigo-300' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'} flex items-center justify-between gap-2 transition">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <strong class="text-slate-900 text-xs truncate">${s.name}</strong>
+                        <span class="bg-[#41519C] text-white text-[10px] font-mono px-1.5 py-0.5 rounded">${s.student_code || s.id}</span>
+                        ${s.qr_code ? `<span class="bg-[#57BA9E] text-slate-950 text-[10px] font-mono px-1.5 py-0.5 rounded">${s.qr_code}</span>` : ''}
+                    </div>
+                    <div class="text-[11px] text-slate-500 truncate">${s.parent_name ? 'ولي الأمر: ' + s.parent_name : ''}</div>
+                </div>
+                <button type="button" onclick="switchAdminStudentView(${s.id})" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shrink-0 cursor-pointer">
+                    ${isCurrent ? 'الحالي ✓' : 'اختيار ➔'}
+                </button>
+            </div>
+        `;
+    }).join('');
 }
 
 if (document.readyState === 'loading') {

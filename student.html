@@ -68,6 +68,33 @@
         </div>
     </header>
 
+    <!-- Admin Supervisor Toolbar for Students (يظهر فقط للإدارة أو المعلم عند استعراض صفحات الطلاب) -->
+    <div id="adminStudentSupervisorBar" class="hidden bg-gradient-to-r from-indigo-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-indigo-500 py-2 px-3 sm:px-4 shadow-md sticky top-[53px] sm:top-[57px] z-30">
+        <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-2 sm:gap-3 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="bg-indigo-500 text-white font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs shadow-sm">
+                    <span>👑</span>
+                    <span>وضع إشراف الإدارة</span>
+                </span>
+                <span class="text-slate-200 font-bold hidden sm:inline">تبديل الطالب المعروض:</span>
+            </div>
+            <div class="flex items-center gap-2 flex-1 sm:flex-none justify-end flex-wrap">
+                <select id="adminStudentQuickSelect" onchange="switchAdminStudentView(this.value)" class="bg-slate-800 border border-indigo-400/60 text-white rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-400 max-w-[200px] sm:max-w-[280px]">
+                    <option value="">جاري تحميل قائمة الطلاب...</option>
+                </select>
+                <button type="button" onclick="openStudentSearchModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition whitespace-nowrap border border-slate-600 cursor-pointer" title="بحث سريع بين كل الطلاب">
+                    🔍 بحث
+                </button>
+                <a href="admin.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition whitespace-nowrap border border-slate-600">
+                    🏠 الإدارة
+                </a>
+                <a href="teacher.html" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl transition whitespace-nowrap shadow-sm">
+                    👨‍🏫 المعلمين
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
@@ -690,6 +717,32 @@
             <span class="text-[10px] font-bold">الدعم والأعذار</span>
         </button>
     </nav>
+
+    <!-- Quick Search Modal for Students inside student.html (للبحث السريع بين 771 طالباً) -->
+    <div id="studentSearchModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-100 text-[#41519C] flex items-center justify-center font-black">🔍</span>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-900">بحث وتحديد طالب</h3>
+                        <p class="text-[11px] text-slate-500">اختر أي طالب لعرض صفحته وحضوره ورصيده فوراً</p>
+                    </div>
+                </div>
+                <button onclick="closeStudentSearchModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
+            </div>
+            <div class="py-3 flex-shrink-0">
+                <input type="text" id="studentModalSearchInput" oninput="filterModalStudents(this.value)" placeholder="🔍 ابحث باسم الطالب أو الكود ST... أو المجموعة G..." class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+            </div>
+            <div id="modalStudentsResultsList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-[220px] max-h-[50vh]">
+                <!-- Injected via JS -->
+            </div>
+            <div class="pt-3 border-t border-slate-100 flex justify-between items-center flex-shrink-0 text-xs">
+                <span class="text-[11px] text-slate-400" id="studentSearchModalCount"></span>
+                <button type="button" onclick="closeStudentSearchModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-1.5 rounded-xl transition cursor-pointer">إغلاق</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260917_v3"></script>

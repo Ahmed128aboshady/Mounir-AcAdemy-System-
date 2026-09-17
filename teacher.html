@@ -74,6 +74,30 @@
         </div>
     </header>
 
+    <!-- Admin Supervisor Toolbar for Teachers (يظهر فقط للإدارة عند استعراض صفحات المعلمين) -->
+    <div id="adminTeacherSupervisorBar" class="hidden bg-gradient-to-r from-emerald-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-emerald-500 py-2.5 px-3 sm:px-4 shadow-md sticky top-[57px] z-30">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2 sm:gap-3 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="bg-emerald-500 text-slate-950 font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-xs shadow-sm">
+                    <span>👑</span>
+                    <span>وضع إشراف الإدارة</span>
+                </span>
+                <span class="text-slate-200 font-bold hidden sm:inline">تبديل المعلم المعروض:</span>
+            </div>
+            <div class="flex items-center gap-2 flex-1 sm:flex-none justify-end flex-wrap">
+                <select id="adminTeacherQuickSelect" onchange="switchAdminTeacherView(this.value)" class="bg-slate-800 border border-emerald-500/60 text-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-400 max-w-[240px] sm:max-w-[320px]">
+                    <option value="">جاري تحميل قائمة المعلمين...</option>
+                </select>
+                <a href="admin.html" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap border border-slate-600">
+                    🏠 لوحة الإدارة
+                </a>
+                <a href="student.html" target="_blank" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap shadow-sm">
+                    👤 بروفايل الطلاب
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
@@ -287,13 +311,17 @@
             if (userStr) {
                 try {
                     const u = JSON.parse(userStr);
+                    if (u.role === 'admin') {
+                        const bar = document.getElementById('adminTeacherSupervisorBar');
+                        if (bar) bar.classList.remove('hidden');
+                    }
                     currentTeacherId = u.teacher_id || u.related_id || 1;
                     currentTeacherName = u.full_name || u.name || u.username || '';
                     
                     // Setup logout button
                     const btn = document.getElementById('teacherAuthBtn');
                     const nameHeader = document.getElementById('teacherNameHeader');
-                    if (nameHeader) nameHeader.innerText = 'المعلم: ' + (u.full_name || u.username);
+                    if (nameHeader) nameHeader.innerText = (u.role === 'admin' ? '👑 مشرف الإدارة: ' : 'المعلم: ') + (u.full_name || u.username);
                     if (btn) {
                         btn.onclick = (e) => {
                             e.preventDefault();
@@ -313,8 +341,44 @@
                 currentTeacherId = parseInt(urlParams.get('id')) || currentTeacherId;
             }
 
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.role === 'admin') {
+                        loadAllTeachersForAdminSwitcher(currentTeacherId);
+                    }
+                } catch(e) {}
+            }
+
             loadTeacherGroups();
         });
+
+        async function loadAllTeachersForAdminSwitcher(activeId) {
+            const sel = document.getElementById('adminTeacherQuickSelect');
+            if (!sel) return;
+            try {
+                let teachersList = [];
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const { data } = await client.from('teachers').select('id, name, specialty').order('name', { ascending: true });
+                    if (data && data.length > 0) teachersList = data;
+                }
+                if (teachersList.length === 0) {
+                    const res = await fetch('/api/teachers');
+                    teachersList = await res.json();
+                }
+                sel.innerHTML = teachersList.map(t => 
+                    `<option value="${t.id}" ${t.id == activeId ? 'selected' : ''}>أ. ${t.name} (معرّف #${t.id})</option>`
+                ).join('');
+            } catch(e) {
+                console.error('Error populating admin teacher switcher:', e);
+            }
+        }
+
+        function switchAdminTeacherView(newTeacherId) {
+            if (!newTeacherId) return;
+            window.location.href = 'teacher.html?id=' + newTeacherId;
+        }
 
         async function loadTeacherGroups() {
             const container = document.getElementById('groupsContainer');
