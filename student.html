@@ -248,6 +248,49 @@
             </div>
         </section>
 
+        <!-- General Academy Lectures & Weekly Quizzes Section (منظومة المحاضرات العامة والاختبارات الأسبوعية) -->
+        <section id="generalLecturesSection" class="bg-white border-2 border-indigo-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#1F274B] to-[#41519C] text-white flex items-center justify-center text-lg font-black shadow-sm shrink-0">🎙️</span>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-sm sm:text-base font-black text-slate-900">المحاضرات العامة والاختبارات الأسبوعية</h3>
+                            <span class="bg-amber-100 text-amber-900 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full">معتمدة أكاديمياً</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500">استمع للملخص الصوتي، حمّل الـ PDF، انضم للبث المباشر، واجتز الاختبار الأسبوعي فوراً</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="toggleGradebookModal()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-[#1F274B] text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-200 cursor-pointer">
+                        <span>📜</span>
+                        <span>سجل درجاتي التراكمي</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tracks Switcher Tabs -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-600" id="generalLectureTabs">
+                <button type="button" onclick="selectGeneralTrack('tajweed')" id="tabTrackTajweed" class="py-2.5 px-2 rounded-xl transition text-center bg-white text-[#1F274B] font-black shadow-xs flex items-center justify-center gap-1">
+                    <span>🌟</span>
+                    <span>أحكام التجويد</span>
+                </button>
+                <button type="button" onclick="selectGeneralTrack('tafsir')" id="tabTrackTafsir" class="py-2.5 px-2 rounded-xl transition text-center text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+                    <span>📖</span>
+                    <span>التفسير والتدبر</span>
+                </button>
+                <button type="button" onclick="selectGeneralTrack('hadith')" id="tabTrackHadith" class="py-2.5 px-2 rounded-xl transition text-center text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1">
+                    <span>📜</span>
+                    <span>الحديث الشريف</span>
+                </button>
+            </div>
+
+            <!-- Track Content Dynamic Card Container -->
+            <div id="generalTrackCardContainer" class="space-y-4">
+                <!-- Dynamically populated by renderGeneralTrackView() in student.js -->
+            </div>
+        </section>
+
         <!-- 2. Enrolled Courses Tabs (Interactive Course Switcher for Student) -->
         <section class="space-y-3">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -456,6 +499,49 @@
                         العودة لقائمة الاختبارات
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cumulative Gradebook & Progress Transcript -->
+    <div id="gradebookModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl font-black shrink-0">📜</span>
+                    <div>
+                        <h3 class="font-black text-base text-slate-900">سجل الدرجات التراكمي للطالب</h3>
+                        <p class="text-[11px] text-slate-500 font-medium">سجل معتمد للمحاضرات العامة والاختبارات الأسبوعية والنهائية</p>
+                    </div>
+                </div>
+                <button onclick="toggleGradebookModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
+            </div>
+
+            <!-- Gradebook Summary KPI Tiles -->
+            <div class="grid grid-cols-3 gap-2 text-center text-xs mb-4">
+                <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+                    <span class="text-[10px] text-slate-500 font-bold block mb-0.5">المجموع التراكمي</span>
+                    <strong class="text-base sm:text-lg font-black text-emerald-600" id="gradebookTotalScore">0 / 100</strong>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+                    <span class="text-[10px] text-slate-500 font-bold block mb-0.5">النسبة المئوية</span>
+                    <strong class="text-base sm:text-lg font-black text-blue-600" id="gradebookPercentage">0%</strong>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+                    <span class="text-[10px] text-slate-500 font-bold block mb-0.5">التقدير العام</span>
+                    <strong class="text-xs sm:text-sm font-black text-amber-600 block mt-0.5" id="gradebookRankBadge">جاري التقييم</strong>
+                </div>
+            </div>
+
+            <!-- Detailed Breakdown by Track -->
+            <div id="gradebookDetailsContainer" class="space-y-3 text-xs">
+                <!-- Dynamically generated in student.js -->
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-slate-100 flex justify-end">
+                <button onclick="toggleGradebookModal()" class="bg-[#1F274B] text-white font-bold text-xs px-6 py-2.5 rounded-xl transition">
+                    إغلاق السجل
+                </button>
             </div>
         </div>
     </div>

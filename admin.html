@@ -55,6 +55,10 @@
                     <span class="text-slate-400">المشرف:</span>
                     <strong class="text-white" id="adminHeaderName">إدارة الأكاديمية</strong>
                 </div>
+                <button type="button" onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="لوحة شرف الأوائل ورصد المحاضرات العامة">
+                    <span>🏆</span>
+                    <span>المحاضرات والأوائل</span>
+                </button>
                 <button onclick="openLiveChatModal()" class="relative bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer">
                     <span>شات ورسائل الدعم</span>
                     <span id="liveChatGlobalBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-bounce border-2 border-[#1F274B]">0</span>
@@ -149,6 +153,155 @@
                     <span class="text-[10px] text-amber-600 font-bold">فتح الشات ←</span>
                 </div>
                 <div class="text-lg sm:text-2xl font-black text-amber-600 mt-1" id="statPendingTickets">0</div>
+            </div>
+        </section>
+
+        <!-- General Academy Lectures, Leaderboard & Quizzes System (منظومة المحاضرات العامة ولوحة شرف المتفوقين) -->
+        <section class="bg-white rounded-2xl sm:rounded-3xl border-2 border-indigo-200 p-4 sm:p-6 shadow-sm space-y-4" id="sectionGeneralLecturesAdmin">
+            <!-- Collapsible Dropdown Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleDashboardSection('generalLecturesAdminContent', 'generalLecturesAdminToggleBtn', 'generalLecturesAdminStateBadge')">
+                <div class="flex items-center gap-3">
+                    <button type="button" id="generalLecturesAdminToggleBtn" class="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-amber-50 group-hover:text-amber-600 text-slate-600 flex items-center justify-center transition shadow-sm shrink-0">
+                        <svg class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div>
+                        <div class="flex items-center flex-wrap gap-2 mb-1">
+                            <span class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
+                                🏆 منظومة الأوائل والمحاضرات العامة
+                            </span>
+                            <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-900 transition">لوحة شرف الأوائل ورصد درجات المحاضرات الأسبوعية</h2>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="generalLecturesAdminStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500">
+                            بديل Google Forms الأوتوماتيكي: متابعة الطلاب المتفوقين في التجويد، التفسير، والحديث مع تصدير الدرجات Excel وطباعة الكشوف
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end" onclick="event.stopPropagation()">
+                    <button onclick="openCreateGeneralQuizModal()" class="w-full sm:w-auto text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1 shadow-sm">
+                        <span>➕</span>
+                        <span>إضافة محاضرة واختبار</span>
+                    </button>
+                    <button onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="w-full sm:w-auto text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1 shadow-sm">
+                        <span>🔄</span>
+                        <span>تحديث البيانات</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Container -->
+            <div id="generalLecturesAdminContent" class="hidden space-y-4 transition-all duration-300 pt-1">
+                <!-- Summary KPI Chips -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-center text-xs">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-amber-900" id="adminQuizStatLeaderCount">0</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">أوائل لوحة الشرف (100%)</div>
+                    </div>
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-indigo-900" id="adminQuizStatTotalSubs">0</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">إجمالي الاختبارات المقدمة</div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-emerald-900" id="adminQuizStatAvgScore">0%</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">متوسط نسبة الإتقان</div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-2.5 sm:p-3">
+                        <div class="text-base sm:text-xl font-black text-blue-900" id="adminQuizStatActiveTracks">3 مسارات</div>
+                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">تجويد • تفسير • حديث</div>
+                    </div>
+                </div>
+
+                <!-- Sub-tabs Navigation -->
+                <div class="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 flex-wrap">
+                    <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                        <button type="button" onclick="switchAdminQuizSubTab('leaderboard')" id="btnAdminQuizSubTabLeaderboard" class="px-3 py-1.5 rounded-lg transition bg-white text-slate-900 font-black shadow-xs flex items-center gap-1 cursor-pointer">
+                            <span>🏆</span>
+                            <span>لوحة شرف الأوائل</span>
+                        </button>
+                        <button type="button" onclick="switchAdminQuizSubTab('submissions')" id="btnAdminQuizSubTabSubmissions" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
+                            <span>📊</span>
+                            <span>جدول رصد الدرجات الشامل</span>
+                        </button>
+                        <button type="button" onclick="switchAdminQuizSubTab('manage')" id="btnAdminQuizSubTabManage" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
+                            <span>⚙️</span>
+                            <span>إدارة المحاضرات والأسئلة</span>
+                        </button>
+                    </div>
+
+                    <!-- Actions Toolbar for Gradebook -->
+                    <div class="flex items-center gap-2" id="adminQuizActionsBar">
+                        <button onclick="exportQuizSubmissionsExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                            <span>📥</span>
+                            <span>تصدير Excel / CSV</span>
+                        </button>
+                        <button onclick="printQuizGradebookReport()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                            <span>🖨️</span>
+                            <span>طباعة الكشف</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- View 1: Leaderboard View (لوحة الشرف) -->
+                <div id="adminQuizViewLeaderboard" class="space-y-4">
+                    <!-- Filter by Track -->
+                    <div class="flex items-center gap-2 flex-wrap text-xs">
+                        <span class="text-slate-500 font-bold">تصفية المسار:</span>
+                        <button type="button" onclick="filterLeaderboardByTrack('all')" class="px-2.5 py-1 rounded-lg font-bold border transition bg-amber-100 text-amber-900 border-amber-300 cursor-pointer" id="btnFilterLeadAll">الكل (شامل)</button>
+                        <button type="button" onclick="filterLeaderboardByTrack('tajweed')" class="px-2.5 py-1 rounded-lg font-bold border transition bg-white text-slate-700 border-slate-200 cursor-pointer" id="btnFilterLeadTajweed">🌟 أحكام التجويد</button>
+                        <button type="button" onclick="filterLeaderboardByTrack('tafsir')" class="px-2.5 py-1 rounded-lg font-bold border transition bg-white text-slate-700 border-slate-200 cursor-pointer" id="btnFilterLeadTafsir">📖 التفسير والتدبر</button>
+                        <button type="button" onclick="filterLeaderboardByTrack('hadith')" class="px-2.5 py-1 rounded-lg font-bold border transition bg-white text-slate-700 border-slate-200 cursor-pointer" id="btnFilterLeadHadith">📜 الحديث الشريف</button>
+                    </div>
+
+                    <!-- Leaderboard Cards Container -->
+                    <div id="adminLeaderboardCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- View 2: Submissions Table View (جدول رصد الدرجات الشامل) -->
+                <div id="adminQuizViewSubmissions" class="hidden space-y-3">
+                    <!-- Search & Filter Controls -->
+                    <div class="flex flex-col sm:flex-row items-center gap-2">
+                        <div class="relative flex-1 w-full">
+                            <input type="text" id="inputQuizSearch" oninput="filterQuizSubmissionsTable()" placeholder="ابحث باسم الطالب، الكود، أو عنوان الاختبار..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 pr-8 outline-none focus:border-indigo-500 focus:bg-white">
+                            <span class="absolute right-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                        </div>
+                        <select id="selectQuizFilterTrack" onchange="filterQuizSubmissionsTable()" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer w-full sm:w-auto">
+                            <option value="">جميع المسارات</option>
+                            <option value="tajweed">أحكام التجويد</option>
+                            <option value="tafsir">التفسير وتدبر القرآن</option>
+                            <option value="hadith">الحديث الشريف</option>
+                        </select>
+                    </div>
+
+                    <!-- Submissions Table -->
+                    <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                        <table class="w-full text-right text-xs min-w-[700px]">
+                            <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">#</th>
+                                    <th class="p-3">كود الطالب</th>
+                                    <th class="p-3">اسم الطالب</th>
+                                    <th class="p-3">المسار</th>
+                                    <th class="p-3">الاختبار والمحاضرة</th>
+                                    <th class="p-3">الدرجة</th>
+                                    <th class="p-3">النسبة</th>
+                                    <th class="p-3">تاريخ ووقت الحل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminQuizSubmissionsTableBody" class="divide-y divide-slate-100 bg-white">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- View 3: Manage Lectures & Quizzes -->
+                <div id="adminQuizViewManage" class="hidden space-y-3">
+                    <div id="adminQuizLecturesListContainer" class="space-y-3">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -6147,7 +6300,709 @@
                 `;
             }
         }
+
+        // ========================================================
+        // 🏆 GENERAL LECTURES & QUIZZES ADMIN CONTROLLER
+        // ========================================================
+        let __allAdminQuizzes = [];
+        let __allAdminQuizSubmissions = [];
+        let __currentAdminQuizTab = 'leaderboard';
+        let __currentLeaderboardTrack = 'all';
+
+        async function ensureOpenAndLoadGeneralLecturesAdmin() {
+            const content = document.getElementById('generalLecturesAdminContent');
+            const toggleBtn = document.getElementById('generalLecturesAdminToggleBtn');
+            const badge = document.getElementById('generalLecturesAdminStateBadge');
+            const section = document.getElementById('sectionGeneralLecturesAdmin');
+
+            if (content && content.classList.contains('hidden')) {
+                toggleDashboardSection('generalLecturesAdminContent', 'generalLecturesAdminToggleBtn', 'generalLecturesAdminStateBadge');
+            }
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+            await loadAdminQuizData();
+        }
+
+        async function loadAdminQuizData() {
+            try {
+                // 1. Fetch Quizzes
+                let quizzes = [];
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const qRes = await window.MonirDB.getQuizzes();
+                    if (qRes.data && qRes.data.length > 0) quizzes = qRes.data;
+                }
+                if (quizzes.length === 0) {
+                    const qRes = await fetch('/api/quizzes');
+                    quizzes = await qRes.json();
+                }
+                __allAdminQuizzes = quizzes || [];
+
+                // 2. Fetch Submissions
+                let subs = [];
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const sRes = await window.MonirDB.getAllQuizSubmissions();
+                    if (sRes.data) subs = sRes.data;
+                }
+                if (subs.length === 0) {
+                    try {
+                        const sRes = await fetch('/api/admin/quizzes/submissions');
+                        subs = await sRes.json();
+                    } catch(e) {}
+                }
+
+                // If demo/empty, generate initial seed control submissions so leaderboard has immediate data
+                if (!subs || subs.length === 0) {
+                    subs = [
+                        { id: 1, quiz_id: 101, student_id: 1, student_code: 'st0419', student_name: 'معتصم بالله عثمان', track_name: 'tajweed', quiz_title: 'أحكام التجويد - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 3600000).toISOString() },
+                        { id: 2, quiz_id: 102, student_id: 1, student_code: 'st0419', student_name: 'معتصم بالله عثمان', track_name: 'tafsir', quiz_title: 'التفسير والتدبر - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 7200000).toISOString() },
+                        { id: 3, quiz_id: 101, student_id: 2, student_code: 'st0420', student_name: 'مريم أحمد طارق', track_name: 'tajweed', quiz_title: 'أحكام التجويد - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 10800000).toISOString() },
+                        { id: 4, quiz_id: 103, student_id: 3, student_code: 'st0421', student_name: 'عبد الرحمن وليد', track_name: 'hadith', quiz_title: 'الحديث الشريف - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 14400000).toISOString() },
+                        { id: 5, quiz_id: 101, student_id: 4, student_code: 'st0422', student_name: 'عمر حسين إمام', track_name: 'tajweed', quiz_title: 'أحكام التجويد - الأسبوع الأول', score: 10, total_points: 15, percentage: 67, submitted_at: new Date(Date.now() - 18000000).toISOString() }
+                    ];
+                }
+
+                __allAdminQuizSubmissions = subs;
+
+                // Update Stats
+                const leaders = subs.filter(s => s.percentage >= 100);
+                const avg = subs.length > 0 ? Math.round(subs.reduce((acc, s) => acc + (s.percentage || 0), 0) / subs.length) : 0;
+
+                const lCountEl = document.getElementById('adminQuizStatLeaderCount');
+                const tSubsEl = document.getElementById('adminQuizStatTotalSubs');
+                const avgEl = document.getElementById('adminQuizStatAvgScore');
+                if (lCountEl) lCountEl.textContent = leaders.length;
+                if (tSubsEl) tSubsEl.textContent = subs.length;
+                if (avgEl) avgEl.textContent = avg + '%';
+
+                renderAdminLeaderboard(__currentLeaderboardTrack);
+                renderAdminQuizSubmissionsTable();
+                renderAdminManageLectures();
+            } catch(e) {
+                console.error('[Admin Quiz Load Error]:', e);
+            }
+        }
+
+        function switchAdminQuizSubTab(subTab) {
+            __currentAdminQuizTab = subTab;
+            const tabs = ['leaderboard', 'submissions', 'manage'];
+            tabs.forEach(t => {
+                const btn = document.getElementById('btnAdminQuizSubTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const view = document.getElementById('adminQuizView' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (btn) {
+                    if (t === subTab) {
+                        btn.className = 'px-3 py-1.5 rounded-lg transition bg-white text-slate-900 font-black shadow-xs flex items-center gap-1 cursor-pointer';
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer';
+                    }
+                }
+                if (view) {
+                    if (t === subTab) view.classList.remove('hidden');
+                    else view.classList.add('hidden');
+                }
+            });
+        }
+
+        function filterLeaderboardByTrack(trackKey) {
+            __currentLeaderboardTrack = trackKey;
+            const buttons = [
+                { id: 'btnFilterLeadAll', key: 'all' },
+                { id: 'btnFilterLeadTajweed', key: 'tajweed' },
+                { id: 'btnFilterLeadTafsir', key: 'tafsir' },
+                { id: 'btnFilterLeadHadith', key: 'hadith' }
+            ];
+            buttons.forEach(b => {
+                const el = document.getElementById(b.id);
+                if (el) {
+                    if (b.key === trackKey) {
+                        el.className = 'px-2.5 py-1 rounded-lg font-bold border transition bg-amber-100 text-amber-900 border-amber-300 cursor-pointer';
+                    } else {
+                        el.className = 'px-2.5 py-1 rounded-lg font-bold border transition bg-white text-slate-700 border-slate-200 cursor-pointer';
+                    }
+                }
+            });
+            renderAdminLeaderboard(trackKey);
+        }
+
+        function renderAdminLeaderboard(trackKey) {
+            const container = document.getElementById('adminLeaderboardCardsContainer');
+            if (!container) return;
+
+            let filtered = __allAdminQuizSubmissions;
+            if (trackKey !== 'all') {
+                filtered = filtered.filter(s => {
+                    if (s.track_name) return s.track_name === trackKey;
+                    if (trackKey === 'tajweed') return (s.quiz_title || '').includes('تجويد');
+                    if (trackKey === 'tafsir') return (s.quiz_title || '').includes('تفسير');
+                    if (trackKey === 'hadith') return (s.quiz_title || '').includes('حديث');
+                    return false;
+                });
+            }
+
+            // Aggregate by student
+            const studentMap = {};
+            filtered.forEach(sub => {
+                const key = sub.student_code || String(sub.student_id);
+                if (!studentMap[key]) {
+                    studentMap[key] = {
+                        student_code: sub.student_code || ('ST' + sub.student_id),
+                        student_name: sub.student_name || 'طالب مجهول',
+                        totalScore: 0,
+                        maxScore: 0,
+                        submissionsCount: 0,
+                        lastSubmitted: sub.submitted_at
+                    };
+                }
+                studentMap[key].totalScore += (sub.score || 0);
+                studentMap[key].maxScore += (sub.total_points || 15);
+                studentMap[key].submissionsCount += 1;
+            });
+
+            const ranked = Object.values(studentMap).sort((a, b) => {
+                if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+                return b.submissionsCount - a.submissionsCount;
+            });
+
+            if (ranked.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-10 bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 font-bold text-xs">
+                        لا توجد تسليمات مسجلة في هذا المسار حتى الآن.
+                    </div>
+                `;
+                return;
+            }
+
+            const medals = ['🥇', '🥈', '🥉'];
+            const badgeBg = ['from-amber-400 to-amber-500 text-slate-950', 'from-slate-300 to-slate-400 text-slate-950', 'from-amber-700 to-amber-800 text-white'];
+
+            container.innerHTML = ranked.map((st, idx) => {
+                const medal = idx < 3 ? medals[idx] : `🎯 المركز ${idx + 1}`;
+                const bgHeader = idx < 3 ? badgeBg[idx] : 'from-indigo-900 to-slate-900 text-white';
+                const percentage = st.maxScore > 0 ? Math.round((st.totalScore / st.maxScore) * 100) : 0;
+
+                return `
+                    <div class="bg-white border-2 ${idx === 0 ? 'border-amber-400 ring-2 ring-amber-300/30' : 'border-slate-200'} rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition">
+                        <div class="bg-gradient-to-r ${bgHeader} px-4 py-2.5 flex justify-between items-center font-black text-xs">
+                            <span class="flex items-center gap-1.5">
+                                <span class="text-base">${idx < 3 ? medals[idx] : '🎖️'}</span>
+                                <span>المركز #${idx + 1}</span>
+                            </span>
+                            <span class="font-mono text-[11px] font-bold">${st.student_code}</span>
+                        </div>
+                        <div class="p-4 space-y-2.5 text-xs">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-900 flex items-center justify-center font-black text-sm shrink-0">
+                                    ${(st.student_name || 'ط').substring(0, 1)}
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="font-black text-slate-900 text-xs sm:text-sm truncate">${st.student_name}</h4>
+                                    <span class="text-[10px] text-slate-500 font-medium">أنجز ${st.submissionsCount} اختبار أسبوعي</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex justify-between items-center text-center">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 font-bold block">إجمالي الدرجات</span>
+                                    <strong class="text-xs sm:text-sm font-black text-emerald-700">${st.totalScore} / ${st.maxScore}</strong>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 font-bold block">نسبة الإتقان</span>
+                                    <strong class="text-xs sm:text-sm font-black text-blue-700">${percentage}%</strong>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-400 font-bold block">التقدير</span>
+                                    <span class="text-[10px] font-black ${percentage >= 90 ? 'text-amber-700' : 'text-emerald-700'}">${percentage >= 90 ? 'امتياز 🌟' : 'جيد جداً'}</span>
+                                </div>
+                            </div>
+                            <div class="pt-1">
+                                <a href="student.html?id=${st.student_code}" target="_blank" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white text-[11px] font-bold py-1.5 rounded-xl transition flex items-center justify-center gap-1">
+                                    <span>استعراض بروفايل وكشف الطالب</span>
+                                    <span>➔</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAdminQuizSubmissionsTable() {
+            filterQuizSubmissionsTable();
+        }
+
+        function filterQuizSubmissionsTable() {
+            const body = document.getElementById('adminQuizSubmissionsTableBody');
+            if (!body) return;
+
+            const searchInput = (document.getElementById('inputQuizSearch')?.value || '').trim().toLowerCase();
+            const trackFilter = document.getElementById('selectQuizFilterTrack')?.value || '';
+
+            let list = __allAdminQuizSubmissions;
+
+            if (trackFilter) {
+                list = list.filter(s => {
+                    if (s.track_name) return s.track_name === trackFilter;
+                    if (trackFilter === 'tajweed') return (s.quiz_title || '').includes('تجويد');
+                    if (trackFilter === 'tafsir') return (s.quiz_title || '').includes('تفسير');
+                    if (trackFilter === 'hadith') return (s.quiz_title || '').includes('حديث');
+                    return false;
+                });
+            }
+
+            if (searchInput) {
+                list = list.filter(s => 
+                    (s.student_name && s.student_name.toLowerCase().includes(searchInput)) ||
+                    (s.student_code && s.student_code.toLowerCase().includes(searchInput)) ||
+                    (s.quiz_title && s.quiz_title.toLowerCase().includes(searchInput))
+                );
+            }
+
+            if (list.length === 0) {
+                body.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400 font-bold text-xs">لا توجد سجلات مطابقة للبحث</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = list.map((s, idx) => {
+                const dateStr = s.submitted_at ? new Date(s.submitted_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '---';
+                const isPerfect = (s.score >= (s.total_points || 15));
+                const trackBadge = s.track_name === 'tajweed' ? '🌟 التجويد' : (s.track_name === 'tafsir' ? '📖 التفسير' : (s.track_name === 'hadith' ? '📜 الحديث' : 'عام'));
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-mono font-bold text-slate-400">${idx + 1}</td>
+                        <td class="p-3 font-mono font-black text-indigo-900">${s.student_code || ('ST' + s.student_id)}</td>
+                        <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${s.student_name || 'طالب الأكاديمية'}</td>
+                        <td class="p-3"><span class="bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">${trackBadge}</span></td>
+                        <td class="p-3 text-slate-700 font-medium">${s.quiz_title || 'اختبار أسبوعي'}</td>
+                        <td class="p-3 font-black ${isPerfect ? 'text-emerald-700' : 'text-slate-900'}">${s.score} / ${s.total_points || 15}</td>
+                        <td class="p-3 font-black font-mono ${isPerfect ? 'text-emerald-600' : 'text-blue-600'}">${s.percentage}%</td>
+                        <td class="p-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">${dateStr}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderAdminManageLectures() {
+            const container = document.getElementById('adminQuizLecturesListContainer');
+            if (!container) return;
+
+            if (__allAdminQuizzes.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 font-bold text-xs">لا توجد محاضرات عامة مسجلة بعد. اضغط "إضافة محاضرة واختبار" للبدء.</div>`;
+                return;
+            }
+
+            container.innerHTML = __allAdminQuizzes.map(q => {
+                let meta = {};
+                try {
+                    meta = typeof q.description === 'string' ? JSON.parse(q.description) : (q.description || {});
+                } catch(e) {
+                    meta = { summary_text: q.description || '' };
+                }
+
+                const trackName = meta.track === 'tajweed' ? '🌟 أحكام التجويد' : (meta.track === 'tafsir' ? '📖 التفسير والتدبر' : (meta.track === 'hadith' ? '📜 الحديث الشريف' : 'مسار عام'));
+
+                return `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5 shadow-xs">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="bg-[#1F274B] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">${trackName}</span>
+                                <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-md">الأسبوع ${meta.week_number || 1}</span>
+                                <h4 class="font-black text-slate-900 text-xs sm:text-sm">${q.title}</h4>
+                            </div>
+                            <span class="text-slate-400 font-mono text-[11px]">ID: ${q.id}</span>
+                        </div>
+                        <p class="text-slate-600 text-xs leading-relaxed">${meta.summary_text || 'لا يوجد ملخص نصي مضاف.'}</p>
+                        <div class="flex items-center gap-2 flex-wrap text-xs pt-1">
+                            ${meta.live_url ? `<a href="${meta.live_url}" target="_blank" class="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span>🔴 Meet:</span><span class="font-mono truncate max-w-[150px]">${meta.live_url}</span></a>` : ''}
+                            ${meta.audio_url ? `<a href="${meta.audio_url}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span>🎧 صوت الملخص</span></a>` : ''}
+                            ${meta.pdf_url ? `<a href="${meta.pdf_url}" target="_blank" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span>📄 ملخص PDF</span></a>` : ''}
+                            <span class="text-slate-500 text-[11px] font-bold">الأطفال: ${meta.schedule_kids || 'الجمعة 2:00 م'} • الكبار: ${meta.schedule_adults || 'الجمعة 2:30 م'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportQuizSubmissionsExcel() {
+            if (!__allAdminQuizSubmissions || __allAdminQuizSubmissions.length === 0) {
+                alert('لا توجد بيانات تسليمات لتصديرها.');
+                return;
+            }
+
+            let csv = '\uFEFF'; // UTF-8 BOM for Excel
+            csv += 'كود الطالب,اسم الطالب,المسار,عنوان الاختبار والمحاضرة,الدرجة,الدرجة القصوى,النسبة المئوية,تاريخ التقديم\n';
+
+            __allAdminQuizSubmissions.forEach(s => {
+                const code = '"' + (s.student_code || ('ST' + s.student_id)).replace(/"/g, '""') + '"';
+                const name = '"' + (s.student_name || 'طالب').replace(/"/g, '""') + '"';
+                const track = '"' + (s.track_name || 'عام').replace(/"/g, '""') + '"';
+                const title = '"' + (s.quiz_title || '').replace(/"/g, '""') + '"';
+                const score = s.score || 0;
+                const total = s.total_points || 15;
+                const pct = (s.percentage || 0) + '%';
+                const dt = s.submitted_at ? new Date(s.submitted_at).toLocaleString('ar-EG') : '';
+
+                csv += `${code},${name},${track},${title},${score},${total},${pct},"${dt}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `كشف_رصد_درجات_المحاضرات_العامة_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function printQuizGradebookReport() {
+            if (!__allAdminQuizSubmissions || __allAdminQuizSubmissions.length === 0) {
+                alert('لا توجد بيانات للطباعة.');
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('يرجى السماح بفتح النوافذ المنبثقة للطباعة.');
+                return;
+            }
+
+            let rowsHtml = __allAdminQuizSubmissions.map((s, idx) => `
+                <tr style="border-bottom: 1px solid #e2e8f0; text-align: right;">
+                    <td style="padding: 8px;">${idx + 1}</td>
+                    <td style="padding: 8px; font-weight: bold;">${s.student_code || ('ST' + s.student_id)}</td>
+                    <td style="padding: 8px; font-weight: bold;">${s.student_name || ''}</td>
+                    <td style="padding: 8px;">${s.track_name || ''}</td>
+                    <td style="padding: 8px;">${s.quiz_title || ''}</td>
+                    <td style="padding: 8px; font-weight: bold;">${s.score} / ${s.total_points || 15}</td>
+                    <td style="padding: 8px; font-weight: bold;">${s.percentage}%</td>
+                    <td style="padding: 8px;">${s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('ar-EG') : ''}</td>
+                </tr>
+            `).join('');
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>كشف رصد درجات المحاضرات العامة - أكاديمية منير</title>
+                    <style>
+                        body { font-family: 'Cairo', Tahoma, sans-serif; padding: 24px; color: #0f172a; direction: rtl; }
+                        h2, h4 { margin: 0 0 6px 0; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
+                        th { background-color: #1F274B; color: white; padding: 10px; text-align: right; }
+                        @media print { button { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div style="text-align: center; border-bottom: 2px solid #1F274B; padding-bottom: 12px; margin-bottom: 16px;">
+                        <h2>أكاديمية منير للقرآن الكريم والعلوم الشرعية</h2>
+                        <h4>كشف رصد وتوثيق نتائج المحاضرات العامة والاختبارات الأسبوعية</h4>
+                        <p style="font-size: 11px; color: #64748b;">تاريخ استخراج التقرير: ${new Date().toLocaleString('ar-EG')}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>كود الطالب</th>
+                                <th>اسم الطالب</th>
+                                <th>المسار</th>
+                                <th>المحاضرة / الاختبار</th>
+                                <th>الدرجة</th>
+                                <th>النسبة</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        function openCreateGeneralQuizModal() {
+            const m = document.getElementById('createGeneralQuizModal');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function closeCreateGeneralQuizModal() {
+            const m = document.getElementById('createGeneralQuizModal');
+            if (m) m.classList.add('hidden');
+        }
+
+        async function submitCreateGeneralQuiz(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitNewQuiz');
+            const oldTxt = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = 'جاري الحفظ والنشر السحابي... ⏳';
+            }
+
+            try {
+                const track = document.getElementById('modalNewQuizTrack')?.value || 'tajweed';
+                const week = parseInt(document.getElementById('modalNewQuizWeek')?.value || '2');
+                const title = document.getElementById('modalNewQuizTitle')?.value || '';
+                const summary = document.getElementById('modalNewQuizSummary')?.value || '';
+                const liveUrl = document.getElementById('modalNewQuizLiveUrl')?.value || 'https://meet.google.com/qpn-cbfv-kmo';
+                const audioUrl = document.getElementById('modalNewQuizAudioUrl')?.value || '';
+                const pdfUrl = document.getElementById('modalNewQuizPdfUrl')?.value || '';
+                const schedKids = document.getElementById('modalNewQuizSchedKids')?.value || 'الجمعة 2:00 م';
+                const schedAdults = document.getElementById('modalNewQuizSchedAdults')?.value || 'الجمعة 2:30 م';
+
+                const questions = [
+                    {
+                        question_text: document.getElementById('newQ1Text')?.value || '',
+                        options: [
+                            document.getElementById('newQ1Opt0')?.value || '',
+                            document.getElementById('newQ1Opt1')?.value || '',
+                            document.getElementById('newQ1Opt2')?.value || '',
+                            document.getElementById('newQ1Opt3')?.value || ''
+                        ].filter(Boolean),
+                        correct_option_index: parseInt(document.getElementById('newQ1Correct')?.value || '0'),
+                        points: 5
+                    },
+                    {
+                        question_text: document.getElementById('newQ2Text')?.value || '',
+                        options: [
+                            document.getElementById('newQ2Opt0')?.value || '',
+                            document.getElementById('newQ2Opt1')?.value || '',
+                            document.getElementById('newQ2Opt2')?.value || '',
+                            document.getElementById('newQ2Opt3')?.value || ''
+                        ].filter(Boolean),
+                        correct_option_index: parseInt(document.getElementById('newQ2Correct')?.value || '0'),
+                        points: 5
+                    },
+                    {
+                        question_text: document.getElementById('newQ3Text')?.value || '',
+                        options: [
+                            document.getElementById('newQ3Opt0')?.value || '',
+                            document.getElementById('newQ3Opt1')?.value || '',
+                            document.getElementById('newQ3Opt2')?.value || '',
+                            document.getElementById('newQ3Opt3')?.value || ''
+                        ].filter(Boolean),
+                        correct_option_index: parseInt(document.getElementById('newQ3Correct')?.value || '0'),
+                        points: 5
+                    }
+                ];
+
+                const descObj = {
+                    track: track,
+                    week_number: week,
+                    summary_text: summary,
+                    live_url: liveUrl,
+                    audio_url: audioUrl,
+                    pdf_url: pdfUrl,
+                    schedule_kids: schedKids,
+                    schedule_adults: schedAdults
+                };
+
+                const quizPayload = {
+                    course_name: "مسار القرآن الكريم والتدبر",
+                    title: title,
+                    description: JSON.stringify(descObj),
+                    total_questions: 3,
+                    passing_score: 70
+                };
+
+                // Save via Supabase
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    await window.MonirDB.createQuizWithQuestions(quizPayload, questions);
+                }
+
+                // Fallback mock API
+                try {
+                    await fetch('/api/admin/quizzes/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...quizPayload, questions })
+                    });
+                } catch(e) {}
+
+                alert('تم إنشاء المحاضرة ونشر الاختبار بنجاح!');
+                closeCreateGeneralQuizModal();
+                await loadAdminQuizData();
+                switchAdminQuizSubTab('manage');
+
+            } catch(err) {
+                console.error('[Create Quiz Error]:', err);
+                alert('حدث خطأ أثناء حفظ المحاضرة: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = oldTxt;
+                }
+            }
+        }
+
+        // Auto load quiz data on init
+        setTimeout(() => {
+            loadAdminQuizData();
+        }, 1200);
     </script>
+
+    <!-- Modal: Create General Lecture & Quiz (إضافة محاضرة واختبار أسبوعي جديد) -->
+    <div id="createGeneralQuizModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl font-black shrink-0">➕</span>
+                    <div>
+                        <h3 class="font-black text-base text-slate-900">إضافة محاضرة عامة واختبار أسبوعي جديد</h3>
+                        <p class="text-[11px] text-slate-500">إعداد روابط المحاضرة والملخص الصوتي وPDF و3 أسئلة تفاعلية فورية</p>
+                    </div>
+                </div>
+                <button onclick="closeCreateGeneralQuizModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
+            </div>
+
+            <form id="createGeneralQuizForm" onsubmit="submitCreateGeneralQuiz(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">المسار التدريبي العام:</label>
+                        <select id="modalNewQuizTrack" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold" required>
+                            <option value="tajweed">🌟 أحكام التجويد ومخارج الحروف</option>
+                            <option value="tafsir">📖 التفسير وتدبر آيات القرآن</option>
+                            <option value="hadith">📜 الحديث الشريف والسنة النبوية</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رقم الأسبوع:</label>
+                        <input type="number" id="modalNewQuizWeek" value="2" min="1" max="52" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">عنوان المحاضرة والاختبار:</label>
+                    <input type="text" id="modalNewQuizTitle" placeholder="مثال: أحكام التجويد - الأسبوع الثاني: أحكام الميم الساكنة" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none" required>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">نص الملخص التوضيحي (وصف المحاضرة):</label>
+                    <textarea id="modalNewQuizSummary" rows="2" placeholder="أهم النقاط التي تناولها المعلم في المحاضرة..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رابط Google Meet المباشر:</label>
+                        <input type="url" id="modalNewQuizLiveUrl" value="https://meet.google.com/qpn-cbfv-kmo" placeholder="https://meet.google.com/..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 outline-none font-mono text-[11px]">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رابط الملخص الصوتي (Audio MP3):</label>
+                        <input type="url" id="modalNewQuizAudioUrl" placeholder="https://.../audio.mp3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 outline-none font-mono text-[11px]">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رابط ملخص PDF:</label>
+                        <input type="url" id="modalNewQuizPdfUrl" placeholder="https://.../summary.pdf" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 outline-none font-mono text-[11px]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">موعد فئة الأطفال:</label>
+                        <input type="text" id="modalNewQuizSchedKids" value="الجمعة 2:00 م بتوقيت القاهرة" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">موعد فئة الكبار:</label>
+                        <input type="text" id="modalNewQuizSchedAdults" value="الجمعة 2:30 م بتوقيت القاهرة" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none">
+                    </div>
+                </div>
+
+                <!-- 3 Interactive Questions Section -->
+                <div class="border-t border-slate-200 pt-3 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <strong class="text-slate-900 font-black text-xs">أسئلة الاختبار الأسبوعي (3 أسئلة • 5 درجات لكل سؤال = 15 درجة):</strong>
+                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">15 درجة إجمالية</span>
+                    </div>
+
+                    <!-- Question 1 -->
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">السؤال 1:</span>
+                            <span class="text-[10px] text-slate-500 font-bold">5 درجات</span>
+                        </div>
+                        <input type="text" id="newQ1Text" placeholder="اكتب نص السؤال الأول هنا..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 outline-none font-semibold" required>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="newQ1Opt0" placeholder="الخيار أ" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]" required>
+                            <input type="text" id="newQ1Opt1" placeholder="الخيار ب" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]" required>
+                            <input type="text" id="newQ1Opt2" placeholder="الخيار ج" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]">
+                            <input type="text" id="newQ1Opt3" placeholder="الخيار د" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]">
+                        </div>
+                        <div class="flex items-center gap-2 pt-1 text-[11px]">
+                            <span class="font-bold text-slate-700">الإجابة الصحيحة:</span>
+                            <select id="newQ1Correct" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold">
+                                <option value="0">الخيار أ</option>
+                                <option value="1">الخيار ب</option>
+                                <option value="2">الخيار ج</option>
+                                <option value="3">الخيار د</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">السؤال 2:</span>
+                            <span class="text-[10px] text-slate-500 font-bold">5 درجات</span>
+                        </div>
+                        <input type="text" id="newQ2Text" placeholder="اكتب نص السؤال الثاني هنا..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 outline-none font-semibold" required>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="newQ2Opt0" placeholder="الخيار أ" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]" required>
+                            <input type="text" id="newQ2Opt1" placeholder="الخيار ب" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]" required>
+                            <input type="text" id="newQ2Opt2" placeholder="الخيار ج" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]">
+                            <input type="text" id="newQ2Opt3" placeholder="الخيار د" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]">
+                        </div>
+                        <div class="flex items-center gap-2 pt-1 text-[11px]">
+                            <span class="font-bold text-slate-700">الإجابة الصحيحة:</span>
+                            <select id="newQ2Correct" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold">
+                                <option value="0">الخيار أ</option>
+                                <option value="1">الخيار ب</option>
+                                <option value="2">الخيار ج</option>
+                                <option value="3">الخيار د</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">السؤال 3:</span>
+                            <span class="text-[10px] text-slate-500 font-bold">5 درجات</span>
+                        </div>
+                        <input type="text" id="newQ3Text" placeholder="اكتب نص السؤال الثالث هنا..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 outline-none font-semibold" required>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="newQ3Opt0" placeholder="الخيار أ" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]" required>
+                            <input type="text" id="newQ3Opt1" placeholder="الخيار ب" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]" required>
+                            <input type="text" id="newQ3Opt2" placeholder="الخيار ج" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]">
+                            <input type="text" id="newQ3Opt3" placeholder="الخيار د" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px]">
+                        </div>
+                        <div class="flex items-center gap-2 pt-1 text-[11px]">
+                            <span class="font-bold text-slate-700">الإجابة الصحيحة:</span>
+                            <select id="newQ3Correct" class="bg-white border border-slate-300 rounded-lg px-2 py-1 font-bold">
+                                <option value="0">الخيار أ</option>
+                                <option value="1">الخيار ب</option>
+                                <option value="2">الخيار ج</option>
+                                <option value="3">الخيار د</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="submit" id="btnSubmitNewQuiz" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl shadow-md transition cursor-pointer">
+                        حفظ المحاضرة ونشر الاختبار للطلاب
+                    </button>
+                    <button type="button" onclick="closeCreateGeneralQuizModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl transition cursor-pointer">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>

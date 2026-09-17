@@ -3,6 +3,10 @@ let selectedCourseName = "";
 let enrolledCoursesList = [];
 let activeQuizId = null;
 let activeQuizQuestions = [];
+let activeQuizAnswers = {};
+let currentGeneralTrack = 'tajweed';
+let cachedGeneralQuizzes = [];
+let cachedStudentSubmissions = [];
 
 // Strict Academy LMS Session Enforcement:
 const urlParams = new URLSearchParams(window.location.search);
@@ -74,6 +78,7 @@ function initStudentPage() {
     loadStudentProfile();
     loadNotifications();
     loadSupportTickets();
+    loadGeneralLectures();
 }
 
 let __cachedSupervisorStudents = [];
@@ -1946,4 +1951,602 @@ async function submitPaymobPayment() {
 function refreshData() {
     loadStudentProfile();
     loadNotifications();
+    loadGeneralLectures();
+}
+
+// ==========================================
+// 🎙️ GENERAL ACADEMY LECTURES & QUIZZES SYSTEM
+// ==========================================
+
+async function loadGeneralLectures() {
+    try {
+        let quizzes = [];
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            const res = await window.MonirDB.getQuizzes();
+            if (res.data && res.data.length > 0) quizzes = res.data;
+        }
+        if (quizzes.length === 0) {
+            const res = await fetch('/api/quizzes');
+            quizzes = await res.json();
+        }
+        cachedGeneralQuizzes = quizzes || [];
+
+        // Load student submissions
+        let subs = [];
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            const subRes = await window.MonirDB.getStudentQuizSubmissions(currentStudentId);
+            if (subRes.data) subs = subRes.data;
+        }
+        if (subs.length === 0) {
+            try {
+                const subRes = await fetch('/api/student/' + currentStudentId + '/quizzes');
+                subs = await subRes.json();
+            } catch(e) {}
+        }
+        cachedStudentSubmissions = subs || [];
+
+        renderGeneralTrackView();
+        renderGradebookTranscript();
+    } catch(err) {
+        console.error('[General Lectures Load Error]:', err);
+    }
+}
+
+function selectGeneralTrack(trackKey) {
+    currentGeneralTrack = trackKey;
+    
+    // Update tabs UI
+    const tracks = ['tajweed', 'tafsir', 'hadith'];
+    tracks.forEach(t => {
+        const btn = document.getElementById('tabTrack' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) {
+            if (t === trackKey) {
+                btn.className = 'py-2.5 px-2 rounded-xl transition text-center bg-white text-[#1F274B] font-black shadow-xs flex items-center justify-center gap-1';
+            } else {
+                btn.className = 'py-2.5 px-2 rounded-xl transition text-center text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1';
+            }
+        }
+    });
+
+    renderGeneralTrackView();
+}
+
+function parseQuizMeta(quiz) {
+    if (!quiz) return {};
+    try {
+        return typeof quiz.description === 'string' ? JSON.parse(quiz.description) : (quiz.description || {});
+    } catch(e) {
+        return { summary_text: quiz.description || '' };
+    }
+}
+
+function renderGeneralTrackView() {
+    const container = document.getElementById('generalTrackCardContainer');
+    if (!container) return;
+
+    // Find quiz matching trackKey
+    const matchingQuizzes = cachedGeneralQuizzes.filter(q => {
+        const meta = parseQuizMeta(q);
+        if (meta.track) return meta.track === currentGeneralTrack;
+        if (currentGeneralTrack === 'tajweed') return q.title.includes('تجويد');
+        if (currentGeneralTrack === 'tafsir') return q.title.includes('تفسير');
+        if (currentGeneralTrack === 'hadith') return q.title.includes('حديث');
+        return false;
+    });
+
+    if (matchingQuizzes.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 font-bold text-xs bg-slate-50 rounded-2xl border border-slate-200">
+                <span class="text-2xl block mb-1">⏳</span>
+                جاري إعداد محاضرات هذا المسار للأسبوع الحالي...
+            </div>
+        `;
+        return;
+    }
+
+    const quiz = matchingQuizzes[0];
+    const meta = parseQuizMeta(quiz);
+    const sub = cachedStudentSubmissions.find(s => s.quiz_id === quiz.id);
+
+    const trackTitles = {
+        'tajweed': 'مسار أحكام التجويد ومخارج الحروف',
+        'tafsir': 'مسار التفسير وتدبر آيات القرآن الكريم',
+        'hadith': 'مسار الحديث الشريف والسنة النبوية'
+    };
+
+    const trackIcons = {
+        'tajweed': '🌟',
+        'tafsir': '📖',
+        'hadith': '📜'
+    };
+
+    const trackBadge = trackTitles[currentGeneralTrack] || quiz.title;
+    const trackIcon = trackIcons[currentGeneralTrack] || '🎙️';
+
+    let submissionBadgeHtml = '';
+    if (sub) {
+        const isPerfect = (sub.score >= (sub.total_points || 15));
+        submissionBadgeHtml = `
+            <div class="bg-emerald-50 border border-emerald-300 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl ${isPerfect ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'} flex items-center justify-center font-black text-base shrink-0">
+                        ${isPerfect ? '🏆' : '✔'}
+                    </span>
+                    <div>
+                        <strong class="font-black text-slate-900 block">تم حل الاختبار الأسبوعي بنجاح!</strong>
+                        <span class="text-slate-600 text-[11px]">الدرجة المحققة: <strong class="text-emerald-700 font-black">${sub.score} من ${sub.total_points || 15} درجة</strong> (${sub.percentage}%)</span>
+                    </div>
+                </div>
+                <button onclick="openQuizModalForId(${quiz.id})" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold px-3 py-1.5 rounded-xl transition text-[11px] shrink-0">
+                    إعادة المحاولة 🔄
+                </button>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-white border border-indigo-100 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
+            <!-- Header Row -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-indigo-100/60 pb-3">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-sm">${trackIcon}</span>
+                        <span class="text-[11px] font-black text-indigo-900 bg-indigo-100/80 px-2.5 py-0.5 rounded-full">${trackBadge}</span>
+                        <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-md">الأسبوع ${meta.week_number || 1}</span>
+                    </div>
+                    <h4 class="text-sm sm:text-base font-black text-slate-900">${quiz.title}</h4>
+                </div>
+                ${meta.live_url ? `
+                    <a href="${meta.live_url}" target="_blank" class="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                        <span>رابط البث المباشر (Google Meet)</span>
+                    </a>
+                ` : ''}
+            </div>
+
+            <!-- Schedules Info (Kids vs Adults) -->
+            ${(meta.schedule_kids || meta.schedule_adults) ? `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center gap-2">
+                        <span class="text-base">👦</span>
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الأطفال والناشئة:</span>
+                            <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_kids || 'الجمعة 2:00 م'}</strong>
+                        </div>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center gap-2">
+                        <span class="text-base">👨‍🎓</span>
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 block">موعد فئة الكبار والمتقدمين:</span>
+                            <strong class="text-slate-800 font-extrabold text-[11px]">${meta.schedule_adults || 'الجمعة 2:30 م'}</strong>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Voice Summary & Player -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">🎧</span>
+                        <strong class="text-xs sm:text-sm font-extrabold text-slate-900">الملخص الصوتي للمحاضرة (Voice Note)</strong>
+                    </div>
+                    <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">مشغل مدمج</span>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-relaxed">${meta.summary_text || 'استمع إلى تلخيص المعلم المباشر لأهم نقاط المحاضرة وتطبيقاتها العملية.'}</p>
+                <div class="pt-1">
+                    <audio controls class="w-full h-10 rounded-xl" style="accent-color: #1F274B;">
+                        <source src="${meta.audio_url || 'https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tajweed_w1.mp3'}" type="audio/mpeg">
+                        متصفحك لا يدعم مشغل الصوت المدمج.
+                    </audio>
+                </div>
+            </div>
+
+            <!-- Download PDF Summary & Launch Quiz Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <!-- PDF Button -->
+                <a href="${meta.pdf_url || '#'}" target="_blank" class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-extrabold text-xs p-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-xs group">
+                    <span class="text-red-600 text-lg group-hover:scale-110 transition">📄</span>
+                    <div class="text-right">
+                        <div class="font-black text-slate-900 text-xs">تحميل ملخص المحاضرة (PDF)</div>
+                        <div class="text-[10px] text-slate-500 font-normal">جاهز للقراءة والطباعة والمراجعة</div>
+                    </div>
+                </a>
+
+                <!-- Quiz Launcher Button -->
+                <button type="button" onclick="openQuizModalForId(${quiz.id})" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs p-3 rounded-2xl transition shadow flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
+                    <span class="text-lg">✍️</span>
+                    <div class="text-right">
+                        <div class="font-black text-white text-xs">${sub ? 'مراجعة أو إعادة الاختبار' : 'بدء الاختبار الأسبوعي الآن'}</div>
+                        <div class="text-[10px] text-emerald-100 font-normal">3 أسئلة سريعة • 15 درجة بالشهادة</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Existing Submission Status (if solved) -->
+            ${submissionBadgeHtml}
+        </div>
+    `;
+}
+
+// ==========================================
+// ✍️ INTERACTIVE QUIZ MODAL CONTROLLER
+// ==========================================
+
+function openQuizzesModal() {
+    const modal = document.getElementById('quizzesModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    loadQuizzesList();
+}
+
+function openQuizModalForId(quizId) {
+    const modal = document.getElementById('quizzesModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    startQuiz(quizId);
+}
+
+function closeQuizzesModal() {
+    const modal = document.getElementById('quizzesModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function loadQuizzesList() {
+    const selView = document.getElementById('quizSelectionView');
+    const actView = document.getElementById('quizActiveView');
+    const resView = document.getElementById('quizResultView');
+    if (selView) selView.classList.remove('hidden');
+    if (actView) actView.classList.add('hidden');
+    if (resView) resView.classList.add('hidden');
+
+    const container = document.getElementById('quizzesListContainer');
+    if (!container) return;
+
+    if (cachedGeneralQuizzes.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-slate-400 font-bold text-xs">جاري تحميل الاختبارات المتاحة...</div>`;
+        return;
+    }
+
+    container.innerHTML = cachedGeneralQuizzes.map(q => {
+        const meta = parseQuizMeta(q);
+        const sub = cachedStudentSubmissions.find(s => s.quiz_id === q.id);
+        return `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-indigo-300 transition">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] font-black text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded-full">الأسبوع ${meta.week_number || 1}</span>
+                        ${sub ? `<span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">مكتمل (${sub.score}/${sub.total_points || 15})</span>` : '<span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">متاح للحل</span>'}
+                    </div>
+                    <strong class="text-xs font-black text-slate-900 block">${q.title}</strong>
+                    <span class="text-[11px] text-slate-500 font-medium">3 أسئلة تفاعلية • 15 درجة</span>
+                </div>
+                <button onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs font-black px-4 py-2 rounded-xl transition shrink-0 cursor-pointer">
+                    ${sub ? 'إعادة الاختبار 🔄' : 'بدء الاختبار ✍️'}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+async function startQuiz(quizId) {
+    activeQuizId = quizId;
+    activeQuizAnswers = {};
+
+    const selView = document.getElementById('quizSelectionView');
+    const actView = document.getElementById('quizActiveView');
+    const resView = document.getElementById('quizResultView');
+    if (selView) selView.classList.add('hidden');
+    if (resView) resView.classList.add('hidden');
+    if (actView) actView.classList.remove('hidden');
+
+    const quiz = cachedGeneralQuizzes.find(q => q.id === quizId) || { id: quizId, title: 'اختبار الأسبوع' };
+    const qTitleEl = document.getElementById('activeQuizTitle');
+    const qMetaEl = document.getElementById('activeQuizMeta');
+    if (qTitleEl) qTitleEl.textContent = quiz.title;
+    if (qMetaEl) qMetaEl.textContent = '3 أسئلة • 15 درجة إجمالية (5 درجات لكل سؤال)';
+
+    const container = document.getElementById('quizQuestionsContainer');
+    if (container) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-400 font-bold text-xs"><div class="animate-spin text-2xl mb-2">⏳</div>جاري تحميل أسئلة الاختبار...</div>`;
+    }
+
+    try {
+        let questions = [];
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            const qRes = await window.MonirDB.getQuizQuestions(quizId);
+            if (qRes.data && qRes.data.length > 0) questions = qRes.data;
+        }
+        if (questions.length === 0) {
+            const qRes = await fetch('/api/quizzes/' + quizId);
+            const d = await qRes.json();
+            questions = d.questions || [];
+        }
+        activeQuizQuestions = questions;
+        renderActiveQuestions();
+    } catch(err) {
+        console.error('[Load Quiz Questions Error]:', err);
+    }
+}
+
+function renderActiveQuestions() {
+    const container = document.getElementById('quizQuestionsContainer');
+    if (!container) return;
+
+    if (activeQuizQuestions.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-slate-500 font-bold text-xs">لا توجد أسئلة مضافة لهذا الاختبار حالياً.</div>`;
+        return;
+    }
+
+    container.innerHTML = activeQuizQuestions.map((q, qIdx) => {
+        const options = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options) : []);
+        const selectedIdx = activeQuizAnswers[q.id];
+
+        const optionsHtml = options.map((opt, optIdx) => {
+            const isSelected = (selectedIdx === optIdx);
+            return `
+                <label onclick="selectQuizOption(${q.id}, ${optIdx})" class="flex items-center gap-3 p-3 rounded-xl border transition cursor-pointer select-none ${isSelected ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-950 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70 text-slate-700'}">
+                    <input type="radio" name="question_${q.id}" value="${optIdx}" ${isSelected ? 'checked' : ''} class="hidden">
+                    <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white font-black text-xs' : 'border-slate-300 bg-white'}">
+                        ${isSelected ? '✔' : ''}
+                    </span>
+                    <span class="text-xs leading-relaxed">${opt}</span>
+                </label>
+            `;
+        }).join('');
+
+        return `
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5 shadow-xs">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <span class="text-[11px] font-black text-[#1F274B] bg-slate-100 px-2.5 py-0.5 rounded-lg">السؤال ${qIdx + 1} من ${activeQuizQuestions.length}</span>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">5 درجات</span>
+                </div>
+                <h5 class="text-xs sm:text-sm font-black text-slate-900 leading-relaxed">${q.question_text}</h5>
+                <div class="space-y-2 pt-1">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectQuizOption(questionId, optionIndex) {
+    activeQuizAnswers[questionId] = optionIndex;
+    renderActiveQuestions();
+}
+
+async function submitActiveQuiz() {
+    if (!activeQuizId) return;
+
+    // Verify all answered
+    const unanswered = activeQuizQuestions.filter(q => activeQuizAnswers[q.id] === undefined);
+    if (unanswered.length > 0) {
+        if (!confirm(`يوجد ${unanswered.length} سؤال لم تقم بالإجابة عليه بعد، هل ترغب في تسليم الإجابات الآن؟`)) {
+            return;
+        }
+    }
+
+    const btn = document.getElementById('btnSubmitQuiz');
+    const oldTxt = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'جاري التصحيح واعتماد النتيجة... ⏳';
+    }
+
+    try {
+        const quiz = cachedGeneralQuizzes.find(q => q.id === activeQuizId) || {};
+        const meta = parseQuizMeta(quiz);
+
+        let earnedScore = 0;
+        let totalScore = 0;
+        activeQuizQuestions.forEach(q => {
+            const pts = q.points || 5;
+            totalScore += pts;
+            if (activeQuizAnswers[q.id] !== undefined && parseInt(activeQuizAnswers[q.id]) === q.correct_option_index) {
+                earnedScore += pts;
+            }
+        });
+        if (totalScore === 0) totalScore = 15;
+        const percentage = Math.round((earnedScore / totalScore) * 100);
+
+        // Get student info
+        let stName = 'طالب الأكاديمية';
+        let stCode = String(currentStudentId);
+        const u = activeUser;
+        if (u) {
+            stName = u.full_name || u.username || stName;
+            stCode = u.student_code || u.username || stCode;
+        }
+
+        const submissionData = {
+            quiz_id: activeQuizId,
+            student_id: currentStudentId,
+            student_code: stCode,
+            student_name: stName,
+            track_name: meta.track || currentGeneralTrack,
+            quiz_title: quiz.title || 'اختبار الأسبوع',
+            score: earnedScore,
+            total_points: totalScore,
+            percentage: percentage,
+            answers: activeQuizAnswers,
+            submitted_at: new Date().toISOString()
+        };
+
+        // 1. Submit to Supabase Cloud
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            await window.MonirDB.submitQuizResult(submissionData);
+        }
+
+        // 2. Submit to Mock/API fallback
+        try {
+            await fetch('/api/quizzes/' + activeQuizId + '/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(submissionData)
+            });
+        } catch(e) {}
+
+        // 3. Update local state
+        const existingIdx = cachedStudentSubmissions.findIndex(s => s.quiz_id === activeQuizId);
+        if (existingIdx !== -1) {
+            cachedStudentSubmissions[existingIdx] = submissionData;
+        } else {
+            cachedStudentSubmissions.unshift(submissionData);
+        }
+
+        // 4. Render Results View
+        const actView = document.getElementById('quizActiveView');
+        const resView = document.getElementById('quizResultView');
+        if (actView) actView.classList.add('hidden');
+        if (resView) resView.classList.remove('hidden');
+
+        const resIcon = document.getElementById('quizResultIcon');
+        const resTitle = document.getElementById('quizResultTitle');
+        const resScore = document.getElementById('quizResultScore');
+
+        const isSuccess = percentage >= (quiz.passing_score || 70);
+        if (resIcon) {
+            resIcon.innerHTML = isSuccess ? '🏆' : '📚';
+            resIcon.className = `w-16 h-16 ${isSuccess ? 'bg-amber-100 text-amber-900' : 'bg-blue-100 text-blue-900'} rounded-full flex items-center justify-center mx-auto text-2xl font-black shadow-inner`;
+        }
+        if (resTitle) {
+            resTitle.textContent = isSuccess ? 'ما شاء الله! أحسنت وأبدعت يا بطل' : 'محاولة جيدة، يمكنك مراجعة الدرس والإعادة للتحسين';
+        }
+        if (resScore) {
+            resScore.innerHTML = `حصلت على <strong class="text-emerald-700 font-black text-sm">${earnedScore} من ${totalScore} درجات</strong> (${percentage}%) وتم تسجيل نتيجتك في كشف الأوائل فوراً.`;
+        }
+
+        // Refresh views
+        renderGeneralTrackView();
+        renderGradebookTranscript();
+
+    } catch(err) {
+        console.error('[Quiz Submit Error]:', err);
+        alert('حدث خطأ أثناء حفظ الإجابات، يرجى إعادة المحاولة.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = oldTxt;
+        }
+    }
+}
+
+function backToQuizList() {
+    loadQuizzesList();
+}
+
+// ==========================================
+// 📜 CUMULATIVE GRADEBOOK TRANSCRIPT MODAL
+// ==========================================
+
+function toggleGradebookModal() {
+    const modal = document.getElementById('gradebookModal');
+    if (!modal) return;
+    modal.classList.toggle('hidden');
+    if (!modal.classList.contains('hidden')) {
+        renderGradebookTranscript();
+    }
+}
+
+function renderGradebookTranscript() {
+    const totalScoreEl = document.getElementById('gradebookTotalScore');
+    const percentageEl = document.getElementById('gradebookPercentage');
+    const rankEl = document.getElementById('gradebookRankBadge');
+    const detailsEl = document.getElementById('gradebookDetailsContainer');
+    if (!detailsEl) return;
+
+    let totalEarned = 0;
+    let totalMax = 0;
+
+    const tracksConfig = [
+        { key: 'tajweed', title: 'مسار أحكام التجويد', icon: '🌟' },
+        { key: 'tafsir', title: 'مسار التفسير وتدبر القرآن', icon: '📖' },
+        { key: 'hadith', title: 'مسار الحديث الشريف والسنة', icon: '📜' }
+    ];
+
+    let html = '';
+
+    tracksConfig.forEach(track => {
+        // Find submissions for this track
+        const trackSubs = cachedStudentSubmissions.filter(s => {
+            if (s.track_name) return s.track_name === track.key;
+            if (track.key === 'tajweed') return (s.quiz_title || '').includes('تجويد');
+            if (track.key === 'tafsir') return (s.quiz_title || '').includes('تفسير');
+            if (track.key === 'hadith') return (s.quiz_title || '').includes('حديث');
+            return false;
+        });
+
+        const subWeek1 = trackSubs.find(s => (s.quiz_title || '').includes('الأول') || s.quiz_id === 101);
+        const w1Score = subWeek1 ? subWeek1.score : null;
+
+        totalEarned += (w1Score || 0);
+        totalMax += 15;
+
+        html += `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-200/60 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">${track.icon}</span>
+                        <strong class="font-black text-slate-900 text-xs sm:text-sm">${track.title}</strong>
+                    </div>
+                    <span class="text-[11px] font-black text-indigo-950 bg-indigo-100 px-2.5 py-0.5 rounded-full">
+                        المحصل: ${w1Score !== null ? w1Score : 0} / 100
+                    </span>
+                </div>
+
+                <!-- 4 Weeks Breakdown Table -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-[11px]">
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-[10px] text-slate-400 block font-bold">الأسبوع 1 (15د)</span>
+                        ${w1Score !== null ? `
+                            <strong class="text-emerald-700 font-black text-xs block mt-1">${w1Score} / 15 ✔</strong>
+                        ` : `
+                            <span class="text-amber-700 font-bold block mt-1">قيد الحل</span>
+                        `}
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 opacity-80">
+                        <span class="text-[10px] text-slate-400 block font-bold">الأسبوع 2 (15د)</span>
+                        <span class="text-slate-400 block mt-1 font-mono">قريباً</span>
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 opacity-80">
+                        <span class="text-[10px] text-slate-400 block font-bold">الأسبوع 3 (15د)</span>
+                        <span class="text-slate-400 block mt-1 font-mono">قريباً</span>
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 opacity-80">
+                        <span class="text-[10px] text-slate-400 block font-bold">الأسبوع 4 (15د)</span>
+                        <span class="text-slate-400 block mt-1 font-mono">قريباً</span>
+                    </div>
+
+                    <div class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-200 col-span-2 sm:col-span-1">
+                        <span class="text-[10px] text-indigo-900 block font-bold">الامتحان الشهري (40د)</span>
+                        <span class="text-indigo-600 block mt-1 font-mono">نهاية الشهر</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    detailsEl.innerHTML = html;
+
+    const grandPercentage = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
+    if (totalScoreEl) totalScoreEl.textContent = `${totalEarned} / 100`;
+    if (percentageEl) percentageEl.textContent = `${grandPercentage}%`;
+    if (rankEl) {
+        if (grandPercentage >= 90) {
+            rankEl.textContent = 'ممتاز مع مرتبة الشرف 🏆';
+            rankEl.className = 'text-xs font-black text-amber-600 block mt-0.5';
+        } else if (grandPercentage >= 75) {
+            rankEl.textContent = 'جيد جداً مرتفع 🌟';
+            rankEl.className = 'text-xs font-black text-emerald-600 block mt-0.5';
+        } else if (grandPercentage > 0) {
+            rankEl.textContent = 'جاري التحصيل 👍';
+            rankEl.className = 'text-xs font-black text-blue-600 block mt-0.5';
+        } else {
+            rankEl.textContent = 'في انتظار بدء الاختبارات';
+            rankEl.className = 'text-xs font-bold text-slate-500 block mt-0.5';
+        }
+    }
 }

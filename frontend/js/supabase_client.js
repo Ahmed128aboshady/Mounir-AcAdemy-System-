@@ -540,6 +540,106 @@
                 user: activeUser,
                 token: token
             };
+        },
+
+        // --- GENERAL LECTURES & QUIZZES CLOUD METHODS ---
+        getQuizzes: async function() {
+            const client = this.getClient();
+            if (!client) return { data: [], error: 'Supabase client not initialized' };
+            try {
+                const { data, error } = await client.from('quizzes').select('*').order('id', { ascending: true });
+                return { data: data || [], error };
+            } catch(e) {
+                return { data: [], error: e.message };
+            }
+        },
+
+        getQuizQuestions: async function(quizId) {
+            const client = this.getClient();
+            if (!client) return { data: [], error: 'Supabase client not initialized' };
+            try {
+                const { data, error } = await client.from('quiz_questions').select('*').eq('quiz_id', quizId).order('id', { ascending: true });
+                return { data: data || [], error };
+            } catch(e) {
+                return { data: [], error: e.message };
+            }
+        },
+
+        submitQuizResult: async function(submission) {
+            const client = this.getClient();
+            if (!client) return { data: null, error: 'Supabase client not initialized' };
+            try {
+                // Ensure id if needed
+                const record = {
+                    quiz_id: submission.quiz_id,
+                    student_id: submission.student_id,
+                    student_code: submission.student_code || '',
+                    student_name: submission.student_name || '',
+                    track_name: submission.track_name || '',
+                    quiz_title: submission.quiz_title || '',
+                    score: submission.score,
+                    total_points: submission.total_points || 15,
+                    percentage: submission.percentage,
+                    answers: submission.answers || {},
+                    submitted_at: new Date().toISOString()
+                };
+                const { data, error } = await client.from('quiz_submissions').insert([record]).select().single();
+                return { data, error };
+            } catch(e) {
+                return { data: null, error: e.message };
+            }
+        },
+
+        getStudentQuizSubmissions: async function(studentIdentifier) {
+            const client = this.getClient();
+            if (!client) return { data: [], error: 'Supabase client not initialized' };
+            try {
+                let query = client.from('quiz_submissions').select('*');
+                if (typeof studentIdentifier === 'number') {
+                    query = query.or(`student_id.eq.${studentIdentifier},student_code.eq.${studentIdentifier}`);
+                } else {
+                    query = query.or(`student_code.eq.${studentIdentifier},student_id.eq.${studentIdentifier}`);
+                }
+                const { data, error } = await query.order('submitted_at', { ascending: false });
+                return { data: data || [], error };
+            } catch(e) {
+                return { data: [], error: e.message };
+            }
+        },
+
+        getAllQuizSubmissions: async function() {
+            const client = this.getClient();
+            if (!client) return { data: [], error: 'Supabase client not initialized' };
+            try {
+                const { data, error } = await client.from('quiz_submissions').select('*').order('submitted_at', { ascending: false });
+                return { data: data || [], error };
+            } catch(e) {
+                return { data: [], error: e.message };
+            }
+        },
+
+        createQuizWithQuestions: async function(quizData, questionsList) {
+            const client = this.getClient();
+            if (!client) return { error: 'Supabase client not initialized' };
+            try {
+                const { data: qData, error: qErr } = await client.from('quizzes').insert([quizData]).select().single();
+                if (qErr) return { error: qErr.message };
+
+                if (questionsList && questionsList.length > 0) {
+                    const qFormatted = questionsList.map((q, idx) => ({
+                        quiz_id: qData.id,
+                        question_text: q.question_text,
+                        question_type: q.question_type || 'mcq',
+                        points: q.points || 5,
+                        options: q.options || [],
+                        correct_option_index: q.correct_option_index !== undefined ? q.correct_option_index : 0
+                    }));
+                    await client.from('quiz_questions').insert(qFormatted);
+                }
+                return { success: true, quiz: qData };
+            } catch(e) {
+                return { error: e.message };
+            }
         }
     };
 
