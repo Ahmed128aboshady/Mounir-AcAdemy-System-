@@ -117,6 +117,25 @@
             <button onclick="closeTopBanner()" class="text-amber-700 hover:text-amber-900 text-xs font-bold px-2 py-1 bg-amber-100 rounded-md cursor-pointer shrink-0">حسناً</button>
         </div>
 
+        <!-- Dedicated Real-time Zoom Live Notification Banner (إشعار وتنبيه البث المباشر الفوري) -->
+        <div id="liveZoomBroadcastBanner" class="hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-900 border-2 border-blue-400 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+            <div class="flex items-center gap-3">
+                <span class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-inner">📹</span>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="bg-red-500 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-ping">🔴 بث مباشر الآن</span>
+                        <strong class="text-sm sm:text-base font-black text-white" id="liveZoomBannerTitle">محاضرة البث المباشر (Zoom) متاحة الآن!</strong>
+                    </div>
+                    <p class="text-xs sm:text-[13px] text-blue-100 font-medium leading-relaxed" id="liveZoomBannerSubtitle">
+                        المحاضرة العامة بدأت الآن مع المعلم. اضغط على الزر للانضمام مباشرة لحلقة اليوم.
+                    </p>
+                </div>
+            </div>
+            <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer">
+                <span>انضم للبث المباشر (Zoom) 🚀</span>
+            </a>
+        </div>
+
         <!-- 1. Digital Student ID Smart Card -->
         <section class="student-id-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg relative overflow-hidden">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 relative z-10">

@@ -392,7 +392,9 @@ async function loadStudentProfile() {
         renderEnrolledCoursesTabs(enrolledCoursesList);
         checkAndRenderQuranWidget(enrolledCoursesList);
         loadSelectedCourseLectures();
-        if (typeof renderGeneralTrackView === 'function') {
+        if (typeof syncZoomLiveStatusAll === 'function') {
+            syncZoomLiveStatusAll();
+        } else if (typeof renderGeneralTrackView === 'function') {
             renderGeneralTrackView();
         }
         
@@ -1552,6 +1554,24 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
             }
         }
 
+        // 4.1 Ensure active Zoom live broadcast has the HIGHEST priority notification during the student's scheduled window
+        const studentAgeForNotif = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
+                                   ((curStudent && curStudent.age !== undefined && curStudent.age !== null) ? parseInt(curStudent.age) : 9);
+        if (typeof getZoomLiveLinkStatus === 'function') {
+            const zStatus = getZoomLiveLinkStatus("https://zoom.us/j/98264506630", studentAgeForNotif);
+            if (zStatus && zStatus.isWithinWindow) {
+                notifs.unshift({
+                    id: 'zoom_live_pinned',
+                    type: 'zoom_live',
+                    title: (studentAgeForNotif < 10) ? '🔴 بث مباشر (Zoom): حلقة الأطفال والناشئة' : '🔴 بث مباشر (Zoom): محاضرة الطلاب والكبار',
+                    message: `بدأت الآن المحاضرة التفاعلية المباشرة عبر Zoom (${studentAgeForNotif < 10 ? 'فئة أقل من 10 سنوات • 1:50 م إلى 2:25 م' : 'فئة 10 سنوات فما فوق • 2:20 م إلى 2:50 م'}). انقر على الزر بالأسفل للدخول مباشرة للقاعة والتواصل مع المعلم.`,
+                    action_url: 'https://zoom.us/j/98264506630',
+                    is_read: 0,
+                    created_at: new Date().toISOString()
+                });
+            }
+        }
+
         // 5. Render to UI
         const list = document.getElementById('notificationsList');
         const badge = document.getElementById('notifBadge');
@@ -1574,19 +1594,37 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                 notifs.forEach(n => {
                     const div = document.createElement('div');
                     const isUnread = !n.is_read;
-                    div.className = 'p-3 rounded-2xl border text-xs transition ' + 
-                        (isUnread ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 text-emerald-950 font-bold shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-700');
-                    div.innerHTML = `
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-extrabold flex items-center gap-1.5">
-                                <span>${n.type === 'quran_plan' ? '📖' : '🔔'}</span>
-                                <span>${n.title}</span>
-                                ${isUnread ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>' : ''}
-                            </span>
-                            <span class="text-[10px] text-slate-400 font-mono">${(n.created_at || '').slice(0, 10)}</span>
-                        </div>
-                        <p class="font-normal text-[11px] leading-relaxed whitespace-pre-line text-slate-700 mt-1">${n.message}</p>
-                    `;
+                    if (n.type === 'zoom_live') {
+                        div.className = 'p-3.5 rounded-2xl border-2 border-blue-400 bg-gradient-to-r from-blue-50 to-indigo-50 text-xs text-blue-950 font-bold shadow-md';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="font-black flex items-center gap-1.5 text-blue-900">
+                                    <span class="text-base">📹</span>
+                                    <span>${n.title}</span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                                </span>
+                                <span class="text-[10px] bg-red-100 text-red-700 font-black px-2 py-0.5 rounded-full">مباشر الآن</span>
+                            </div>
+                            <p class="font-medium text-[11px] leading-relaxed text-slate-700 mb-2.5">${n.message}</p>
+                            <a href="${n.action_url || 'https://zoom.us/j/98264506630'}" target="_blank" rel="noopener noreferrer" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95">
+                                <span>انضم للبث المباشر (Zoom) 🚀</span>
+                            </a>
+                        `;
+                    } else {
+                        div.className = 'p-3 rounded-2xl border text-xs transition ' + 
+                            (isUnread ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 text-emerald-950 font-bold shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-700');
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-extrabold flex items-center gap-1.5">
+                                    <span>${n.type === 'quran_plan' ? '📖' : '🔔'}</span>
+                                    <span>${n.title}</span>
+                                    ${isUnread ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>' : ''}
+                                </span>
+                                <span class="text-[10px] text-slate-400 font-mono">${(n.created_at || '').slice(0, 10)}</span>
+                            </div>
+                            <p class="font-normal text-[11px] leading-relaxed whitespace-pre-line text-slate-700 mt-1">${n.message}</p>
+                        `;
+                    }
                     list.appendChild(div);
                 });
             }
@@ -2127,6 +2165,8 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
         return {
             isVisible: true,
             isWithinWindow: true,
+            groupLabel: groupLabel,
+            timeLabel: timeLabel,
             html: `
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <div class="text-right sm:text-left">
@@ -2147,7 +2187,10 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     if (isAdminOrTeacher) {
         return {
             isVisible: false,
+            isWithinWindow: false,
             isSupervisor: true,
+            groupLabel: groupLabel,
+            timeLabel: timeLabel,
             html: `
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <div class="bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-xl text-[11px] font-bold">
@@ -2169,6 +2212,9 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
 
         return {
             isVisible: false,
+            isWithinWindow: false,
+            groupLabel: groupLabel,
+            timeLabel: timeLabel,
             html: `
                 <div class="bg-slate-100/90 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
                     <span class="text-base">⏳</span>
@@ -2182,6 +2228,9 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     } else {
         return {
             isVisible: false,
+            isWithinWindow: false,
+            groupLabel: groupLabel,
+            timeLabel: timeLabel,
             html: `
                 <div class="bg-slate-50 border border-slate-200 text-slate-500 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
                     <span class="text-base">🔒</span>
@@ -2195,14 +2244,52 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     }
 }
 
+function syncZoomLiveStatusAll() {
+    const studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
+                       ((window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.age) ? parseInt(window.currentStudentData.student.age) : 9);
+    
+    const zoomUrl = "https://zoom.us/j/98264506630";
+    const status = getZoomLiveLinkStatus(zoomUrl, studentAge);
+
+    // 1. Top Real-time Zoom Live Notification Banner (شريط الإشعار والتنبيه العلوي)
+    const banner = document.getElementById('liveZoomBroadcastBanner');
+    const titleEl = document.getElementById('liveZoomBannerTitle');
+    const subEl = document.getElementById('liveZoomBannerSubtitle');
+
+    if (banner) {
+        if (status.isWithinWindow) {
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            if (titleEl) {
+                titleEl.innerText = (studentAge < 10) 
+                    ? 'حلقة البث المباشر (Zoom) للأطفال والناشئة بدأت الآن!' 
+                    : 'محاضرة البث المباشر (Zoom) للطلاب بدأت الآن!';
+            }
+            if (subEl) {
+                subEl.innerText = (studentAge < 10)
+                    ? 'الموعد المخصص لفئتك (أقل من 10 سنوات): من 1:50 م إلى 2:25 م • انضم الآن للقاعة مع المعلم'
+                    : 'الموعد المخصص لفئتك (10 سنوات فأكثر): من 2:20 م إلى 2:50 م • انضم الآن للقاعة مع المعلم';
+            }
+        } else {
+            banner.classList.add('hidden');
+            banner.classList.remove('flex');
+        }
+    }
+
+    // 2. Refresh General Track Card
+    if (typeof renderGeneralTrackView === 'function') {
+        const c = document.getElementById('generalTrackCardContainer');
+        if (c) renderGeneralTrackView();
+    }
+}
+
 if (!window.__zoomLiveTimerStarted) {
     window.__zoomLiveTimerStarted = true;
     setInterval(() => {
-        const c = document.getElementById('generalTrackCardContainer');
-        if (c && typeof renderGeneralTrackView === 'function') {
-            renderGeneralTrackView();
+        if (typeof syncZoomLiveStatusAll === 'function') {
+            syncZoomLiveStatusAll();
         }
-    }, 20000);
+    }, 10000);
 }
 
 function renderGeneralTrackView() {
