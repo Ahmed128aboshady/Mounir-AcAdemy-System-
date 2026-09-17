@@ -264,9 +264,9 @@
                 </div>
 
                 <div class="pt-3 flex gap-2 border-t border-slate-100">
-                    <button type="button" onclick="saveSurahProgress()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="button" id="btnSaveSurahPlan" onclick="saveSurahProgress()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
                         <span>💾</span>
-                        <span>حفظ الخطة وإشعار ولي الأمر</span>
+                        <span id="btnSaveSurahPlanText">حفظ الخطة وإشعار ولي الأمر</span>
                     </button>
                     <button type="button" onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">إلغاء</button>
                 </div>
@@ -1063,7 +1063,7 @@
                             <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
                             <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (الأول مجاني)">عذر</button>
                             <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
-                            <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
+                            <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
                             <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
                         </div>
                     </td>
@@ -1295,9 +1295,11 @@
             }
         }
 
-        function openSurahModal(studentId, studentCode, currentSurah, currentAya, studentName) {
+        let activeModalEnrollmentId = null;
+        function openSurahModal(studentId, studentCode, currentSurah, currentAya, studentName, enrollmentId = null) {
             activeModalStudentId = studentId;
             activeModalStudentCode = studentCode;
+            activeModalEnrollmentId = enrollmentId;
             const nameEl = document.getElementById('modalStudentName');
             if (nameEl) nameEl.innerText = studentName || studentCode;
             const codeEl = document.getElementById('modalStudentCode');
@@ -1359,7 +1361,7 @@
         }
 
         async function saveSurahProgress() {
-            if (!activeModalStudentId) return;
+            if (!activeModalStudentId && !activeModalEnrollmentId) return;
             const hifz = (document.getElementById('modalHifzInput')?.value || '').trim();
             const madiQareeb = (document.getElementById('modalMadiQareebInput')?.value || '').trim();
             const madiBaeed = (document.getElementById('modalMadiBaeedInput')?.value || '').trim();
@@ -1370,13 +1372,22 @@
                 return;
             }
 
+            const btnText = document.getElementById('btnSaveSurahPlanText');
+            if (btnText) btnText.innerText = 'جاري الحفظ والاعتماد... ⏳';
+
+            let tName = (typeof currentTeacherName !== 'undefined' && currentTeacherName) ? currentTeacherName : '';
+            if (!tName) {
+                const el = document.getElementById('teacherName');
+                tName = el ? el.innerText.replace(/^أ\.\s*/, '').trim() : '';
+            }
+
             const planObj = {
                 hifz: hifz,
                 madi_qareeb: madiQareeb,
                 madi_baeed: madiBaeed,
                 notes: notes,
                 teacher_id: currentTeacherId,
-                teacher_name: (currentTeacher && currentTeacher.name) || '',
+                teacher_name: tName,
                 updated_at: new Date().toISOString()
             };
             const planJson = JSON.stringify(planObj);
@@ -1386,13 +1397,26 @@
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const client = window.MonirDB.getClient();
-                        const { error } = await client.from('enrollments').update({
-                            current_surah: planJson,
-                            current_aya: 1
-                        }).eq('student_id', activeModalStudentId);
-                        if (!error) success = true;
+                        
+                        // 1. Update by enrollment_id if available
+                        if (activeModalEnrollmentId) {
+                            const { error: enrErr } = await client.from('enrollments').update({
+                                current_surah: planJson,
+                                current_aya: 1
+                            }).eq('id', activeModalEnrollmentId);
+                            if (!enrErr) success = true;
+                        }
 
-                        // Send parent notification to Supabase table
+                        // 2. Also update by student_id
+                        if (activeModalStudentId) {
+                            const { error: stErr } = await client.from('enrollments').update({
+                                current_surah: planJson,
+                                current_aya: 1
+                            }).eq('student_id', activeModalStudentId);
+                            if (!stErr) success = true;
+                        }
+
+                        // 3. Send parent notification to Supabase table
                         try {
                             const notifMsg = `🟢 الحفظ الجديد: ${hifz || '—'}\n🔵 الماضي القريب: ${madiQareeb || '—'}\n🟣 الماضي البعيد: ${madiBaeed || '—'}${notes ? '\n📝 توجيهات: ' + notes : ''}`;
                             await client.from('notifications').insert([{
@@ -1444,6 +1468,22 @@
                     } catch(e) {}
                 });
 
+                // Update memory representation immediately
+                if (teacherGroups) {
+                    teacherGroups.forEach(g => {
+                        (g.students || []).forEach(st => {
+                            if ((activeModalEnrollmentId && st.enrollment_id === activeModalEnrollmentId) || 
+                                st.id === activeModalStudentId || 
+                                st.student_id === activeModalStudentId || 
+                                st.student_code === activeModalStudentCode) {
+                                st.current_surah = planJson;
+                                st.current_aya = 1;
+                            }
+                        });
+                    });
+                    renderGroups(teacherGroups);
+                }
+
                 closeModal('updateSurahModal');
                 
                 const msg = '✓ تم اعتماد خطة الحفظ والمراجعة بنجاح!\nتم إرسال الإشعار لولي الأمر وستظهر الخطة في صفحة الطالب لكل المحاضرات.';
@@ -1457,6 +1497,8 @@
             } catch(err) {
                 console.error(err);
                 alert('حدث خطأ أثناء حفظ الخطة: ' + (err.message || err));
+            } finally {
+                if (btnText) btnText.innerText = 'حفظ الخطة وإشعار ولي الأمر';
             }
         }
 
