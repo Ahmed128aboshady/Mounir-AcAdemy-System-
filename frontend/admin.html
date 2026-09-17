@@ -6351,17 +6351,7 @@
                     } catch(e) {}
                 }
 
-                // If demo/empty, generate initial seed control submissions so leaderboard has immediate data
-                if (!subs || subs.length === 0) {
-                    subs = [
-                        { id: 1, quiz_id: 101, student_id: 1, student_code: 'st0419', student_name: 'معتصم بالله عثمان', track_name: 'tajweed', quiz_title: 'أحكام التجويد - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 3600000).toISOString() },
-                        { id: 2, quiz_id: 102, student_id: 1, student_code: 'st0419', student_name: 'معتصم بالله عثمان', track_name: 'tafsir', quiz_title: 'التفسير والتدبر - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 7200000).toISOString() },
-                        { id: 3, quiz_id: 101, student_id: 2, student_code: 'st0420', student_name: 'مريم أحمد طارق', track_name: 'tajweed', quiz_title: 'أحكام التجويد - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 10800000).toISOString() },
-                        { id: 4, quiz_id: 103, student_id: 3, student_code: 'st0421', student_name: 'عبد الرحمن وليد', track_name: 'hadith', quiz_title: 'الحديث الشريف - الأسبوع الأول', score: 15, total_points: 15, percentage: 100, submitted_at: new Date(Date.now() - 14400000).toISOString() },
-                        { id: 5, quiz_id: 101, student_id: 4, student_code: 'st0422', student_name: 'عمر حسين إمام', track_name: 'tajweed', quiz_title: 'أحكام التجويد - الأسبوع الأول', score: 10, total_points: 15, percentage: 67, submitted_at: new Date(Date.now() - 18000000).toISOString() }
-                    ];
-                }
-
+                if (!subs) subs = [];
                 __allAdminQuizSubmissions = subs;
 
                 // Update Stats
