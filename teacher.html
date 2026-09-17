@@ -879,7 +879,8 @@
                                     <th class="p-3">رصيد الحصص</th>
                                     <th class="p-3">الأعذار</th>
                                     <th class="p-3">الحضور / الغياب</th>
-                                    <th class="p-3">مستوى القرآن</th>
+                                    <th class="p-3 min-w-[140px]">السورة</th>
+                                    <th class="p-3 min-w-[95px]">التارجت</th>
                                     <th class="p-3 text-center">إجراءات الحصة</th>
                                 </tr>
                             </thead>
@@ -928,6 +929,106 @@
             }
         }
 
+        
+    // 114 Surahs of the Holy Quran
+    const QURAN_SURAHS = [
+        "الفاتحة", "البقرة", "آل عمران", "النساء", "المائدة", "الأنعام", "الأعراف", "الأنفال", "التوبة", "يونس",
+        "هود", "يوسف", "الرعد", "إبراهيم", "الحجر", "النحل", "الإسراء", "الكهف", "مريم", "طه",
+        "الأنبياء", "الحج", "المؤمنون", "النور", "الفرقان", "الشعراء", "النمل", "القصص", "العنكبوت", "الروم",
+        "لقمان", "السجدة", "الأحزاب", "سبأ", "فاطر", "يس", "الصافات", "ص", "الزمر", "غافر",
+        "فصلت", "الشورى", "الزخرف", "الدخان", "الجاثية", "الأحقاف", "محمد", "الفتح", "الحجرات", "ق",
+        "الذاريات", "الطور", "النجم", "القمر", "الرحمن", "الواقعة", "الحديد", "المجادلة", "الحشر", "الممتحنة",
+        "الصف", "الجمعة", "المنافقون", "التغابن", "الطلاق", "التحريم", "الملك", "القلم", "الحاقة", "المعارج",
+        "نوح", "الجن", "المزمل", "المدثر", "القيامة", "الإنسان", "المرسلات", "النبأ", "النازعات", "عبس",
+        "التكوير", "الانفطار", "المطففين", "الانشقاق", "البروج", "الطارق", "الأعلى", "الغاشية", "الفجر", "البلد",
+        "الشمس", "الليل", "الضحى", "الشرح", "التين", "العلق", "القدر", "البينة", "الزلزلة", "العاديات",
+        "القارعة", "التكاثر", "العصر", "الهمزة", "الفيل", "قريش", "الماعون", "الكوثر", "الكافرون", "النصر",
+        "المسد", "الإخلاص", "الفلق", "الناس"
+    ];
+
+
+        async function handleSurahOrTargetChange(studentId, enrollmentId, studentCode) {
+            const surahSelect = document.getElementById('surah-select-' + studentId);
+            const targetInput = document.getElementById('target-ayat-' + studentId);
+            if (!surahSelect || !targetInput) return;
+
+            const surah = (surahSelect.value || '').trim();
+            const target = (targetInput.value || '').trim();
+
+            // Visual feedback indicator on inputs
+            surahSelect.classList.add('border-emerald-500', 'bg-emerald-50/40');
+            targetInput.classList.add('border-emerald-500', 'bg-emerald-50/40');
+            setTimeout(() => {
+                surahSelect.classList.remove('border-emerald-500', 'bg-emerald-50/40');
+                targetInput.classList.remove('border-emerald-500', 'bg-emerald-50/40');
+            }, 1200);
+
+            // Fetch existing plan to preserve madi qareeb and baeed if any
+            let existingPlan = {};
+            try {
+                const cached = localStorage.getItem('monir_quran_plan_' + studentId) ||
+                               localStorage.getItem('monir_quran_plan_' + studentCode) ||
+                               localStorage.getItem('monir_surah_progress_' + studentId);
+                if (cached && cached.startsWith('{')) {
+                    existingPlan = JSON.parse(cached);
+                }
+            } catch(e) {}
+
+            const planObj = {
+                ...existingPlan,
+                surah: surah,
+                hifz: surah ? (surah + (target ? ' (' + target + (isNaN(target) ? '' : ' آية') + ')' : '')) : '',
+                target_ayat: target,
+                updated_at: new Date().toISOString()
+            };
+            const planJson = JSON.stringify(planObj);
+
+            // 1. Save to local storage cache immediately
+            try {
+                localStorage.setItem('monir_quran_plan_' + studentId, planJson);
+                if (studentCode) localStorage.setItem('monir_quran_plan_' + studentCode, planJson);
+                localStorage.setItem('monir_surah_progress_' + studentId, planJson);
+                if (studentCode) localStorage.setItem('monir_surah_progress_' + studentCode, planJson);
+            } catch(e) {}
+
+            // 2. Save to in-memory teacher groups
+            try {
+                if (window.teacherGroupsData) {
+                    window.teacherGroupsData.forEach(g => {
+                        const found = g.students.find(st => st.id === studentId);
+                        if (found) {
+                            found.current_surah = planJson;
+                            found.current_aya = parseInt(target, 10) || 1;
+                        }
+                    });
+                }
+            } catch(e) {}
+
+            // 3. Save to Supabase Cloud
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const numAya = parseInt(target, 10) || 1;
+                    const updatePayload = {
+                        current_surah: planJson,
+                        current_aya: numAya
+                    };
+
+                    if (enrollmentId) {
+                        await client.from('enrollments').update(updatePayload).eq('id', enrollmentId);
+                    } else if (studentId) {
+                        await client.from('enrollments').update(updatePayload).eq('student_id', studentId);
+                    }
+                } catch(err) {
+                    console.warn('[Teacher Dashboard] Failed to sync surah/target to Supabase:', err);
+                }
+            }
+
+            if (window.MonirPopup) {
+                MonirPopup.toast('تم حفظ السورة والتارجت للطالب ✅', 'success');
+            }
+        }
+
         function renderStudentRow(s, idx) {
             const studentName = s.name || s.student_name || 'طالب الأكاديمية';
             const studentCode = s.student_code || '—';
@@ -955,6 +1056,43 @@
             }
 
             // Parse Quran Progress (الحفظ والماضي القريب والبعيد)
+
+            // Parse Surah and Target Aya for Dropdown & Input
+            let currentSurahName = '';
+            let currentTargetAya = '';
+            let rawSurahPlan = (s.current_surah || '').trim();
+            if (rawSurahPlan.startsWith('{')) {
+                try {
+                    const p = JSON.parse(rawSurahPlan);
+                    currentSurahName = p.surah || p.hifz || '';
+                    currentTargetAya = p.target_ayat || p.ayat || p.target || s.current_aya || '';
+                } catch(e) {}
+            } else if (rawSurahPlan) {
+                currentSurahName = rawSurahPlan;
+                currentTargetAya = (s.current_aya && s.current_aya > 1) ? s.current_aya : '';
+            }
+
+            if (!currentSurahName) {
+                try {
+                    const cached = localStorage.getItem('monir_quran_plan_' + s.id) || 
+                                   localStorage.getItem('monir_quran_plan_' + studentCode) ||
+                                   localStorage.getItem('monir_surah_progress_' + s.id) ||
+                                   localStorage.getItem('monir_surah_progress_' + studentCode);
+                    if (cached) {
+                        const p = JSON.parse(cached);
+                        currentSurahName = p.surah || p.hifz || '';
+                        currentTargetAya = p.target_ayat || p.ayat || p.target || currentTargetAya;
+                    }
+                } catch(e) {}
+            }
+
+            let matchSurah = (currentSurahName || '').replace(/^سورة\s+/, '').trim();
+            const ayaMatch = matchSurah.match(/\((?:آية|الآية|ايات|آيات)\s*([0-9\-\s]+)\)/);
+            if (ayaMatch) {
+                if (!currentTargetAya) currentTargetAya = ayaMatch[1].trim();
+                matchSurah = matchSurah.replace(/\((?:آية|الآية|ايات|آيات)\s*[0-9\-\s]+\)/, '').trim();
+            }
+
             let rawPlan = s.current_surah || '';
             let hifzVal = '';
             let madiQareebVal = '';
@@ -1053,7 +1191,32 @@
                             <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]">✗ ${absent}</span>
                         </div>
                     </td>
-                    <td class="p-3">${quranProgress}</td>
+                                        <!-- السورة (دروب منيو لجميع سور القرآن 114) -->
+                    <td class="p-3">
+                        <div class="min-w-[135px]">
+                            <select id="surah-select-${s.id}" 
+                                    onchange="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
+                                    class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs">
+                                <option value="">-- اختر السورة --</option>
+                                ${QURAN_SURAHS.map((surah, sIdx) => {
+                                    const isSelected = (matchSurah === surah);
+                                    return `<option value="${surah}" ${isSelected ? 'selected' : ''}>${sIdx + 1}. ${surah}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                    </td>
+                    <!-- التارجت (عدد الآيات) -->
+                    <td class="p-3">
+                        <div class="min-w-[85px]">
+                            <input type="text" 
+                                   id="target-ayat-${s.id}" 
+                                   value="${currentTargetAya || ''}" 
+                                   placeholder="عدد الآيات" 
+                                   onchange="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
+                                   onblur="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
+                                   class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none transition text-center shadow-2xs">
+                        </div>
+                    </td>
                     <td class="p-3">
                         ${todayBadge}
                         <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
