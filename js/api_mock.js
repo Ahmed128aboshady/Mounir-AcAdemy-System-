@@ -58,6 +58,9 @@
             passing_score: 70
         }
     ];
+    if (typeof window !== 'undefined') {
+        window.MOCK_DEFAULT_QUIZZES = DEFAULT_QUIZZES;
+    }
 
     const DEFAULT_QUIZ_QUESTIONS = [
         {

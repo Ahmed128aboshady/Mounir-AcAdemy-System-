@@ -2012,31 +2012,51 @@ async function loadGeneralLectures() {
     try {
         let quizzes = [];
         if (window.MonirDB && window.MonirDB.isConfigured()) {
-            const res = await window.MonirDB.getQuizzes();
-            if (res.data && res.data.length > 0) quizzes = res.data;
+            try {
+                const res = await window.MonirDB.getQuizzes();
+                if (res.data && res.data.length > 0) quizzes = res.data;
+            } catch(e) {
+                console.warn('[Supabase load quizzes failed]', e);
+            }
         }
-        if (quizzes.length === 0) {
-            const res = await fetch('/api/quizzes');
-            quizzes = await res.json();
+        if (!quizzes || quizzes.length === 0) {
+            try {
+                const res = await fetch('/api/quizzes');
+                if (res.ok) {
+                    quizzes = await res.json();
+                }
+            } catch(e) {}
+        }
+        if (!quizzes || quizzes.length === 0) {
+            if (window.MOCK_DEFAULT_QUIZZES && window.MOCK_DEFAULT_QUIZZES.length > 0) {
+                quizzes = window.MOCK_DEFAULT_QUIZZES;
+            } else if (window.MOCK_DATA && window.MOCK_DATA.quizzes && window.MOCK_DATA.quizzes.length > 0) {
+                quizzes = window.MOCK_DATA.quizzes;
+            }
         }
         cachedGeneralQuizzes = quizzes || [];
 
         // Load student submissions
         let subs = [];
         if (window.MonirDB && window.MonirDB.isConfigured()) {
-            const subRes = await window.MonirDB.getStudentQuizSubmissions(currentStudentId);
-            if (subRes.data) subs = subRes.data;
+            try {
+                const subRes = await window.MonirDB.getStudentQuizSubmissions(currentStudentId);
+                if (subRes.data) subs = subRes.data;
+            } catch(e) {}
         }
-        if (subs.length === 0) {
+        if (!subs || subs.length === 0) {
             try {
                 const subRes = await fetch('/api/student/' + currentStudentId + '/quizzes');
-                subs = await subRes.json();
+                if (subRes.ok) subs = await subRes.json();
             } catch(e) {}
         }
         cachedStudentSubmissions = subs || [];
 
         renderGeneralTrackView();
         renderGradebookTranscript();
+        if (typeof syncZoomLiveStatusAll === 'function') {
+            syncZoomLiveStatusAll();
+        }
     } catch(err) {
         console.error('[General Lectures Load Error]:', err);
     }
@@ -2079,18 +2099,29 @@ function getCairoTimeInfo() {
             hours: h,
             minutes: m,
             totalMinutes: h * 60 + m,
+            localTotalMinutes: h * 60 + m,
             isSimulated: true
         };
     }
 
     try {
         const now = new Date();
-        let h = now.getHours();
-        let m = now.getMinutes();
+        const cairoStr = now.toLocaleString('en-US', { timeZone: 'Africa/Cairo', hour12: false });
+        const cairoDate = new Date(cairoStr);
+        const ch = cairoDate.getHours();
+        const cm = cairoDate.getMinutes();
+
+        const lh = now.getHours();
+        const lm = now.getMinutes();
+
         return {
-            hours: h,
-            minutes: m,
-            totalMinutes: h * 60 + m,
+            hours: ch,
+            minutes: cm,
+            totalMinutes: ch * 60 + cm,
+            localHours: lh,
+            localMinutes: lm,
+            localTotalMinutes: lh * 60 + lm,
+            dayOfWeek: cairoDate.getDay(),
             isSimulated: false
         };
     } catch(e) {
@@ -2101,13 +2132,17 @@ function getCairoTimeInfo() {
             hours: h,
             minutes: m,
             totalMinutes: h * 60 + m,
+            localHours: h,
+            localMinutes: m,
+            localTotalMinutes: h * 60 + m,
+            dayOfWeek: now.getDay(),
             isSimulated: false
         };
     }
 }
 
 function getZoomLiveLinkStatus(liveUrl, studentAge) {
-    if (!liveUrl) return { isVisible: false, html: '' };
+    if (!liveUrl) liveUrl = "https://zoom.us/j/98264506630";
 
     const urlParams = new URLSearchParams(window.location.search);
     
@@ -2126,6 +2161,9 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     if (urlParams.has('test_zoom') || (isAdminOrTeacher && urlParams.get('force_live') === '1')) {
         return {
             isVisible: true,
+            isWithinWindow: true,
+            groupLabel: (age < 10) ? 'فئة الأطفال (أقل من 10 سنوات)' : 'فئة الطلاب (10 سنوات فأكثر)',
+            timeLabel: (age < 10) ? '11:38 م - 12:15 ص' : '11:38 م - 12:30 ص',
             html: `
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <span class="bg-indigo-900 text-indigo-100 text-[10px] font-black px-2.5 py-1 rounded-lg text-center">وضع المعاينة الفورية (تجريبي)</span>
@@ -2139,26 +2177,31 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     }
 
     const timeInfo = getCairoTimeInfo();
-    const currentMins = timeInfo.totalMinutes;
+    const cairoMins = timeInfo.totalMinutes;
+    const localMins = (timeInfo.localTotalMinutes !== undefined) ? timeInfo.localTotalMinutes : cairoMins;
 
-    // Schedule Rules: 11:38 PM (23:38 = 1418 mins, or 00:38 = 38 mins)
     const isKid = (age < 10);
     const timeLabel = isKid ? '11:38 م - 12:15 ص' : '11:38 م - 12:30 ص';
     const groupLabel = isKid ? 'فئة الأطفال (أقل من 10 سنوات)' : 'فئة الطلاب (10 سنوات فأكثر)';
 
-    let isWithinWindow = false;
-    let minsLeft = 0;
-
-    // Active Window: from 23:38 until 00:30 (or 00:38 until 01:30 if UTC+3)
-    if ((currentMins >= 1418 && currentMins <= 1439) || 
-        (currentMins >= 0 && currentMins <= (isKid ? 15 : 30)) || 
-        (currentMins >= 38 && currentMins <= (isKid ? 75 : 90))) {
-        isWithinWindow = true;
-    } else if (currentMins < 1418 && currentMins >= 1200) {
-        minsLeft = 1418 - currentMins;
-    } else if (currentMins < 38 && currentMins >= 0) {
-        minsLeft = 38 - currentMins;
+    function isMinsInWindow(m) {
+        // Today's Live Night Session (from 11:35 PM to 03:00 AM)
+        if ((m >= 1410 && m <= 1439) || (m >= 0 && m <= 180)) {
+            return true;
+        }
+        // Friday Afternoon Official Slot:
+        // Kids (< 10): 1:50 PM (830) to 2:25 PM (865)
+        if (isKid && (m >= 830 && m <= 865)) {
+            return true;
+        }
+        // Older (>= 10): 2:20 PM (860) to 2:50 PM (890)
+        if (!isKid && (m >= 860 && m <= 890)) {
+            return true;
+        }
+        return false;
     }
+
+    const isWithinWindow = isMinsInWindow(cairoMins) || isMinsInWindow(localMins);
 
     if (isWithinWindow) {
         return {
@@ -2202,41 +2245,20 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
         };
     }
 
-    if (minsLeft > 0) {
-        const hoursLeft = Math.floor(minsLeft / 60);
-        const remMins = minsLeft % 60;
-        let countdownStr = hoursLeft > 0 ? `متبقي ${hoursLeft} ساعة و ${remMins} دقيقة` : `متبقي ${remMins} دقيقة`;
-
-        return {
-            isVisible: false,
-            isWithinWindow: false,
-            groupLabel: groupLabel,
-            timeLabel: timeLabel,
-            html: `
-                <div class="bg-slate-100/90 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
-                    <div>
-                        <span class="block text-[11px] text-slate-800 font-black">رابط Zoom سيفتح تلقائياً في موعد فئتك (${timeLabel})</span>
-                        <span class="text-[10px] text-indigo-700 font-extrabold">${groupLabel} • ${countdownStr}</span>
-                    </div>
+    return {
+        isVisible: false,
+        isWithinWindow: false,
+        groupLabel: groupLabel,
+        timeLabel: timeLabel,
+        html: `
+            <div class="bg-slate-100/90 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+                <div>
+                    <span class="block text-[11px] text-slate-800 font-black">رابط Zoom سيفتح تلقائياً في موعد فئتك (${timeLabel})</span>
+                    <span class="text-[10px] text-indigo-700 font-extrabold">${groupLabel}</span>
                 </div>
-            `
-        };
-    } else {
-        return {
-            isVisible: false,
-            isWithinWindow: false,
-            groupLabel: groupLabel,
-            timeLabel: timeLabel,
-            html: `
-                <div class="bg-slate-50 border border-slate-200 text-slate-500 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
-                    <div>
-                        <span class="block text-[11px] text-slate-600 font-extrabold">انتهى موعد البث المباشر المخصص لفئتك (${timeLabel})</span>
-                        <span class="text-[10px] text-slate-400">يمكنك الاستماع للملخص الصوتي وحل الاختبار المرفق أدناه</span>
-                    </div>
-                </div>
-            `
-        };
-    }
+            </div>
+        `
+    };
 }
 
 function updateFridayScheduleNoticeByAge(studentAge) {
@@ -2269,7 +2291,64 @@ function syncZoomLiveStatusAll() {
     const zoomUrl = "https://zoom.us/j/98264506630";
     const status = getZoomLiveLinkStatus(zoomUrl, studentAge);
 
-    // 1. Top Real-time Zoom Live Notification Banner (شريط الإشعار والتنبيه العلوي)
+    // 1. In-Slot Direct Action Buttons (داخل كل صف عمر محدد)
+    const kidsAction = document.getElementById('slotNoticeKidsAction');
+    const adultsAction = document.getElementById('slotNoticeAdultsAction');
+
+    if (kidsAction) {
+        if (status.isWithinWindow && studentAge < 10) {
+            kidsAction.innerHTML = `
+                <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
+                    <span>دخول الزووم الآن (Zoom)</span>
+                </a>
+            `;
+        } else {
+            kidsAction.innerHTML = `
+                <span class="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-300/60 px-2.5 py-1 rounded-lg block text-center">الرابط مقفل حالياً</span>
+            `;
+        }
+    }
+
+    if (adultsAction) {
+        if (status.isWithinWindow && studentAge >= 10) {
+            adultsAction.innerHTML = `
+                <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
+                    <span>دخول الزووم الآن (Zoom)</span>
+                </a>
+            `;
+        } else {
+            adultsAction.innerHTML = `
+                <span class="text-[10px] font-bold text-amber-800 bg-amber-100/70 border border-amber-300/60 px-2.5 py-1 rounded-lg block text-center">الرابط مقفل حالياً</span>
+            `;
+        }
+    }
+
+    // 2. Dedicated Live Banner inside Friday Card Container
+    const actionContainer = document.getElementById('fridayScheduleZoomActionContainer');
+    if (actionContainer) {
+        if (status.isWithinWindow) {
+            actionContainer.innerHTML = `
+                <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-3.5 sm:p-4 rounded-2xl shadow-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 animate-fade-in border border-emerald-400/50">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-3 h-3 rounded-full bg-white animate-ping shrink-0"></span>
+                        <div>
+                            <div class="font-black text-xs sm:text-sm">حلقة البث المباشر (Zoom) مفتوحة ومتاحة الآن!</div>
+                            <div class="text-[11px] text-emerald-100 font-bold">بدأ موعد المحاضرة لمجموعتك (${status.groupLabel}). انضم الآن للقاعة مع المعلم:</div>
+                        </div>
+                    </div>
+                    <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-lg transition text-center whitespace-nowrap cursor-pointer">
+                        دخول محاضرة الزووم الآن (Zoom)
+                    </a>
+                </div>
+            `;
+            actionContainer.classList.remove('hidden');
+        } else {
+            actionContainer.innerHTML = '';
+            actionContainer.classList.add('hidden');
+        }
+    }
+
+    // 3. Top Real-time Zoom Live Notification Banner (شريط الإشعار والتنبيه العلوي)
     const banner = document.getElementById('liveZoomBroadcastBanner');
     const titleEl = document.getElementById('liveZoomBannerTitle');
     const subEl = document.getElementById('liveZoomBannerSubtitle');
@@ -2285,8 +2364,8 @@ function syncZoomLiveStatusAll() {
             }
             if (subEl) {
                 subEl.innerText = (studentAge < 10)
-                    ? 'الموعد المخصص لفئتك (أقل من 10 سنوات): من 1:50 م إلى 2:25 م • انضم الآن للقاعة مع المعلم'
-                    : 'الموعد المخصص لفئتك (10 سنوات فأكثر): من 2:20 م إلى 2:50 م • انضم الآن للقاعة مع المعلم';
+                    ? 'الموعد المخصص لفئتك (أقل من 10 سنوات): اليوم 11:38 م (والجمعة 1:50 م إلى 2:25 م) • انضم الآن للقاعة مع المعلم'
+                    : 'الموعد المخصص لفئتك (10 سنوات فأكثر): اليوم 11:38 م (والجمعة 2:20 م إلى 2:50 م) • انضم الآن للقاعة مع المعلم';
             }
         } else {
             banner.classList.add('hidden');
@@ -2294,7 +2373,7 @@ function syncZoomLiveStatusAll() {
         }
     }
 
-    // 2. Refresh General Track Card
+    // 4. Refresh General Track Card
     if (typeof renderGeneralTrackView === 'function') {
         const c = document.getElementById('generalTrackCardContainer');
         if (c) renderGeneralTrackView();
@@ -2303,11 +2382,16 @@ function syncZoomLiveStatusAll() {
 
 if (!window.__zoomLiveTimerStarted) {
     window.__zoomLiveTimerStarted = true;
+    setTimeout(() => {
+        if (typeof syncZoomLiveStatusAll === 'function') {
+            syncZoomLiveStatusAll();
+        }
+    }, 100);
     setInterval(() => {
         if (typeof syncZoomLiveStatusAll === 'function') {
             syncZoomLiveStatusAll();
         }
-    }, 10000);
+    }, 5000);
 }
 
 function renderGeneralTrackView() {
