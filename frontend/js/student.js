@@ -1770,6 +1770,9 @@ function selectRenewalPackage(pkgId) {
     const amt = document.getElementById('paymobAmountText');
     if (amt) amt.innerText = pkg.price.toFixed(2) + ' ج.م';
 
+    const howTo = document.getElementById('howToAmount');
+    if (howTo) howTo.innerText = pkg.price.toFixed(2) + ' ج.م';
+
     const instapayAmt = document.getElementById('instapayAmountDisplay');
     if (instapayAmt) instapayAmt.innerText = pkg.price.toFixed(2) + ' ج.م';
 
@@ -1777,7 +1780,7 @@ function selectRenewalPackage(pkgId) {
     if (vodafoneAmt) vodafoneAmt.innerText = pkg.price.toFixed(2) + ' ج.م';
 
     const btnTxt = document.getElementById('btnPaymobSubmitText');
-    if (btnTxt) btnTxt.innerText = 'تأكيد السداد (' + pkg.price.toFixed(2) + ' ج.م) وإصدار الإيصال الرسمي';
+    if (btnTxt) btnTxt.innerText = '📋 تسجيل إشعار سداد (' + pkg.price.toFixed(2) + ' ج.م) - قيد المراجعة';
 
     updateWhatsAppTransferLink();
 }
@@ -1834,7 +1837,7 @@ function closePaymobModal() {
 
 function openReceiptModal(receipt) {
     if (!receipt) return;
-    document.getElementById('receiptNumber').innerText = receipt.receipt_number || ('RCT-' + Date.now());
+    document.getElementById('receiptNumber').innerText = receipt.receipt_number || ('REQ-' + Date.now());
     document.getElementById('receiptStudentName').innerText = receipt.student_name || (document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية');
     document.getElementById('receiptStudentCode').innerText = receipt.student_code || (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : 'MNR');
     document.getElementById('receiptCourseName').innerText = receipt.course_name || selectedCourseName;
@@ -1843,20 +1846,23 @@ function openReceiptModal(receipt) {
     if (rPkg) rPkg.innerText = receipt.package_name || 'باقة تجديد الاشتراك';
     
     const rCred = document.getElementById('receiptCreditsAdded');
-    if (rCred) rCred.innerText = '+' + (receipt.credits_added || 4) + ' حصص معتمدة';
+    if (rCred) rCred.innerText = '+' + (receipt.credits_added || 4) + ' حصص';
 
-    document.getElementById('receiptAmount').innerText = (receipt.amount !== undefined ? receipt.amount : 500) + '.00 ج.م';
+    document.getElementById('receiptAmount').innerText = (receipt.amount !== undefined ? Number(receipt.amount).toFixed(2) : '500.00') + ' ج.م';
     document.getElementById('receiptDate').innerText = (receipt.created_at || new Date().toISOString()).slice(0, 10);
     
     const waText = encodeURIComponent(
-        'إيصال سداد رسمي — أكاديمية منير\n' +
-        'رقم الإيصال: ' + (receipt.receipt_number || '') + '\n' +
+        'طلب تجديد اشتراك — أكاديمية منير\n' +
+        'رقم الطلب: ' + (receipt.receipt_number || '') + '\n' +
         'اسم الطالب: ' + (receipt.student_name || '') + ' (' + (receipt.student_code || '') + ')\n' +
         'المسار: ' + (receipt.course_name || selectedCourseName) + '\n' +
-        'الباقة المختارة: ' + (receipt.package_name || '') + '\n' +
-        'الرصيد المضاف: +' + (receipt.credits_added || 4) + ' حصص\n' +
-        'المبلغ المسدد: ' + (receipt.amount || '') + ' ج.م\n' +
-        'حالة العملية: تم السداد بنجاح وشحن الرصيد المباشر.'
+        'الباقة المطلوبة: ' + (receipt.package_name || '') + '\n' +
+        'الحصص المطلوب شحنها: +' + (receipt.credits_added || 4) + ' حصص\n' +
+        'المبلغ المحول: ' + (receipt.amount || '') + ' ج.م\n' +
+        'طريقة التحويل: ' + (receipt.pay_method_title || 'تحويل بنكي / محفظة') + '\n' +
+        'حالة الطلب: قيد المراجعة والاعتماد\n' +
+        '------------------------------------\n' +
+        'مرفق لسيادتكم صورة إشعار التحويل من التطبيق للاعتماد والشحن فوراً.'
     );
     document.getElementById('btnWhatsAppReceipt').href = 'https://wa.me/201025969295?text=' + waText;
     
@@ -1871,157 +1877,69 @@ async function submitPaymobPayment() {
     const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[1];
     const btn = document.getElementById('btnPaymobSubmit');
     const oldTxt = btn.innerHTML;
-    btn.innerHTML = '<span>جاري تسجيل السداد وتحديث الرصيد...</span>';
+    btn.innerHTML = '<span>جاري تسجيل الطلب...</span>';
     btn.disabled = true;
 
-    const sName = document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية';
-    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : 'MNR-STUDENT';
+    const sName = document.getElementById('studentName') ? document.getElementById('studentName').innerText.trim() : 'طالب الأكاديمية';
+    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').innerText.trim() : 'MNR';
     const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
-    const payMethod = payMethodRadio ? payMethodRadio.value : 'card';
+    const payMethod = payMethodRadio ? payMethodRadio.value : 'instapay';
+    const methodTitle = (payMethod === 'vodafone_cash') ? 'فودافون كاش (01002530197)' : 'إنستا باي (009348060001)';
 
     try {
-        let checkData = null;
-        try {
-            const checkRes = await fetch('/api/paymob/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    student_id: currentStudentId, 
-                    course_name: selectedCourseName,
-                    package_id: pkg.id,
-                    package_name: pkg.name + ' (' + pkg.typeName + ')',
-                    package_type: pkg.type,
-                    credits_to_add: pkg.credits,
-                    amount: pkg.price,
-                    payment_method: payMethod 
-                })
-            });
-            if (checkRes.ok) {
-                checkData = await checkRes.json();
+        const reqNum = 'REQ-2026-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const receipt = {
+            receipt_number: reqNum,
+            student_name: sName,
+            student_code: sCode,
+            course_name: selectedCourseName,
+            package_name: pkg.name + ' (' + pkg.typeName + ')',
+            credits_added: pkg.credits,
+            amount: pkg.price,
+            pay_method_title: methodTitle,
+            created_at: new Date().toISOString()
+        };
+
+        // Notify in Supabase without modifying remaining_credits directly
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            try {
+                const client = window.MonirDB.getClient();
+                if (client && currentStudentId) {
+                    await client.from('notifications').insert([{
+                        student_id: currentStudentId,
+                        course_name: selectedCourseName,
+                        title: 'طلب تجديد اشتراك قيد المراجعة (' + pkg.name + ')',
+                        message: 'تم تسجيل طلب التجديد بقيمة ' + pkg.price + ' ج.م برقم #' + receipt.receipt_number + '. يرجى إرسال صورة إشعار التحويل عبر واتساب ليتم تفعيل الحصص.',
+                        type: 'renewal_pending',
+                        action_url: '/student.html'
+                    }]);
+                }
+            } catch(err) {
+                console.warn('[Supabase] Notification insert error:', err);
             }
-        } catch(e) {
-            console.warn('[Paymob] Checkout endpoint fallback:', e);
         }
 
-        const txId = (checkData && checkData.transaction_id) ? checkData.transaction_id : ('PAYMOB-' + Math.random().toString(36).substring(2, 10).toUpperCase());
+        btn.innerHTML = 'تم تسجيل الطلب بنجاح ✔';
+        btn.className = 'w-full bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl';
 
-        setTimeout(async () => {
-            let webData = null;
-            try {
-                const webRes = await fetch('/api/paymob/webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        transaction_id: txId,
-                        student_id: currentStudentId,
-                        student_name: sName,
-                        student_code: sCode,
-                        course_name: selectedCourseName,
-                        package_name: pkg.name + ' (' + pkg.typeName + ')',
-                        credits_to_add: pkg.credits,
-                        amount: pkg.price
-                    })
-                });
-                if (webRes.ok) {
-                    webData = await webRes.json();
-                }
-            } catch(e) {
-                console.warn('[Paymob] Webhook fallback:', e);
-            }
-
-            const receipt = (webData && webData.receipt) ? webData.receipt : {
-                receipt_number: 'REC-2026-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                student_name: sName,
-                student_code: sCode,
-                course_name: selectedCourseName,
-                package_name: pkg.name + ' (' + pkg.typeName + ')',
-                credits_added: pkg.credits,
-                amount: pkg.price,
-                created_at: new Date().toISOString()
-            };
-
-            // Update local memory and cache
-            const targetCourse = enrolledCoursesList.find(c => c.course_name === selectedCourseName);
-            if (targetCourse) {
-                targetCourse.remaining_credits = (targetCourse.remaining_credits || 0) + pkg.credits;
-                targetCourse.total_lectures_unlocked = (targetCourse.total_lectures_unlocked || 0) + pkg.credits;
-                targetCourse.renewal_count = (targetCourse.renewal_count || 0) + 1;
-            }
-
-            // Sync with Supabase if configured
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
-                try {
-                    const client = window.MonirDB.getClient();
-                    if (client) {
-                        const { data: enrs } = await client.from('enrollments')
-                            .select('*')
-                            .eq('student_id', currentStudentId)
-                            .eq('course_name', selectedCourseName);
-                        
-                        if (enrs && enrs.length > 0) {
-                            const curEnr = enrs[0];
-                            const newCredits = (curEnr.remaining_credits || 0) + pkg.credits;
-                            const newTotal = (curEnr.total_lectures_unlocked || 0) + pkg.credits;
-                            const newRenewals = (curEnr.renewal_count || 0) + 1;
-                            await client.from('enrollments').update({
-                                remaining_credits: newCredits,
-                                total_lectures_unlocked: newTotal,
-                                renewal_count: newRenewals,
-                                excuse_count: 0
-                            }).eq('id', curEnr.id);
-                        }
-
-                        await client.from('notifications').insert([{
-                            student_id: currentStudentId,
-                            course_name: selectedCourseName,
-                            title: 'تم تجديد الاشتراك بنجاح (' + pkg.name + ')',
-                            message: 'شكراً لك! تم استلام رسوم التجديد (' + pkg.price + ' ج.م) وإضافة +' + pkg.credits + ' حصص لرصيدك بموجب إيصال #' + receipt.receipt_number + '.',
-                            type: 'renewal',
-                            action_url: '/student.html'
-                        }]);
-                    }
-                } catch(err) {
-                    console.warn('[Supabase] Renewal sync error:', err);
-                }
-            }
-
-            // Also update local mock DB cache if exists
-            if (window.MonirDB && typeof window.MonirDB.updateLocalCache === 'function') {
-                window.MonirDB.updateLocalCache(db => {
-                    if (db && db.enrollments) {
-                        const mEnr = db.enrollments.find(e => e.student_id === currentStudentId && e.course_name === selectedCourseName);
-                        if (mEnr) {
-                            mEnr.remaining_credits = (mEnr.remaining_credits || 0) + pkg.credits;
-                            mEnr.total_lectures_unlocked = (mEnr.total_lectures_unlocked || 0) + pkg.credits;
-                            mEnr.renewal_count = (mEnr.renewal_count || 0) + 1;
-                        }
-                    }
-                });
-            }
-
-            btn.innerHTML = 'تم الدفع وشحن (' + pkg.credits + ' حصص) بنجاح!';
-            btn.className = 'w-full bg-emerald-600 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg';
-
-            setTimeout(() => {
-                closePaymobModal();
-                btn.innerHTML = oldTxt;
-                btn.disabled = false;
-                btn.className = 'w-full bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg';
-                
-                // Show official receipt modal
-                openReceiptModal(receipt);
-                
-                // Refresh UI immediately
-                loadStudentProfile();
-                loadNotifications();
-            }, 1000);
-        }, 1200);
+        setTimeout(() => {
+            closePaymobModal();
+            btn.innerHTML = oldTxt;
+            btn.disabled = false;
+            btn.className = 'w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2';
+            
+            // Show request receipt modal
+            openReceiptModal(receipt);
+            
+            // Refresh notifications
+            loadNotifications();
+        }, 800);
 
     } catch (err) {
         console.error("Paymob Error:", err);
         btn.innerHTML = oldTxt;
         btn.disabled = false;
-        alert("حدث خطأ أثناء معالجة الدفع، يرجى المحاولة مرة أخرى.");
+        alert("حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة مرة أخرى أو التواصل مباشرة عبر الواتساب.");
     }
 }
 

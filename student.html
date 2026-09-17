@@ -678,29 +678,37 @@
                 </div>
             </div>
 
-            <!-- Step Notice: Send screenshot via WhatsApp -->
-            <div class="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 mb-3.5 text-xs text-amber-950 flex items-start gap-2.5">
-                <span class="text-xl">📸</span>
-                <div class="space-y-0.5 leading-relaxed">
-                    <strong class="font-extrabold block text-amber-900">خطوة تأكيد الشحن:</strong>
-                    <span>بعد إتمام التحويل، يرجى إرسال صورة إيصال التحويل (الاسكرين شوت) عبر واتساب على الرقم <strong class="font-mono font-bold text-slate-900">01025969295</strong> لتأكيد وتفعيل الحصص فوراً.</span>
+            <!-- Step-by-Step Payment Notice -->
+            <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-3.5 mb-3.5 text-xs text-amber-950">
+                <div class="flex items-start gap-2.5">
+                    <span class="text-xl">⚠️</span>
+                    <div class="space-y-1 leading-relaxed">
+                        <strong class="font-black block text-amber-900 text-sm">تنبيه هام حول طريقة السداد:</strong>
+                        <p class="text-slate-700">السداد لا يتم بخصم إلكتروني مباشر من هذا الموقع، بل عبر <strong>التحويل المالي المباشر</strong> من هاتفك باتباع الخطوات التالية:</p>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-800 font-medium pt-1">
+                            <li>انسخ رقم الحساب أو المحفظة الموضح أعلاه.</li>
+                            <li>افتح تطبيق <strong>إنستا باي</strong> أو محفظتك وحوّل المبلغ (<span id="howToAmount" class="font-bold text-emerald-800">500.00 ج.م</span>).</li>
+                            <li>التقط صورة (سكرين شوت) لإشعار نجاح التحويل.</li>
+                            <li>اضغط الزر الأخضر بالأسفل وأرسل الصورة عبر واتساب ليتم تفعيل وشحن الحصص فوراً.</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
 
             <!-- Primary Action: WhatsApp Direct Link -->
-            <div class="space-y-2">
-                <a id="btnSendWhatsAppTransfer" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform hover:scale-[1.01]">
-                    <span>📲 إرسال إيصال التحويل عبر واتساب (01025969295)</span>
+            <div class="space-y-2.5">
+                <a id="btnSendWhatsAppTransfer" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform hover:scale-[1.01] text-center">
+                    <span>📲 إرسال صورة التحويل وتفعيل الحصص فوراً (واتساب)</span>
                 </a>
 
-                <!-- Secondary Action: Register Payment & Generate Official Receipt -->
-                <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
-                    <span id="btnPaymobSubmitText">تأكيد السداد وإصدار الإيصال المالي الرسمي</span>
+                <!-- Secondary Action: Register Transfer Notice (Pending Review) -->
+                <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2">
+                    <span id="btnPaymobSubmitText">📋 تسجيل إشعار سداد في حسابي (قيد المراجعة)</span>
                 </button>
             </div>
-            <p class="text-[10px] text-center text-slate-400 mt-2.5 flex items-center justify-center gap-1">
+            <p class="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
                 <span>🔒</span>
-                <span>تأكيد موثوق عبر إدارة أكاديمية منير</span>
+                <span>لا يتم تفعيل الرصيد إلا بعد مراجعة صورة إشعار التحويل من قبل الإدارة</span>
             </p>
         </div>
     </div>
@@ -727,21 +735,30 @@
         </div>
     </div>
 
-    <!-- Modal: Official Digital Payment Receipt & WhatsApp Share -->
+    <!-- Modal: Payment Request Receipt & WhatsApp Confirmation -->
     <div id="receiptModal" class="modal-overlay hidden">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-black text-xs">M</span>
-                    <h3 class="font-extrabold text-base text-slate-900">إيصال السداد المالي الرسمي</h3>
+                    <span class="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-black text-xs">M</span>
+                    <h3 class="font-extrabold text-base text-slate-900">طلب سداد اشتراك وإشعار تحويل</h3>
                 </div>
                 <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
 
+            <!-- Pending Review Notice -->
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3.5 text-amber-900 leading-relaxed text-[11px] flex items-start gap-2">
+                <span class="text-base">⏳</span>
+                <div>
+                    <strong class="font-bold block text-amber-950">الطلب قيد المراجعة:</strong>
+                    <span>لتأكيد السداد وتفعيل الحصص في رصيدك فوراً، يرجى الضغط على الزر الأخضر بالأسفل وإرسال صورة إيصال التحويل (الاسكرين شوت) للإدارة عبر واتساب.</span>
+                </div>
+            </div>
+
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 mb-4 font-mono text-slate-700">
                 <div class="flex justify-between">
-                    <span class="font-sans text-slate-500">رقم الإيصال:</span>
-                    <strong class="text-slate-950 font-bold" id="receiptNumber">RCT-2026-PAY-8821</strong>
+                    <span class="font-sans text-slate-500">رقم الطلب:</span>
+                    <strong class="text-slate-950 font-bold" id="receiptNumber">REQ-2026-PAY-8821</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">اسم الطالب:</span>
@@ -760,26 +777,26 @@
                     <strong class="text-blue-900 font-bold font-sans" id="receiptPackageName">باقة الـ 8 محاضرات شهرياً (جروب)</strong>
                 </div>
                 <div class="flex justify-between">
-                    <span class="font-sans text-slate-500">الرصيد المضاف:</span>
+                    <span class="font-sans text-slate-500">الحصص المطلوب شحنها:</span>
                     <strong class="text-emerald-700 font-bold font-sans" id="receiptCreditsAdded">+8 حصص جديدة</strong>
                 </div>
                 <div class="flex justify-between">
-                    <span class="font-sans text-slate-500">المبلغ المسدد:</span>
+                    <span class="font-sans text-slate-500">المبلغ المطلوب:</span>
                     <strong class="text-emerald-700 font-bold text-sm" id="receiptAmount">500.00 ج.م</strong>
                 </div>
                 <div class="flex justify-between">
-                    <span class="font-sans text-slate-500">تاريخ المعاملة:</span>
+                    <span class="font-sans text-slate-500">تاريخ الطلب:</span>
                     <span class="text-slate-600" id="receiptDate">2026-09-08</span>
                 </div>
                 <div class="flex justify-between pt-2 border-t border-slate-200">
                     <span class="font-sans text-slate-500">حالة السداد:</span>
-                    <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px] font-sans">معتمد ومؤكد (Paymob)</span>
+                    <span id="receiptStatusBadge" class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px] font-sans">⏳ قيد التحقق (بانتظار صورة التحويل)</span>
                 </div>
             </div>
 
             <div class="space-y-2">
-                <a id="btnWhatsAppReceipt" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
-                    <span>مشاركة الإيصال عبر WhatsApp إلى ولي الأمر</span>
+                <a id="btnWhatsAppReceipt" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md text-center">
+                    <span>📲 إرسال صورة التحويل وتأكيد التفعيل عبر WhatsApp</span>
                 </a>
                 <button onclick="closeReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">
                     إغلاق
