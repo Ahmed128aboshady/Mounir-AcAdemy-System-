@@ -563,6 +563,21 @@ async function loadSelectedCourseLectures() {
             ? window.getGroupMeetUrl(curGid)
             : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
+        // Update Mobile & Desktop Hero Quick-Join Card
+        const heroCourseTitle = document.getElementById('heroCourseTitle');
+        if (heroCourseTitle) heroCourseTitle.innerText = data.course_name || selectedCourseName;
+        const heroTeacherName = document.getElementById('heroTeacherName');
+        if (heroTeacherName) heroTeacherName.innerText = (currentCourseInfo && currentCourseInfo.teacher_name) ? ('أ. ' + currentCourseInfo.teacher_name) : 'معلم الأكاديمية';
+        const heroSessionTime = document.getElementById('heroSessionTime');
+        if (heroSessionTime) heroSessionTime.innerText = (timeText || '') + (subDays ? (' • ' + subDays) : '') + (' (' + durLabel + ')');
+        const heroCreditsBadge = document.getElementById('heroCreditsBadge');
+        if (heroCreditsBadge) {
+            heroCreditsBadge.innerText = (rc > 0) ? (`${rc} حصص متبقية بالرصيد`) : 'الرصيد منتهٍ (يرجى التجديد)';
+            heroCreditsBadge.className = (rc > 0) 
+                ? 'text-[11px] text-amber-300 font-extrabold bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30'
+                : 'text-[11px] text-red-300 font-extrabold bg-red-500/20 px-2.5 py-0.5 rounded-full border border-red-400/30';
+        }
+
         // Build the full list of lectures (existing + generated)
         if (!data.lectures || !Array.isArray(data.lectures)) {
             data.lectures = [];
@@ -802,18 +817,18 @@ function renderLectureCard(l, isCurrentDue = false) {
 
     // The single video room button - only shown for current due lecture or live
     const meetBtn = `
-        <div class="mt-3 pt-3 border-t border-emerald-200/60 flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2">
-                <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition transform hover:scale-[1.02]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <div class="mt-3 pt-3 border-t border-emerald-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     <span>دخول قاعة الحصة الآن</span>
                 </button>
-                <button type="button" onclick="event.stopPropagation(); if (window.copyMeetLink) window.copyMeetLink('${meetLink}', this); else { navigator.clipboard.writeText('${meetLink}'); alert('تم نسخ رابط الحصة بنجاح!'); }" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3 py-2.5 rounded-xl text-xs transition">
+                <button type="button" onclick="event.stopPropagation(); if (window.copyMeetLink) window.copyMeetLink('${meetLink}', this); else { navigator.clipboard.writeText('${meetLink}'); alert('تم نسخ رابط الحصة بنجاح!'); }" class="inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 active:scale-[0.98] text-slate-700 border border-slate-300 font-bold px-3 py-3 rounded-xl text-xs transition cursor-pointer" title="نسخ الرابط">
                     <span>📋</span>
-                    <span>نسخ الرابط</span>
+                    <span class="hidden sm:inline">نسخ الرابط</span>
                 </button>
             </div>
-            <span class="text-[11px] text-emerald-800 font-semibold bg-emerald-100/70 px-2 py-1 rounded-lg">قاعة تفاعلية مباشرة مع المعلم</span>
+            <span class="text-[10px] sm:text-[11px] text-emerald-800 font-semibold bg-emerald-100/70 px-2.5 py-1 rounded-lg text-center sm:text-right">قاعة تفاعلية مباشرة مع المعلم</span>
         </div>
     `;
     
@@ -932,13 +947,46 @@ function joinMeet(lectureId, meetUrl) {
     const targetUrl = meetUrl || 'https://meet.google.com';
     window.open(targetUrl, '_blank');
     try {
-        fetch('/api/lectures/' + lectureId + '/join', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ student_id: currentStudentId, duration_minutes: 60 })
-        }).catch(() => {});
+        if (lectureId) {
+            fetch('/api/lectures/' + lectureId + '/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: currentStudentId, duration_minutes: 60 })
+            }).catch(() => {});
+        }
     } catch (err) {
         console.warn("Error joining meet:", err);
+    }
+}
+
+function getNextDueMeetUrl() {
+    const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const curGid = currentCourseInfo.group_id || curStudent.group_id;
+    return (typeof window !== 'undefined' && window.getGroupMeetUrl) 
+        ? window.getGroupMeetUrl(curGid) 
+        : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
+}
+
+function joinNextDueMeet() {
+    const url = getNextDueMeetUrl();
+    joinMeet(null, url);
+}
+
+function copyNextDueMeet() {
+    const url = getNextDueMeetUrl();
+    const btn = document.getElementById('heroCopyMeetBtn');
+    if (window.copyMeetLink) {
+        window.copyMeetLink(url, btn);
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            if (window.MonirPopup) window.MonirPopup.toast('✅ تم نسخ رابط الحصة بنجاح!', 'success');
+            else alert('تم نسخ رابط الحصة بنجاح!');
+        }).catch(() => {
+            prompt('رابط الحصة المباشر:', url);
+        });
+    } else {
+        prompt('رابط الحصة المباشر:', url);
     }
 }
 

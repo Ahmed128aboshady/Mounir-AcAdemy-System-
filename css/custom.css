@@ -161,11 +161,63 @@ html, body {
     max-width: 100%;
 }
 
+.safe-bottom {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.safe-top {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+}
+
 @media (max-width: 640px) {
     .max-w-6xl {
         width: 100% !important;
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
     }
+
+    /* Mobile Sheet Modals */
+    .modal-overlay {
+        padding: 0 !important;
+        align-items: flex-end !important;
+    }
+
+    .modal-overlay > div {
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border-top-left-radius: 1.5rem !important;
+        border-top-right-radius: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92vh !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 1.25rem !important;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* Student Smart ID Card mobile ergonomics */
+    .student-id-card {
+        padding: 16px !important;
+        border-radius: 20px !important;
+    }
+
+    /* Prevent annoying auto-zoom on iOS Safari when focusing input fields */
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+
+    /* Mobile Lecture Card buttons */
+    .lecture-card {
+        padding: 14px !important;
+        border-radius: 16px !important;
+    }
+
+    /* Mobile touch target minimum height */
+    button, a.button {
+        min-height: 38px;
+    }
 }
+
 
