@@ -2153,11 +2153,11 @@
                             .order('qr_code', { ascending: true });
 
                         if (!error && students && students.length > 0) {
-                            // Fetch enrollments separately
+                            // Fetch enrollments directly from Supabase (avoiding URI length limit of .in() with 780+ IDs)
                             const { data: enrollments } = await client
                                 .from('enrollments')
                                 .select('student_id, remaining_credits, teacher_id, course_name, excuse_count, current_surah, current_aya, teachers(name)')
-                                .in('student_id', students.map(s => s.id));
+                                .limit(5000);
 
                             const enrMap = {};
                             if (enrollments) {

@@ -12668,7 +12668,7 @@
       "lecture_time": "السبت 4",
       "status": "active",
       "account_status": "نشط",
-      "remaining_credits": 3,
+      "remaining_credits": 2,
       "created_at": "2026-09-10 18:32:57",
       "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G234"
     },
@@ -27922,7 +27922,7 @@
       "unlocked_blocks": 1,
       "total_lectures_unlocked": 4,
       "renewal_count": 0,
-      "remaining_credits": 3,
+      "remaining_credits": 2,
       "excuse_count": 0,
       "max_allowed_excuses": 1,
       "current_surah": "سورة الرحمن - المرحلة الأولى",
@@ -27932,7 +27932,8 @@
       "subscription_days": "السبت",
       "lecture_time": "السبت 4",
       "teacher_name": "عبد الرحيم",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G234"
+      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G234",
+      "present_count": 1
     },
     {
       "id": 387,
