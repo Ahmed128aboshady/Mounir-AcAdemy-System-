@@ -398,6 +398,22 @@
         }
     }
 
+    function normalizeTeacherName(name) {
+        if (!name) return '';
+        return String(name)
+            .trim()
+            .replace(/^(أستاذ|استاذ|أ\.|ا\.|م\.|شيخ|الشيخ)\s*[\/\-]?\s*/gi, '')
+            .replace(/عبد\s+/g, 'عبد')
+            .replace(/أبو\s+/g, 'ابو')
+            .replace(/[إأآا]/g, 'ا')
+            .replace(/[ة]/g, 'ه')
+            .replace(/[ى]/g, 'ي')
+            .replace(/[ًٌٍَُِّْ]/g, '')
+            .replace(/\s+/g, ' ')
+            .toLowerCase();
+    }
+    window.normalizeTeacherName = normalizeTeacherName;
+
     // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
     window.getGroupMeetUrl = function(groupId, teacherIdOrName) {
         const cleanGid = groupId ? String(groupId).trim() : '';
@@ -416,8 +432,34 @@
         // 3. Match via Teacher ID or Teacher Name if provided
         if (teacherIdOrName) {
             const cleanT = String(teacherIdOrName).trim();
+            // Direct match
             if (window.TEACHER_MEET_LINKS && window.TEACHER_MEET_LINKS[cleanT]) {
                 return window.TEACHER_MEET_LINKS[cleanT];
+            }
+            // Normalized name match
+            if (window.TEACHER_MEET_LINKS) {
+                const normTarget = normalizeTeacherName(cleanT);
+                if (normTarget) {
+                    for (const [k, url] of Object.entries(window.TEACHER_MEET_LINKS)) {
+                        if (normalizeTeacherName(k) === normTarget) {
+                            return url;
+                        }
+                    }
+                    // Substring / compound name match (e.g. 'عبدالرحمن أحمد مختار' vs 'عبدالرحمن مختار')
+                    if (normTarget.length > 3) {
+                        const targetParts = normTarget.split(' ').filter(p => p.length > 2);
+                        for (const [k, url] of Object.entries(window.TEACHER_MEET_LINKS)) {
+                            const normK = normalizeTeacherName(k);
+                            if (!normK || normK.length <= 3) continue;
+                            const kParts = normK.split(' ').filter(p => p.length > 2);
+                            if (targetParts.length >= 2 && kParts.length >= 2) {
+                                if (targetParts[0] === kParts[0] && targetParts[targetParts.length - 1] === kParts[kParts.length - 1]) {
+                                    return url;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
