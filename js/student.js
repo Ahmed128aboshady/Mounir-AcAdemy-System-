@@ -2514,6 +2514,20 @@ function syncZoomLiveStatusAll() {
         }
     }
 
+    // 3.1 Schedule Notices Dropdown Active Badge & Auto-Open
+    const schedBadge = document.getElementById('schedActiveBadge');
+    const isLiveActive = (status && status.isWithinWindow) || (sundayStatus && sundayStatus.isWithinWindow);
+    if (schedBadge) {
+        if (isLiveActive) {
+            schedBadge.classList.remove('hidden');
+            if (typeof toggleScheduleNoticesDropdown === 'function') {
+                toggleScheduleNoticesDropdown(true);
+            }
+        } else {
+            schedBadge.classList.add('hidden');
+        }
+    }
+
     // 4. Refresh General Track Card
     if (typeof renderGeneralTrackView === 'function') {
         const c = document.getElementById('generalTrackCardContainer');

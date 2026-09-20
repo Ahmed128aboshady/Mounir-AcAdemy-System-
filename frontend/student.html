@@ -286,84 +286,125 @@
                 </div>
             </div>
 
-            <!-- Notice: Friday Schedule & Locked Files (تنبيه موعد الجمعة غداً وقفل الملفات والريكوردات) -->
-            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
-                <div class="flex items-center gap-2">
-                    <div>
-                        <strong class="text-xs sm:text-sm font-black text-amber-950 block">موعد المحاضرات العامة التفاعلية هو يوم الجمعة غداً</strong>
-                        <span class="text-[11px] text-amber-800 font-bold block">رابط Zoom سيفتح تلقائياً في موعد فئتك العمرية:</span>
-                    </div>
-                </div>
-                <div id="fridayScheduleSlotContainer" class="space-y-2">
-                    <div id="slotNoticeKids" class="hidden bg-white/95 border border-amber-200 p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-slate-800 text-xs font-bold">
-                        <span>موعد فئة الأطفال (أقل من 10 سنوات): <strong class="text-slate-900">الجمعة 1:50 م - 2:25 م</strong></span>
-                        <div id="slotNoticeKidsAction" class="w-full sm:w-auto"></div>
-                    </div>
-                    <div id="slotNoticeAdults" class="hidden bg-white/95 border border-amber-200 p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-slate-800 text-xs font-bold">
-                        <span>موعد فئة الطلاب (10 سنوات فما فوق): <strong class="text-slate-900">الجمعة 2:20 م - 2:50 م</strong></span>
-                        <div id="slotNoticeAdultsAction" class="w-full sm:w-auto"></div>
-                    </div>
-                </div>
-                <div id="fridayScheduleZoomActionContainer" class="pt-1"></div>
-                <script>
-                (function(){
-                    try {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const u = window.__PRELOADED_USER__;
-                        let a = urlParams.has('sim_age') ? parseInt(urlParams.get('sim_age'),10) : ((u && u.age) ? parseInt(u.age,10) : 9);
-                        if (a < 10) {
-                            const k = document.getElementById('slotNoticeKids');
-                            if (k) k.classList.remove('hidden');
-                        } else {
-                            const ad = document.getElementById('slotNoticeAdults');
-                            if (ad) ad.classList.remove('hidden');
-                        }
-                    } catch(e){}
-                })();
-                </script>
-                <div class="bg-amber-100/60 p-2 rounded-xl text-[11px] text-amber-900 font-bold flex items-center gap-1.5 border border-amber-200/80">
-                    <span>تنويه: التسجيلات الصوتية (الريكوردات) والملخصات مقفولة حالياً، وتفتح فقط بعد انتهاء الحصة وإضافتها بواسطة المشرفين.</span>
-                </div>
-            </div>
-
-            <!-- Notice: Sunday Tafsir Lecture (محاضرة التفسير والتدبر الأسبوعية - الأحد) -->
-            <div id="sundayTafsirNoticeCard" class="hidden bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-2xl">📖</span>
-                        <div>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <strong class="text-xs sm:text-sm font-black text-emerald-950">محاضرة التفسير والتدبر الأسبوعية</strong>
-                                <span class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">محاضرة عامة مجانية 100%</span>
-                                <span class="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">فئة 10 سنوات فما فوق</span>
-                            </div>
-                            <span class="text-[11px] text-emerald-800 font-bold block mt-1">
-                                📅 الموعد: <strong class="text-slate-900 font-black">كل يوم أحد من 8:00 م إلى 9:00 م</strong> (يفتح الرابط تلقائياً من <strong class="text-emerald-900 font-black">7:50 مساءً</strong>)
-                            </span>
-                        </div>
-                    </div>
-                    <div id="sundayTafsirActionContainer" class="w-full sm:w-auto">
-                        <span class="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-300 px-3.5 py-2 rounded-xl block text-center whitespace-nowrap shadow-xs">
-                            تفتح الأحد 7:50 م
+            <!-- Collapsible Schedule Notices Dropdown (قائمة منسدلة قابلة للطي والفتح لمواعيد المحاضرات المباشرة) -->
+            <div class="border-2 border-indigo-200 rounded-2xl bg-indigo-50/50 overflow-hidden shadow-xs">
+                <button type="button" onclick="toggleScheduleNoticesDropdown()" 
+                    class="w-full p-3 sm:p-3.5 flex items-center justify-between text-right hover:bg-indigo-100/60 transition cursor-pointer gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-base sm:text-lg">📅</span>
+                        <span class="font-black text-xs sm:text-sm text-indigo-950">جدول ومواعيد المحاضرات العامة المباشرة (الجمعة والأحد)</span>
+                        <span id="schedActiveBadge" class="hidden bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full animate-pulse flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                            <span>بث مباشر متاح الآن 🔴</span>
                         </span>
                     </div>
-                </div>
+                    <div class="flex items-center gap-1.5 text-xs text-indigo-700 font-black shrink-0 bg-white/80 border border-indigo-200 px-3 py-1.5 rounded-xl shadow-2xs">
+                        <span id="schedToggleText">عرض المواعيد</span>
+                        <span id="schedToggleIcon" class="text-[11px] transition-transform">▼</span>
+                    </div>
+                </button>
 
-                <script>
-                (function(){
-                    try {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const u = window.__PRELOADED_USER__;
-                        let a = urlParams.has('sim_age') ? parseInt(urlParams.get('sim_age'),10) : ((u && u.age) ? parseInt(u.age,10) : 9);
-                        const sun = document.getElementById('sundayTafsirNoticeCard');
-                        if (sun) {
-                            if (a >= 10) sun.classList.remove('hidden');
-                            else sun.classList.add('hidden');
-                        }
-                    } catch(e){}
-                })();
-                </script>
+                <!-- Dropdown Collapsible Content (محتوى الكروت) -->
+                <div id="scheduleNoticesDropdownContent" class="hidden p-3.5 sm:p-4 pt-1 space-y-3 border-t border-indigo-100 bg-white/70">
+                    <!-- Notice: Friday Schedule & Locked Files (تنبيه موعد الجمعة غداً وقفل الملفات والريكوردات) -->
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <div>
+                                <strong class="text-xs sm:text-sm font-black text-amber-950 block">موعد المحاضرات العامة التفاعلية هو يوم الجمعة غداً</strong>
+                                <span class="text-[11px] text-amber-800 font-bold block">رابط Zoom سيفتح تلقائياً في موعد فئتك العمرية:</span>
+                            </div>
+                        </div>
+                        <div id="fridayScheduleSlotContainer" class="space-y-2">
+                            <div id="slotNoticeKids" class="hidden bg-white/95 border border-amber-200 p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-slate-800 text-xs font-bold">
+                                <span>موعد فئة الأطفال (أقل من 10 سنوات): <strong class="text-slate-900">الجمعة 1:50 م - 2:25 م</strong></span>
+                                <div id="slotNoticeKidsAction" class="w-full sm:w-auto"></div>
+                            </div>
+                            <div id="slotNoticeAdults" class="hidden bg-white/95 border border-amber-200 p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-slate-800 text-xs font-bold">
+                                <span>موعد فئة الطلاب (10 سنوات فما فوق): <strong class="text-slate-900">الجمعة 2:20 م - 2:50 م</strong></span>
+                                <div id="slotNoticeAdultsAction" class="w-full sm:w-auto"></div>
+                            </div>
+                        </div>
+                        <div id="fridayScheduleZoomActionContainer" class="pt-1"></div>
+                        <script>
+                        (function(){
+                            try {
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const u = window.__PRELOADED_USER__;
+                                let a = urlParams.has('sim_age') ? parseInt(urlParams.get('sim_age'),10) : ((u && u.age) ? parseInt(u.age,10) : 9);
+                                if (a < 10) {
+                                    const k = document.getElementById('slotNoticeKids');
+                                    if (k) k.classList.remove('hidden');
+                                } else {
+                                    const ad = document.getElementById('slotNoticeAdults');
+                                    if (ad) ad.classList.remove('hidden');
+                                }
+                            } catch(e){}
+                        })();
+                        </script>
+                        <div class="bg-amber-100/60 p-2 rounded-xl text-[11px] text-amber-900 font-bold flex items-center gap-1.5 border border-amber-200/80">
+                            <span>تنويه: التسجيلات الصوتية (الريكوردات) والملخصات مقفولة حالياً، وتفتح فقط بعد انتهاء الحصة وإضافتها بواسطة المشرفين.</span>
+                        </div>
+                    </div>
+
+                    <!-- Notice: Sunday Tafsir Lecture (محاضرة التفسير والتدبر الأسبوعية - الأحد) -->
+                    <div id="sundayTafsirNoticeCard" class="hidden bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-2xl">📖</span>
+                                <div>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <strong class="text-xs sm:text-sm font-black text-emerald-950">محاضرة التفسير والتدبر الأسبوعية</strong>
+                                        <span class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">محاضرة عامة مجانية 100%</span>
+                                        <span class="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">فئة 10 سنوات فما فوق</span>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-800 font-bold block mt-1">
+                                        📅 الموعد: <strong class="text-slate-900 font-black">كل يوم أحد من 8:00 م إلى 9:00 م</strong> (يفتح الرابط تلقائياً من <strong class="text-emerald-900 font-black">7:50 مساءً</strong>)
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="sundayTafsirActionContainer" class="w-full sm:w-auto">
+                                <span class="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-300 px-3.5 py-2 rounded-xl block text-center whitespace-nowrap shadow-xs">
+                                    تفتح الأحد 7:50 م
+                                </span>
+                            </div>
+                        </div>
+
+                        <script>
+                        (function(){
+                            try {
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const u = window.__PRELOADED_USER__;
+                                let a = urlParams.has('sim_age') ? parseInt(urlParams.get('sim_age'),10) : ((u && u.age) ? parseInt(u.age,10) : 9);
+                                const sun = document.getElementById('sundayTafsirNoticeCard');
+                                if (sun) {
+                                    if (a >= 10) sun.classList.remove('hidden');
+                                    else sun.classList.add('hidden');
+                                }
+                            } catch(e){}
+                        })();
+                        </script>
+                    </div>
+                </div>
             </div>
+            <script>
+            function toggleScheduleNoticesDropdown(forceOpen) {
+                const content = document.getElementById('scheduleNoticesDropdownContent');
+                const icon = document.getElementById('schedToggleIcon');
+                const text = document.getElementById('schedToggleText');
+                if (!content) return;
+                const isOpening = (forceOpen === true) || content.classList.contains('hidden');
+                if (isOpening) {
+                    content.classList.remove('hidden');
+                    if (icon) icon.innerText = '▲';
+                    if (text) text.innerText = 'إخفاء المواعيد';
+                } else {
+                    content.classList.add('hidden');
+                    if (icon) icon.innerText = '▼';
+                    if (text) text.innerText = 'عرض المواعيد';
+                }
+            }
+            window.toggleScheduleNoticesDropdown = toggleScheduleNoticesDropdown;
+            </script>
 
             <!-- Tracks Switcher Dropdown Menu (دروب منيو اختيار المسار العام) -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200">
