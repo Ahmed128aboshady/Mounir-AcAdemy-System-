@@ -800,9 +800,8 @@
                     current_surah: e.current_surah,
                     current_aya: e.current_aya || 1,
                     present_count: e.present_count || 0,
-                    absent_count: e.absent_count || 0,
-                    status: e.status || 'active',
-                    rating: e.rating || null,
+                    status: (s.status === 'inactive' || s.account_status === 'موقوف' || e.status === 'inactive' || e.status === 'موقوف') ? 'inactive' : 'active',
+                    account_status: (s.status === 'inactive' || s.account_status === 'موقوف' || e.status === 'inactive' || e.status === 'موقوف') ? 'موقوف' : 'نشط',
                     // Parent phone and billing details kept hidden
                 });
             });

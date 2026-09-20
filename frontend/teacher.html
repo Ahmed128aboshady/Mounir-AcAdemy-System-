@@ -575,7 +575,8 @@
                                             current_aya: e.current_aya || 1,
                                             present_count: e.present_count || 0,
                                             absent_count: e.absent_count || 0,
-                                            status: e.status || 'active',
+                                            status: (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(s.status || s.account_status || e.status || '').toLowerCase().trim())) ? 'inactive' : 'active',
+                                            account_status: (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(s.status || s.account_status || e.status || '').toLowerCase().trim())) ? 'موقوف' : 'نشط',
                                             rating: e.rating || null,
                                             enrollment_id: e.id,
                                         });
@@ -828,10 +829,16 @@
                                 <span class="hidden sm:inline">دخول القاعة</span>
                                 <span class="sm:hidden">القاعة</span>
                             </a>
-                            <div class="text-center bg-white/10 px-2 py-0.5 sm:py-1 rounded-lg border border-white/10 shrink-0 min-w-[34px]">
-                                <div class="text-xs sm:text-base font-black leading-tight">${g.students.length}</div>
-                                <div class="text-[9px] text-slate-300">طالب</div>
-                            </div>
+                            ${(() => {
+                                const activeStudents = g.students.filter(st => st.status !== 'inactive' && st.account_status !== 'موقوف').length;
+                                const inactiveStudents = g.students.length - activeStudents;
+                                return `
+                                    <div class="text-center bg-white/10 px-2 py-0.5 sm:py-1 rounded-lg border border-white/10 shrink-0 min-w-[36px]">
+                                        <div class="text-xs sm:text-base font-black leading-tight">${activeStudents}</div>
+                                        <div class="text-[9px] text-slate-300">نشط${inactiveStudents > 0 ? `<span class="text-red-300 font-bold block">(${inactiveStudents} موقوف)</span>` : ''}</div>
+                                    </div>
+                                `;
+                            })()}
                         </div>
                     </div>
 
@@ -854,7 +861,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-3 sm:flex sm:items-center gap-1.5 sm:gap-2 w-full md:w-auto">
+                            <div class="grid grid-cols-2 sm:flex sm:items-center gap-1.5 sm:gap-2 w-full md:w-auto">
                                 <a href="${meetUrl}" target="_blank" id="meet-btn-${idSafe}" class="inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs shadow-sm transition">
                                     <span>📹</span>
                                     <span>بدء الحصة</span>
@@ -867,6 +874,15 @@
                                     <span>🔄</span>
                                     <span>الرابط الأصلي</span>
                                 </button>
+                                ${(() => {
+                                    const inactiveCount = g.students.filter(st => st.status === 'inactive' || st.account_status === 'موقوف').length;
+                                    return inactiveCount > 0 ? `
+                                        <button type="button" onclick="toggleInactiveInGroup('${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-white hover:bg-red-50 border border-red-200 text-red-700 font-bold px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs shadow-xs transition" title="إخفاء أو إظهار الطلاب الموقوفين">
+                                            <span>👁️</span>
+                                            <span class="inactive-toggle-text">إخفاء الموقوفين (${inactiveCount})</span>
+                                        </button>
+                                    ` : '';
+                                })()}
                             </div>
                         </div>
 
@@ -928,6 +944,38 @@
                 alert('تمت استعادة رابط قاعة الأكاديمية بنجاح:\n' + defaultUrl);
             }
         }
+
+        function toggleInactiveInGroup(idSafe, btn) {
+            const content = document.getElementById('content-' + idSafe);
+            if (!content) return;
+            const rows = content.querySelectorAll('tr[data-inactive="1"]');
+            if (!rows.length) return;
+
+            const shouldHide = !rows[0].classList.contains('hidden');
+            rows.forEach(r => {
+                if (shouldHide) {
+                    r.classList.add('hidden');
+                } else {
+                    r.classList.remove('hidden');
+                }
+            });
+
+            if (btn) {
+                const textSpan = btn.querySelector('.inactive-toggle-text');
+                if (textSpan) {
+                    if (shouldHide) {
+                        textSpan.textContent = `إظهار الموقوفين (${rows.length})`;
+                        btn.classList.remove('bg-white', 'text-red-700', 'border-red-200');
+                        btn.classList.add('bg-red-50', 'text-red-800', 'border-red-300');
+                    } else {
+                        textSpan.textContent = `إخفاء الموقوفين (${rows.length})`;
+                        btn.classList.remove('bg-red-50', 'text-red-800', 'border-red-300');
+                        btn.classList.add('bg-white', 'text-red-700', 'border-red-200');
+                    }
+                }
+            }
+        }
+        window.toggleInactiveInGroup = toggleInactiveInGroup;
 
         
     // 114 Surahs of the Holy Quran
@@ -1033,10 +1081,13 @@
             const studentName = s.name || s.student_name || 'طالب الأكاديمية';
             const studentCode = s.student_code || '—';
             const safeNameEsc = (studentName || '').replace(/'/g, "\\'");
+            const isInactive = (s.status === 'inactive' || s.status === 'موقوف' || s.account_status === 'موقوف');
 
             const rc = s.remaining_credits || 0;
             let creditBadge;
-            if (rc === 0) {
+            if (isInactive) {
+                creditBadge = `<span class="bg-red-50 text-red-700 border border-red-200 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة (موقوف)</span>`;
+            } else if (rc === 0) {
                 creditBadge = `<span class="bg-slate-200 text-slate-700 font-black px-2 py-0.5 rounded-md text-[11px]">الرصيد منتهي</span>`;
             } else if (rc <= 1) {
                 creditBadge = `<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">⚠️ ${rc} حصة متبقية</span>`;
@@ -1162,11 +1213,40 @@
                 todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md shadow-xs">⚠️ سُجل عذر اليوم</span></div>`;
             }
 
+            let actionsHtml = '';
+            if (isInactive) {
+                actionsHtml = `
+                    <div class="flex items-center justify-center gap-1.5 flex-wrap" id="actions-cell-${s.id}">
+                        <span class="inline-flex items-center gap-1 bg-red-100 text-red-800 border border-red-300 font-bold px-2.5 py-1 rounded-lg text-[11px] select-none" title="تم إيقاف اشتراك هذا الطالب من قبل الإدارة">
+                            <span>⛔</span>
+                            <span>الاشتراك موقوف</span>
+                        </span>
+                        <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2 py-1 rounded-lg text-[11px] transition shadow-2xs flex items-center gap-1 cursor-pointer" title="تصفح سجل الحفظ">
+                            <span>📖</span><span>السجل</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                actionsHtml = `
+                    ${todayBadge}
+                    <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
+                        <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
+                        <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (الأول مجاني)">عذر</button>
+                        <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
+                        <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
+                        <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
+                    </div>
+                `;
+            }
+
             return `
-                <tr class="student-row hover:bg-slate-50/80 transition" id="row-${s.id}">
+                <tr class="student-row transition ${isInactive ? 'bg-red-50/40 border-r-4 border-r-red-400 opacity-80' : 'hover:bg-slate-50/80'}" id="row-${s.id}" data-inactive="${isInactive ? '1' : '0'}">
                     <td class="p-3 text-slate-400 font-mono">${idx + 1}</td>
                     <td class="p-3">
-                        <div class="font-black text-slate-900 text-xs sm:text-sm leading-tight">${studentName}</div>
+                        <div class="font-black text-slate-900 text-xs sm:text-sm leading-tight flex items-center gap-1.5 flex-wrap">
+                            <span>${studentName}</span>
+                            ${isInactive ? `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">⛔ موقوف من الإدارة</span>` : ''}
+                        </div>
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                             <span class="font-mono font-extrabold text-slate-600 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${studentCode}</span>
                             ${(sDays || sTime) ? `
@@ -1191,7 +1271,7 @@
                             <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]">✗ ${absent}</span>
                         </div>
                     </td>
-                                        <!-- السورة (دروب منيو لجميع سور القرآن 114) -->
+                    <!-- السورة (دروب منيو لجميع سور القرآن 114) -->
                     <td class="p-3">
                         <div class="min-w-[135px]">
                             <select id="surah-select-${s.id}" 
@@ -1218,14 +1298,7 @@
                         </div>
                     </td>
                     <td class="p-3">
-                        ${todayBadge}
-                        <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
-                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
-                            <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (الأول مجاني)">عذر</button>
-                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
-                            <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
-                            <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
-                        </div>
+                        ${actionsHtml}
                     </td>
                 </tr>
             `;
@@ -1271,6 +1344,18 @@
                         if (match) { foundStudent = match; break; }
                     }
                 }
+
+                if (foundStudent && (foundStudent.status === 'inactive' || foundStudent.account_status === 'موقوف')) {
+                    enableButtons();
+                    const warnMsg = '⛔ عذراً، اشتراك هذا الطالب موقوف من قبل الإدارة ولا يمكن تسجيل حضور أو غياب له.';
+                    if (window.MonirPopup) {
+                        MonirPopup.toast(warnMsg, 'error');
+                    } else {
+                        alert(warnMsg);
+                    }
+                    return;
+                }
+
                 const stName = foundStudent ? (foundStudent.name || foundStudent.student_name || 'طالب الأكاديمية') : 'الطالب';
                 const stCode = foundStudent ? (foundStudent.student_code || '') : '';
                 const curCredits = foundStudent ? (foundStudent.remaining_credits ?? 0) : 0;
