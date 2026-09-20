@@ -977,6 +977,60 @@
         }
         window.toggleInactiveInGroup = toggleInactiveInGroup;
 
+        // Calculate excuse eligibility based on subscription cycle (4 sessions for 1 day/wk, 8 sessions for 2 days/wk)
+        function getStudentExcuseCycleInfo(s) {
+            if (!s) return { cycleSize: 4, daysPerWeek: 1, currentCycle: 1, sessionsRemainingInCycle: 4, isLocked: false };
+
+            const daysStr = String(s.subscription_days || '').trim();
+            const clean = daysStr.replace(/أ|إ/g, 'ا').replace(/ة/g, 'ه');
+            const dayKeywords = ['سبت', 'احد', 'اثنين', 'اتنين', 'ثلاثاء', 'تلاتاء', 'اربعاء', 'خميس', 'جمعه'];
+            const matchedDays = dayKeywords.filter(kw => clean.includes(kw));
+            const hasMultipleDays = matchedDays.length >= 2 || daysStr.includes(' و ') || (daysStr.includes('و') && daysStr.split('و').length >= 2);
+
+            // 8 sessions if 2 days a week, 4 sessions if 1 day a week
+            const cycleSize = hasMultipleDays ? 8 : 4;
+            const daysPerWeek = hasMultipleDays ? 2 : 1;
+
+            const present = parseInt(s.present_count || 0, 10);
+            const absent = parseInt(s.absent_count || 0, 10);
+            const totalRecorded = present + absent;
+
+            const currentCycle = Math.floor(totalRecorded / cycleSize) + 1;
+            const sessionInCycle = (totalRecorded % cycleSize);
+            const sessionsRemainingInCycle = cycleSize - sessionInCycle;
+
+            // Check if excuse already used in current cycle
+            let storedLastCycle = 0;
+            try {
+                storedLastCycle = parseInt(localStorage.getItem('monir_last_excuse_cycle_' + s.id) || '0', 10);
+            } catch(e) {}
+
+            const dbMaxExcuses = parseInt(s.max_allowed_excuses || 0, 10);
+            const excuseCount = parseInt(s.excuse_count || 0, 10);
+
+            // A student has exhausted their excuse for the current subscription cycle if:
+            // 1. excuse_count > 0 AND dbMaxExcuses matches currentCycle or stored cycle matches currentCycle
+            // OR
+            // 2. excuseCount >= currentCycle
+            const isLocked = excuseCount > 0 && (
+                storedLastCycle === currentCycle ||
+                dbMaxExcuses === currentCycle ||
+                excuseCount >= currentCycle
+            );
+
+            return {
+                cycleSize,
+                daysPerWeek,
+                totalRecorded,
+                currentCycle,
+                sessionInCycle,
+                sessionsRemainingInCycle,
+                excuseCount,
+                isLocked
+            };
+        }
+        window.getStudentExcuseCycleInfo = getStudentExcuseCycleInfo;
+
         
     // 114 Surahs of the Holy Quran
     const QURAN_SURAHS = [
@@ -1095,15 +1149,29 @@
                 creditBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة</span>`;
             }
 
-            const excuseCount = s.excuse_count || 0;
-            const maxExcuse = s.max_allowed_excuses || 1;
+            const excuseInfo = getStudentExcuseCycleInfo(s);
             let excuseBadge;
-            if (excuseCount === 0) {
-                excuseBadge = `<span class="text-slate-400">لا يوجد</span>`;
-            } else if (excuseCount < maxExcuse) {
-                excuseBadge = `<span class="badge-excuse font-bold px-2 py-0.5 rounded-md text-[11px]">${excuseCount} (مجاني)</span>`;
+            if (excuseInfo.isLocked) {
+                const rem = excuseInfo.sessionsRemainingInCycle;
+                const remText = rem === 1 ? 'حصة واحدة' : rem === 2 ? 'حصتين' : `${rem} حصص`;
+                excuseBadge = `
+                    <div class="inline-flex flex-col items-start gap-0.5">
+                        <span class="badge-absent font-bold px-2 py-0.5 rounded-md text-[10px] inline-flex items-center gap-1" title="استُنفد عذر هذا الاشتراك">
+                            <span>🔒</span><span>مستنفد</span>
+                        </span>
+                        <span class="text-[9px] text-slate-500 font-bold whitespace-nowrap">يتجدد بعد ${remText}</span>
+                    </div>
+                `;
             } else {
-                excuseBadge = `<span class="badge-absent font-bold px-2 py-0.5 rounded-md text-[11px]">${excuseCount} (استُنفد العذر)</span>`;
+                const cycleText = excuseInfo.cycleSize === 8 ? '8 حصص' : '4 حصص';
+                excuseBadge = `
+                    <div class="inline-flex flex-col items-start gap-0.5">
+                        <span class="badge-excuse font-bold px-2 py-0.5 rounded-md text-[10px] inline-flex items-center gap-1" title="عذر متاح لاشتراك الحصص الحالي">
+                            <span>✓</span><span>متاح</span>
+                        </span>
+                        <span class="text-[9px] text-emerald-700 font-bold whitespace-nowrap">عذر/${cycleText}</span>
+                    </div>
+                `;
             }
 
             // Parse Quran Progress (الحفظ والماضي القريب والبعيد)
@@ -1227,10 +1295,13 @@
                     </div>
                 `;
             } else {
-                const isExcuseExhausted = excuseCount >= maxExcuse;
+                const isExcuseExhausted = excuseInfo.isLocked;
+                const rem = excuseInfo.sessionsRemainingInCycle;
+                const remText = rem === 1 ? 'حصة واحدة' : rem === 2 ? 'حصتين' : `${rem} حصص`;
+                const cycleDesc = excuseInfo.cycleSize === 8 ? '8 حصص' : '4 حصص';
                 const excuseButtonHtml = isExcuseExhausted
-                    ? `<button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-50 select-none inline-flex items-center gap-0.5" title="استُنفد العذر المجاني الوحيد (${excuseCount}/${maxExcuse}) - لا يمكن تسجيل عذر آخر"><span>🔒</span><span>عذر</span></button>`
-                    : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (المرة الوحيدة المسموحة مجاناً)">عذر</button>`;
+                    ? `<button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-50 select-none inline-flex items-center gap-0.5" title="استُنفد عذر هذا الاشتراك (عذر واحد لكل ${cycleDesc}) - يتجدد تلقائياً بعد ${remText}"><span>🔒</span><span>عذر</span></button>`
+                    : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر متاح لاشتراك الحصص الحالي (عذر واحد لكل ${cycleDesc})">عذر</button>`;
 
                 actionsHtml = `
                     ${todayBadge}
@@ -1374,12 +1445,17 @@
                 const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
                 const prevRecord = localStorage.getItem(todayKey);
 
-                // Strict check: Block excused if student already used their excuse
-                if (sessionStatus === 'excused' && curExcuses >= maxExcuses) {
+                // Strict check: Block excused if student already used their excuse for this cycle
+                const excuseInfo = getStudentExcuseCycleInfo(foundStudent);
+                const rem = excuseInfo.sessionsRemainingInCycle;
+                const remText = rem === 1 ? 'حصة واحدة' : rem === 2 ? 'حصتين' : `${rem} حصص`;
+                const cycleDesc = excuseInfo.cycleSize === 8 ? '8 حصص (طالب يومين بالأسبوع)' : '4 حصص (طالب يوم بالأسبوع)';
+
+                if (sessionStatus === 'excused' && excuseInfo.isLocked) {
                     enableButtons();
-                    const warnMsg = `⚠️ الطالب (${stName}) استنفد بالفعل العذر المجاني الوحيد المسموح به (${curExcuses} من ${maxExcuses}).\nلا يمكن تسجيل عذر آخر، يرجى تسجيل غياب بدلاً من ذلك.`;
+                    const warnMsg = `⚠️ استنفد الطالب (${stName}) العذر المسموح به لهذا الاشتراك (عذر واحد لكل ${cycleDesc}).\n\n🔒 سيتجدد العذر تلقائياً بعد إتمام (${remText}) متبقية في دورة الاشتراك.\nيرجى تسجيل غياب بدلاً من ذلك.`;
                     if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
-                        await window.MonirPopup.alert(warnMsg, 'العذر مستنفد', 'warning');
+                        await window.MonirPopup.alert(warnMsg, 'العذر مستنفد في هذا الاشتراك', 'warning');
                     } else {
                         alert(warnMsg);
                     }
@@ -1405,8 +1481,8 @@
                     modalType = 'question';
                 } else if (sessionStatus === 'excused') {
                     confirmTitle = 'تأكيد تسجيل عذر للطالب';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n🎁 هذا هو العذر المجاني الوحيد المسموح به للطالب (${curExcuses + 1} من ${maxExcuses}).\nهل تود تأكيد تسجيل العذر للطالب؟ (سيتم قفل خيار العذر بعد هذا التسجيل).`;
-                    confirmBtn = '✓ تأكيد العذر المجاني';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n🎁 هذا هو العذر المسموح به لاشتراك الطالب الحالي (عذر واحد لكل ${cycleDesc}).\n\nهل تود تأكيد تسجيل العذر للطالب؟\n(سيتم قفل خيار العذر تلقائياً حتى إتمام دورة الـ ${excuseInfo.cycleSize} حصص).`;
+                    confirmBtn = '✓ تأكيد العذر';
                     modalType = 'question';
                 } else if (sessionStatus === 'absent') {
                     confirmTitle = 'تأكيد تسجيل غياب بدون عذر';
@@ -1462,7 +1538,11 @@
                             } else if (sessionStatus === 'excused') {
                                 updates.excuse_count = excuseCount + 1;
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                resultMsg = `تم تسجيل العذر المجاني للطالب (${stName}) بنجاح ✓\nلم يتم خصم أي حصة • تم استهلاك العذر الوحيد بنجاح • الرصيد: ${rc} حصة`;
+                                updates.max_allowed_excuses = excuseInfo.currentCycle;
+                                try {
+                                    localStorage.setItem('monir_last_excuse_cycle_' + studentId, excuseInfo.currentCycle);
+                                } catch(e) {}
+                                resultMsg = `تم تسجيل عذر الطالب (${stName}) بنجاح ✓\nلم يتم خصم أي حصة • تم استهلاك عذر هذا الاشتراك • يتجدد العذر بعد إتمام دورة الـ (${excuseInfo.cycleSize}) حصص • الرصيد: ${rc} حصة`;
                             } else if (sessionStatus === 'absent') {
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                 updates.remaining_credits = Math.max(0, rc - 1);

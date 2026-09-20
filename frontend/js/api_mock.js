@@ -1168,6 +1168,7 @@
                     enr.present_count = (enr.present_count || 0) + 1;
                 } else if (body.session_status === 'excused') {
                     enr.excuse_count = (enr.excuse_count || 0) + 1;
+                    enr.absent_count = (enr.absent_count || 0) + 1;
                 } else if (body.session_status === 'absent') {
                     enr.remaining_credits = Math.max(0, (enr.remaining_credits || 4) - 1);
                     enr.absent_count = (enr.absent_count || 0) + 1;
