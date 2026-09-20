@@ -1162,8 +1162,16 @@
         // Action: Quran record session
         if (method === 'POST' && path === '/api/quran/record-session') {
             const enr = DB.enrollments.find(e => e.student_id === body.student_id);
-            if (enr && body.session_status === 'present') {
-                enr.remaining_credits = Math.max(0, (enr.remaining_credits || 4) - 1);
+            if (enr) {
+                if (body.session_status === 'present') {
+                    enr.remaining_credits = Math.max(0, (enr.remaining_credits || 4) - 1);
+                    enr.present_count = (enr.present_count || 0) + 1;
+                } else if (body.session_status === 'excused') {
+                    enr.excuse_count = (enr.excuse_count || 0) + 1;
+                } else if (body.session_status === 'absent') {
+                    enr.remaining_credits = Math.max(0, (enr.remaining_credits || 4) - 1);
+                    enr.absent_count = (enr.absent_count || 0) + 1;
+                }
             }
             saveDb();
             return jsonResponse({ success: true, message: 'تم تسجيل الجلسة بنجاح!', remaining_credits: enr ? enr.remaining_credits : 3 });

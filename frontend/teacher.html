@@ -1227,11 +1227,16 @@
                     </div>
                 `;
             } else {
+                const isExcuseExhausted = excuseCount >= maxExcuse;
+                const excuseButtonHtml = isExcuseExhausted
+                    ? `<button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-50 select-none inline-flex items-center gap-0.5" title="استُنفد العذر المجاني الوحيد (${excuseCount}/${maxExcuse}) - لا يمكن تسجيل عذر آخر"><span>🔒</span><span>عذر</span></button>`
+                    : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (المرة الوحيدة المسموحة مجاناً)">عذر</button>`;
+
                 actionsHtml = `
                     ${todayBadge}
                     <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
                         <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
-                        <button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر (الأول مجاني)">عذر</button>
+                        ${excuseButtonHtml}
                         <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
                         <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
                         <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
@@ -1369,6 +1374,18 @@
                 const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
                 const prevRecord = localStorage.getItem(todayKey);
 
+                // Strict check: Block excused if student already used their excuse
+                if (sessionStatus === 'excused' && curExcuses >= maxExcuses) {
+                    enableButtons();
+                    const warnMsg = `⚠️ الطالب (${stName}) استنفد بالفعل العذر المجاني الوحيد المسموح به (${curExcuses} من ${maxExcuses}).\nلا يمكن تسجيل عذر آخر، يرجى تسجيل غياب بدلاً من ذلك.`;
+                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                        await window.MonirPopup.alert(warnMsg, 'العذر مستنفد', 'warning');
+                    } else {
+                        alert(warnMsg);
+                    }
+                    return;
+                }
+
                 // Build Custom Popups
                 let confirmTitle = 'تأكيد العملية';
                 let confirmMsg = '';
@@ -1387,17 +1404,10 @@
                     confirmBtn = '✓ تأكيد الحضور';
                     modalType = 'question';
                 } else if (sessionStatus === 'excused') {
-                    if (curExcuses < maxExcuses) {
-                        confirmTitle = 'تأكيد تسجيل عذر للطالب';
-                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n🎁 هذا العذر مجاني (العذر رقم ${curExcuses + 1} من ${maxExcuses}).\nهل تود تأكيد تسجيل العذر للطالب؟`;
-                        confirmBtn = '✓ تأكيد العذر المجاني';
-                        modalType = 'question';
-                    } else {
-                        confirmTitle = '⚠️ استهلاك العذر المجاني';
-                        confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد استنفد هذا الطالب العذر المجاني المسموح به مسبقاً (${curExcuses} عذر مستخدم).\nهل تود تأكيد تسجيل العذر؟`;
-                        confirmBtn = 'تأكيد العذر';
-                        modalType = 'warning';
-                    }
+                    confirmTitle = 'تأكيد تسجيل عذر للطالب';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n🎁 هذا هو العذر المجاني الوحيد المسموح به للطالب (${curExcuses + 1} من ${maxExcuses}).\nهل تود تأكيد تسجيل العذر للطالب؟ (سيتم قفل خيار العذر بعد هذا التسجيل).`;
+                    confirmBtn = '✓ تأكيد العذر المجاني';
+                    modalType = 'question';
                 } else if (sessionStatus === 'absent') {
                     confirmTitle = 'تأكيد تسجيل غياب بدون عذر';
                     confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تسجيل غياب الطالب؟`;
@@ -1450,16 +1460,9 @@
                                 if (hasExtendedCols) updates.present_count = (enrData.present_count || 0) + 1;
                                 resultMsg = `تم تسجيل حضور (${stName}) بنجاح ✓\nالرصيد المتبقي للطالب: ${updates.remaining_credits} حصة`;
                             } else if (sessionStatus === 'excused') {
-                                if (excuseCount < maxAllowedExcuses) {
-                                    updates.excuse_count = excuseCount + 1;
-                                    if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                    resultMsg = `تم تسجيل العذر المجاني للطالب (${stName}) ✓\nلم يتم خصم أي حصة • الرصيد: ${rc} حصة`;
-                                } else {
-                                    updates.excuse_count = excuseCount + 1;
-                                    updates.remaining_credits = Math.max(0, rc - 1);
-                                    if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                    resultMsg = `تم استهلاك العذر المجاني للطالب (${stName})\nتم احتسابه غياباً وخصم حصة • الرصيد المتبقي: ${updates.remaining_credits} حصة`;
-                                }
+                                updates.excuse_count = excuseCount + 1;
+                                if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
+                                resultMsg = `تم تسجيل العذر المجاني للطالب (${stName}) بنجاح ✓\nلم يتم خصم أي حصة • تم استهلاك العذر الوحيد بنجاح • الرصيد: ${rc} حصة`;
                             } else if (sessionStatus === 'absent') {
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                 updates.remaining_credits = Math.max(0, rc - 1);
