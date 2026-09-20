@@ -1579,6 +1579,20 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                 });
             }
         }
+        if (typeof getSundayTafsirStatus === 'function') {
+            const sunStatus = getSundayTafsirStatus(studentAgeForNotif);
+            if (sunStatus && sunStatus.isWithinWindow) {
+                notifs.unshift({
+                    id: 'zoom_sunday_live_pinned',
+                    type: 'zoom_live',
+                    title: '🔴 بث مباشر مجاني (Zoom): محاضرة التفسير والتدبر',
+                    message: 'بدأت الآن محاضرة التفسير والتدبر الأسبوعية المجانية (الأحد من 8:00 م إلى 9:00 م). انقر على الزر للدخول مباشرة للقاعة دون أي خصم من رصيدك.',
+                    action_url: 'https://zoom.us/j/98264506630',
+                    is_read: 0,
+                    created_at: new Date().toISOString()
+                });
+            }
+        }
 
         // 5. Render to UI
         const list = document.getElementById('notificationsList');
@@ -2158,6 +2172,68 @@ const ZOOM_CONFIG = {
     }
 };
 
+const SUNDAY_TAFSIR_CONFIG = {
+    url: "https://zoom.us/j/98264506630",
+    label: "محاضرة التفسير والتدبر (مجانية)",
+    timeLabel: "الأحد 8:00 م - 9:00 م (تفتح 7:50 م)",
+    minAge: 10,
+    openMins: 1190,  // 19:50 (7:50 PM)
+    startMins: 1200, // 20:00 (8:00 PM)
+    endMins: 1260    // 21:00 (9:00 PM)
+};
+
+function getSundayTafsirStatus(studentAge) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('sim_age')) {
+        studentAge = parseInt(urlParams.get('sim_age'), 10);
+    }
+    const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
+    
+    // Strictly for 10 years and older
+    if (age < SUNDAY_TAFSIR_CONFIG.minAge) {
+        return {
+            isEligible: false,
+            isVisible: false,
+            isWithinWindow: false,
+            zoomUrl: SUNDAY_TAFSIR_CONFIG.url,
+            label: SUNDAY_TAFSIR_CONFIG.label,
+            timeLabel: SUNDAY_TAFSIR_CONFIG.timeLabel
+        };
+    }
+
+    // Testing simulation flags
+    if (urlParams.has('test_sunday') || urlParams.has('sim_sunday') || urlParams.get('force_live') === 'sunday') {
+        return {
+            isEligible: true,
+            isVisible: true,
+            isWithinWindow: true,
+            zoomUrl: SUNDAY_TAFSIR_CONFIG.url,
+            label: SUNDAY_TAFSIR_CONFIG.label,
+            timeLabel: SUNDAY_TAFSIR_CONFIG.timeLabel
+        };
+    }
+
+    const timeInfo = getCairoTimeInfo();
+    const day = timeInfo.dayOfWeek;
+    const cairoMins = timeInfo.totalMinutes;
+    const localMins = (timeInfo.localTotalMinutes !== undefined) ? timeInfo.localTotalMinutes : cairoMins;
+
+    // Day 0 = Sunday
+    const isSunday = (day === 0);
+    const inWindowCairo = isSunday && (cairoMins >= SUNDAY_TAFSIR_CONFIG.openMins && cairoMins <= SUNDAY_TAFSIR_CONFIG.endMins);
+    const inWindowLocal = isSunday && (localMins >= SUNDAY_TAFSIR_CONFIG.openMins && localMins <= SUNDAY_TAFSIR_CONFIG.endMins);
+    const isWithinWindow = inWindowCairo || inWindowLocal;
+
+    return {
+        isEligible: true,
+        isVisible: true,
+        isWithinWindow: isWithinWindow,
+        zoomUrl: SUNDAY_TAFSIR_CONFIG.url,
+        label: SUNDAY_TAFSIR_CONFIG.label,
+        timeLabel: SUNDAY_TAFSIR_CONFIG.timeLabel
+    };
+}
+
 function getZoomLiveLinkStatus(liveUrl, studentAge) {
     const urlParams = new URLSearchParams(window.location.search);
     
@@ -2373,17 +2449,55 @@ function syncZoomLiveStatusAll() {
         }
     }
 
+    // 2.1 Sunday Tafsir Lecture Notice & Action Handling (الأحد - فئة 10 سنوات فما فوق)
+    const sundayCard = document.getElementById('sundayTafsirNoticeCard');
+    const sundayAction = document.getElementById('sundayTafsirActionContainer');
+    const sundayStatus = getSundayTafsirStatus(studentAge);
+
+    if (sundayCard) {
+        if (sundayStatus.isEligible) {
+            sundayCard.classList.remove('hidden');
+            if (sundayAction) {
+                if (sundayStatus.isWithinWindow) {
+                    sundayAction.innerHTML = `
+                        <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
+                            <span>انضم لمحاضرة التفسير الآن (Zoom)</span>
+                        </a>
+                    `;
+                } else {
+                    sundayAction.innerHTML = `
+                        <span class="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-300 px-3.5 py-2 rounded-xl block text-center whitespace-nowrap shadow-xs">
+                            تفتح الأحد 7:50 م
+                        </span>
+                    `;
+                }
+            }
+        } else {
+            sundayCard.classList.add('hidden');
+        }
+    }
+
     // 3. Top Real-time Zoom Live Notification Banner (شريط الإشعار والتنبيه العلوي)
     const banner = document.getElementById('liveZoomBroadcastBanner');
     const titleEl = document.getElementById('liveZoomBannerTitle');
     const subEl = document.getElementById('liveZoomBannerSubtitle');
     const bannerLink = banner ? banner.querySelector('a') : null;
-    if (bannerLink) bannerLink.href = zoomUrl;
 
     if (banner) {
-        if (status.isWithinWindow) {
+        if (sundayStatus && sundayStatus.isWithinWindow) {
             banner.classList.remove('hidden');
             banner.classList.add('flex');
+            if (bannerLink) bannerLink.href = SUNDAY_TAFSIR_CONFIG.url;
+            if (titleEl) {
+                titleEl.innerText = 'محاضرة التفسير والتدبر (Zoom) مفتوحة ومتاحة الآن!';
+            }
+            if (subEl) {
+                subEl.innerText = 'المحاضرة العامة المجانية للطلاب (10 سنوات فما فوق) بدأت الآن • انضم الآن للقاعة مجاناً دون خصم أي رصيد';
+            }
+        } else if (status.isWithinWindow) {
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            if (bannerLink) bannerLink.href = zoomUrl;
             if (titleEl) {
                 titleEl.innerText = (studentAge < 10) 
                     ? 'حلقة البث المباشر (Zoom) للأطفال والناشئة بدأت الآن!' 
