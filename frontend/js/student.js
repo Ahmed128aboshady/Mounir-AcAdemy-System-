@@ -2745,9 +2745,13 @@ function syncZoomLiveStatusAll() {
             const el = document.getElementById(item.id);
             if (!el) return;
             const cfg = MONDAY_HADITH_CONFIG[item.key];
+            const userRole = (window.currentLoggedInUser && window.currentLoggedInUser.role) || 
+                             (window.currentSessionUser && window.currentSessionUser.role) || 
+                             urlParams.get('role');
+            const isSupervisor = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor') || urlParams.has('test') || urlParams.has('preview'));
             const isThisCohortActive = (hadithStatus && hadithStatus.isWithinWindow && (hadithStatus.cfg === cfg || (urlParams.has('all_cohorts') || urlParams.has('supervisor'))));
 
-            if (isThisCohortActive) {
+            if (isThisCohortActive || isSupervisor) {
                 el.innerHTML = `
                     <a href="${cfg.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
                         <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
