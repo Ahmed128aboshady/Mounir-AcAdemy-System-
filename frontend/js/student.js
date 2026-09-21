@@ -2300,12 +2300,34 @@ const MONDAY_HADITH_CONFIG = {
     }
 };
 
-function guessStudentGender(name, explicitGender) {
-    if (explicitGender) {
-        const g = String(explicitGender).toLowerCase().trim();
-        if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g === 'انثى') return 'f';
-        if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر') return 'm';
+const STUDENT_GENDER_OVERRIDES = {
+    'ST1088': 'f',
+    '1088': 'f'
+};
+
+function guessStudentGender(name, explicitGender, studentCode) {
+    // 1. Check student code override
+    const sObj = (window.currentStudentData && window.currentStudentData.student) || {};
+    const code = String(studentCode || sObj.student_code || sObj.id || (typeof currentStudentId !== 'undefined' ? currentStudentId : '')).trim().toUpperCase();
+    if (code) {
+        if (STUDENT_GENDER_OVERRIDES[code] || STUDENT_GENDER_OVERRIDES[code.replace(/\D/g, '')]) {
+            return STUDENT_GENDER_OVERRIDES[code] || STUDENT_GENDER_OVERRIDES[code.replace(/\D/g, '')];
+        }
+        try {
+            const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
+            if (stored[code]) return stored[code];
+            if (stored[code.replace(/\D/g, '')]) return stored[code.replace(/\D/g, '')];
+        } catch(e) {}
     }
+
+    // 2. Check explicit gender or parent_name keyword
+    const explicit = explicitGender || sObj.gender || sObj.parent_name;
+    if (explicit) {
+        const g = String(explicit).toLowerCase().trim();
+        if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g === 'انثى' || g.includes('female') || g.includes('أنثى') || g.includes('بنت')) return 'f';
+        if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر' || g.includes('male') || g.includes('ذكر') || g.includes('ولد')) return 'm';
+    }
+
     if (!name) return 'm';
     const trimmed = name.trim();
     const parts = trimmed.split(/\s+/);
@@ -2326,6 +2348,71 @@ function guessStudentGender(name, explicitGender) {
     if (firstName.endsWith('ة') || firstName.endsWith('اء') || firstName.endsWith('ى')) return 'f';
     return 'm';
 }
+
+function updateGenderBadgeUI(gender) {
+    const emojiEl = document.getElementById('studentGenderEmoji');
+    const labelEl = document.getElementById('studentGenderLabel');
+    if (!emojiEl || !labelEl) return;
+    if (gender === 'f') {
+        emojiEl.innerText = '👧';
+        labelEl.innerText = 'طالبة (بنت)';
+    } else {
+        emojiEl.innerText = '👦';
+        labelEl.innerText = 'طالب (ولد)';
+    }
+}
+
+async function toggleStudentGenderFromPortal() {
+    const s = (window.currentStudentData && window.currentStudentData.student) || {};
+    const code = String(s.student_code || s.id || (typeof currentStudentId !== 'undefined' ? currentStudentId : '') || 'ST1088').trim().toUpperCase();
+    const currentGender = guessStudentGender(s.name, s.gender || s.parent_name, code);
+    const newGender = (currentGender === 'f') ? 'm' : 'f';
+
+    // 1. Update in-memory
+    STUDENT_GENDER_OVERRIDES[code] = newGender;
+    if (s) {
+        s.gender = newGender;
+        s.parent_name = (newGender === 'f') ? 'female' : 'male';
+    }
+
+    // 2. Persist to localStorage
+    try {
+        const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
+        stored[code] = newGender;
+        localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
+    } catch(e) {}
+
+    // 3. Persist to Supabase if available
+    if (window.MonirDB && window.MonirDB.isConfigured()) {
+        try {
+            const client = window.MonirDB.getClient();
+            const sid = s.id || null;
+            if (sid) {
+                await client.from('students').update({ parent_name: (newGender === 'f' ? 'female' : 'male') }).eq('id', sid);
+            } else if (code) {
+                await client.from('students').update({ parent_name: (newGender === 'f' ? 'female' : 'male') }).eq('student_code', code);
+            }
+        } catch(e) {
+            console.warn('[Supabase Gender Update Error]:', e);
+        }
+    }
+
+    // 4. Update UI
+    updateGenderBadgeUI(newGender);
+    if (typeof syncZoomLiveStatusAll === 'function') {
+        syncZoomLiveStatusAll();
+    }
+
+    // Toast feedback
+    const label = (newGender === 'f') ? 'طالبة (بنت 👧)' : 'طالب (ولد 👦)';
+    if (window.MonirPopup && window.MonirPopup.toast) {
+        window.MonirPopup.toast(`تم تغيير تصنيف الطالب إلى ${label} بنجاح!`, 'success');
+    } else {
+        alert(`تم تغيير تصنيف الطالب إلى ${label} بنجاح!`);
+    }
+}
+window.toggleStudentGenderFromPortal = toggleStudentGenderFromPortal;
+window.updateGenderBadgeUI = updateGenderBadgeUI;
 
 function getMondayHadithStatus(studentAge, studentGender) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -2597,6 +2684,7 @@ function syncZoomLiveStatusAll() {
     // 1. Filter Friday & Monday notices strictly for the student's cohort
     updateFridayScheduleNoticeByAge(studentAge);
     updateMondayHadithNoticeByStudent(studentAge, sGender);
+    if (typeof updateGenderBadgeUI === 'function') { updateGenderBadgeUI(sGender); }
 
     const isKid = (studentAge < 10);
     const cfg = isKid ? ZOOM_CONFIG.kids : ZOOM_CONFIG.adults;

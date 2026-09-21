@@ -214,13 +214,13 @@
                 <!-- Sub-tabs Navigation -->
                 <div class="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 flex-wrap">
                     <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
-                        <button type="button" onclick="switchAdminQuizSubTab('leaderboard')" id="btnAdminQuizSubTabLeaderboard" class="px-3 py-1.5 rounded-lg transition bg-white text-slate-900 font-black shadow-xs flex items-center gap-1 cursor-pointer">
+                        <button type="button" onclick="switchAdminQuizSubTab('leaderboard')" id="btnAdminQuizSubTabLeaderboard" class="px-3 py-1.5 rounded-lg transition bg-white text-slate-900 font-black shadow-xs cursor-pointer">
                             <span>لوحة شرف الأوائل</span>
                         </button>
-                        <button type="button" onclick="switchAdminQuizSubTab('submissions')" id="btnAdminQuizSubTabSubmissions" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
+                        <button type="button" onclick="switchAdminQuizSubTab('submissions')" id="btnAdminQuizSubTabSubmissions" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 cursor-pointer">
                             <span>جدول رصد الدرجات الشامل</span>
                         </button>
-                        <button type="button" onclick="switchAdminQuizSubTab('manage')" id="btnAdminQuizSubTabManage" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
+                        <button type="button" onclick="switchAdminQuizSubTab('manage')" id="btnAdminQuizSubTabManage" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 cursor-pointer">
                             <span>إدارة المحاضرات والأسئلة</span>
                         </button>
                     </div>
@@ -885,6 +885,13 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">السن</label>
                     <input type="number" id="inlineAge" min="3" max="80" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">النوع (الجنس)</label>
+                    <select id="inlineGender" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                        <option value="f">👧 أنثى (بنت)</option>
+                        <option value="m">👦 ذكر (ولد)</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">المجموعة (Group ID)</label>
@@ -4006,12 +4013,33 @@
             }
         };
 
-        // Gender heuristic: Arabic names ending in ة are usually female
-        function guessGender(name) {
+        const ADMIN_GENDER_OVERRIDES = {
+            'ST1088': 'f',
+            '1088': 'f'
+        };
+
+        function guessGender(name, explicitGender, studentCode) {
+            const code = String(studentCode || '').trim().toUpperCase();
+            if (code) {
+                if (ADMIN_GENDER_OVERRIDES[code] || ADMIN_GENDER_OVERRIDES[code.replace(/\D/g, '')]) {
+                    return ADMIN_GENDER_OVERRIDES[code] || ADMIN_GENDER_OVERRIDES[code.replace(/\D/g, '')];
+                }
+                try {
+                    const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
+                    if (stored[code]) return stored[code];
+                    if (stored[code.replace(/\D/g, '')]) return stored[code.replace(/\D/g, '')];
+                } catch(e) {}
+            }
+
+            if (explicitGender) {
+                const g = String(explicitGender).toLowerCase().trim();
+                if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g.includes('female') || g.includes('أنثى')) return 'f';
+                if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر' || g.includes('male') || g.includes('ذكر')) return 'm';
+            }
+
             if (!name) return 'm';
             const trimmed = name.trim();
             if (trimmed.endsWith('ة') || trimmed.endsWith('ا') || trimmed.endsWith('ى')) {
-                // Extra female name signals
                 const femaleWords = ['ريم','ميار','سارة','فاطمة','عائشة','مريم','نور','هدى','سلمى','دينا',
                     'رنا','هاجر','آية','رشا','غادة','هبة','إسراء','شيماء','أميرة','لمياء'];
                 if (femaleWords.some(w => trimmed.includes(w))) return 'f';
@@ -4130,7 +4158,7 @@
                                 student_code:     s.student_code || '',
                                 phone:            s.phone || s.parent_phone || '',
                                 age:              s.age || 0,
-                                gender:           guessGender(s.name),
+                                gender:           guessGender(s.name, s.gender || s.parent_name, s.student_code || s.id),
                                 group_id:         groupId,
                                 group_ids:        groupIds,
                                 status:           status,
@@ -4171,7 +4199,7 @@
                                     name:             s.name || '',
                                     student_code:     s.student_code || '',
                                     age:              s.age || 0,
-                                    gender:           guessGender(s.name),
+                                    gender:           guessGender(s.name, s.gender || s.parent_name, s.student_code || s.id),
                                     group_id:         g.group_id || s.qr_code || '—',
                                     status:           s.status || 'active',
                                     remaining_credits: s.remaining_credits || 0,
@@ -4208,7 +4236,7 @@
                                     name:             s.name || '',
                                     student_code:     s.student_code || '',
                                     age:              s.age || 0,
-                                    gender:           guessGender(s.name),
+                                    gender:           guessGender(s.name, s.gender || s.parent_name, s.student_code || s.id),
                                     group_id:         s.group_id || s.qr_code || '—',
                                     status:           isInactive ? 'inactive' : 'active',
                                     remaining_credits: s.remaining_credits || 0,
@@ -4422,7 +4450,11 @@
                         <div class="text-[10px] text-slate-400">${s.age || '—'} سنة</div>
                     </td>
                     <td class="p-2.5 text-slate-600">${s.age || '—'}</td>
-                    <td class="p-2.5 text-center">${genderEmoji}</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="toggleStudentGender(${s.id}, event)" title="انقر للتبديل السريع بين ولد وبنت" class="px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer text-sm">
+                            ${genderEmoji}
+                        </button>
+                    </td>
                     <td class="p-2.5">
                         <span class="bg-[#1F274B] text-[#57BA9E] font-mono font-black text-[10px] px-2 py-0.5 rounded-lg">${s.group_id}</span>
                     </td>
@@ -5160,6 +5192,10 @@
             if (document.getElementById('inlineCode')) document.getElementById('inlineCode').value = s.student_code || '';
             if (document.getElementById('inlinePhone')) document.getElementById('inlinePhone').value = s.phone || '';
             if (document.getElementById('inlineAge')) document.getElementById('inlineAge').value = s.age || '';
+            if (document.getElementById('inlineGender')) {
+                const currentG = s.gender || guessGender(s.name, s.parent_name, s.student_code || s.id);
+                document.getElementById('inlineGender').value = currentG || 'f';
+            }
             if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = (s.group_id && s.group_id !== '—') ? s.group_id : '';
             if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = s.remaining_credits || 0;
             if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = (s.subscription_days && s.subscription_days !== '—') ? s.subscription_days : '';
@@ -5196,6 +5232,42 @@
             document.getElementById('inlineEditModal').classList.remove('hidden');
         }
 
+        async function toggleStudentGender(studentId, event) {
+            if (event) event.stopPropagation();
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(st => st.id === studentId);
+            if (!s) return;
+
+            const newGender = (s.gender === 'f') ? 'm' : 'f';
+            s.gender = newGender;
+            s.parent_name = (newGender === 'f' ? 'female' : 'male');
+
+            const code = s.student_code || String(studentId);
+            ADMIN_GENDER_OVERRIDES[code] = newGender;
+
+            try {
+                const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
+                stored[code] = newGender;
+                stored[String(studentId)] = newGender;
+                localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
+            } catch(e) {}
+
+            // Update Supabase in background
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    client.from('students').update({ parent_name: (newGender === 'f' ? 'female' : 'male') }).eq('id', studentId).then(() => {});
+                } catch(e) {}
+            }
+
+            renderBulkTable();
+            const label = newGender === 'f' ? 'طالبة (بنت 👧)' : 'طالب (ولد 👦)';
+            if (typeof showToast === 'function') {
+                showToast(`تم تغيير جنس الطالب (${s.name || code}) إلى ${label}`, 'success');
+            }
+        }
+        window.toggleStudentGender = toggleStudentGender;
+
         function closeInlineEdit() {
             document.getElementById('inlineEditModal').classList.add('hidden');
             bsInlineStudentId = null;
@@ -5209,6 +5281,7 @@
             const code = (document.getElementById('inlineCode')?.value || '').trim();
             const phone = (document.getElementById('inlinePhone')?.value || '').trim();
             const age = parseInt(document.getElementById('inlineAge')?.value) || null;
+            const gender = document.getElementById('inlineGender')?.value || 'm';
             const group = (document.getElementById('inlineGroup')?.value || '').trim();
             const credits = parseInt(document.getElementById('inlineCredits')?.value) || 0;
             let day = (document.getElementById('inlineDay')?.value || '').trim();
@@ -5240,9 +5313,21 @@
                 student_code: code,
                 phone: phone,
                 parent_phone: phone,
+                parent_name: (gender === 'f' ? 'female' : 'male'),
                 age: age,
                 status: status
             };
+            if (s) {
+                s.gender = gender;
+                s.parent_name = (gender === 'f' ? 'female' : 'male');
+            }
+            // Save override to localStorage
+            try {
+                const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
+                if (code) stored[code] = gender;
+                if (sid) stored[String(sid)] = gender;
+                localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
+            } catch(e) {}
             if (group) studentUpdate.qr_code = group;
 
             const enrollUpdate = {

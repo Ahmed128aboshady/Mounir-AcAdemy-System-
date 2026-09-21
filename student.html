@@ -149,7 +149,14 @@
                     <h2 class="text-lg sm:text-2xl font-black mb-0.5 text-white leading-tight flex items-center gap-2" id="studentName">
                         <script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script>
                     </h2>
-                    <p class="text-[11px] sm:text-xs text-blue-200 font-medium" id="studentDetails">السن: 9 سنوات</p>
+                    <div class="flex items-center gap-2 flex-wrap mt-1">
+                        <p class="text-[11px] sm:text-xs text-blue-200 font-medium" id="studentDetails">السن: 9 سنوات</p>
+                        <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full cursor-pointer transition shadow-2xs" title="انقر لتعديل نوع الطالب (ولد / بنت)">
+                            <span id="studentGenderEmoji">👧</span>
+                            <span id="studentGenderLabel">طالبة (بنت)</span>
+                            <span class="text-[9px] text-amber-300 underline font-normal mr-0.5">تغيير</span>
+                        </button>
+                    </div>
                     
                     <!-- 4 Info Tiles -->
                     <div class="mt-2.5 sm:mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 text-xs text-slate-200">
