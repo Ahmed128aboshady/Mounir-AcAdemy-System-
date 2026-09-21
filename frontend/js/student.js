@@ -2279,16 +2279,27 @@ const MONDAY_HADITH_CONFIG = {
     }
 };
 
-function guessStudentGender(name) {
+function guessStudentGender(name, explicitGender) {
+    if (explicitGender) {
+        const g = String(explicitGender).toLowerCase().trim();
+        if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g === 'انثى') return 'f';
+        if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر') return 'm';
+    }
     if (!name) return 'm';
     const trimmed = name.trim();
     const parts = trimmed.split(/\s+/);
     const firstName = parts[0] || '';
+
+    // Exception: common male Arabic names ending with Ta Marbuta
+    const maleNamesWithTa = ['حمزة', 'أسامة', 'طلحة', 'قتادة', 'عبيدة', 'معاوية', 'عكرمة', 'حذيفة', 'عتبة', 'قتيبة', 'سلامة', 'جمعة', 'عطية', 'عرفة', 'شحاتة'];
+    if (maleNamesWithTa.includes(firstName)) return 'm';
+
     const femaleNames = [
         'مريم', 'فاطمة', 'عائشة', 'خديجة', 'زينب', 'سارة', 'نور', 'هدى', 'آلاء', 'دنيا', 'تسنيم',
         'ياسمين', 'سهيلة', 'أميرة', 'منة', 'حبيبة', 'جنى', 'ملك', 'روان', 'رودينا', 'فريدة',
         'كارما', 'ليان', 'ريماس', 'سدرة', 'تالية', 'ريتاج', 'جود', 'حلا', 'ريناد', 'مايا',
-        'ندى', 'شهد', 'مروة', 'آية', 'إسراء', 'شيماء', 'إيمان', 'أسماء', 'سلمى', 'هند', 'لين', 'دارين'
+        'ندى', 'شهد', 'مروة', 'آية', 'إسراء', 'شيماء', 'إيمان', 'أسماء', 'سلمى', 'هند', 'لين', 'دارين',
+        'ريمان', 'رغد', 'رهف', 'لينا', 'تيا', 'تاليا', 'صبا', 'لمى', 'ميرال', 'وتين', 'بسملة', 'بسنت'
     ];
     if (femaleNames.includes(firstName)) return 'f';
     if (firstName.endsWith('ة') || firstName.endsWith('اء') || firstName.endsWith('ى')) return 'f';
@@ -2480,16 +2491,65 @@ function updateFridayScheduleNoticeByAge(studentAge) {
 
     const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
 
-    // Both remain visible so students and parents see complete schedule
-    slotKids.classList.remove('hidden');
-    slotAdults.classList.remove('hidden');
-
+    // Show ONLY the matching slot for the student (Kids vs Adults)
     if (age < 10) {
-        slotKids.classList.add('ring-2', 'ring-amber-400', 'bg-amber-100/60');
-        slotAdults.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-100/60');
+        slotKids.classList.remove('hidden');
+        slotAdults.classList.add('hidden');
     } else {
-        slotAdults.classList.add('ring-2', 'ring-amber-400', 'bg-amber-100/60');
-        slotKids.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-100/60');
+        slotKids.classList.add('hidden');
+        slotAdults.classList.remove('hidden');
+    }
+}
+
+function updateMondayHadithNoticeByStudent(studentAge, studentGender) {
+    const slotG1 = document.getElementById('hadithSlotGirlsUnder10');
+    const slotG2 = document.getElementById('hadithSlotGirls10AndUp');
+    const slotB1 = document.getElementById('hadithSlotBoysUnder10');
+    const slotB2 = document.getElementById('hadithSlotBoys10AndUp');
+
+    if (!slotG1 || !slotG2 || !slotB1 || !slotB2) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const userRole = (window.currentLoggedInUser && window.currentLoggedInUser.role) || 
+                     (window.currentSessionUser && window.currentSessionUser.role) || 
+                     urlParams.get('role');
+    const isAdminOrTeacher = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor') || urlParams.has('all_cohorts'));
+
+    if (isAdminOrTeacher) {
+        slotG1.classList.remove('hidden');
+        slotG2.classList.remove('hidden');
+        slotB1.classList.remove('hidden');
+        slotB2.classList.remove('hidden');
+        return;
+    }
+
+    const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
+    let gender = studentGender;
+    if (!gender || (gender !== 'f' && gender !== 'm')) {
+        const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
+        const sExplicit = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.gender) || '';
+        gender = guessStudentGender(sName, sExplicit);
+    }
+
+    // Hide all cohorts first
+    slotG1.classList.add('hidden');
+    slotG2.classList.add('hidden');
+    slotB1.classList.add('hidden');
+    slotB2.classList.add('hidden');
+
+    // Show ONLY the single cohort dedicated to this student
+    if (gender === 'f') {
+        if (age < 10) {
+            slotG1.classList.remove('hidden');
+        } else {
+            slotG2.classList.remove('hidden');
+        }
+    } else {
+        if (age < 10) {
+            slotB1.classList.remove('hidden');
+        } else {
+            slotB2.classList.remove('hidden');
+        }
     }
 }
 
@@ -2502,14 +2562,24 @@ function syncZoomLiveStatusAll() {
         studentAge = parseInt(urlParams.get('sim_age'), 10);
         window.currentStudentAge = studentAge;
     }
+
+    const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
+    const sExplicitGender = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.gender) || '';
+    let sGender = guessStudentGender(sName, sExplicitGender);
+    if (urlParams.has('sim_gender')) {
+        sGender = urlParams.get('sim_gender');
+    }
+
+    // 1. Filter Friday & Monday notices strictly for the student's cohort
     updateFridayScheduleNoticeByAge(studentAge);
+    updateMondayHadithNoticeByStudent(studentAge, sGender);
 
     const isKid = (studentAge < 10);
     const cfg = isKid ? ZOOM_CONFIG.kids : ZOOM_CONFIG.adults;
     const zoomUrl = cfg.url;
     const status = getZoomLiveLinkStatus(zoomUrl, studentAge);
 
-    // 1. In-Slot Direct Action Buttons & Friday Live Badge
+    // 1.1 Friday Header Live Badge
     const fridayBadge = document.getElementById('fridayLiveBadgeSlot');
     if (fridayBadge) {
         if (status.isWithinWindow) {
@@ -2522,104 +2592,44 @@ function syncZoomLiveStatusAll() {
         } else {
             fridayBadge.innerHTML = `
                 <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
-                    تفتح الجمعة 1:50 م / 2:20 م
+                    تفتح الجمعة ${isKid ? '1:50 م' : '2:20 م'}
                 </span>
             `;
         }
     }
 
-    const kidsAction = document.getElementById('slotNoticeKidsAction');
-    const adultsAction = document.getElementById('slotNoticeAdultsAction');
-
-    if (kidsAction) {
-        if (studentAge < 10 && status.isWithinWindow) {
-            kidsAction.innerHTML = `
-                <a href="${ZOOM_CONFIG.kids.url}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1 animate-pulse whitespace-nowrap">
-                    <span>دخول الآن (Zoom) ↗</span>
-                </a>
-            `;
-        } else {
-            kidsAction.innerHTML = `
-                <a href="${ZOOM_CONFIG.kids.url}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-black text-amber-900 bg-white hover:bg-amber-600 hover:text-white border border-amber-300 px-2.5 py-1 rounded-lg transition shadow-2xs flex items-center gap-1">
-                    <span>Zoom</span>
-                    <span>↗</span>
-                </a>
-            `;
-        }
-    }
-
-    if (adultsAction) {
-        if (studentAge >= 10 && status.isWithinWindow) {
-            adultsAction.innerHTML = `
-                <a href="${ZOOM_CONFIG.adults.url}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1 animate-pulse whitespace-nowrap">
-                    <span>دخول الآن (Zoom) ↗</span>
-                </a>
-            `;
-        } else {
-            adultsAction.innerHTML = `
-                <a href="${ZOOM_CONFIG.adults.url}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-black text-amber-900 bg-white hover:bg-amber-600 hover:text-white border border-amber-300 px-2.5 py-1 rounded-lg transition shadow-2xs flex items-center gap-1">
-                    <span>Zoom</span>
-                    <span>↗</span>
-                </a>
-            `;
-        }
-    }
-
-    // 2. Dedicated Live Banner inside Friday Card Container
-    const actionContainer = document.getElementById('fridayScheduleZoomActionContainer');
-    if (actionContainer) {
-        if (status.isWithinWindow) {
-            actionContainer.innerHTML = `
-                <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-3.5 sm:p-4 rounded-2xl shadow-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 animate-fade-in border border-emerald-400/50">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-3 h-3 rounded-full bg-white animate-ping shrink-0"></span>
-                        <div>
-                            <div class="font-black text-xs sm:text-sm">حلقة البث المباشر (${isKid ? 'قاعة الأطفال والناشئة' : 'قاعة الطلاب'}) مفتوحة ومتاحة الآن!</div>
-                            <div class="text-[11px] text-emerald-100 font-bold">بدأ موعد المحاضرة لمجموعتك (${status.groupLabel}). انضم الآن للقاعة مع المعلم:</div>
-                        </div>
-                    </div>
-                    <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-lg transition text-center whitespace-nowrap cursor-pointer">
-                        دخول محاضرة الزووم الآن (Zoom)
-                    </a>
-                </div>
-            `;
-            actionContainer.classList.remove('hidden');
-        } else {
-            actionContainer.innerHTML = '';
-            actionContainer.classList.add('hidden');
-        }
-    }
-
-    // 2.1 Sunday Tafsir Lecture Notice & Action Handling (الأحد - فئة 10 سنوات فما فوق)
+    // 2. Sunday Tafsir Lecture Notice & Action Handling (الأحد - فئة 10 سنوات فما فوق فقط)
     const sundayCard = document.getElementById('sundayTafsirNoticeCard');
     const sundayAction = document.getElementById('sundayTafsirActionContainer');
     const sundayStatus = getSundayTafsirStatus(studentAge);
 
     if (sundayCard) {
-        sundayCard.classList.remove('hidden');
-        if (sundayAction) {
-            if (sundayStatus.isWithinWindow) {
-                sundayAction.innerHTML = `
-                    <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
-                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>انضم لمحاضرة التفسير الآن (Zoom) ↗</span>
-                    </a>
-                `;
-            } else {
-                sundayAction.innerHTML = `
-                    <span class="text-[10px] font-bold text-emerald-900 bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
-                        تفتح الأحد 7:50 م
-                    </span>
-                `;
+        if (studentAge >= 10) {
+            sundayCard.classList.remove('hidden');
+            if (sundayAction) {
+                if (sundayStatus.isWithinWindow) {
+                    sundayAction.innerHTML = `
+                        <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                            <span>انضم لمحاضرة التفسير الآن (Zoom) ↗</span>
+                        </a>
+                    `;
+                } else {
+                    sundayAction.innerHTML = `
+                        <span class="text-[10px] font-bold text-emerald-900 bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
+                            تفتح الأحد 7:50 م
+                        </span>
+                    `;
+                }
             }
+        } else {
+            sundayCard.classList.add('hidden');
         }
     }
 
-    // 2.2 Monday Hadith Lecture Notice & Action Handling (مجلس الحديث - الإثنين لجميع الفئات)
+    // 3. Monday Hadith Lecture Notice & Action Handling (مجلس الحديث - الإثنين)
     const hadithCard = document.getElementById('mondayHadithNoticeCard');
     const hadithAction = document.getElementById('mondayHadithActionContainer');
-    const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
-    const sGender = guessStudentGender(sName);
     const hadithStatus = getMondayHadithStatus(studentAge, sGender);
 
     if (hadithCard) {
@@ -2642,7 +2652,7 @@ function syncZoomLiveStatusAll() {
         }
     }
 
-    // 3. Top Real-time Zoom Live Notification Banner (شريط الإشعار والتنبيه العلوي)
+    // 4. Top Real-time Zoom Live Notification Banner
     const banner = document.getElementById('liveZoomBroadcastBanner');
     const titleEl = document.getElementById('liveZoomBannerTitle');
     const subEl = document.getElementById('liveZoomBannerSubtitle');
@@ -2659,7 +2669,7 @@ function syncZoomLiveStatusAll() {
             if (subEl) {
                 subEl.innerText = `حلقة الحديث النبوية بدأت الآن • انضم للقاعة مع المعلم والمشرفين عبر (${hadithStatus.cfg.platform})`;
             }
-        } else if (sundayStatus && sundayStatus.isWithinWindow) {
+        } else if (sundayStatus && sundayStatus.isWithinWindow && studentAge >= 10) {
             banner.classList.remove('hidden');
             banner.classList.add('flex');
             if (bannerLink) bannerLink.href = SUNDAY_TAFSIR_CONFIG.url;
@@ -2689,9 +2699,9 @@ function syncZoomLiveStatusAll() {
         }
     }
 
-    // 3.1 Schedule Notices Dropdown Active Badge & Auto-Open
+    // 4.1 Schedule Notices Dropdown Active Badge
     const schedBadge = document.getElementById('schedActiveBadge');
-    const isLiveActive = (status && status.isWithinWindow) || (sundayStatus && sundayStatus.isWithinWindow) || (hadithStatus && hadithStatus.isWithinWindow);
+    const isLiveActive = (status && status.isWithinWindow) || (sundayStatus && sundayStatus.isWithinWindow && studentAge >= 10) || (hadithStatus && hadithStatus.isWithinWindow);
     if (schedBadge) {
         if (isLiveActive) {
             schedBadge.classList.remove('hidden');
@@ -2703,7 +2713,7 @@ function syncZoomLiveStatusAll() {
         }
     }
 
-    // 4. Refresh General Track Card
+    // 5. Refresh General Track Card
     if (typeof renderGeneralTrackView === 'function') {
         const c = document.getElementById('generalTrackCardContainer');
         if (c) renderGeneralTrackView();
