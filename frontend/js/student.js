@@ -2584,9 +2584,9 @@ function syncZoomLiveStatusAll() {
     if (fridayBadge) {
         if (status.isWithinWindow) {
             fridayBadge.innerHTML = `
-                <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs px-4 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse">
+                <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
                     <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                    <span>دخول البث المباشر (${isKid ? 'الأطفال' : 'الطلاب'}) ↗</span>
+                    <span>دخول البث المباشر (${isKid ? 'الأطفال' : 'الطلاب'})</span>
                 </a>
             `;
         } else {
@@ -2609,9 +2609,9 @@ function syncZoomLiveStatusAll() {
             if (sundayAction) {
                 if (sundayStatus.isWithinWindow) {
                     sundayAction.innerHTML = `
-                        <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
+                        <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
                             <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                            <span>انضم لمحاضرة التفسير الآن (Zoom) ↗</span>
+                            <span>انضم لمحاضرة التفسير الآن (Zoom)</span>
                         </a>
                     `;
                 } else {
@@ -2637,9 +2637,9 @@ function syncZoomLiveStatusAll() {
         if (hadithAction && hadithStatus) {
             if (hadithStatus.isWithinWindow) {
                 hadithAction.innerHTML = `
-                    <a href="${hadithStatus.zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-xs px-4 py-1.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse cursor-pointer whitespace-nowrap">
+                    <a href="${hadithStatus.zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
                         <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>دخول المجلس الآن (${hadithStatus.label}) ↗</span>
+                        <span>دخول المجلس الآن (${hadithStatus.label})</span>
                     </a>
                 `;
             } else {
