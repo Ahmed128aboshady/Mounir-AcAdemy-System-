@@ -2106,16 +2106,34 @@ function parseQuizMeta(quiz) {
 function getCairoTimeInfo() {
     const urlParams = new URLSearchParams(window.location.search);
     
+    let simDay = null;
+    if (urlParams.has('sim_day')) {
+        simDay = parseInt(urlParams.get('sim_day'), 10);
+    }
+
     // Support simulation for testing via URL: ?sim_time=14:05 (HH:MM in 24h format)
     if (urlParams.has('sim_time')) {
         const parts = urlParams.get('sim_time').split(':');
         const h = parseInt(parts[0], 10);
         const m = parseInt(parts[1] || '0', 10);
+        let dayOfWeek = (simDay !== null && !isNaN(simDay)) ? simDay : 1;
+        if (simDay === null) {
+            try {
+                const now = new Date();
+                const cairoStr = now.toLocaleString('en-US', { timeZone: 'Africa/Cairo', hour12: false });
+                dayOfWeek = new Date(cairoStr).getDay();
+            } catch(e) {
+                dayOfWeek = new Date().getDay();
+            }
+        }
         return {
             hours: h,
             minutes: m,
             totalMinutes: h * 60 + m,
+            localHours: h,
+            localMinutes: m,
             localTotalMinutes: h * 60 + m,
+            dayOfWeek: dayOfWeek,
             isSimulated: true
         };
     }
@@ -2130,6 +2148,8 @@ function getCairoTimeInfo() {
         const lh = now.getHours();
         const lm = now.getMinutes();
 
+        let dayOfWeek = (simDay !== null && !isNaN(simDay)) ? simDay : cairoDate.getDay();
+
         return {
             hours: ch,
             minutes: cm,
@@ -2137,13 +2157,14 @@ function getCairoTimeInfo() {
             localHours: lh,
             localMinutes: lm,
             localTotalMinutes: lh * 60 + lm,
-            dayOfWeek: cairoDate.getDay(),
-            isSimulated: false
+            dayOfWeek: dayOfWeek,
+            isSimulated: (simDay !== null)
         };
     } catch(e) {
         const now = new Date();
         const h = now.getHours();
         const m = now.getMinutes();
+        let dayOfWeek = (simDay !== null && !isNaN(simDay)) ? simDay : now.getDay();
         return {
             hours: h,
             minutes: m,
@@ -2151,8 +2172,8 @@ function getCairoTimeInfo() {
             localHours: h,
             localMinutes: m,
             localTotalMinutes: h * 60 + m,
-            dayOfWeek: now.getDay(),
-            isSimulated: false
+            dayOfWeek: dayOfWeek,
+            isSimulated: (simDay !== null)
         };
     }
 }
@@ -2387,7 +2408,7 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
                      urlParams.get('role');
     const isAdminOrTeacher = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor'));
 
-    if (urlParams.has('test_zoom') || (isAdminOrTeacher && urlParams.get('force_live') === '1') || urlParams.has('force_live')) {
+    if (urlParams.has('test_friday') || urlParams.has('sim_friday') || urlParams.has('test_zoom') || (isAdminOrTeacher && urlParams.get('force_live') === '1') || urlParams.get('force_live') === 'friday') {
         return {
             isVisible: true,
             isWithinWindow: true,
@@ -2407,10 +2428,11 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
     }
 
     const timeInfo = getCairoTimeInfo();
+    const isFriday = (timeInfo.dayOfWeek === 5);
     const cairoMins = timeInfo.totalMinutes;
     const localMins = (timeInfo.localTotalMinutes !== undefined) ? timeInfo.localTotalMinutes : cairoMins;
 
-    // Strictly enforce age-based schedule:
+    // Strictly enforce age-based schedule ONLY on Friday (Day 5):
     // Kids (<10): 1:50 PM (830) to 2:25 PM (865)
     // Older (>=10): 2:20 PM (860) to 2:50 PM (890)
     function isMinsInWindow(m) {
@@ -2421,7 +2443,7 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
         }
     }
 
-    const isWithinWindow = isMinsInWindow(cairoMins) || isMinsInWindow(localMins);
+    const isWithinWindow = isFriday && (isMinsInWindow(cairoMins) || isMinsInWindow(localMins));
 
     if (isWithinWindow) {
         return {
@@ -2474,9 +2496,9 @@ function getZoomLiveLinkStatus(liveUrl, studentAge) {
         groupLabel: groupLabel,
         timeLabel: timeLabel,
         html: `
-            <div class="bg-slate-100/90 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+            <div class="bg-slate-100 border border-slate-200 text-slate-600 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-not-allowed">
                 <div>
-                    <span class="block text-[11px] text-slate-800 font-black">رابط Zoom سيفتح تلقائياً في موعد فئتك (${timeLabel})</span>
+                    <span class="block text-[11px] text-slate-700 font-black">مقفول — يفتح الجمعة (${timeLabel})</span>
                     <span class="text-[10px] text-indigo-700 font-extrabold">${groupLabel}</span>
                 </div>
             </div>
@@ -2570,6 +2592,8 @@ function syncZoomLiveStatusAll() {
         sGender = urlParams.get('sim_gender');
     }
 
+    const timeInfo = getCairoTimeInfo();
+
     // 1. Filter Friday & Monday notices strictly for the student's cohort
     updateFridayScheduleNoticeByAge(studentAge);
     updateMondayHadithNoticeByStudent(studentAge, sGender);
@@ -2591,8 +2615,46 @@ function syncZoomLiveStatusAll() {
             `;
         } else {
             fridayBadge.innerHTML = `
-                <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
-                    تفتح الجمعة ${isKid ? '1:50 م' : '2:20 م'}
+                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap shadow-2xs">
+                    مقفول — يفتح الجمعة ${isKid ? '1:50 م' : '2:20 م'}
+                </span>
+            `;
+        }
+    }
+
+    // 1.2 Friday Cohort Slot Action Buttons
+    const slotKidsAction = document.getElementById('slotNoticeKidsAction');
+    const slotAdultsAction = document.getElementById('slotNoticeAdultsAction');
+
+    if (slotKidsAction) {
+        if (isKid && status.isWithinWindow) {
+            slotKidsAction.innerHTML = `
+                <a href="${ZOOM_CONFIG.kids.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
+                    <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                    <span>دخول البث المباشر (Zoom)</span>
+                </a>
+            `;
+        } else {
+            slotKidsAction.innerHTML = `
+                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                    مقفول — يفتح الجمعة 1:50 م
+                </span>
+            `;
+        }
+    }
+
+    if (slotAdultsAction) {
+        if (!isKid && status.isWithinWindow) {
+            slotAdultsAction.innerHTML = `
+                <a href="${ZOOM_CONFIG.adults.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
+                    <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                    <span>دخول البث المباشر (Zoom)</span>
+                </a>
+            `;
+        } else {
+            slotAdultsAction.innerHTML = `
+                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                    مقفول — يفتح الجمعة 2:20 م
                 </span>
             `;
         }
@@ -2601,6 +2663,7 @@ function syncZoomLiveStatusAll() {
     // 2. Sunday Tafsir Lecture Notice & Action Handling (الأحد - فئة 10 سنوات فما فوق فقط)
     const sundayCard = document.getElementById('sundayTafsirNoticeCard');
     const sundayAction = document.getElementById('sundayTafsirActionContainer');
+    const sundaySlot = document.getElementById('sundayTafsirActionSlot');
     const sundayStatus = getSundayTafsirStatus(studentAge);
 
     if (sundayCard) {
@@ -2616,8 +2679,24 @@ function syncZoomLiveStatusAll() {
                     `;
                 } else {
                     sundayAction.innerHTML = `
-                        <span class="text-[10px] font-bold text-emerald-900 bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
-                            تفتح الأحد 7:50 م
+                        <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap shadow-2xs">
+                            مقفول — يفتح الأحد 7:50 م
+                        </span>
+                    `;
+                }
+            }
+            if (sundaySlot) {
+                if (sundayStatus.isWithinWindow) {
+                    sundaySlot.innerHTML = `
+                        <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
+                            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                            <span>دخول المحاضرة الآن (Zoom)</span>
+                        </a>
+                    `;
+                } else {
+                    sundaySlot.innerHTML = `
+                        <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                            مقفول — يفتح الأحد 7:50 م
                         </span>
                     `;
                 }
@@ -2634,6 +2713,9 @@ function syncZoomLiveStatusAll() {
 
     if (hadithCard) {
         hadithCard.classList.remove('hidden');
+        const openTimeLabel = (hadithStatus && hadithStatus.cfg && hadithStatus.cfg.openMins === 1100) ? '6:20 م' : '7:20 م';
+        const dayPrefix = (timeInfo.dayOfWeek === 1) ? 'اليوم ' : 'الإثنين ';
+
         if (hadithAction && hadithStatus) {
             if (hadithStatus.isWithinWindow) {
                 hadithAction.innerHTML = `
@@ -2644,12 +2726,42 @@ function syncZoomLiveStatusAll() {
                 `;
             } else {
                 hadithAction.innerHTML = `
-                    <span class="text-[10px] font-bold text-indigo-900 bg-indigo-50 border border-indigo-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
-                        تفتح ${hadithStatus.cfg.openMins === 1100 ? '6:20 م' : '7:20 م'}
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap shadow-2xs">
+                        مقفول — يفتح ${dayPrefix}${openTimeLabel}
                     </span>
                 `;
             }
         }
+
+        // Cohort slots
+        const cohortActions = [
+            { id: 'hadithActionSlotGirlsUnder10', key: 'girls_under_10', time: '6:20 م' },
+            { id: 'hadithActionSlotGirls10AndUp', key: 'girls_10_and_up', time: '7:20 م' },
+            { id: 'hadithActionSlotBoysUnder10', key: 'boys_under_10', time: '7:20 م' },
+            { id: 'hadithActionSlotBoys10AndUp', key: 'boys_10_and_up', time: '7:20 م' }
+        ];
+
+        cohortActions.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (!el) return;
+            const cfg = MONDAY_HADITH_CONFIG[item.key];
+            const isThisCohortActive = (hadithStatus && hadithStatus.isWithinWindow && (hadithStatus.cfg === cfg || (urlParams.has('all_cohorts') || urlParams.has('supervisor'))));
+
+            if (isThisCohortActive) {
+                el.innerHTML = `
+                    <a href="${cfg.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
+                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                        <span>دخول المجلس الآن (${cfg.platform})</span>
+                    </a>
+                `;
+            } else {
+                el.innerHTML = `
+                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                        مقفول — يفتح ${dayPrefix}${item.time}
+                    </span>
+                `;
+            }
+        });
     }
 
     // 4. Top Real-time Zoom Live Notification Banner
@@ -2850,9 +2962,11 @@ function renderGeneralTrackView() {
                 </a>
             `;
         } else {
+            const openTimeLabel = (hadithStatus && hadithStatus.cfg && hadithStatus.cfg.openMins === 1100) ? '6:20 م' : '7:20 م';
+            const dayPrefix = (timeInfo.dayOfWeek === 1) ? 'اليوم ' : 'الإثنين ';
             headerLiveActionHtml = `
-                <span class="bg-indigo-50 border border-indigo-200 text-indigo-900 text-[11px] font-bold px-3 py-1.5 rounded-xl">
-                    المجلس اليوم (${hadithStatus.cfg.timeLabel})
+                <span class="bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-bold px-3 py-1.5 rounded-xl cursor-not-allowed">
+                    مقفول — يفتح ${dayPrefix}${openTimeLabel}
                 </span>
             `;
         }
@@ -2866,8 +2980,8 @@ function renderGeneralTrackView() {
             `;
         } else {
             headerLiveActionHtml = `
-                <span class="bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] font-bold px-3 py-1.5 rounded-xl">
-                    الموعد كل أحد 8:00 م
+                <span class="bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-bold px-3 py-1.5 rounded-xl cursor-not-allowed">
+                    مقفول — يفتح الأحد 7:50 م
                 </span>
             `;
         }
