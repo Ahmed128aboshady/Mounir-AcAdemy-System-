@@ -888,7 +888,10 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">المجموعة (Group ID)</label>
-                    <input type="text" id="inlineGroup" list="bsGroupDatalist" placeholder="مثال: G022" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono font-bold">
+                    <input type="text" id="inlineGroup" list="bsGroupDatalist" placeholder="مثال: G022"
+                        oninput="onInlineGroupChanged(this.value)" onchange="onInlineGroupChanged(this.value)"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono font-bold">
+                    <div id="inlineGroupAutoHint" class="hidden"></div>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">المعلم</label>
@@ -969,6 +972,9 @@
                 <div class="text-[11px] text-blue-900 leading-tight">
                     <span>💡 اكتب كود أي مجموعة (مثل <code class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-blue-200">G424</code>) أو اختر من المجموعات الحالية.</span>
                 </div>
+            </div>
+            <div id="asgTargetGroupInfo" class="hidden text-xs bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2 text-emerald-950 font-bold flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-2" id="asgTargetGroupInfoText"></div>
             </div>
 
             <!-- Tabs Header -->
@@ -3753,6 +3759,253 @@
         let bsActiveBulkAction = null;   // 'group'|'teacher'|'credits'|'schedule'|'status_active'|'status_inactive'
         let bsInlineStudentId = null;    // student being inline-edited
 
+        // ── Group Metadata Directory & Synchronizer ────────────────
+        window._groupMetadataCache = window._groupMetadataCache || {};
+
+        window.getGroupMetadata = function(groupId) {
+            if (!groupId) return null;
+            const cleanG = String(groupId).trim().toUpperCase();
+            if (!cleanG || cleanG === '—' || cleanG === '-' || cleanG === 'NULL') return null;
+
+            if (window._groupMetadataCache[cleanG]) {
+                return window._groupMetadataCache[cleanG];
+            }
+
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const match = allSts.find(s => {
+                if (!s) return false;
+                if (s.group_id && s.group_id.toUpperCase() === cleanG) return true;
+                if (Array.isArray(s.group_ids) && s.group_ids.some(g => (g || '').toUpperCase() === cleanG)) return true;
+                return false;
+            });
+
+            let teacherId = match ? match.teacher_id : null;
+            let teacherName = match ? match.teacher_name : null;
+            let days = (match && match.subscription_days && match.subscription_days !== '—' && match.subscription_days !== 'null') ? match.subscription_days : '';
+            let time = (match && match.lecture_time && match.lecture_time !== '—' && match.lecture_time !== 'null') ? match.lecture_time : '';
+            let duration = (match && match.session_duration && match.session_duration !== '—' && match.session_duration !== 'null') ? match.session_duration : '20 دقيقة';
+
+            if ((!teacherId || !days || !time) && window.allAdminGroups && Array.isArray(window.allAdminGroups)) {
+                const grp = window.allAdminGroups.find(g => (g.group_id || '').toUpperCase() === cleanG);
+                if (grp) {
+                    if (!teacherId && grp.teacher_id) teacherId = grp.teacher_id;
+                    if (!teacherName && grp.teacher_name) teacherName = grp.teacher_name;
+                    if (Array.isArray(grp.students) && grp.students.length > 0) {
+                        const firstS = grp.students[0];
+                        if (!teacherId && firstS.teacher_id) teacherId = firstS.teacher_id;
+                        if (!teacherName && firstS.teacher_name) teacherName = firstS.teacher_name;
+                        if (!days && firstS.subscription_days && firstS.subscription_days !== '—') days = firstS.subscription_days;
+                        if (!time && firstS.lecture_time && firstS.lecture_time !== '—') time = firstS.lecture_time;
+                    }
+                }
+            }
+
+            try {
+                const groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
+                const sch = groupScheds[groupId] || groupScheds[cleanG];
+                if (sch) {
+                    if (!days && sch.subscription_days) days = sch.subscription_days;
+                    if (!time && sch.lecture_time) time = sch.lecture_time;
+                }
+            } catch(e) {}
+
+            if (teacherId && !teacherName) {
+                const tList = window.bsTeachersList || (typeof bsTeachersList !== 'undefined' ? bsTeachersList : []) || [];
+                const foundT = tList.find(t => String(t.id) === String(teacherId));
+                if (foundT) teacherName = foundT.name;
+            }
+
+            if (teacherId || days || time) {
+                const meta = {
+                    group_id: cleanG,
+                    teacher_id: teacherId ? parseInt(teacherId) : null,
+                    teacher_name: teacherName || '',
+                    subscription_days: days,
+                    lecture_time: time,
+                    session_duration: duration
+                };
+                window._groupMetadataCache[cleanG] = meta;
+                return meta;
+            }
+            return null;
+        };
+
+        window.fetchGroupMetadataAsync = async function(groupId) {
+            if (!groupId) return null;
+            const cleanG = String(groupId).trim().toUpperCase();
+            if (!cleanG || cleanG === '—' || cleanG === '-') return null;
+
+            const existing = window.getGroupMetadata(cleanG);
+            if (existing && existing.teacher_id && existing.subscription_days && existing.lecture_time) {
+                return existing;
+            }
+
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const { data } = await client
+                        .from('enrollments')
+                        .select('group_id, teacher_id, subscription_days, lecture_time, session_duration, teachers(id, name)')
+                        .eq('group_id', cleanG)
+                        .not('teacher_id', 'is', null)
+                        .limit(1);
+
+                    if (data && data.length > 0) {
+                        const row = data[0];
+                        const tObj = row.teachers || {};
+                        const meta = {
+                            group_id: cleanG,
+                            teacher_id: row.teacher_id,
+                            teacher_name: tObj.name || (existing ? existing.teacher_name : ''),
+                            subscription_days: (row.subscription_days && row.subscription_days !== '—' && row.subscription_days !== 'null') ? row.subscription_days : (existing ? existing.subscription_days : ''),
+                            lecture_time: (row.lecture_time && row.lecture_time !== '—' && row.lecture_time !== 'null') ? row.lecture_time : (existing ? existing.lecture_time : ''),
+                            session_duration: (row.session_duration && row.session_duration !== '—') ? row.session_duration : '20 دقيقة'
+                        };
+                        window._groupMetadataCache[cleanG] = meta;
+                        return meta;
+                    }
+                } catch(e) {
+                    console.warn('[fetchGroupMetadataAsync] lookup error:', e);
+                }
+            }
+            return existing;
+        };
+
+        window.onInlineGroupChanged = async function(groupVal) {
+            const hintEl = document.getElementById('inlineGroupAutoHint');
+            const cleanG = (groupVal || '').trim();
+            if (!cleanG) {
+                if (hintEl) {
+                    hintEl.classList.add('hidden');
+                    hintEl.innerHTML = '';
+                }
+                return;
+            }
+
+            const applyMeta = (meta) => {
+                if (!meta) return false;
+                let appliedAny = false;
+                if (meta.teacher_id) {
+                    const tSelect = document.getElementById('inlineTeacher');
+                    if (tSelect) {
+                        tSelect.value = String(meta.teacher_id);
+                        appliedAny = true;
+                    }
+                }
+                if (meta.subscription_days) {
+                    const dayInput = document.getElementById('inlineDay');
+                    if (dayInput) {
+                        dayInput.value = meta.subscription_days;
+                        appliedAny = true;
+                    }
+                }
+                if (meta.lecture_time) {
+                    const timeInput = document.getElementById('inlineTime');
+                    if (timeInput) {
+                        timeInput.value = meta.lecture_time;
+                        appliedAny = true;
+                    }
+                }
+                if (meta.session_duration) {
+                    const durSelect = document.getElementById('inlineDuration');
+                    if (durSelect) {
+                        durSelect.value = meta.session_duration;
+                        appliedAny = true;
+                    }
+                }
+
+                if (hintEl) {
+                    hintEl.classList.remove('hidden');
+                    hintEl.innerHTML = `
+                        <div class="flex items-start gap-1.5 text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-2 rounded-xl text-xs font-bold mt-1.5 shadow-xs">
+                            <span class="text-emerald-600 text-sm mt-0.5">⚡</span>
+                            <div class="flex-1 leading-snug">
+                                <span class="text-emerald-900 font-black">تم التعرف على بيانات المجموعة (${meta.group_id || cleanG}):</span>
+                                <div class="text-[11px] text-slate-700 font-semibold mt-0.5">
+                                    ${meta.teacher_name ? '👨‍🏫 <strong>المعلم:</strong> ' + meta.teacher_name : ''}
+                                    ${meta.subscription_days ? ' | 📅 <strong>الأيام:</strong> ' + meta.subscription_days : ''}
+                                    ${meta.lecture_time ? ' | ⏰ <strong>الموعد:</strong> ' + meta.lecture_time : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                return appliedAny;
+            };
+
+            const cached = window.getGroupMetadata(cleanG);
+            if (cached && (cached.teacher_id || cached.subscription_days)) {
+                applyMeta(cached);
+                return;
+            }
+
+            if (hintEl) {
+                hintEl.classList.remove('hidden');
+                hintEl.innerHTML = `
+                    <div class="text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-xl text-[11px] font-bold mt-1.5 flex items-center gap-1.5">
+                        <span class="inline-block animate-spin">⏳</span>
+                        <span>جاري البحث عن بيانات المجموعة (${cleanG})...</span>
+                    </div>
+                `;
+            }
+
+            try {
+                const remote = await window.fetchGroupMetadataAsync(cleanG);
+                if (remote && (remote.teacher_id || remote.subscription_days)) {
+                    applyMeta(remote);
+                } else {
+                    if (hintEl) {
+                        hintEl.classList.remove('hidden');
+                        hintEl.innerHTML = `
+                            <div class="text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-1.5 rounded-xl text-[11px] font-bold mt-1.5">
+                                ℹ️ مجموعة جديدة (${cleanG}) — يرجى تحديد المعلم والمواعيد يدوياً لحفظها مع المجموعة.
+                            </div>
+                        `;
+                    }
+                }
+            } catch(e) {
+                if (hintEl) hintEl.classList.add('hidden');
+            }
+        };
+
+        window.onBulkGroupChanged = async function(groupVal) {
+            const box = document.getElementById('bulkGroupAutoBox');
+            const details = document.getElementById('bulkGroupAutoDetails');
+            if (!box || !details) return;
+
+            const cleanG = (groupVal || '').trim();
+            if (!cleanG) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const showMeta = (meta) => {
+                if (!meta || (!meta.teacher_id && !meta.subscription_days)) {
+                    box.classList.add('hidden');
+                    return false;
+                }
+                box.classList.remove('hidden');
+                details.innerHTML = `
+                    <div>👨‍🏫 <strong>المعلم:</strong> <span class="text-emerald-950 font-bold">${meta.teacher_name || 'غير محدد'}</span></div>
+                    <div>📅 <strong>الأيام:</strong> <span class="text-emerald-950 font-bold">${meta.subscription_days || 'غير محددة'}</span> | ⏰ <strong>الموعد:</strong> <span class="text-emerald-950 font-bold">${meta.lecture_time || 'غير محدد'}</span> (${meta.session_duration || '20 دقيقة'})</div>
+                `;
+                return true;
+            };
+
+            const cached = window.getGroupMetadata(cleanG);
+            if (cached) {
+                showMeta(cached);
+                return;
+            }
+
+            try {
+                const remote = await window.fetchGroupMetadataAsync(cleanG);
+                showMeta(remote);
+            } catch(e) {
+                box.classList.add('hidden');
+            }
+        };
+
         // Gender heuristic: Arabic names ending in ة are usually female
         function guessGender(name) {
             if (!name) return 'm';
@@ -4442,9 +4695,23 @@
                     <div>
                         <label class="block font-bold text-slate-700 mb-1.5">المجموعة الجديدة (Group ID)</label>
                         <input type="text" id="bulkGroupInput" list="bsGroupsList" placeholder="مثال: G182"
+                            oninput="onBulkGroupChanged(this.value)" onchange="onBulkGroupChanged(this.value)"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 outline-none focus:border-[#41519C] font-mono font-black text-lg text-center">
                         <datalist id="bsGroupsList">${groups.map(g => `<option value="${g}">`).join('')}</datalist>
                         <p class="text-[11px] text-slate-400 mt-2">أو اكتب Group ID جديد لنقل الطلاب إليه</p>
+
+                        <!-- Auto-link banner for bulk group -->
+                        <div id="bulkGroupAutoBox" class="mt-3 hidden p-3.5 rounded-2xl border border-emerald-300 bg-emerald-50 text-slate-700">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-base">⚡</span>
+                                <span class="font-extrabold text-xs text-emerald-900">بيانات المجموعة المتصلة تلقائياً:</span>
+                            </div>
+                            <div class="text-[11px] font-semibold text-slate-700 space-y-0.5 mr-5" id="bulkGroupAutoDetails"></div>
+                            <label class="flex items-center gap-2 mt-2.5 pt-2 border-t border-emerald-200 cursor-pointer font-black text-xs text-emerald-900">
+                                <input type="checkbox" id="bulkSyncTeacherSchedule" checked class="w-4 h-4 accent-emerald-600 rounded">
+                                <span>تحديث المعلم والمواعيد تلقائياً لجميع الطلاب المحددين في قاعدة البيانات</span>
+                            </label>
+                        </div>
                     </div>`;
 
             } else if (action === 'teacher') {
@@ -4622,7 +4889,23 @@
                 if (!val) { MonirPopup ? MonirPopup.error('أدخل معرف المجموعة') : alert('أدخل معرف المجموعة'); return; }
                 updatePayload.qr_code = val;
                 enrollPayload.group_id = val;
-                successMsg = `تم تعيين مجموعة "${val}" على ${ids.length} طالب ✅`;
+
+                const syncAuto = document.getElementById('bulkSyncTeacherSchedule')?.checked ?? false;
+                let meta = null;
+                if (syncAuto) {
+                    meta = window.getGroupMetadata(val);
+                    if (!meta && typeof window.fetchGroupMetadataAsync === 'function') {
+                        try { meta = await window.fetchGroupMetadataAsync(val); } catch(e) {}
+                    }
+                }
+                if (meta) {
+                    if (meta.teacher_id) enrollPayload.teacher_id = parseInt(meta.teacher_id);
+                    if (meta.subscription_days) enrollPayload.subscription_days = meta.subscription_days;
+                    if (meta.lecture_time) enrollPayload.lecture_time = meta.lecture_time;
+                    if (meta.session_duration) enrollPayload.session_duration = meta.session_duration;
+                }
+
+                successMsg = `تم تعيين مجموعة "${val}" ${meta ? 'وربط المعلم والمواعيد تلقائياً ' : ''}على ${ids.length} طالب ✅`;
 
             } else if (action === 'teacher') {
                 const val = document.getElementById('bulkTeacherInput').value;
@@ -4903,6 +5186,13 @@
             const durEl = document.getElementById('inlineDuration');
             if (durEl) durEl.value = s.session_duration || '20 دقيقة';
 
+            // Clear any previous auto-hint
+            const hintEl = document.getElementById('inlineGroupAutoHint');
+            if (hintEl) {
+                hintEl.classList.add('hidden');
+                hintEl.innerHTML = '';
+            }
+
             document.getElementById('inlineEditModal').classList.remove('hidden');
         }
 
@@ -4921,12 +5211,23 @@
             const age = parseInt(document.getElementById('inlineAge')?.value) || null;
             const group = (document.getElementById('inlineGroup')?.value || '').trim();
             const credits = parseInt(document.getElementById('inlineCredits')?.value) || 0;
-            const day = (document.getElementById('inlineDay')?.value || '').trim();
-            const time = (document.getElementById('inlineTime')?.value || '').trim();
-            const duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
-            const teacherId = document.getElementById('inlineTeacher')?.value || null;
+            let day = (document.getElementById('inlineDay')?.value || '').trim();
+            let time = (document.getElementById('inlineTime')?.value || '').trim();
+            let duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
+            let teacherId = document.getElementById('inlineTeacher')?.value || null;
             const status = document.getElementById('inlineStatus')?.value || 'active';
             const password = (document.getElementById('inlinePassword')?.value || '').trim();
+
+            // Auto-fallback: If group is set but teacher or schedule wasn't selected, resolve from metadata
+            if (group) {
+                const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(group) : null;
+                if (meta) {
+                    if (!teacherId && meta.teacher_id) teacherId = String(meta.teacher_id);
+                    if (!day && meta.subscription_days) day = meta.subscription_days;
+                    if (!time && meta.lecture_time) time = meta.lecture_time;
+                    if ((!duration || duration === '20 دقيقة') && meta.session_duration) duration = meta.session_duration;
+                }
+            }
 
             const saveBtn = document.getElementById('inlineSaveBtn');
             if (saveBtn) {
@@ -5008,6 +5309,19 @@
                     let tList = window.bsTeachersList || (typeof bsTeachersList !== 'undefined' ? bsTeachersList : []) || [];
                     const t = tList.find(t => String(t.id) === String(teacherId));
                     s.teacher_name = t ? t.name : '—';
+                }
+
+                // Cache updated group metadata for fast lookup across the platform
+                if (group) {
+                    if (!window._groupMetadataCache) window._groupMetadataCache = {};
+                    window._groupMetadataCache[group.toUpperCase()] = {
+                        group_id: group.toUpperCase(),
+                        teacher_id: teacherId ? parseInt(teacherId) : null,
+                        teacher_name: (s && s.teacher_name) ? s.teacher_name : '',
+                        subscription_days: day,
+                        lecture_time: time,
+                        session_duration: duration
+                    };
                 }
 
                 // Sync to localStorage overrides
@@ -5130,52 +5444,36 @@
             if (!targetGroup) return;
             const cleanG = targetGroup.trim().toUpperCase();
 
-            // Try finding matching group in loaded students
-            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
-            const match = allSts.find(s => {
-                if (!s) return false;
-                if (s.group_id && s.group_id.toUpperCase() === cleanG) return true;
-                if (Array.isArray(s.group_ids) && s.group_ids.some(g => g.toUpperCase() === cleanG)) return true;
-                return false;
-            });
-
-            if (match) {
-                if (match.teacher_id) {
+            const applyToAsgNew = (meta) => {
+                if (!meta) return;
+                if (meta.teacher_id) {
                     const tSelect = document.getElementById('asgNewTeacher');
-                    if (tSelect) tSelect.value = String(match.teacher_id);
+                    if (tSelect) tSelect.value = String(meta.teacher_id);
                 }
-                if (match.subscription_days && match.subscription_days !== '—') {
+                if (meta.subscription_days && meta.subscription_days !== '—') {
                     const daysInput = document.getElementById('asgNewDays');
-                    if (daysInput && (!daysInput.value || daysInput.value === 'null')) daysInput.value = match.subscription_days;
+                    if (daysInput && (!daysInput.value || daysInput.value === 'null')) daysInput.value = meta.subscription_days;
                 }
-                if (match.lecture_time && match.lecture_time !== '—') {
+                if (meta.lecture_time && meta.lecture_time !== '—') {
                     const timeInput = document.getElementById('asgNewTime');
-                    if (timeInput && (!timeInput.value || timeInput.value === 'null')) timeInput.value = match.lecture_time;
+                    if (timeInput && (!timeInput.value || timeInput.value === 'null')) timeInput.value = meta.lecture_time;
                 }
-                if (match.session_duration && match.session_duration !== '—') {
+                if (meta.session_duration && meta.session_duration !== '—') {
                     const durSelect = document.getElementById('asgNewDuration');
-                    if (durSelect) durSelect.value = match.session_duration;
+                    if (durSelect) durSelect.value = meta.session_duration;
                 }
+            };
+
+            const cached = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(cleanG) : null;
+            if (cached) {
+                applyToAsgNew(cached);
                 return;
             }
 
-            // Fallback: check window.allAdminGroups
-            if (window.allAdminGroups && Array.isArray(window.allAdminGroups)) {
-                const grp = window.allAdminGroups.find(g => (g.group_id || '').toUpperCase() === cleanG);
-                if (grp) {
-                    if (grp.teacher_id) {
-                        const tSelect = document.getElementById('asgNewTeacher');
-                        if (tSelect) tSelect.value = String(grp.teacher_id);
-                    }
-                    if (grp.subscription_days && grp.subscription_days !== '—') {
-                        const daysInput = document.getElementById('asgNewDays');
-                        if (daysInput && (!daysInput.value || daysInput.value === 'null')) daysInput.value = grp.subscription_days;
-                    }
-                    if (grp.lecture_time && grp.lecture_time !== '—') {
-                        const timeInput = document.getElementById('asgNewTime');
-                        if (timeInput && (!timeInput.value || timeInput.value === 'null')) timeInput.value = grp.lecture_time;
-                    }
-                }
+            if (typeof window.fetchGroupMetadataAsync === 'function') {
+                window.fetchGroupMetadataAsync(cleanG).then(remoteMeta => {
+                    if (remoteMeta) applyToAsgNew(remoteMeta);
+                }).catch(() => {});
             }
         }
 
@@ -5278,8 +5576,36 @@
         window.onAsgTargetGroupChanged = function() {
             renderAsgStudentsList();
             const targetGroup = (document.getElementById('asgTargetGroup')?.value || '').trim();
+            const infoBox = document.getElementById('asgTargetGroupInfo');
+            const infoText = document.getElementById('asgTargetGroupInfoText');
+
             if (targetGroup) {
                 autoFillGroupDetailsFromTarget(targetGroup);
+
+                const updateTargetBadge = (meta) => {
+                    if (infoBox && infoText) {
+                        if (meta && (meta.teacher_id || meta.subscription_days)) {
+                            infoBox.classList.remove('hidden');
+                            infoText.innerHTML = `
+                                <span class="text-emerald-600 text-sm">⚡</span>
+                                <span>بيانات المجموعة (${meta.group_id || targetGroup}): المعلم: <strong class="text-emerald-950 font-black">${meta.teacher_name || '—'}</strong> | الأيام: <strong class="text-emerald-950 font-black">${meta.subscription_days || '—'}</strong> | الموعد: <strong class="text-emerald-950 font-black">${meta.lecture_time || '—'}</strong> (${meta.session_duration || '20 دقيقة'})</span>
+                            `;
+                        } else {
+                            infoBox.classList.add('hidden');
+                        }
+                    }
+                };
+
+                const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(targetGroup) : null;
+                if (meta) {
+                    updateTargetBadge(meta);
+                } else if (typeof window.fetchGroupMetadataAsync === 'function') {
+                    window.fetchGroupMetadataAsync(targetGroup).then(updateTargetBadge).catch(() => {});
+                } else {
+                    if (infoBox) infoBox.classList.add('hidden');
+                }
+            } else {
+                if (infoBox) infoBox.classList.add('hidden');
             }
         };
 
@@ -5491,12 +5817,34 @@
                                 s.group_id = newGroupStr;
                             }
                         } else {
-                            // Transfer / overwrite
+                            // Transfer / overwrite with full teacher and schedule synchronization
                             await client.from('students').update({ qr_code: targetGroup }).eq('id', sid);
-                            await client.from('enrollments').update({ group_id: targetGroup }).eq('student_id', sid);
+
+                            const transferPayload = { group_id: targetGroup };
+                            let groupMeta = targetTemplate || (typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(targetGroup) : null);
+                            if (!groupMeta && typeof window.fetchGroupMetadataAsync === 'function') {
+                                try { groupMeta = await window.fetchGroupMetadataAsync(targetGroup); } catch(e) {}
+                            }
+                            if (groupMeta) {
+                                if (groupMeta.teacher_id) transferPayload.teacher_id = parseInt(groupMeta.teacher_id);
+                                if (groupMeta.subscription_days && groupMeta.subscription_days !== '—' && groupMeta.subscription_days !== 'null') transferPayload.subscription_days = groupMeta.subscription_days;
+                                if (groupMeta.lecture_time && groupMeta.lecture_time !== '—' && groupMeta.lecture_time !== 'null') transferPayload.lecture_time = groupMeta.lecture_time;
+                                if (groupMeta.session_duration && groupMeta.session_duration !== '—') transferPayload.session_duration = groupMeta.session_duration;
+                            }
+                            await client.from('enrollments').update(transferPayload).eq('student_id', sid);
+
                             if (s) {
                                 s.group_ids = [targetGroup];
                                 s.group_id = targetGroup;
+                                if (transferPayload.teacher_id) {
+                                    s.teacher_id = transferPayload.teacher_id;
+                                    const tList = window.bsTeachersList || [];
+                                    const t = tList.find(x => x.id === transferPayload.teacher_id);
+                                    s.teacher_name = t ? t.name : (groupMeta?.teacher_name || s.teacher_name);
+                                }
+                                if (transferPayload.subscription_days) s.subscription_days = transferPayload.subscription_days;
+                                if (transferPayload.lecture_time) s.lecture_time = transferPayload.lecture_time;
+                                if (transferPayload.session_duration) s.session_duration = transferPayload.session_duration;
                             }
                         }
                     }
@@ -5510,6 +5858,18 @@
                             } else {
                                 s.group_ids = [targetGroup];
                                 s.group_id = targetGroup;
+                                const groupMeta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(targetGroup) : null;
+                                if (groupMeta) {
+                                    if (groupMeta.teacher_id) {
+                                        s.teacher_id = parseInt(groupMeta.teacher_id);
+                                        const tList = window.bsTeachersList || [];
+                                        const t = tList.find(x => x.id === s.teacher_id);
+                                        s.teacher_name = t ? t.name : (groupMeta.teacher_name || s.teacher_name);
+                                    }
+                                    if (groupMeta.subscription_days) s.subscription_days = groupMeta.subscription_days;
+                                    if (groupMeta.lecture_time) s.lecture_time = groupMeta.lecture_time;
+                                    if (groupMeta.session_duration) s.session_duration = groupMeta.session_duration;
+                                }
                             }
                         }
                     });

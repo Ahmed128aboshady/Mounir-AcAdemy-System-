@@ -286,103 +286,235 @@
                 </div>
             </div>
 
-            <!-- Collapsible Schedule Notices Dropdown (قائمة منسدلة قابلة للطي والفتح لمواعيد المحاضرات المباشرة) -->
-            <div class="border-2 border-indigo-200 rounded-2xl bg-indigo-50/50 overflow-hidden shadow-xs">
+            <!-- Collapsible Schedule Notices Dropdown (جدول ومواعيد المحاضرات العامة المباشرة للأسبوع) -->
+            <div class="border-2 border-indigo-200/90 rounded-2xl bg-indigo-50/40 overflow-hidden shadow-xs">
                 <button type="button" onclick="toggleScheduleNoticesDropdown()" 
-                    class="w-full p-3 sm:p-3.5 flex items-center justify-between text-right hover:bg-indigo-100/60 transition cursor-pointer gap-2">
-                    <div class="flex items-center gap-2 flex-wrap">
+                    class="w-full p-3 sm:p-4 flex items-center justify-between text-right hover:bg-indigo-100/60 transition cursor-pointer gap-2">
+                    <div class="flex items-center gap-2.5 flex-wrap">
                         <span class="text-base sm:text-lg">📅</span>
-                        <span class="font-black text-xs sm:text-sm text-indigo-950">جدول ومواعيد المحاضرات العامة المباشرة (الجمعة والأحد)</span>
+                        <span class="font-black text-xs sm:text-sm text-indigo-950">جدول ومواعيد المحاضرات العامة المباشرة (الجمعة والأحد والإثنين)</span>
+                        <span class="inline-flex items-center gap-1 bg-white/90 border border-indigo-200 text-indigo-900 text-[10px] font-black px-2.5 py-0.5 rounded-lg shadow-2xs">3 لقاءات أسبوعية</span>
                         <span id="schedActiveBadge" class="hidden bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full animate-pulse flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                             <span>بث مباشر متاح الآن 🔴</span>
                         </span>
                     </div>
-                    <div class="flex items-center gap-1.5 text-xs text-indigo-700 font-black shrink-0 bg-white/80 border border-indigo-200 px-3 py-1.5 rounded-xl shadow-2xs">
+                    <div class="flex items-center gap-1.5 text-xs text-indigo-700 font-black shrink-0 bg-white/90 border border-indigo-200 px-3.5 py-1.5 rounded-xl shadow-2xs">
                         <span id="schedToggleText">عرض المواعيد</span>
                         <span id="schedToggleIcon" class="text-[11px] transition-transform">▼</span>
                     </div>
                 </button>
 
-                <!-- Dropdown Collapsible Content (محتوى الكروت) -->
-                <div id="scheduleNoticesDropdownContent" class="hidden p-3.5 sm:p-4 pt-1 space-y-3 border-t border-indigo-100 bg-white/70">
-                    <!-- Notice: Friday Schedule & Locked Files (تنبيه موعد الجمعة غداً وقفل الملفات والريكوردات) -->
-                    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
-                        <div class="flex items-center gap-2">
-                            <div>
-                                <strong class="text-xs sm:text-sm font-black text-amber-950 block">موعد المحاضرات العامة التفاعلية هو يوم الجمعة غداً</strong>
-                                <span class="text-[11px] text-amber-800 font-bold block">رابط Zoom سيفتح تلقائياً في موعد فئتك العمرية:</span>
+                <!-- Dropdown Collapsible Content (كروت المحاضرات الأسبوعية الثلاثة) -->
+                <div id="scheduleNoticesDropdownContent" class="hidden p-3.5 sm:p-5 space-y-3.5 border-t border-indigo-100 bg-slate-50/70">
+                    
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- 1. بطاقة يوم الجمعة: مسار أحكام التجويد ومخارج الحروف -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="bg-white border-2 border-amber-300/80 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-xs transition hover:shadow-sm">
+                        <!-- Header Row -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 pb-2.5 border-b border-amber-100">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-lg font-black shrink-0">🕌</span>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="bg-amber-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">كل جمعة</span>
+                                        <strong class="text-xs sm:text-sm font-black text-slate-900">محاضرة أحكام التجويد ومخارج الحروف</strong>
+                                        <span class="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full">حسب الفئة العمرية</span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-500 font-bold block mt-0.5">محاضرة تفاعلية أسبوعية مباشرة لجميع الطلاب عبر منصة Zoom</span>
+                                </div>
+                            </div>
+                            <!-- Live Action / Status -->
+                            <div id="fridayLiveBadgeSlot" class="w-full sm:w-auto">
+                                <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
+                                    تفتح الجمعة 1:50 م / 2:20 م
+                                </span>
                             </div>
                         </div>
-                        <div id="fridayScheduleSlotContainer" class="space-y-2">
-                            <div id="slotNoticeKids" class="hidden bg-white/95 border border-amber-200 p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-slate-800 text-xs font-bold">
-                                <span>موعد فئة الأطفال (أقل من 10 سنوات): <strong class="text-slate-900">الجمعة 1:50 م - 2:25 م</strong></span>
-                                <div id="slotNoticeKidsAction" class="w-full sm:w-auto"></div>
+
+                        <!-- 2 Timing Slots Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <!-- Kids Slot (< 10) -->
+                            <div id="slotNoticeKids" class="p-3 bg-amber-50/40 rounded-xl border border-amber-200/80 flex items-center justify-between gap-2 transition hover:bg-amber-50">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base">🧒</span>
+                                    <div>
+                                        <strong class="text-[11px] text-slate-900 font-black block">فئة الأطفال (أقل من 10 سنوات)</strong>
+                                        <span class="text-[10px] text-amber-900 font-extrabold">الجمعة من 1:50 م إلى 2:25 م</span>
+                                    </div>
+                                </div>
+                                <div id="slotNoticeKidsAction" class="shrink-0">
+                                    <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="text-[10px] font-black text-amber-900 bg-white hover:bg-amber-600 hover:text-white border border-amber-300 px-2.5 py-1 rounded-lg transition shadow-2xs flex items-center gap-1">
+                                        <span>Zoom</span>
+                                        <span>↗</span>
+                                    </a>
+                                </div>
                             </div>
-                            <div id="slotNoticeAdults" class="hidden bg-white/95 border border-amber-200 p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-slate-800 text-xs font-bold">
-                                <span>موعد فئة الطلاب (10 سنوات فما فوق): <strong class="text-slate-900">الجمعة 2:20 م - 2:50 م</strong></span>
-                                <div id="slotNoticeAdultsAction" class="w-full sm:w-auto"></div>
+
+                            <!-- Adults Slot (>= 10) -->
+                            <div id="slotNoticeAdults" class="p-3 bg-amber-50/40 rounded-xl border border-amber-200/80 flex items-center justify-between gap-2 transition hover:bg-amber-50">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base">👨‍🎓</span>
+                                    <div>
+                                        <strong class="text-[11px] text-slate-900 font-black block">فئة الطلاب (10 سنوات فما فوق)</strong>
+                                        <span class="text-[10px] text-amber-900 font-extrabold">الجمعة من 2:20 م إلى 2:50 م</span>
+                                    </div>
+                                </div>
+                                <div id="slotNoticeAdultsAction" class="shrink-0">
+                                    <a href="https://zoom.us/j/99924246069" target="_blank" rel="noopener noreferrer" class="text-[10px] font-black text-amber-900 bg-white hover:bg-amber-600 hover:text-white border border-amber-300 px-2.5 py-1 rounded-lg transition shadow-2xs flex items-center gap-1">
+                                        <span>Zoom</span>
+                                        <span>↗</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                        <div id="fridayScheduleZoomActionContainer" class="pt-1"></div>
-                        <script>
-                        (function(){
-                            try {
-                                const urlParams = new URLSearchParams(window.location.search);
-                                const u = window.__PRELOADED_USER__;
-                                let a = urlParams.has('sim_age') ? parseInt(urlParams.get('sim_age'),10) : ((u && u.age) ? parseInt(u.age,10) : 9);
-                                if (a < 10) {
-                                    const k = document.getElementById('slotNoticeKids');
-                                    if (k) k.classList.remove('hidden');
-                                } else {
-                                    const ad = document.getElementById('slotNoticeAdults');
-                                    if (ad) ad.classList.remove('hidden');
-                                }
-                            } catch(e){}
-                        })();
-                        </script>
-                        <div class="bg-amber-100/60 p-2 rounded-xl text-[11px] text-amber-900 font-bold flex items-center gap-1.5 border border-amber-200/80">
-                            <span>تنويه: التسجيلات الصوتية (الريكوردات) والملخصات مقفولة حالياً، وتفتح فقط بعد انتهاء الحصة وإضافتها بواسطة المشرفين.</span>
+
+                        <div id="fridayScheduleZoomActionContainer"></div>
+
+                        <!-- Footer note -->
+                        <div class="bg-amber-50/80 p-2.5 rounded-xl text-[11px] text-amber-950 font-bold flex items-center gap-2 border border-amber-200/60">
+                            <span class="text-amber-700">🔒</span>
+                            <span>تنويه: التسجيلات الصوتية (الريكوردات) والملخصات مقفولة حالياً، وتفتح فور انتهاء الحصة وإضافتها بواسطة المشرفين.</span>
                         </div>
                     </div>
 
-                    <!-- Notice: Sunday Tafsir Lecture (محاضرة التفسير والتدبر الأسبوعية - الأحد) -->
-                    <div id="sundayTafsirNoticeCard" class="hidden bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 sm:p-4 text-xs space-y-2 shadow-xs">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- 2. بطاقة يوم الأحد: مسار التفسير وتدبر القرآن الكريم -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div id="sundayTafsirNoticeCard" class="bg-white border-2 border-emerald-300/80 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-xs transition hover:shadow-sm">
+                        <!-- Header Row -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 pb-2.5 border-b border-emerald-100">
                             <div class="flex items-center gap-2.5">
-                                <span class="text-2xl">📖</span>
+                                <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center text-lg font-black shrink-0">📖</span>
                                 <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm font-black text-emerald-950">محاضرة التفسير والتدبر الأسبوعية</strong>
-                                        <span class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">محاضرة عامة مجانية 100%</span>
-                                        <span class="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">فئة 10 سنوات فما فوق</span>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">كل أحد</span>
+                                        <strong class="text-xs sm:text-sm font-black text-slate-900">محاضرة التفسير وتدبر القرآن الكريم</strong>
+                                        <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">محاضرة عامة مجانية 100%</span>
+                                        <span class="bg-indigo-50 text-indigo-800 border border-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded-full">فئة 10 سنوات فما فوق</span>
                                     </div>
-                                    <span class="text-[11px] text-emerald-800 font-bold block mt-1">
-                                        📅 الموعد: <strong class="text-slate-900 font-black">كل يوم أحد من 8:00 م إلى 9:00 م</strong> (يفتح الرابط تلقائياً من <strong class="text-emerald-900 font-black">7:50 مساءً</strong>)
-                                    </span>
+                                    <span class="text-[11px] text-slate-500 font-bold block mt-0.5">محاضرة عامة للتدبر وتزكية النفس لجميع الطلاب 10 سنوات فما فوق</span>
                                 </div>
                             </div>
+                            <!-- Live Action / Status -->
                             <div id="sundayTafsirActionContainer" class="w-full sm:w-auto">
-                                <span class="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-300 px-3.5 py-2 rounded-xl block text-center whitespace-nowrap shadow-xs">
+                                <span class="text-[10px] font-bold text-emerald-900 bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
                                     تفتح الأحد 7:50 م
                                 </span>
                             </div>
                         </div>
 
-                        <script>
-                        (function(){
-                            try {
-                                const urlParams = new URLSearchParams(window.location.search);
-                                const u = window.__PRELOADED_USER__;
-                                let a = urlParams.has('sim_age') ? parseInt(urlParams.get('sim_age'),10) : ((u && u.age) ? parseInt(u.age,10) : 9);
-                                const sun = document.getElementById('sundayTafsirNoticeCard');
-                                if (sun) {
-                                    if (a >= 10) sun.classList.remove('hidden');
-                                    else sun.classList.add('hidden');
-                                }
-                            } catch(e){}
-                        })();
-                        </script>
+                        <!-- Schedule details -->
+                        <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">⏰</span>
+                                <div>
+                                    <strong class="text-[11px] text-slate-900 font-black block">موعد المحاضرة الأسبوعي:</strong>
+                                    <span class="text-[11px] text-emerald-950 font-extrabold">كل يوم أحد من 8:00 م إلى 9:00 م (يفتح الرابط تلقائياً 7:50 مساءً)</span>
+                                </div>
+                            </div>
+                            <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="text-[10px] font-black text-emerald-900 bg-white hover:bg-emerald-600 hover:text-white border border-emerald-300 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs">
+                                <span>قاعة الزووم العامة (Zoom)</span>
+                                <span>↗</span>
+                            </a>
+                        </div>
+
+                        <!-- Footer note -->
+                        <div class="bg-emerald-50/80 p-2.5 rounded-xl text-[11px] text-emerald-950 font-bold flex items-center gap-2 border border-emerald-200/60">
+                            <span class="text-emerald-700">🎁</span>
+                            <span>متاحة ومجانية لجميع الطلاب المشتركين دون خصم أي رصيد من الحصص الشهرية.</span>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- 3. بطاقة يوم الإثنين: مجلس الحديث الشريف (الحلقة الثانية) -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div id="mondayHadithNoticeCard" class="bg-white border-2 border-indigo-300/90 rounded-2xl p-4 sm:p-4.5 space-y-3 shadow-xs transition hover:shadow-sm">
+                        <!-- Header Row -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 pb-2.5 border-b border-indigo-100">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-900 flex items-center justify-center text-lg font-black shrink-0">📜</span>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="bg-indigo-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full animate-pulse">كل إثنين — اليوم</span>
+                                        <strong class="text-xs sm:text-sm font-black text-slate-900">مجلس الحديث الشريف: «لو محدش شايفك… من ستكون؟»</strong>
+                                        <span class="bg-purple-100 text-purple-900 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">الحلقة الثانية</span>
+                                        <span class="bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">مجاني لجميع الفئات</span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-500 font-bold block mt-0.5">مدارسة أحاديث المراقبة والإخلاص وتزكية النفس عبر 4 قاعات مخصصة</span>
+                                </div>
+                            </div>
+                            <!-- Dynamic Action for Current Student -->
+                            <div id="mondayHadithActionContainer" class="w-full sm:w-auto">
+                                <span class="text-[10px] font-bold text-indigo-900 bg-indigo-50 border border-indigo-300 px-3.5 py-1.5 rounded-xl block text-center whitespace-nowrap shadow-2xs">
+                                    تفتح 6:20 م و 7:20 م
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Subtitle instruction -->
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold px-1">
+                            <span>اختر قاعتك المخصصة حسب الجنس والعمر (أو سيفتح لك زر قاعتك تلقائياً أعلاه):</span>
+                            <span class="text-[10px] text-indigo-700 font-extrabold hidden sm:inline">روابط مباشرة ومؤمنة 🔒</span>
+                        </div>
+
+                        <!-- 4 Targeted Live Sessions Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <!-- 1. بنات أقل من 10 سنوات -->
+                            <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="p-3 bg-indigo-50/40 hover:bg-indigo-100/60 rounded-xl border border-indigo-200/80 flex items-center justify-between gap-2 transition group shadow-2xs hover:border-indigo-400">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-xl">👧</span>
+                                    <div>
+                                        <strong class="text-[11px] text-slate-900 font-black block group-hover:text-indigo-950">بنات أقل من 10 سنوات</strong>
+                                        <span class="text-[10px] text-indigo-800 font-extrabold">كل إثنين 6:30 م - 7:25 م</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-black text-indigo-700 bg-white group-hover:bg-indigo-700 group-hover:text-white px-2.5 py-1 rounded-lg border border-indigo-200 transition shadow-2xs">Zoom ↗</span>
+                            </a>
+
+                            <!-- 2. بنات 10 سنوات وأكبر -->
+                            <a href="https://zoom.us/j/99924246069" target="_blank" rel="noopener noreferrer" class="p-3 bg-purple-50/40 hover:bg-purple-100/60 rounded-xl border border-purple-200/80 flex items-center justify-between gap-2 transition group shadow-2xs hover:border-purple-400">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-xl">🧕</span>
+                                    <div>
+                                        <strong class="text-[11px] text-slate-900 font-black block group-hover:text-purple-950">بنات 10 سنوات وأكبر</strong>
+                                        <span class="text-[10px] text-purple-800 font-extrabold">كل إثنين 7:30 م - 8:30 م</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-black text-purple-700 bg-white group-hover:bg-purple-700 group-hover:text-white px-2.5 py-1 rounded-lg border border-purple-200 transition shadow-2xs">Zoom ↗</span>
+                            </a>
+
+                            <!-- 3. أولاد أقل من 10 سنوات -->
+                            <a href="https://meet.google.com/che-nnub-mxf" target="_blank" rel="noopener noreferrer" class="p-3 bg-emerald-50/40 hover:bg-emerald-100/60 rounded-xl border border-emerald-200/80 flex items-center justify-between gap-2 transition group shadow-2xs hover:border-emerald-400">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-xl">👦</span>
+                                    <div>
+                                        <strong class="text-[11px] text-slate-900 font-black block group-hover:text-emerald-950">أولاد أقل من 10 سنوات</strong>
+                                        <span class="text-[10px] text-emerald-800 font-extrabold">كل إثنين 7:30 م - 8:30 م</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-black text-emerald-700 bg-white group-hover:bg-emerald-700 group-hover:text-white px-2.5 py-1 rounded-lg border border-emerald-200 transition shadow-2xs">Google Meet ↗</span>
+                            </a>
+
+                            <!-- 4. أولاد 10 سنوات وأكبر -->
+                            <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="p-3 bg-blue-50/40 hover:bg-blue-100/60 rounded-xl border border-blue-200/80 flex items-center justify-between gap-2 transition group shadow-2xs hover:border-blue-400">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-xl">👨‍🎓</span>
+                                    <div>
+                                        <strong class="text-[11px] text-slate-900 font-black block group-hover:text-blue-950">أولاد 10 سنوات وأكبر</strong>
+                                        <span class="text-[10px] text-blue-800 font-extrabold">كل إثنين 7:30 م - 8:30 م</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-black text-blue-700 bg-white group-hover:bg-blue-700 group-hover:text-white px-2.5 py-1 rounded-lg border border-blue-200 transition shadow-2xs">Zoom ↗</span>
+                            </a>
+                        </div>
+
+                        <!-- Footer note -->
+                        <div class="bg-indigo-50/80 p-2.5 rounded-xl text-[11px] text-indigo-950 font-bold flex items-center gap-2 border border-indigo-200/60">
+                            <span class="text-indigo-700">⚡</span>
+                            <span>تفتح قاعات البث المباشر تلقائياً قبل بدء المجلس بـ 10 دقائق (6:20 م للبنات الصغار، و 7:20 م لباقي المجموعات).</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -413,12 +545,13 @@
                 </div>
                 <div class="w-full sm:w-auto flex-1 sm:max-w-md">
                     <select id="selectStudentGeneralTrack" onchange="selectGeneralTrack(this.value)" class="w-full bg-white border-2 border-indigo-200 hover:border-indigo-400 text-indigo-950 font-black text-xs sm:text-sm rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer shadow-xs transition">
-                        <option value="tajweed">مسار أحكام التجويد ومخارج الحروف (الأسبوع 1)</option>
-                        <option value="tafsir">مسار التفسير وتدبر القرآن الكريم (الأسبوع 1)</option>
-                        <option value="hadith">مسار الحديث الشريف والسنة النبوية (الأسبوع 1)</option>
+                        <option value="hadith" selected>📜 مسار الحديث الشريف — الحلقة 2: «لو محدش شايفك… من ستكون؟» (الأسبوع 2)</option>
+                        <option value="tajweed">🕌 مسار أحكام التجويد ومخارج الحروف (الأسبوع 2)</option>
+                        <option value="tafsir">📖 مسار التفسير وتدبر القرآن الكريم (الأسبوع 2)</option>
                     </select>
                 </div>
             </div>
+
 
             <!-- Track Content Dynamic Card Container -->
             <div id="generalTrackCardContainer" class="space-y-4">
