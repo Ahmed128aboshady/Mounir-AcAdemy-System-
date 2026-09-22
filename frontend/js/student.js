@@ -2266,6 +2266,89 @@ function getSundayTafsirStatus(studentAge) {
     };
 }
 
+// ═════════════════════════════════════════════════════════════════════
+// 📜 Tuesday Girls Tafsir Live Config (جلسة التفسير والتدبر للبنات أقل من 10 سنوات)
+// ═════════════════════════════════════════════════════════════════════
+const TUESDAY_GIRLS_TAFSIR_CONFIG = {
+    url: "https://zoom.us/j/98264506630",
+    label: "جلسة التفسير والتدبر (بنات أقل من 10 سنوات)",
+    timeLabel: "الثلاثاء 8:30 م - 9:30 م (تفتح 8:20 م)",
+    maxAge: 9, // strictly < 10
+    openMins: 1220, // 20:20 (8:20 PM)
+    startMins: 1230, // 20:30 (8:30 PM)
+    endMins: 1295   // 21:35 (9:35 PM)
+};
+
+function getTuesdayGirlsTafsirStatus(studentAge, studentGender) {
+    const urlParams = new URLSearchParams(window.location.search);
+    let age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
+    if (urlParams.has('sim_age')) {
+        age = parseInt(urlParams.get('sim_age'), 10);
+    }
+    let gender = studentGender;
+    if (urlParams.has('sim_gender')) {
+        gender = urlParams.get('sim_gender');
+    }
+    if (!gender || (gender !== 'f' && gender !== 'm')) {
+        const s = (window.currentStudentData && window.currentStudentData.student) || {};
+        const sName = s.name || '';
+        const sCode = s.student_code || s.id || currentStudentId;
+        const sExplicit = s.gender || s.parent_name;
+        gender = guessStudentGender(sName, sExplicit, sCode);
+    }
+
+    const userRole = (window.currentLoggedInUser && window.currentLoggedInUser.role) || 
+                     (window.currentSessionUser && window.currentSessionUser.role) || 
+                     urlParams.get('role');
+    const isAdminOrSupervisor = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor') || urlParams.has('all_cohorts'));
+
+    // Strictly for girls under 10
+    const isTargetAudience = (gender === 'f' && age < 10);
+
+    if (!isTargetAudience && !isAdminOrSupervisor) {
+        return {
+            isEligible: false,
+            isVisible: false,
+            isWithinWindow: false,
+            zoomUrl: TUESDAY_GIRLS_TAFSIR_CONFIG.url,
+            label: TUESDAY_GIRLS_TAFSIR_CONFIG.label,
+            timeLabel: TUESDAY_GIRLS_TAFSIR_CONFIG.timeLabel
+        };
+    }
+
+    // Testing simulation flags
+    if (urlParams.has('test_tuesday') || urlParams.has('sim_tuesday') || urlParams.get('force_live') === 'tuesday') {
+        return {
+            isEligible: true,
+            isVisible: true,
+            isWithinWindow: true,
+            zoomUrl: TUESDAY_GIRLS_TAFSIR_CONFIG.url,
+            label: TUESDAY_GIRLS_TAFSIR_CONFIG.label,
+            timeLabel: TUESDAY_GIRLS_TAFSIR_CONFIG.timeLabel
+        };
+    }
+
+    const timeInfo = getCairoTimeInfo();
+    const day = timeInfo.dayOfWeek;
+    const cairoMins = timeInfo.totalMinutes;
+    const localMins = (timeInfo.localTotalMinutes !== undefined) ? timeInfo.localTotalMinutes : cairoMins;
+
+    // Day 2 = Tuesday
+    const isTuesday = (day === 2);
+    const inWindowCairo = isTuesday && (cairoMins >= TUESDAY_GIRLS_TAFSIR_CONFIG.openMins && cairoMins <= TUESDAY_GIRLS_TAFSIR_CONFIG.endMins);
+    const inWindowLocal = isTuesday && (localMins >= TUESDAY_GIRLS_TAFSIR_CONFIG.openMins && localMins <= TUESDAY_GIRLS_TAFSIR_CONFIG.endMins);
+    const isWithinWindow = inWindowCairo || inWindowLocal;
+
+    return {
+        isEligible: true,
+        isVisible: true,
+        isWithinWindow: isWithinWindow,
+        isEnded: isTuesday && (cairoMins > TUESDAY_GIRLS_TAFSIR_CONFIG.endMins),
+        zoomUrl: TUESDAY_GIRLS_TAFSIR_CONFIG.url,
+        label: TUESDAY_GIRLS_TAFSIR_CONFIG.label,
+        timeLabel: TUESDAY_GIRLS_TAFSIR_CONFIG.timeLabel
+    };
+}
 
 // ═════════════════════════════════════════════════════════════════════
 // 📜 Monday Hadith Council Live Config (مجلس الحديث الشريف - الإثنين)
@@ -2824,6 +2907,47 @@ function syncZoomLiveStatusAll() {
         }
     }
 
+    // 2.1 Tuesday Girls Tafsir Lecture (جلسة التفسير والتدبر للبنات أقل من 10 سنوات - الثلاثاء)
+    const tuesdayCard = document.getElementById('tuesdayGirlsTafsirNoticeCard');
+    const tuesdayAction = document.getElementById('tuesdayGirlsTafsirActionContainer');
+    const tuesdaySlot = document.getElementById('tuesdayGirlsTafsirActionSlot');
+    const tuesdayStatus = getTuesdayGirlsTafsirStatus(studentAge, sGender);
+
+    if (tuesdayCard) {
+        if (tuesdayStatus.isVisible) {
+            tuesdayCard.classList.remove('hidden');
+            if (tuesdayStatus.isWithinWindow) {
+                const activeBtnHtml = `
+                    <a href="${TUESDAY_GIRLS_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-pink-600 hover:bg-pink-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
+                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                        <span>انضمي لجلسة التفسير الآن (Zoom)</span>
+                    </a>
+                `;
+                if (tuesdayAction) tuesdayAction.innerHTML = activeBtnHtml;
+                if (tuesdaySlot) tuesdaySlot.innerHTML = activeBtnHtml;
+            } else if (tuesdayStatus.isEnded) {
+                const endedHtml = `
+                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                        انتهت جلسة اليوم
+                    </span>
+                `;
+                if (tuesdayAction) tuesdayAction.innerHTML = endedHtml;
+                if (tuesdaySlot) tuesdaySlot.innerHTML = endedHtml;
+            } else {
+                const dayPrefix = (timeInfo.dayOfWeek === 2) ? 'اليوم ' : 'الثلاثاء ';
+                const lockedHtml = `
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                        مقفول — يفتح ${dayPrefix}8:20 م
+                    </span>
+                `;
+                if (tuesdayAction) tuesdayAction.innerHTML = lockedHtml;
+                if (tuesdaySlot) tuesdaySlot.innerHTML = lockedHtml;
+            }
+        } else {
+            tuesdayCard.classList.add('hidden');
+        }
+    }
+
     // 3. Monday Hadith Lecture Notice & Action Handling (مجلس الحديث - الإثنين)
     const hadithCard = document.getElementById('mondayHadithNoticeCard');
     const hadithAction = document.getElementById('mondayHadithActionContainer');
@@ -2893,7 +3017,17 @@ function syncZoomLiveStatusAll() {
     const bannerLink = banner ? banner.querySelector('a') : null;
 
     if (banner) {
-        if (hadithStatus && hadithStatus.isWithinWindow) {
+        if (tuesdayStatus && tuesdayStatus.isWithinWindow && tuesdayStatus.isVisible) {
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            if (bannerLink) bannerLink.href = TUESDAY_GIRLS_TAFSIR_CONFIG.url;
+            if (titleEl) {
+                titleEl.innerText = 'جلسة التفسير والتدبر المباشرة للبنات (أقل من 10 سنوات) متاحة الآن!';
+            }
+            if (subEl) {
+                subEl.innerText = 'بدأت الآن جلسة التفسير والتدبر المخصصة لفئتك • انضمي الآن للقاعة مع المعلمة عبر Zoom';
+            }
+        } else if (hadithStatus && hadithStatus.isWithinWindow) {
             banner.classList.remove('hidden');
             banner.classList.add('flex');
             if (bannerLink) bannerLink.href = hadithStatus.zoomUrl;
@@ -2935,7 +3069,10 @@ function syncZoomLiveStatusAll() {
 
     // 4.1 Schedule Notices Dropdown Active Badge
     const schedBadge = document.getElementById('schedActiveBadge');
-    const isLiveActive = (status && status.isWithinWindow) || (sundayStatus && sundayStatus.isWithinWindow && studentAge >= 10) || (hadithStatus && hadithStatus.isWithinWindow);
+    const isLiveActive = (status && status.isWithinWindow) || 
+                         (sundayStatus && sundayStatus.isWithinWindow && studentAge >= 10) || 
+                         (hadithStatus && hadithStatus.isWithinWindow) ||
+                         (tuesdayStatus && tuesdayStatus.isWithinWindow && tuesdayStatus.isVisible);
     if (schedBadge) {
         if (isLiveActive) {
             schedBadge.classList.remove('hidden');
