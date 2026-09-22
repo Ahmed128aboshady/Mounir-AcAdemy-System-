@@ -196,60 +196,91 @@
             const client = this.getClient();
             try {
                 const idStr = String(studentId || '').trim();
-                const isStudentCode = idStr.toUpperCase().startsWith('ST');
-                let numId = parseInt(idStr);
+                if (!idStr) return null;
+
+                const isPureNumber = /^\d+$/.test(idStr);
+                const numId = isPureNumber ? parseInt(idStr, 10) : null;
                 
                 let localSt = null;
                 let localEnrs = [];
                 
-                // 1. Resolve local record strictly by student_code first if available
+                // 1. Resolve local record if available
                 if (window.DEFAULT_DB && window.DEFAULT_DB.students) {
-                    if (isStudentCode) {
-                        localSt = window.DEFAULT_DB.students.find(s => 
-                            s.student_code && s.student_code.toLowerCase() === idStr.toLowerCase()
-                        );
-                    } else if (!isNaN(numId)) {
-                        localSt = window.DEFAULT_DB.students.find(s => s.id === numId);
-                    }
+                    localSt = window.DEFAULT_DB.students.find(s => 
+                        (s.student_code && s.student_code.toLowerCase() === idStr.toLowerCase()) ||
+                        (numId !== null && s.id === numId)
+                    );
                 }
 
-                // If not found in local DB yet and caller passed a code, check active session
-                if (!localSt && isStudentCode) {
+                // If not found in local DB yet, check active session
+                if (!localSt) {
                     try {
                         const uStr = localStorage.getItem('monir_current_user');
                         if (uStr) {
                             const u = JSON.parse(uStr);
-                            if (u.student_code && u.student_code.toLowerCase() === idStr.toLowerCase() && window.DEFAULT_DB && window.DEFAULT_DB.students) {
-                                localSt = window.DEFAULT_DB.students.find(s => s.student_code && s.student_code.toLowerCase() === u.student_code.toLowerCase());
+                            const uCode = u.student_code || u.username;
+                            if (uCode && uCode.toLowerCase() === idStr.toLowerCase() && window.DEFAULT_DB && window.DEFAULT_DB.students) {
+                                localSt = window.DEFAULT_DB.students.find(s => s.student_code && s.student_code.toLowerCase() === uCode.toLowerCase());
                             }
                         }
                     } catch(e) {}
                 }
                 
-                // Target unique code is our ground truth
-                const targetCode = isStudentCode ? idStr : (localSt ? localSt.student_code : '');
-                
                 let stData = null;
                 let enrData = null;
 
                 if (client) {
-                    let stQuery = client.from('students').select('*');
-                    if (targetCode) {
-                        // ALWAYS query Supabase by student_code to guarantee 100% exact matching
-                        stQuery = stQuery.eq('student_code', targetCode);
-                    } else if (!isNaN(numId)) {
-                        stQuery = stQuery.eq('id', numId);
-                    }
-                    
+                    // Try student_code (case-insensitive)
                     try {
-                        const res = await stQuery.limit(1);
-                        if (res.data && res.data.length > 0) {
-                            stData = res.data[0];
+                        const { data: byCode, error: cErr } = await client
+                            .from('students')
+                            .select('*')
+                            .ilike('student_code', idStr)
+                            .limit(1);
+                        if (!cErr && byCode && byCode.length > 0) {
+                            stData = byCode[0];
                         }
-                    } catch(qErr) {
-                        console.warn('[Supabase Profile Query Error]:', qErr);
+                    } catch(e) {}
+
+                    // If not found and it's a numeric ID, try searching by numeric id
+                    if (!stData && numId !== null) {
+                        try {
+                            const { data: byId, error: idErr } = await client
+                                .from('students')
+                                .select('*')
+                                .eq('id', numId)
+                                .limit(1);
+                            if (!idErr && byId && byId.length > 0) {
+                                stData = byId[0];
+                            }
+                        } catch(e) {}
                     }
 
+                    // If still not found, check users table for matching username to retrieve student_id
+                    if (!stData) {
+                        try {
+                            const { data: uData } = await client
+                                .from('users')
+                                .select('student_id, related_id')
+                                .ilike('username', idStr)
+                                .limit(1);
+                            if (uData && uData.length > 0) {
+                                const relId = uData[0].student_id || uData[0].related_id;
+                                if (relId) {
+                                    const { data: stRel } = await client
+                                        .from('students')
+                                        .select('*')
+                                        .eq('id', relId)
+                                        .limit(1);
+                                    if (stRel && stRel.length > 0) {
+                                        stData = stRel[0];
+                                    }
+                                }
+                            }
+                        } catch(e) {}
+                    }
+
+                    // Load enrollments ONLY if student was found
                     if (stData && stData.id) {
                         const { data: enr } = await client
                             .from('enrollments')
@@ -263,6 +294,7 @@
                     stData = { ...localSt };
                 }
 
+                // If student was NOT found anywhere, NEVER return a random student!
                 if (!stData) return null;
 
                 // Sync local enrollments for fallback
