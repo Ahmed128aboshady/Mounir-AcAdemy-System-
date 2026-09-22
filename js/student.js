@@ -2271,7 +2271,8 @@ function getSundayTafsirStatus(studentAge) {
 // ═════════════════════════════════════════════════════════════════════
 const TUESDAY_GIRLS_TAFSIR_CONFIG = {
     url: "https://zoom.us/j/98264506630",
-    label: "جلسة التفسير والتدبر (بنات أقل من 10 سنوات)",
+    label: "جلسة التفسير والتدبر — الحلقة 2: 🎧 ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
+    episodeTitle: "الحلقة الثانية: 🎧 ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
     timeLabel: "الثلاثاء 8:30 م - 9:30 م (تفتح 8:20 م)",
     maxAge: 9, // strictly < 10
     openMins: 1220, // 20:20 (8:20 PM)
@@ -2920,7 +2921,7 @@ function syncZoomLiveStatusAll() {
                 const activeBtnHtml = `
                     <a href="${TUESDAY_GIRLS_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-pink-600 hover:bg-pink-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
                         <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>انضمي لجلسة التفسير الآن (Zoom)</span>
+                        <span>دخول الحلقة 2 الآن (Zoom)</span>
                     </a>
                 `;
                 if (tuesdayAction) tuesdayAction.innerHTML = activeBtnHtml;
@@ -3022,10 +3023,10 @@ function syncZoomLiveStatusAll() {
             banner.classList.add('flex');
             if (bannerLink) bannerLink.href = TUESDAY_GIRLS_TAFSIR_CONFIG.url;
             if (titleEl) {
-                titleEl.innerText = 'جلسة التفسير والتدبر المباشرة للبنات (أقل من 10 سنوات) متاحة الآن!';
+                titleEl.innerText = 'جلسة التفسير والتدبر (الحلقة الثانية) متاحة الآن للبنات!';
             }
             if (subEl) {
-                subEl.innerText = 'بدأت الآن جلسة التفسير والتدبر المخصصة لفئتك • انضمي الآن للقاعة مع المعلمة عبر Zoom';
+                subEl.innerText = '🎧 "ماذا يدخل أذني… وإلى أين يأخذ قلبي؟" • انضمي الآن للقاعة مع المعلمة عبر Zoom';
             }
         } else if (hadithStatus && hadithStatus.isWithinWindow) {
             banner.classList.remove('hidden');
