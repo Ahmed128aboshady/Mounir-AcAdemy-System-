@@ -4026,6 +4026,10 @@
         };
 
         function guessGender(name, explicitGender, studentCode) {
+            if (typeof window.getStudentGender === 'function') {
+                const resolved = window.getStudentGender(studentCode, name, explicitGender);
+                if (resolved) return resolved;
+            }
             const code = String(studentCode || '').trim().toUpperCase();
             if (code) {
                 if (ADMIN_GENDER_OVERRIDES[code] || ADMIN_GENDER_OVERRIDES[code.replace(/\D/g, '')]) {
@@ -5284,87 +5288,97 @@
             const sid = bsInlineStudentId;
             if (!sid) return;
 
-            const name = (document.getElementById('inlineName')?.value || '').trim();
-            const code = (document.getElementById('inlineCode')?.value || '').trim();
-            const phone = (document.getElementById('inlinePhone')?.value || '').trim();
-            const age = parseInt(document.getElementById('inlineAge')?.value) || null;
-            const gender = document.getElementById('inlineGender')?.value || 'm';
-            const group = (document.getElementById('inlineGroup')?.value || '').trim();
-            const credits = parseInt(document.getElementById('inlineCredits')?.value) || 0;
-            let day = (document.getElementById('inlineDay')?.value || '').trim();
-            let time = (document.getElementById('inlineTime')?.value || '').trim();
-            let duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
-            let teacherId = document.getElementById('inlineTeacher')?.value || null;
-            const status = document.getElementById('inlineStatus')?.value || 'active';
-            const password = (document.getElementById('inlinePassword')?.value || '').trim();
-
-            // Auto-fallback: If group is set but teacher or schedule wasn't selected, resolve from metadata
-            if (group) {
-                const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(group) : null;
-                if (meta) {
-                    if (!teacherId && meta.teacher_id) teacherId = String(meta.teacher_id);
-                    if (!day && meta.subscription_days) day = meta.subscription_days;
-                    if (!time && meta.lecture_time) time = meta.lecture_time;
-                    if ((!duration || duration === '20 دقيقة') && meta.session_duration) duration = meta.session_duration;
-                }
-            }
-
             const saveBtn = document.getElementById('inlineSaveBtn');
             if (saveBtn) {
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<span>⏳ جاري حفظ التعديلات...</span>';
             }
 
-            const studentUpdate = {
-                name: name,
-                student_code: code,
-                phone: phone,
-                parent_phone: phone,
-                parent_name: (gender === 'f' ? 'female' : 'male'),
-                age: age,
-                status: status
-            };
-            if (s) {
-                s.gender = gender;
-                s.parent_name = (gender === 'f' ? 'female' : 'male');
-            }
-            // Save override to localStorage
             try {
-                const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
-                if (code) stored[code] = gender;
-                if (sid) stored[String(sid)] = gender;
-                localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
-            } catch(e) {}
-            if (group) studentUpdate.qr_code = group;
+                const name = (document.getElementById('inlineName')?.value || '').trim();
+                const code = (document.getElementById('inlineCode')?.value || '').trim();
+                const phone = (document.getElementById('inlinePhone')?.value || '').trim();
+                const age = parseInt(document.getElementById('inlineAge')?.value) || null;
+                const gender = document.getElementById('inlineGender')?.value || 'm';
+                const group = (document.getElementById('inlineGroup')?.value || '').trim();
+                const credits = parseInt(document.getElementById('inlineCredits')?.value) || 0;
+                let day = (document.getElementById('inlineDay')?.value || '').trim();
+                let time = (document.getElementById('inlineTime')?.value || '').trim();
+                let duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
+                let teacherId = document.getElementById('inlineTeacher')?.value || null;
+                const status = document.getElementById('inlineStatus')?.value || 'active';
+                const password = (document.getElementById('inlinePassword')?.value || '').trim();
 
-            const enrollUpdate = {
-                remaining_credits: credits,
-                subscription_days: day,
-                lecture_time: time,
-                session_duration: duration,
-                teacher_id: teacherId ? parseInt(teacherId) : null,
-                status: status
-            };
-            if (group) enrollUpdate.group_id = group;
+                // Auto-fallback: If group is set but teacher or schedule wasn't selected, resolve from metadata
+                if (group) {
+                    const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(group) : null;
+                    if (meta) {
+                        if (!teacherId && meta.teacher_id) teacherId = String(meta.teacher_id);
+                        if (!day && meta.subscription_days) day = meta.subscription_days;
+                        if (!time && meta.lecture_time) time = meta.lecture_time;
+                        if ((!duration || duration === '20 دقيقة') && meta.session_duration) duration = meta.session_duration;
+                    }
+                }
 
-            try {
+                // Locate in-memory student safely
+                const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+                const s = allSts.find(st => st.id === sid);
+
+                const studentUpdate = {
+                    name: name,
+                    student_code: code,
+                    phone: phone,
+                    parent_phone: phone,
+                    parent_name: (gender === 'f' ? 'female' : 'male'),
+                    age: age,
+                    status: status
+                };
+                if (group) studentUpdate.qr_code = group;
+
+                const enrollUpdate = {
+                    remaining_credits: credits,
+                    subscription_days: day,
+                    lecture_time: time,
+                    session_duration: duration,
+                    teacher_id: teacherId ? parseInt(teacherId) : null,
+                    status: status
+                };
+                if (group) enrollUpdate.group_id = group;
+
+                // Sync gender registry and localStorage
+                if (window.STUDENT_GENDER_MAP) {
+                    if (code) window.STUDENT_GENDER_MAP[code.toUpperCase()] = gender;
+                    if (sid) window.STUDENT_GENDER_MAP[String(sid)] = gender;
+                }
+                if (window.STUDENT_GENDER_BY_NAME && name) {
+                    window.STUDENT_GENDER_BY_NAME[name] = gender;
+                }
+                try {
+                    const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
+                    if (code) stored[code] = gender;
+                    if (sid) stored[String(sid)] = gender;
+                    localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
+                } catch(e) {}
+
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
                     await client.from('students').update(studentUpdate).eq('id', sid);
                     await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
 
-                    // Update user credentials
+                    // Update student user credentials safely (filter strictly by role: student)
                     const userPayload = {
                         full_name: name,
                         phone: phone,
                         status: status
                     };
-                    if (code) userPayload.username = code.toLowerCase();
+                    if (code) userPayload.username = code.toUpperCase();
                     if (password) userPayload.password_hash = password;
 
                     const { data: existingUser } = await client.from('users')
                         .select('id')
+                        .eq('role', 'student')
                         .or(`related_id.eq.${sid},student_id.eq.${sid}`)
+                        .limit(1)
                         .maybeSingle();
 
                     if (existingUser) {
@@ -5379,17 +5393,19 @@
                     }
                 }
 
-                // Update in-memory bsAllStudents
-                const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
-                const s = allSts.find(s => s.id === sid);
+                // Update in-memory s
                 if (s) {
                     s.name = name;
                     s.student_code = code;
                     s.phone = phone;
+                    s.parent_phone = phone;
                     s.age = age;
+                    s.gender = gender;
+                    s.parent_name = (gender === 'f' ? 'female' : 'male');
                     s.status = status;
                     if (group) {
                         s.group_id = group;
+                        s.qr_code = group;
                         s.group_ids = group.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
                     }
                     s.remaining_credits = credits;
@@ -5401,6 +5417,22 @@
                     let tList = window.bsTeachersList || (typeof bsTeachersList !== 'undefined' ? bsTeachersList : []) || [];
                     const t = tList.find(t => String(t.id) === String(teacherId));
                     s.teacher_name = t ? t.name : '—';
+                }
+
+                // Update quick students list if cached
+                if (Array.isArray(window.__allQuickStudents)) {
+                    const qs = window.__allQuickStudents.find(st => st.id === sid);
+                    if (qs) {
+                        qs.name = name;
+                        qs.student_code = code;
+                        qs.phone = phone;
+                        qs.parent_phone = phone;
+                        qs.age = age;
+                        qs.gender = gender;
+                        qs.parent_name = (gender === 'f' ? 'female' : 'male');
+                        qs.status = status;
+                        if (group) qs.qr_code = group;
+                    }
                 }
 
                 // Cache updated group metadata for fast lookup across the platform
@@ -5435,12 +5467,15 @@
                 } catch(e) {}
 
                 closeInlineEdit();
-                applyBulkFilters();
-                syncStudentStats();
-                loadStudentsStatusSummary();
+                if (typeof applyBulkFilters === 'function') applyBulkFilters();
+                if (typeof renderBulkTable === 'function') renderBulkTable();
+                if (typeof syncStudentStats === 'function') syncStudentStats();
+                if (typeof loadStudentsStatusSummary === 'function') loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
                     MonirPopup.toast(`✅ تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`, 'success');
+                } else {
+                    alert(`✅ تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`);
                 }
             } catch(err) {
                 console.error('[InlineEdit] Error saving student:', err);
