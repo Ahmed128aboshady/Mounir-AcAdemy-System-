@@ -2271,8 +2271,8 @@ function getSundayTafsirStatus(studentAge) {
 // ═════════════════════════════════════════════════════════════════════
 const TUESDAY_GIRLS_TAFSIR_CONFIG = {
     url: "https://zoom.us/j/98264506630",
-    label: "جلسة التفسير والتدبر — الحلقة 2: 🎧 ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
-    episodeTitle: "الحلقة الثانية: 🎧 ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
+    label: "جلسة التفسير والتدبر — الحلقة 2: ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
+    episodeTitle: "الحلقة الثانية: ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
     timeLabel: "الثلاثاء 8:30 م - 9:30 م (تفتح 8:20 م)",
     maxAge: 9, // strictly < 10
     openMins: 1220, // 20:20 (8:20 PM)
@@ -3026,7 +3026,7 @@ function syncZoomLiveStatusAll() {
                 titleEl.innerText = 'جلسة التفسير والتدبر (الحلقة الثانية) متاحة الآن للبنات!';
             }
             if (subEl) {
-                subEl.innerText = '🎧 "ماذا يدخل أذني… وإلى أين يأخذ قلبي؟" • انضمي الآن للقاعة مع المعلمة عبر Zoom';
+                subEl.innerText = '"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟" • انضمي الآن للقاعة مع المعلمة عبر Zoom';
             }
         } else if (hadithStatus && hadithStatus.isWithinWindow) {
             banner.classList.remove('hidden');
