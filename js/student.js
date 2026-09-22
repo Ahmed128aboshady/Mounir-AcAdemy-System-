@@ -921,8 +921,28 @@ async function loadSelectedCourseLectures() {
             renderTarget.innerHTML = '';
         }
 
-        // Determine which lecture is currently due (first unlocked lecture that is not completed)
-        const dueLecture = data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
+        // Determine today's date in local Cairo/browser time
+        const now = new Date();
+        const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const todayDayName = dayNames[now.getDay()];
+        const todayDateNum = now.getDate();
+        const todayMonthName = monthNames[now.getMonth()];
+        const todayDateStr = `${todayDateNum} ${todayMonthName}`; // e.g. "22 سبتمبر"
+
+        // Helper to check if a lecture is scheduled for today
+        const isLectureScheduledToday = (l) => {
+            if (!l || !l.scheduled_time) return false;
+            const st = l.scheduled_time;
+            return st.includes(todayDateStr) || (st.includes(todayDayName) && (st.includes(String(todayDateNum)) || st.includes(todayMonthName)));
+        };
+
+        // If any unlocked lecture is scheduled for today and not completed, it takes highest priority as due!
+        const todayDueLecture = data.lectures.find(l => l.is_unlocked && l.status !== 'completed' && isLectureScheduledToday(l));
+
+        // Determine which lecture is currently due (today's lecture if matches, otherwise first unlocked lecture not completed)
+        const dueLecture = todayDueLecture 
+            || data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
             || data.lectures.find(l => l.is_unlocked) 
             || data.lectures[0];
         const dueLectureNumber = dueLecture ? dueLecture.lecture_number : 1;
@@ -968,8 +988,9 @@ async function loadSelectedCourseLectures() {
             blockContainer.className = 'space-y-3';
 
             blockLectures.forEach(l => {
-                const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed');
-                const card = renderLectureCard(l, isCurrentDue);
+                const isScheduledToday = isLectureScheduledToday(l);
+                const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed') || (isScheduledToday && l.is_unlocked && l.status !== 'completed');
+                const card = renderLectureCard(l, isCurrentDue, isScheduledToday);
                 blockContainer.appendChild(card);
             });
 
@@ -983,14 +1004,16 @@ async function loadSelectedCourseLectures() {
                 if (blockNum === 1 && b1El) {
                     b1El.before(blockHeader);
                     blockLectures.forEach(l => {
-                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed');
-                        b1El.appendChild(renderLectureCard(l, isCurrentDue));
+                        const isScheduledToday = isLectureScheduledToday(l);
+                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed') || (isScheduledToday && l.is_unlocked && l.status !== 'completed');
+                        b1El.appendChild(renderLectureCard(l, isCurrentDue, isScheduledToday));
                     });
                 } else if (b2El) {
                     b2El.before(blockHeader);
                     blockLectures.forEach(l => {
-                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed');
-                        b2El.appendChild(renderLectureCard(l, isCurrentDue));
+                        const isScheduledToday = isLectureScheduledToday(l);
+                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed') || (isScheduledToday && l.is_unlocked && l.status !== 'completed');
+                        b2El.appendChild(renderLectureCard(l, isCurrentDue, isScheduledToday));
                     });
                 }
             }
@@ -1005,7 +1028,7 @@ async function loadSelectedCourseLectures() {
 
 
 
-function renderLectureCard(l, isCurrentDue = false) {
+function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     const div = document.createElement('div');
     
     let statusBadge = '';
@@ -1043,7 +1066,7 @@ function renderLectureCard(l, isCurrentDue = false) {
                 </span>` : ''}
             </div>
         `;
-    } else if (isCurrentDue || l.status === 'live') {
+    } else if (isCurrentDue || isScheduledToday || l.status === 'live') {
         quranBadge = `
             <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
                 <span>📖 الورد: يُحدد بالحلقة</span>
@@ -1113,12 +1136,13 @@ function renderLectureCard(l, isCurrentDue = false) {
                     <span class="text-[11px] text-amber-700">السبب: ${l.postpone_reason || 'تنسيق المواعيد'} • لا يتم احتساب أي غياب.</span>
                 </div>
             `;
-        } else if (isCurrentDue || l.status === 'live') {
+        } else if (isCurrentDue || isScheduledToday || l.status === 'live') {
             cardClass += ' border-2 border-emerald-500 bg-emerald-50/30 shadow-sm ring-2 ring-emerald-400/20';
+            const badgeLabel = isScheduledToday ? 'موعدها اليوم • جاهزة للدخول' : 'الحصة الحالية • جاهزة للدخول';
             statusBadge = `
                 <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-300">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    الحصة الحالية • جاهزة للدخول
+                    ${badgeLabel}
                 </span>
             `;
 
@@ -1154,23 +1178,27 @@ function renderLectureCard(l, isCurrentDue = false) {
                 </div>
             ` : '';
 
+            const subNotice = isScheduledToday 
+                ? 'هذه هي المحاضرة المقررة اليوم في جدولك. يمكنك الدخول المباشر للقاعة الآن.'
+                : 'هذه هي المحاضرة التي عليها الدور الآن في خطتك. يمكنك الدخول المباشر للقاعة.';
+
             actionBtn = `
                 ${quranBox}
                 <div class="bg-white p-3 rounded-xl border border-emerald-200 text-xs text-slate-700">
                     <div class="mb-1 font-bold text-slate-900">موعد الحصة: <strong class="text-emerald-700">${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
-                    <p class="text-[11px] text-slate-600">هذه هي المحاضرة التي عليها الدور الآن في خطتك. يمكنك الدخول المباشر للقاعة.</p>
+                    <p class="text-[11px] text-slate-600">${subNotice}</p>
                 </div>
                 ${meetBtn}
             `;
         } else {
             cardClass += ' bg-white border-slate-200';
-            statusBadge = '<span class="badge-status bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-medium">مجدولة • لم يحن دورها بعد</span>';
+            statusBadge = '<span class="badge-status bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-medium">مجدولة • قادمة</span>';
             actionBtn = `
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600">
-                    <div class="mb-1">موعد المحاضرة: <strong>${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
+                    <div class="mb-1 font-bold text-slate-800">موعد المحاضرة: <strong class="text-indigo-800">${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
                     <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-1 font-medium">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        <span>يُتاح رابط الدخول عند حلول موعد هذه الحصة وبعد إتمام المحاضرة السابقة</span>
+                        <span>يُتاح رابط الدخول المباشر عند حلول موعد الحصة</span>
                     </div>
                 </div>
             `;
