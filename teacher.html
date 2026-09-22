@@ -471,6 +471,11 @@
                         if (tData) {
                             teacherName = tData.name;
                             currentTeacherName = tData.name;
+                            if (tData.bio && tData.bio.startsWith('http')) {
+                                if (!window.TEACHER_MEET_LINKS) window.TEACHER_MEET_LINKS = {};
+                                window.TEACHER_MEET_LINKS[String(tData.id)] = tData.bio;
+                                window.TEACHER_MEET_LINKS[tData.name] = tData.bio;
+                            }
                             document.getElementById('teacherName').innerText = 'أ. ' + tData.name;
                             document.getElementById('teacherContact').innerText = 'البريد: ' + (tData.email || '—');
                             document.getElementById('teacherSpecialty').innerText = 'معلم القرآن الكريم';
@@ -539,7 +544,7 @@
 
                                     if (!groupsMap[safeGid]) {
                                         const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                                            ? window.getGroupMeetUrl(safeGid)
+                                            ? window.getGroupMeetUrl(safeGid, currentTeacherId || currentTeacherName)
                                             : ('https://meet.google.com/mnr-' + safeGid.toLowerCase().replace(/[^a-z0-9]/g, ''));
                                         groupsMap[safeGid] = {
                                             group_id: safeGid,
@@ -744,7 +749,7 @@
 
                 const idSafe = 'grp_' + cleanGid.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
                 const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                    ? window.getGroupMeetUrl(cleanGid, currentTeacherId || (currentTeacher && currentTeacher.name))
+                    ? window.getGroupMeetUrl(cleanGid, currentTeacherId || currentTeacherName)
                     : (g.google_meet_url || ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '')));
                 
                 // Determine true schedule from group or enrolled students
@@ -925,7 +930,7 @@
         function handleResetGroupMeet(groupId, idSafe, btn) {
             const cleanGid = String(groupId || '').trim();
             const defaultUrl = (window.resetGroupMeetUrl)
-                ? window.resetGroupMeetUrl(cleanGid)
+                ? window.resetGroupMeetUrl(cleanGid, currentTeacherId || currentTeacherName)
                 : ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, ''));
             updateTeacherGroupMeetUI(idSafe, cleanGid, defaultUrl);
             const card = document.getElementById('content-' + idSafe)?.closest('.group-card');

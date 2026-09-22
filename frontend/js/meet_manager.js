@@ -32,8 +32,13 @@
         "62": "https://meet.google.com/iyp-swmh-erq",
         "مصطفى سليمان": "https://meet.google.com/iyp-swmh-erq",
         "12": "https://meet.google.com/qui-yusz-nfn",
+        "T012": "https://meet.google.com/qui-yusz-nfn",
         "احمد سيد احمد": "https://meet.google.com/qui-yusz-nfn",
+        "أحمد سيد أحمد": "https://meet.google.com/qui-yusz-nfn",
         "احمد السيد": "https://meet.google.com/qui-yusz-nfn",
+        "أحمد السيد": "https://meet.google.com/qui-yusz-nfn",
+        "احمد سيد": "https://meet.google.com/qui-yusz-nfn",
+        "أحمد سيد": "https://meet.google.com/qui-yusz-nfn",
         "46": "https://meet.google.com/kob-ahzi-ntd",
         "عمر امام": "https://meet.google.com/kob-ahzi-ntd",
         "عمر أمام": "https://meet.google.com/kob-ahzi-ntd",
@@ -382,7 +387,19 @@
         "G336": "https://meet.google.com/obo-wttk-cwg",
         "G337": "https://meet.google.com/obo-wttk-cwg",
         "G400": "https://meet.google.com/obo-wttk-cwg",
-        "G405": "https://meet.google.com/obo-wttk-cwg"
+        "G405": "https://meet.google.com/obo-wttk-cwg",
+        "G-CKPW": "https://meet.google.com/too-pqty-mxb",
+        "G-OOH4": "https://meet.google.com/too-pqty-mxb",
+        "G-U54Z": "https://meet.google.com/too-pqty-mxb",
+        "G260": "https://meet.google.com/too-pqty-mxb",
+        "G127": "https://meet.google.com/ogk-gsek-mfg",
+        "G069": "https://meet.google.com/sis-zeuj-pat",
+        "G097": "https://meet.google.com/sis-zeuj-pat",
+        "G158": "https://meet.google.com/sis-zeuj-pat",
+        "G441": "https://meet.google.com/sis-zeuj-pat",
+        "G442": "https://meet.google.com/sis-zeuj-pat",
+        "G440": "https://meet.google.com/cvf-qbuj-ojn",
+        "G424": "https://meet.google.com/iyp-swmh-erq"
 };
 
     // Initialize global registry
@@ -419,9 +436,12 @@
         const cleanGid = groupId ? String(groupId).trim() : '';
         const stored = getStoredLinks();
 
-        // 1. User/Teacher/Admin override in localStorage
+        // 1. User/Teacher/Admin override in localStorage (ignore invalid or stale Jitsi fallback)
         if (cleanGid && stored[cleanGid]) {
-            return stored[cleanGid];
+            const stVal = stored[cleanGid].trim();
+            if (stVal.startsWith('http') && !stVal.includes('meet.jit.si/MounirAcademy_Group_')) {
+                return stVal;
+            }
         }
 
         // 2. Pre-configured official Google Meet rooms by Group ID
@@ -473,7 +493,7 @@
     };
 
     // Reset group meet URL to official default
-    window.resetGroupMeetUrl = function(groupId) {
+    window.resetGroupMeetUrl = function(groupId, teacherIdOrName) {
         if (!groupId) return;
         const cleanGid = String(groupId).trim();
         try {
@@ -481,7 +501,7 @@
             delete stored[cleanGid];
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
         } catch(e) {}
-        const defaultUrl = window.getGroupMeetUrl(cleanGid);
+        const defaultUrl = window.getGroupMeetUrl(cleanGid, teacherIdOrName);
         window.dispatchEvent(new CustomEvent('monir-meet-updated', {
             detail: { groupId: cleanGid, url: defaultUrl }
         }));

@@ -2206,12 +2206,16 @@
                                     groupMap[gid] = {
                                         group_id: gid,
                                         teacher_name: '',
+                                        teacher_id: null,
                                         students: []
                                     };
                                 }
                                 const enr = enrMap[s.id] || {};
                                 if (enr.teachers && enr.teachers.name) {
                                     groupMap[gid].teacher_name = enr.teachers.name;
+                                }
+                                if (enr.teacher_id) {
+                                    groupMap[gid].teacher_id = enr.teacher_id;
                                 }
                                 groupMap[gid].students.push({
                                     ...s,
@@ -2289,7 +2293,9 @@
                 const el = document.createElement('div');
                 el.className = 'border border-slate-200 rounded-2xl overflow-hidden shadow-sm';
 
-                const meetUrl = g.google_meet_url || ((typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(g.group_id) : ('https://meet.google.com/mnr-' + (g.group_id || '').toLowerCase().replace(/[^a-z0-9]/g, '')));
+                const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                    ? window.getGroupMeetUrl(g.group_id, g.teacher_name || g.teacher_id)
+                    : (g.google_meet_url || ('https://meet.google.com/mnr-' + (g.group_id || '').toLowerCase().replace(/[^a-z0-9]/g, '')));
                 const lowRcStudents = g.students.filter(s => s.remaining_credits <= 2).length;
                 const alertBadge = lowRcStudents > 0
                     ? `<span class="bg-red-100 text-red-700 border border-red-300 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">⚠️ ${lowRcStudents} رصيد منخفض</span>`
