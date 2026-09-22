@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
     <script src="js/meet_manager.js?v=20260919_meet2"></script>
-    <script src="js/student_genders.js?v=20260922_v1"></script>
+    <script src="js/student_genders.js?v=20260922_age1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
@@ -6581,12 +6581,51 @@
                     <span id="quickStudentCountLabel" class="font-bold">الطلاب المسجلون: جاري التحميل...</span>
                     <a href="student.html" target="_blank" class="text-indigo-700 hover:text-indigo-800 font-bold hover:underline">فتح بروفايل الطالب الافتراضي ➔</a>
                 </div>
-                <!-- Gender filter buttons -->
-                <div class="flex items-center gap-1.5 pt-1">
-                    <span class="text-[11px] font-bold text-slate-500 ml-1">تصفية:</span>
-                    <button type="button" onclick="setQuickStudentGenderFilter('all')" id="btnGenderFilterAll" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer">الكل</button>
-                    <button type="button" onclick="setQuickStudentGenderFilter('m')" id="btnGenderFilterBoys" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-blue-800 transition cursor-pointer">👦 الأولاد (503)</button>
-                    <button type="button" onclick="setQuickStudentGenderFilter('f')" id="btnGenderFilterGirls" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-pink-700 transition cursor-pointer">👧 البنات (291)</button>
+                <!-- Filters Row (Gender & Age) -->
+                <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200 space-y-2">
+                    <!-- Row 1: Gender Filter -->
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[11px] font-black text-slate-600 ml-1">🚻 النوع:</span>
+                            <button type="button" onclick="setQuickStudentGenderFilter('all')" id="btnGenderFilterAll" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer">الكل</button>
+                            <button type="button" onclick="setQuickStudentGenderFilter('m')" id="btnGenderFilterBoys" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-blue-800 border border-slate-200 transition cursor-pointer">👦 الأولاد (503)</button>
+                            <button type="button" onclick="setQuickStudentGenderFilter('f')" id="btnGenderFilterGirls" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-pink-700 border border-slate-200 transition cursor-pointer">👧 البنات (291)</button>
+                        </div>
+                        <div id="quickStudentFilteredSummary" class="text-[11px] font-black text-indigo-900 bg-indigo-100/70 px-2.5 py-0.5 rounded-lg border border-indigo-200">
+                            793 طالباً
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Age Filter -->
+                    <div class="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-slate-200/70">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[11px] font-black text-slate-600 ml-1">🎂 العمر:</span>
+                            <button type="button" onclick="setQuickStudentAgeFilter('all')" id="btnAgeFilterAll" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer">كل الأعمار</button>
+                            <button type="button" onclick="setQuickStudentAgeFilter('under10')" id="btnAgeFilterUnder10" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-emerald-800 border border-slate-200 transition cursor-pointer">👶 أقل من 10 سنوات (342)</button>
+                            <button type="button" onclick="setQuickStudentAgeFilter('10plus')" id="btnAgeFilter10Plus" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-purple-800 border border-slate-200 transition cursor-pointer">🧑 10 سنوات فأكثر (449)</button>
+                        </div>
+
+                        <!-- Exact Age Dropdown -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-slate-500 font-bold">🎯 سن محدد:</span>
+                            <select id="quickStudentExactAgeSelect" onchange="setQuickStudentExactAge(this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500 cursor-pointer">
+                                <option value="">الكل</option>
+                                <option value="4">4 سنوات</option>
+                                <option value="5">5 سنوات</option>
+                                <option value="6">6 سنوات</option>
+                                <option value="7">7 سنوات</option>
+                                <option value="8">8 سنوات</option>
+                                <option value="9">9 سنوات</option>
+                                <option value="10">10 سنوات</option>
+                                <option value="11">11 سنة</option>
+                                <option value="12">12 سنة</option>
+                                <option value="13">13 سنة</option>
+                                <option value="14">14 سنة</option>
+                                <option value="15">15 سنة</option>
+                                <option value="16">16+ سنة</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -6744,24 +6783,67 @@
         }
 
         let __currentQuickStudentGenderFilter = 'all';
+        let __currentQuickStudentAgeFilter = 'all';
+        let __currentQuickStudentExactAge = '';
 
         function setQuickStudentGenderFilter(gender) {
             __currentQuickStudentGenderFilter = gender;
             const btnAll = document.getElementById('btnGenderFilterAll');
             const btnBoys = document.getElementById('btnGenderFilterBoys');
             const btnGirls = document.getElementById('btnGenderFilterGirls');
-            if (btnAll) btnAll.className = (gender === 'all') ? 'px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer';
-            if (btnBoys) btnBoys.className = (gender === 'm') ? 'px-2.5 py-1 rounded-lg text-xs font-black bg-blue-600 text-white transition cursor-pointer' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-blue-800 transition cursor-pointer';
-            if (btnGirls) btnGirls.className = (gender === 'f') ? 'px-2.5 py-1 rounded-lg text-xs font-black bg-pink-600 text-white transition cursor-pointer' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-pink-700 transition cursor-pointer';
+            const activeClass = 'px-2.5 py-1 rounded-lg text-xs font-black text-white transition cursor-pointer';
+            const inactiveClass = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 border border-slate-200 transition cursor-pointer';
+
+            if (btnAll) btnAll.className = (gender === 'all') ? `${activeClass} bg-indigo-600` : `${inactiveClass} text-slate-700`;
+            if (btnBoys) btnBoys.className = (gender === 'm') ? `${activeClass} bg-blue-600` : `${inactiveClass} text-blue-800`;
+            if (btnGirls) btnGirls.className = (gender === 'f') ? `${activeClass} bg-pink-600` : `${inactiveClass} text-pink-700`;
 
             const q = document.getElementById('quickStudentSearchInput')?.value || '';
             filterQuickStudentsList(q);
+        }
+
+        function setQuickStudentAgeFilter(ageFilter) {
+            __currentQuickStudentAgeFilter = ageFilter;
+            if (ageFilter !== 'exact') {
+                __currentQuickStudentExactAge = '';
+                const sel = document.getElementById('quickStudentExactAgeSelect');
+                if (sel) sel.value = '';
+            }
+            updateQuickStudentAgeFilterButtons();
+            const q = document.getElementById('quickStudentSearchInput')?.value || '';
+            filterQuickStudentsList(q);
+        }
+
+        function setQuickStudentExactAge(val) {
+            if (val) {
+                __currentQuickStudentAgeFilter = 'exact';
+                __currentQuickStudentExactAge = val;
+            } else {
+                __currentQuickStudentAgeFilter = 'all';
+                __currentQuickStudentExactAge = '';
+            }
+            updateQuickStudentAgeFilterButtons();
+            const q = document.getElementById('quickStudentSearchInput')?.value || '';
+            filterQuickStudentsList(q);
+        }
+
+        function updateQuickStudentAgeFilterButtons() {
+            const btnAll = document.getElementById('btnAgeFilterAll');
+            const btnUnder10 = document.getElementById('btnAgeFilterUnder10');
+            const btn10Plus = document.getElementById('btnAgeFilter10Plus');
+            const activeClass = 'px-2.5 py-1 rounded-lg text-xs font-black text-white transition cursor-pointer';
+            const inactiveClass = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 border border-slate-200 transition cursor-pointer';
+
+            if (btnAll) btnAll.className = (__currentQuickStudentAgeFilter === 'all') ? `${activeClass} bg-indigo-600` : `${inactiveClass} text-slate-700`;
+            if (btnUnder10) btnUnder10.className = (__currentQuickStudentAgeFilter === 'under10') ? `${activeClass} bg-emerald-600` : `${inactiveClass} text-emerald-800`;
+            if (btn10Plus) btn10Plus.className = (__currentQuickStudentAgeFilter === '10plus') ? `${activeClass} bg-purple-600` : `${inactiveClass} text-purple-800`;
         }
 
         function filterQuickStudentsList(query) {
             const q = (query || '').trim().toLowerCase();
             let filtered = __allQuickStudents;
 
+            // 1. Gender filter
             if (__currentQuickStudentGenderFilter !== 'all') {
                 filtered = filtered.filter(s => {
                     const stCode = s.student_code || ('ST' + s.id);
@@ -6772,6 +6854,28 @@
                 });
             }
 
+            // 2. Age filter
+            if (__currentQuickStudentAgeFilter !== 'all') {
+                filtered = filtered.filter(s => {
+                    const stCode = s.student_code || ('ST' + s.id);
+                    let rawAge = (s.age !== undefined && s.age !== null && s.age !== '') ? s.age : (typeof window.getStudentAge === 'function' ? window.getStudentAge(stCode, s.name) : null);
+                    let age = (rawAge !== undefined && rawAge !== null && !isNaN(parseFloat(rawAge))) ? parseFloat(rawAge) : null;
+                    if (age === null) return false;
+
+                    if (__currentQuickStudentAgeFilter === 'under10') {
+                        return age < 10;
+                    } else if (__currentQuickStudentAgeFilter === '10plus') {
+                        return age >= 10;
+                    } else if (__currentQuickStudentAgeFilter === 'exact' && __currentQuickStudentExactAge) {
+                        const target = parseFloat(__currentQuickStudentExactAge);
+                        if (target >= 16) return age >= 16;
+                        return Math.floor(age) === Math.floor(target);
+                    }
+                    return true;
+                });
+            }
+
+            // 3. Search query
             if (q) {
                 filtered = filtered.filter(s => 
                     (s.name && s.name.toLowerCase().includes(q)) ||
@@ -6780,9 +6884,16 @@
                     (s.parent_name && s.parent_name.toLowerCase().includes(q)) ||
                     (s.phone && s.phone.toLowerCase().includes(q)) ||
                     (s.parent_phone && s.parent_phone.toLowerCase().includes(q)) ||
-                    (s.id && String(s.id).includes(q))
+                    (s.id && String(s.id).includes(q)) ||
+                    (s.age && String(s.age).toLowerCase().includes(q))
                 );
             }
+
+            const summaryEl = document.getElementById('quickStudentFilteredSummary');
+            if (summaryEl) {
+                summaryEl.innerText = `${filtered.length} من ${__allQuickStudents.length}`;
+            }
+
             renderQuickStudentsList(filtered);
         }
 
@@ -6792,7 +6903,7 @@
             if (countLabel) countLabel.innerText = `الطلاب المعروضون: ${Math.min(list.length, 50)} من ${list.length} (إجمالي ${__allQuickStudents.length})`;
 
             if (!list || list.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="text-2xl mb-1">🔍</div><p class="font-bold">لا يوجد طلاب مطابقين للبحث</p></div>';
+                container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="text-2xl mb-1">🔍</div><p class="font-bold">لا يوجد طلاب مطابقين للبحث أو الفلتر المختار</p></div>';
                 return;
             }
 
@@ -6807,6 +6918,13 @@
                 const genderBadge = (sGender === 'f')
                     ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👧 بنت</span>'
                     : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👦 ولد</span>';
+
+                const rawAge = (s.age !== undefined && s.age !== null && s.age !== '') ? s.age : (typeof window.getStudentAge === 'function' ? window.getStudentAge(stCode, s.name) : null);
+                const ageNum = (rawAge !== undefined && rawAge !== null && !isNaN(parseFloat(rawAge))) ? parseFloat(rawAge) : null;
+                const ageBadge = (ageNum !== null)
+                    ? `<span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded">🎂 ${ageNum} سنة</span>`
+                    : '';
+
                 const status = s.status === 'active' 
                     ? '<span class="text-emerald-700 bg-emerald-100 text-[10px] font-bold px-1.5 py-0.5 rounded">نشط</span>' 
                     : '<span class="text-red-700 bg-red-100 text-[10px] font-bold px-1.5 py-0.5 rounded">موقوف</span>';
@@ -6822,6 +6940,7 @@
                                     <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm truncate">${s.name}</h4>
                                     <span class="bg-[#41519C] text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${stCode}</span>
                                     ${genderBadge}
+                                    ${ageBadge}
                                     <span class="bg-[#57BA9E] text-slate-950 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${grp}</span>
                                     ${status}
                                 </div>
