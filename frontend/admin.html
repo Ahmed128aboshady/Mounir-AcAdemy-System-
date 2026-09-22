@@ -6586,10 +6586,10 @@
                     <!-- Row 1: Gender Filter -->
                     <div class="flex items-center justify-between gap-2 flex-wrap">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[11px] font-black text-slate-600 ml-1">🚻 النوع:</span>
+                            <span class="text-[11px] font-black text-slate-600 ml-1">النوع:</span>
                             <button type="button" onclick="setQuickStudentGenderFilter('all')" id="btnGenderFilterAll" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer">الكل</button>
-                            <button type="button" onclick="setQuickStudentGenderFilter('m')" id="btnGenderFilterBoys" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-blue-800 border border-slate-200 transition cursor-pointer">👦 الأولاد (503)</button>
-                            <button type="button" onclick="setQuickStudentGenderFilter('f')" id="btnGenderFilterGirls" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-pink-700 border border-slate-200 transition cursor-pointer">👧 البنات (291)</button>
+                            <button type="button" onclick="setQuickStudentGenderFilter('m')" id="btnGenderFilterBoys" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-blue-800 border border-slate-200 transition cursor-pointer">الأولاد (503)</button>
+                            <button type="button" onclick="setQuickStudentGenderFilter('f')" id="btnGenderFilterGirls" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-pink-700 border border-slate-200 transition cursor-pointer">البنات (291)</button>
                         </div>
                         <div id="quickStudentFilteredSummary" class="text-[11px] font-black text-indigo-900 bg-indigo-100/70 px-2.5 py-0.5 rounded-lg border border-indigo-200">
                             793 طالباً
@@ -6599,15 +6599,15 @@
                     <!-- Row 2: Age Filter -->
                     <div class="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-slate-200/70">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[11px] font-black text-slate-600 ml-1">🎂 العمر:</span>
+                            <span class="text-[11px] font-black text-slate-600 ml-1">العمر:</span>
                             <button type="button" onclick="setQuickStudentAgeFilter('all')" id="btnAgeFilterAll" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer">كل الأعمار</button>
-                            <button type="button" onclick="setQuickStudentAgeFilter('under10')" id="btnAgeFilterUnder10" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-emerald-800 border border-slate-200 transition cursor-pointer">👶 أقل من 10 سنوات (342)</button>
-                            <button type="button" onclick="setQuickStudentAgeFilter('10plus')" id="btnAgeFilter10Plus" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-purple-800 border border-slate-200 transition cursor-pointer">🧑 10 سنوات فأكثر (449)</button>
+                            <button type="button" onclick="setQuickStudentAgeFilter('under10')" id="btnAgeFilterUnder10" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-emerald-800 border border-slate-200 transition cursor-pointer">أقل من 10 سنوات (342)</button>
+                            <button type="button" onclick="setQuickStudentAgeFilter('10plus')" id="btnAgeFilter10Plus" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-100 text-purple-800 border border-slate-200 transition cursor-pointer">10 سنوات فأكثر (449)</button>
                         </div>
 
                         <!-- Exact Age Dropdown -->
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[10px] text-slate-500 font-bold">🎯 سن محدد:</span>
+                            <span class="text-[10px] text-slate-500 font-bold">سن محدد:</span>
                             <select id="quickStudentExactAgeSelect" onchange="setQuickStudentExactAge(this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-indigo-500 cursor-pointer">
                                 <option value="">الكل</option>
                                 <option value="4">4 سنوات</option>
@@ -6916,13 +6916,13 @@
                     ? window.getStudentGender(stCode, s.name, s.gender || s.parent_name)
                     : 'm';
                 const genderBadge = (sGender === 'f')
-                    ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👧 بنت</span>'
-                    : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👦 ولد</span>';
+                    ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">بنت</span>'
+                    : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">ولد</span>';
 
                 const rawAge = (s.age !== undefined && s.age !== null && s.age !== '') ? s.age : (typeof window.getStudentAge === 'function' ? window.getStudentAge(stCode, s.name) : null);
                 const ageNum = (rawAge !== undefined && rawAge !== null && !isNaN(parseFloat(rawAge))) ? parseFloat(rawAge) : null;
                 const ageBadge = (ageNum !== null)
-                    ? `<span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded">🎂 ${ageNum} سنة</span>`
+                    ? `<span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded">${ageNum} سنة</span>`
                     : '';
 
                 const status = s.status === 'active' 
