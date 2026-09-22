@@ -162,12 +162,21 @@ function renderModalStudentsList(list) {
     container.innerHTML = displayList.map(s => {
         const isCurrent = (s.id == currentStudentId || s.student_code == currentStudentId);
         const sName = s.name || ('طالب ' + (s.student_code || s.id));
+        const stCode = s.student_code || ('ST' + s.id);
+        const sGender = (typeof window.getStudentGender === 'function')
+            ? window.getStudentGender(stCode, sName, s.gender || s.parent_name)
+            : 'm';
+        const genderBadge = (sGender === 'f')
+            ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👧 بنت</span>'
+            : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👦 ولد</span>';
+
         return `
             <div class="p-2.5 rounded-xl border ${isCurrent ? 'bg-indigo-50 border-indigo-300' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'} flex items-center justify-between gap-2 transition">
                 <div class="min-w-0">
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <strong class="text-slate-900 text-xs truncate">${sName}</strong>
-                        <span class="bg-[#41519C] text-white text-[10px] font-mono px-1.5 py-0.5 rounded">${s.student_code || s.id}</span>
+                        <span class="bg-[#41519C] text-white text-[10px] font-mono px-1.5 py-0.5 rounded">${stCode}</span>
+                        ${genderBadge}
                         ${s.qr_code ? `<span class="bg-[#57BA9E] text-slate-950 text-[10px] font-mono px-1.5 py-0.5 rounded">${s.qr_code}</span>` : ''}
                     </div>
                     <div class="text-[11px] text-slate-500 truncate">${s.parent_name ? 'ولي الأمر: ' + s.parent_name : ''}</div>
@@ -2306,9 +2315,19 @@ const STUDENT_GENDER_OVERRIDES = {
 };
 
 function guessStudentGender(name, explicitGender, studentCode) {
-    // 1. Check student code override
     const sObj = (window.currentStudentData && window.currentStudentData.student) || {};
-    const code = String(studentCode || sObj.student_code || sObj.id || (typeof currentStudentId !== 'undefined' ? currentStudentId : '')).trim().toUpperCase();
+    const effectiveCode = studentCode || sObj.student_code || sObj.id || (typeof currentStudentId !== 'undefined' ? currentStudentId : '');
+    const effectiveName = name || sObj.name || '';
+    const effectiveExplicit = explicitGender || sObj.gender || sObj.parent_name || '';
+
+    // 1. Check central verified registry first (master: العمر.xlsx)
+    if (typeof window.getStudentGender === 'function') {
+        const resolved = window.getStudentGender(effectiveCode, effectiveName, effectiveExplicit);
+        if (resolved) return resolved;
+    }
+
+    // 2. Check student code override
+    const code = String(effectiveCode).trim().toUpperCase();
     if (code) {
         if (STUDENT_GENDER_OVERRIDES[code] || STUDENT_GENDER_OVERRIDES[code.replace(/\D/g, '')]) {
             return STUDENT_GENDER_OVERRIDES[code] || STUDENT_GENDER_OVERRIDES[code.replace(/\D/g, '')];
@@ -2320,16 +2339,15 @@ function guessStudentGender(name, explicitGender, studentCode) {
         } catch(e) {}
     }
 
-    // 2. Check explicit gender or parent_name keyword
-    const explicit = explicitGender || sObj.gender || sObj.parent_name;
-    if (explicit) {
-        const g = String(explicit).toLowerCase().trim();
+    // 3. Check explicit gender or parent_name keyword
+    if (effectiveExplicit) {
+        const g = String(effectiveExplicit).toLowerCase().trim();
         if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g === 'انثى' || g.includes('female') || g.includes('أنثى') || g.includes('بنت')) return 'f';
         if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر' || g.includes('male') || g.includes('ذكر') || g.includes('ولد')) return 'm';
     }
 
-    if (!name) return 'm';
-    const trimmed = name.trim();
+    if (!effectiveName) return 'm';
+    const trimmed = effectiveName.trim();
     const parts = trimmed.split(/\s+/);
     const firstName = parts[0] || '';
 
@@ -2370,6 +2388,11 @@ async function toggleStudentGenderFromPortal() {
 
     // 1. Update in-memory
     STUDENT_GENDER_OVERRIDES[code] = newGender;
+    if (window.STUDENT_GENDER_MAP) {
+        window.STUDENT_GENDER_MAP[code] = newGender;
+        const digits = code.replace(/\D/g, '');
+        if (digits) window.STUDENT_GENDER_MAP[digits] = newGender;
+    }
     if (s) {
         s.gender = newGender;
         s.parent_name = (newGender === 'f') ? 'female' : 'male';
@@ -2426,8 +2449,11 @@ function getMondayHadithStatus(studentAge, studentGender) {
         gender = urlParams.get('sim_gender');
     }
     if (!gender || (gender !== 'f' && gender !== 'm')) {
-        const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
-        gender = guessStudentGender(sName);
+        const s = (window.currentStudentData && window.currentStudentData.student) || {};
+        const sName = s.name || '';
+        const sCode = s.student_code || s.id || currentStudentId;
+        const sExplicit = s.gender || s.parent_name;
+        gender = guessStudentGender(sName, sExplicit, sCode);
     }
 
     let cohortKey = 'boys_10_and_up';
@@ -2635,9 +2661,11 @@ function updateMondayHadithNoticeByStudent(studentAge, studentGender) {
     const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
     let gender = studentGender;
     if (!gender || (gender !== 'f' && gender !== 'm')) {
-        const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
-        const sExplicit = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.gender) || '';
-        gender = guessStudentGender(sName, sExplicit);
+        const s = (window.currentStudentData && window.currentStudentData.student) || {};
+        const sName = s.name || '';
+        const sExplicit = s.gender || s.parent_name || '';
+        const sCode = s.student_code || s.id || currentStudentId;
+        gender = guessStudentGender(sName, sExplicit, sCode);
     }
 
     // Hide all cohorts first
@@ -2672,9 +2700,11 @@ function syncZoomLiveStatusAll() {
         window.currentStudentAge = studentAge;
     }
 
-    const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
-    const sExplicitGender = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.gender) || '';
-    let sGender = guessStudentGender(sName, sExplicitGender);
+    const s = (window.currentStudentData && window.currentStudentData.student) || {};
+    const sName = s.name || '';
+    const sExplicitGender = s.gender || s.parent_name || '';
+    const sCode = s.student_code || s.id || currentStudentId;
+    let sGender = guessStudentGender(sName, sExplicitGender, sCode);
     if (urlParams.has('sim_gender')) {
         sGender = urlParams.get('sim_gender');
     }
@@ -3007,8 +3037,11 @@ function renderGeneralTrackView() {
 
     const studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
                        ((window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.age) ? parseInt(window.currentStudentData.student.age) : 9);
-    const sName = (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || '';
-    const sGender = guessStudentGender(sName);
+    const s = (window.currentStudentData && window.currentStudentData.student) || {};
+    const sName = s.name || '';
+    const sCode = s.student_code || s.id || currentStudentId;
+    const sExplicit = s.gender || s.parent_name || '';
+    const sGender = guessStudentGender(sName, sExplicit, sCode);
 
     const zoomStatus = getZoomLiveLinkStatus(meta.live_url, studentAge);
     const sundayStatus = getSundayTafsirStatus(studentAge);

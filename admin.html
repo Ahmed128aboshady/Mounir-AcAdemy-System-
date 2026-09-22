@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
     <script src="js/meet_manager.js?v=20260919_meet2"></script>
+    <script src="js/student_genders.js?v=20260922_v1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
@@ -6545,6 +6546,13 @@
                     <span id="quickStudentCountLabel" class="font-bold">الطلاب المسجلون: جاري التحميل...</span>
                     <a href="student.html" target="_blank" class="text-indigo-700 hover:text-indigo-800 font-bold hover:underline">فتح بروفايل الطالب الافتراضي ➔</a>
                 </div>
+                <!-- Gender filter buttons -->
+                <div class="flex items-center gap-1.5 pt-1">
+                    <span class="text-[11px] font-bold text-slate-500 ml-1">تصفية:</span>
+                    <button type="button" onclick="setQuickStudentGenderFilter('all')" id="btnGenderFilterAll" class="px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer">الكل</button>
+                    <button type="button" onclick="setQuickStudentGenderFilter('m')" id="btnGenderFilterBoys" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-blue-800 transition cursor-pointer">👦 الأولاد (503)</button>
+                    <button type="button" onclick="setQuickStudentGenderFilter('f')" id="btnGenderFilterGirls" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-pink-700 transition cursor-pointer">👧 البنات (291)</button>
+                </div>
             </div>
 
             <!-- Students List Container -->
@@ -6700,21 +6708,46 @@
             if (modal) modal.classList.add('hidden');
         }
 
+        let __currentQuickStudentGenderFilter = 'all';
+
+        function setQuickStudentGenderFilter(gender) {
+            __currentQuickStudentGenderFilter = gender;
+            const btnAll = document.getElementById('btnGenderFilterAll');
+            const btnBoys = document.getElementById('btnGenderFilterBoys');
+            const btnGirls = document.getElementById('btnGenderFilterGirls');
+            if (btnAll) btnAll.className = (gender === 'all') ? 'px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white transition cursor-pointer' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer';
+            if (btnBoys) btnBoys.className = (gender === 'm') ? 'px-2.5 py-1 rounded-lg text-xs font-black bg-blue-600 text-white transition cursor-pointer' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-blue-800 transition cursor-pointer';
+            if (btnGirls) btnGirls.className = (gender === 'f') ? 'px-2.5 py-1 rounded-lg text-xs font-black bg-pink-600 text-white transition cursor-pointer' : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-pink-700 transition cursor-pointer';
+
+            const q = document.getElementById('quickStudentSearchInput')?.value || '';
+            filterQuickStudentsList(q);
+        }
+
         function filterQuickStudentsList(query) {
             const q = (query || '').trim().toLowerCase();
-            if (!q) {
-                renderQuickStudentsList(__allQuickStudents);
-                return;
+            let filtered = __allQuickStudents;
+
+            if (__currentQuickStudentGenderFilter !== 'all') {
+                filtered = filtered.filter(s => {
+                    const stCode = s.student_code || ('ST' + s.id);
+                    const g = (typeof window.getStudentGender === 'function') 
+                        ? window.getStudentGender(stCode, s.name, s.gender || s.parent_name) 
+                        : 'm';
+                    return g === __currentQuickStudentGenderFilter;
+                });
             }
-            const filtered = __allQuickStudents.filter(s => 
-                (s.name && s.name.toLowerCase().includes(q)) ||
-                (s.student_code && s.student_code.toLowerCase().includes(q)) ||
-                (s.qr_code && s.qr_code.toLowerCase().includes(q)) ||
-                (s.parent_name && s.parent_name.toLowerCase().includes(q)) ||
-                (s.phone && s.phone.toLowerCase().includes(q)) ||
-                (s.parent_phone && s.parent_phone.toLowerCase().includes(q)) ||
-                (s.id && String(s.id).includes(q))
-            );
+
+            if (q) {
+                filtered = filtered.filter(s => 
+                    (s.name && s.name.toLowerCase().includes(q)) ||
+                    (s.student_code && s.student_code.toLowerCase().includes(q)) ||
+                    (s.qr_code && s.qr_code.toLowerCase().includes(q)) ||
+                    (s.parent_name && s.parent_name.toLowerCase().includes(q)) ||
+                    (s.phone && s.phone.toLowerCase().includes(q)) ||
+                    (s.parent_phone && s.parent_phone.toLowerCase().includes(q)) ||
+                    (s.id && String(s.id).includes(q))
+                );
+            }
             renderQuickStudentsList(filtered);
         }
 
@@ -6733,6 +6766,12 @@
             container.innerHTML = displayList.map(s => {
                 const grp = s.qr_code || 'G000';
                 const stCode = s.student_code || ('ST' + s.id);
+                const sGender = (typeof window.getStudentGender === 'function')
+                    ? window.getStudentGender(stCode, s.name, s.gender || s.parent_name)
+                    : 'm';
+                const genderBadge = (sGender === 'f')
+                    ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👧 بنت</span>'
+                    : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👦 ولد</span>';
                 const status = s.status === 'active' 
                     ? '<span class="text-emerald-700 bg-emerald-100 text-[10px] font-bold px-1.5 py-0.5 rounded">نشط</span>' 
                     : '<span class="text-red-700 bg-red-100 text-[10px] font-bold px-1.5 py-0.5 rounded">موقوف</span>';
@@ -6747,6 +6786,7 @@
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm truncate">${s.name}</h4>
                                     <span class="bg-[#41519C] text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${stCode}</span>
+                                    ${genderBadge}
                                     <span class="bg-[#57BA9E] text-slate-950 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${grp}</span>
                                     ${status}
                                 </div>
