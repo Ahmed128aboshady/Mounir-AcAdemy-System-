@@ -1821,17 +1821,6 @@ const RENEWAL_PACKAGES = [
         badge: null
     },
     {
-        id: 'group_8',
-        type: 'group',
-        typeName: 'جروب (مجموعة)',
-        name: 'باقة الـ 8 محاضرات شهرياً',
-        subtitle: 'شهرياً (حصتان أسبوعياً)',
-        credits: 8,
-        duration: '45-60 دقيقة',
-        price: 500,
-        badge: 'الأكثر طلباً ⭐'
-    },
-    {
         id: 'private_4_60',
         type: 'private',
         typeName: 'برايفت (فردي خاص)',
@@ -1841,21 +1830,10 @@ const RENEWAL_PACKAGES = [
         duration: '60 دقيقة',
         price: 1000,
         badge: null
-    },
-    {
-        id: 'private_4_30',
-        type: 'private',
-        typeName: 'برايفت (فردي خاص)',
-        name: 'باقة 4 محاضرات (نصف ساعة)',
-        subtitle: '30 دقيقة للحصة — متابعة فردية 1:1',
-        credits: 4,
-        duration: '30 دقيقة',
-        price: 666,
-        badge: null
     }
 ];
 
-let selectedRenewalPackageId = 'group_8';
+let selectedRenewalPackageId = 'group_4';
 
 function copyTransferText(text, btn) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1895,7 +1873,7 @@ function showCopySuccess(btn) {
 }
 
 function updateWhatsAppTransferLink() {
-    const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[1];
+    const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[0];
     const sNameElem = document.getElementById('studentName');
     const sCodeElem = document.getElementById('studentCode');
     const sName = sNameElem ? sNameElem.innerText.trim() : 'طالب الأكاديمية';
@@ -2024,7 +2002,7 @@ function openPaymobModal() {
         sInfo.innerText = sNameElem.innerText + (sCodeElem ? ' (' + sCodeElem.innerText + ')' : '');
     }
 
-    selectRenewalPackage(selectedRenewalPackageId || 'group_8');
+    selectRenewalPackage(selectedRenewalPackageId || 'group_4');
     updateWhatsAppTransferLink();
     document.getElementById('paymobModal').classList.remove('hidden');
 }
@@ -2046,7 +2024,7 @@ function openReceiptModal(receipt) {
     const rCred = document.getElementById('receiptCreditsAdded');
     if (rCred) rCred.innerText = '+' + (receipt.credits_added || 4) + ' حصص';
 
-    document.getElementById('receiptAmount').innerText = (receipt.amount !== undefined ? Number(receipt.amount).toFixed(2) : '500.00') + ' ج.م';
+    document.getElementById('receiptAmount').innerText = (receipt.amount !== undefined ? Number(receipt.amount).toFixed(2) : '400.00') + ' ج.م';
     document.getElementById('receiptDate').innerText = (receipt.created_at || new Date().toISOString()).slice(0, 10);
     
     const waText = encodeURIComponent(

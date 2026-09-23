@@ -23,16 +23,14 @@ def create_paymob_order(
     if amount is None:
         pkg_prices = {
             'group_4': 400.0,
-            'group_8': 500.0,
-            'private_4_60': 1000.0,
-            'private_4_30': 666.0
+            'private_4_60': 1000.0
         }
         if package_id in pkg_prices:
             amount = pkg_prices[package_id]
         else:
             cursor.execute("SELECT price_per_block FROM courses WHERE name = ?", (course_name,))
             c_row = cursor.fetchone()
-            amount = c_row["price_per_block"] if c_row else 500.0
+            amount = c_row["price_per_block"] if c_row else 400.0
     
     tx_id = f"PAYMOB-{uuid.uuid4().hex[:8].upper()}"
     receipt_no = f"REC-2026-{uuid.uuid4().hex[:6].upper()}"
