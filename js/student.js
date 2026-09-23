@@ -3514,7 +3514,7 @@ function renderGeneralTrackView() {
         } else if (currentGeneralTrack === 'tafsir') {
             quiz = {
                 id: 102,
-                title: "مسار التفسير والتدبر — الحلقة الثانية: 🎧 «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
+                title: "مسار التفسير والتدبر — الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
                 course: "التفسير والتدبر",
                 block: 2,
                 total_points: 15,
