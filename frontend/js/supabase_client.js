@@ -345,7 +345,7 @@
                             google_meet_url: (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(enrGid, e.teacher_id || teacherName) : (teacherBio || e.google_meet_url || locE.google_meet_url || 'https://meet.google.com'),
                             account_status: stData.account_status,
                             remaining_credits: rc,
-                            total_lectures_unlocked: Math.max(e.total_lectures_unlocked || 0, rc),
+                            total_lectures_unlocked: (rc > 0) ? Math.max(e.total_lectures_unlocked || 0, rc) : 0,
                             excuse_count: e.excuse_count || 0,
                             present_count: e.present_count || 0,
                             absent_count: e.absent_count || 0,

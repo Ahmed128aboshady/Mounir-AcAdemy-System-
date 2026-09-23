@@ -532,6 +532,21 @@
                 detail: { groupId: cleanGid, url: finalUrl }
             }));
 
+            // Sync to Supabase cloud in the background for all students in group
+            try {
+                if (window.MonirDB && window.MonirDB.client) {
+                    window.MonirDB.client
+                        .from('enrollments')
+                        .update({ google_meet_url: finalUrl })
+                        .eq('group_id', cleanGid)
+                        .then(({ error }) => {
+                            if (error) console.warn('[MeetManager] Supabase cloud sync warning:', error);
+                            else console.log('[MeetManager] Synced meet URL to Supabase cloud for group', cleanGid);
+                        })
+                        .catch(err => console.warn('[MeetManager] Supabase sync err:', err));
+                }
+            } catch(e) {}
+
             return finalUrl;
         } catch(e) {
             console.error('[MeetManager] Failed to save link:', e);

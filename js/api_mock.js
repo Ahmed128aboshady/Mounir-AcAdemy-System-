@@ -893,18 +893,20 @@
                      || enrollmentsList.find(e => e.student_id === realSid)
                      || { unlocked_blocks: 1, total_lectures_unlocked: 4, remaining_credits: 4, renewal_count: 0, current_surah: '' };
             const lecs = (DB && DB.lectures) ? DB.lectures.filter(l => l.course_name === cName) : [];
+            const rc = (enr.remaining_credits !== undefined) ? enr.remaining_credits : 0;
+            const totalUnlocked = (rc > 0) ? (enr.total_lectures_unlocked || rc) : 0;
             return jsonResponse({
                 course_name: cName,
-                total_lectures_unlocked: enr.total_lectures_unlocked || 4,
-                unlocked_blocks: enr.unlocked_blocks || 1,
+                total_lectures_unlocked: totalUnlocked,
+                unlocked_blocks: (rc > 0) ? (enr.unlocked_blocks || Math.ceil(totalUnlocked / 4)) : 0,
                 renewal_count: enr.renewal_count || 0,
-                remaining_credits: (enr.remaining_credits !== undefined) ? enr.remaining_credits : 4,
+                remaining_credits: rc,
                 current_surah: enr.current_surah || '',
                 excuse_count: enr.excuse_count || 0,
-                needs_renewal: ((enr.total_lectures_unlocked || 4) <= 4 && (enr.remaining_credits || 4) <= 1),
+                needs_renewal: (rc <= 1),
                 lectures: lecs.map(l => ({
                     ...l,
-                    is_unlocked: (l.lecture_number <= (enr.total_lectures_unlocked || 4)),
+                    is_unlocked: (rc > 0 && l.lecture_number <= totalUnlocked),
                     attendance: { status: (l.lecture_number <= 2 ? 'present' : 'not_recorded'), duration_minutes: 60 }
                 }))
             });

@@ -33,9 +33,10 @@
         })();
     </script>
     <script src="js/popup.js?v=20260915_fix4"></script>
-    <script src="js/meet_manager.js?v=20260919_meet2"></script>
+    <script src="js/meet_manager.js?v=20260923_v1"></script>
     <script src="js/student_genders.js?v=20260922_v1"></script>
-    <script src="js/supabase_client.js?v=20260918_v3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase_client.js?v=20260923_v1"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 pb-28 sm:pb-20">
 
@@ -1209,9 +1210,9 @@
             <span class="text-[10px] font-bold">كارت الطالب</span>
         </button>
 
-        <button type="button" onclick="joinNextDueMeet()" class="flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
-            <span class="text-base">🎥</span>
-            <span class="text-[10px] font-black">دخول الحصة</span>
+        <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
+            <span class="text-base" id="bottomNavMeetIcon">🎥</span>
+            <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
         </button>
 
         <button type="button" onclick="openPaymobModal()" class="flex flex-col items-center gap-0.5 text-amber-700 hover:text-amber-800 active:scale-95 py-1 px-2.5 rounded-xl transition cursor-pointer">
@@ -1251,9 +1252,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase_client.js?v=20260918_v3"></script>
-    <script src="js/api_mock.js?v=20260918_v3"></script>
-    <script src="js/student.js?v=20260918_v3"></script>
+    <script src="js/api_mock.js?v=20260923_v1"></script>
+    <script src="js/student.js?v=20260923_v1"></script>
 </body>
 </html>

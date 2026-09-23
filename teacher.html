@@ -1146,10 +1146,10 @@
             let creditBadge;
             if (isInactive) {
                 creditBadge = `<span class="bg-red-50 text-red-700 border border-red-200 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة (موقوف)</span>`;
-            } else if (rc === 0) {
-                creditBadge = `<span class="bg-slate-200 text-slate-700 font-black px-2 py-0.5 rounded-md text-[11px]">الرصيد منتهي</span>`;
-            } else if (rc <= 1) {
-                creditBadge = `<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">⚠️ ${rc} حصة متبقية</span>`;
+            } else if (rc <= 0) {
+                creditBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-md text-[11px] inline-flex items-center gap-1 shadow-2xs"><span>🔒</span><span>الرصيد 0 (يحتاج تجديد)</span></span>`;
+            } else if (rc === 1) {
+                creditBadge = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">⚠️ حصة واحدة متبقية</span>`;
             } else {
                 creditBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة</span>`;
             }
@@ -1473,25 +1473,29 @@
                 let confirmBtn = 'تأكيد';
                 let modalType = 'question';
 
+                const zeroCreditWarning = (curCredits <= 0) 
+                    ? '\n\n⚠️ تحذير: رصيد هذا الطالب منتهي حالياً (0 حصص متبقية) ويحتاج إلى تجديد الاشتراك من قبل ولي الأمر!' 
+                    : '';
+
                 if (prevRecord) {
                     const prevLabel = statusNames[prevRecord] || prevRecord;
                     confirmTitle = '⚠️ تنبيه: تم التسجيل اليوم مسبقاً';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n⚠️ لقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى؟`;
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\n⚠️ لقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى؟`;
                     confirmBtn = 'نعم، تأكيد التسجيل مجدداً';
                     modalType = 'warning';
                 } else if (sessionStatus === 'present') {
-                    confirmTitle = 'تأكيد تسجيل حضور الطالب';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تسجيل حضور الطالب الآن؟`;
-                    confirmBtn = '✓ تأكيد الحضور';
-                    modalType = 'question';
+                    confirmTitle = (curCredits <= 0) ? '⚠️ تنبيه: رصيد الطالب 0 حصص' : 'تأكيد تسجيل حضور الطالب';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهل تود تأكيد تسجيل حضور الطالب الآن؟`;
+                    confirmBtn = (curCredits <= 0) ? 'نعم، تسجيل حضور استثنائي' : '✓ تأكيد الحضور';
+                    modalType = (curCredits <= 0) ? 'warning' : 'question';
                 } else if (sessionStatus === 'excused') {
                     confirmTitle = 'تأكيد تسجيل عذر للطالب';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\n🎁 هذا هو العذر المسموح به لاشتراك الطالب الحالي (عذر واحد لكل ${cycleDesc}).\n\nهل تود تأكيد تسجيل العذر للطالب؟\n(سيتم قفل خيار العذر تلقائياً حتى إتمام دورة الـ ${excuseInfo.cycleSize} حصص).`;
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\n🎁 هذا هو العذر المسموح به لاشتراك الطالب الحالي (عذر واحد لكل ${cycleDesc}).\n\nهل تود تأكيد تسجيل العذر للطالب؟\n(سيتم قفل خيار العذر تلقائياً حتى إتمام دورة الـ ${excuseInfo.cycleSize} حصص).`;
                     confirmBtn = '✓ تأكيد العذر';
-                    modalType = 'question';
+                    modalType = (curCredits <= 0) ? 'warning' : 'question';
                 } else if (sessionStatus === 'absent') {
                     confirmTitle = 'تأكيد تسجيل غياب بدون عذر';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تسجيل غياب الطالب؟`;
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهل تود تأكيد تسجيل غياب الطالب؟`;
                     confirmBtn = '✗ تأكيد الغياب';
                     modalType = 'warning';
                 }

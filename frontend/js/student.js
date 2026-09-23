@@ -392,11 +392,11 @@ async function loadStudentProfile() {
         
         if (data && data.enrolled_courses && data.enrolled_courses.length) {
             enrolledCoursesList = data.enrolled_courses.map(c => {
-                const rem = (c.remaining_credits !== undefined) ? c.remaining_credits : (s.remaining_credits || 12);
+                const rem = (c.remaining_credits !== undefined) ? c.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0);
                 return {
                     ...c,
                     remaining_credits: rem,
-                    total_lectures_unlocked: Math.max(c.total_lectures_unlocked || 0, rem)
+                    total_lectures_unlocked: (rem > 0) ? Math.max(c.total_lectures_unlocked || 0, rem) : 0
                 };
             });
         } else {
@@ -408,6 +408,9 @@ async function loadStudentProfile() {
             selectedCourseName = enrolledCoursesList[0].course_name;
         }
         
+        const curCourseForBottom = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+        updateBottomMeetButtonState(curCourseForBottom.remaining_credits !== undefined ? curCourseForBottom.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0));
+
         renderEnrolledCoursesTabs(enrolledCoursesList);
         checkAndRenderQuranWidget(enrolledCoursesList);
         loadSelectedCourseLectures();
@@ -732,7 +735,7 @@ async function loadSelectedCourseLectures() {
                         remaining_credits: remainingCredits,
                         lectures: sbLecs.map(l => ({
                             ...l,
-                            is_unlocked: (l.lecture_number <= remainingCredits)
+                            is_unlocked: (remainingCredits > 0 && l.lecture_number <= remainingCredits)
                         }))
                     };
                 }
@@ -818,7 +821,7 @@ async function loadSelectedCourseLectures() {
                 block_number: Math.ceil(num / 4),
                 title: 'المحاضرة ' + num,
                 scheduled_time: '',
-                is_unlocked: (num <= attendedCount + rc),
+                is_unlocked: (rc > 0 && num <= attendedCount + rc),
                 status: (num <= attendedCount) ? 'completed' : 'scheduled',
                 google_meet_url: meetUrl
             });
@@ -830,10 +833,10 @@ async function loadSelectedCourseLectures() {
             l.lecture_number = num;
             l.block_number = Math.ceil(num / 4);
             l.title = 'المحاضرة ' + num;
-            l.google_meet_url = l.google_meet_url || meetUrl;
+            l.google_meet_url = meetUrl; // Always sync with official teacher/group Google Meet URL
 
             const isAttended = (num <= attendedCount);
-            const isUnlocked = (num <= attendedCount + rc);
+            const isUnlocked = (rc > 0) && (num <= attendedCount + rc);
             l.is_unlocked = isUnlocked;
 
             if (isAttended) {
@@ -938,14 +941,16 @@ async function loadSelectedCourseLectures() {
         };
 
         // If any unlocked lecture is scheduled for today and not completed, it takes highest priority as due!
-        const todayDueLecture = data.lectures.find(l => l.is_unlocked && l.status !== 'completed' && isLectureScheduledToday(l));
+        const todayDueLecture = (rc > 0) ? data.lectures.find(l => l.is_unlocked && l.status !== 'completed' && isLectureScheduledToday(l)) : null;
 
         // Determine which lecture is currently due (today's lecture if matches, otherwise first unlocked lecture not completed)
-        const dueLecture = todayDueLecture 
-            || data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
-            || data.lectures.find(l => l.is_unlocked) 
-            || data.lectures[0];
-        const dueLectureNumber = dueLecture ? dueLecture.lecture_number : 1;
+        const dueLecture = (rc > 0)
+            ? (todayDueLecture 
+                || data.lectures.find(l => l.is_unlocked && l.status !== 'completed') 
+                || data.lectures.find(l => l.is_unlocked) 
+                || null)
+            : null;
+        const dueLectureNumber = dueLecture ? dueLecture.lecture_number : null;
 
         // Render each block
         for (let blockNum = 1; blockNum <= numBlocks; blockNum++) {
@@ -989,7 +994,7 @@ async function loadSelectedCourseLectures() {
 
             blockLectures.forEach(l => {
                 const isScheduledToday = isLectureScheduledToday(l);
-                const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed') || (isScheduledToday && l.is_unlocked && l.status !== 'completed');
+                const isCurrentDue = (rc > 0) && (((l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed')) || (isScheduledToday && l.is_unlocked && l.status !== 'completed'));
                 const card = renderLectureCard(l, isCurrentDue, isScheduledToday);
                 blockContainer.appendChild(card);
             });
@@ -1005,19 +1010,22 @@ async function loadSelectedCourseLectures() {
                     b1El.before(blockHeader);
                     blockLectures.forEach(l => {
                         const isScheduledToday = isLectureScheduledToday(l);
-                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed') || (isScheduledToday && l.is_unlocked && l.status !== 'completed');
+                        const isCurrentDue = (rc > 0) && (((l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed')) || (isScheduledToday && l.is_unlocked && l.status !== 'completed'));
                         b1El.appendChild(renderLectureCard(l, isCurrentDue, isScheduledToday));
                     });
                 } else if (b2El) {
                     b2El.before(blockHeader);
                     blockLectures.forEach(l => {
                         const isScheduledToday = isLectureScheduledToday(l);
-                        const isCurrentDue = (l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed') || (isScheduledToday && l.is_unlocked && l.status !== 'completed');
+                        const isCurrentDue = (rc > 0) && (((l.lecture_number === dueLectureNumber && l.is_unlocked && l.status !== 'completed')) || (isScheduledToday && l.is_unlocked && l.status !== 'completed'));
                         b2El.appendChild(renderLectureCard(l, isCurrentDue, isScheduledToday));
                     });
                 }
             }
         }
+
+        // Sync bottom bar action button state (locked vs enter meet)
+        updateBottomMeetButtonState(rc);
 
     } catch (err) {
         console.error("Error loading course lectures:", err);
@@ -1038,9 +1046,12 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
+    const rc = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+    const isStopped = (curStudent.account_status === 'موقوف' || curStudent.account_status === 'inactive' || currentCourseInfo.status === 'inactive');
+
     const meetLink = (typeof window !== 'undefined' && window.getGroupMeetUrl) 
         ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
-        : (l.google_meet_url || currentCourseInfo.google_meet_url || 'https://meet.google.com');
+        : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
 
     // Extract Quran Progress (الورد وموضع التلاوة والحفظ والماضي)
     let rawLectureSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
@@ -1091,12 +1102,17 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
         </div>
     `;
     
-    if (!l.is_unlocked) {
+    const isLockedForZeroOrUnl = (!l.is_unlocked || rc <= 0 || isStopped) && (l.status !== 'completed');
+
+    if (isLockedForZeroOrUnl) {
         cardClass += ' locked bg-slate-50/70 border-slate-200 opacity-80';
-        statusBadge = '<span class="badge-status badge-locked">مغلقة • تتطلب تجديد المرحلة</span>';
+        statusBadge = (rc <= 0) 
+            ? '<span class="badge-status bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold">مغلقة • الرصيد (0) حصص</span>'
+            : '<span class="badge-status badge-locked">مغلقة • تتطلب تجديد الاشتراك</span>';
         actionBtn = `
-            <button onclick="openPaymobModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
-                <span>تجديد الاشتراك واختيار الباقة لفتح المحاضرة</span>
+            <button onclick="openPaymobModal()" class="w-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                <span>⚡</span>
+                <span>تجديد الاشتراك وشحن الحصص لفتح المحاضرة</span>
             </button>
         `;
     } else {
@@ -1224,8 +1240,50 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     return div;
 }
 
+function updateBottomMeetButtonState(rc) {
+    const btn = document.getElementById('bottomNavMeetBtn');
+    const icon = document.getElementById('bottomNavMeetIcon');
+    const label = document.getElementById('bottomNavMeetLabel');
+    if (!btn) return;
+    if (rc <= 0) {
+        btn.className = "flex flex-col items-center gap-0.5 text-amber-700 active:scale-95 py-1 px-3 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
+        btn.onclick = () => { if (typeof openPaymobModal === 'function') openPaymobModal(); };
+        if (icon) icon.innerText = '🔒';
+        if (label) label.innerText = 'رصيد 0 • تجديد';
+    } else {
+        btn.className = "flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer";
+        btn.onclick = () => { joinNextDueMeet(); };
+        if (icon) icon.innerText = '🎥';
+        if (label) label.innerText = 'دخول الحصة';
+    }
+}
+
 function joinMeet(lectureId, meetUrl) {
-    const targetUrl = meetUrl || 'https://meet.google.com';
+    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+    const isStopped = (curStudent.account_status === 'موقوف' || curStudent.account_status === 'inactive' || curCourse.status === 'inactive');
+
+    if (rc <= 0 || isStopped) {
+        if (window.MonirPopup && window.MonirPopup.alert) {
+            window.MonirPopup.alert(
+                'عفواً، لا يمكن الدخول لقاعة الحصة المباشرة لأن رصيد الحصص المتاح لديك حالياً هو (0) حصص. يرجى تجديد الاشتراك وشحن باقتك لمتابعة الحضور مع المعلم.',
+                'تجديد الاشتراك مطلوب 🔒',
+                () => { if (typeof openPaymobModal === 'function') openPaymobModal(); }
+            );
+        } else {
+            alert('عفواً، لا يمكن الدخول للحصة لأن رصيدك 0 حصص. يرجى تجديد الاشتراك وشحن الباقة.');
+            if (typeof openPaymobModal === 'function') openPaymobModal();
+        }
+        return;
+    }
+
+    const curGid = curCourse.group_id || curStudent.group_id;
+    const resolvedMeetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+        ? window.getGroupMeetUrl(curGid, curCourse.teacher_id || curCourse.teacher_name)
+        : (meetUrl || curCourse.google_meet_url || 'https://meet.google.com');
+
+    const targetUrl = resolvedMeetUrl || meetUrl || 'https://meet.google.com';
     window.open(targetUrl, '_blank');
     try {
         if (lectureId) {
@@ -1250,11 +1308,43 @@ function getNextDueMeetUrl() {
 }
 
 function joinNextDueMeet() {
+    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+    const isStopped = (curStudent.account_status === 'موقوف' || curStudent.account_status === 'inactive' || curCourse.status === 'inactive');
+
+    if (rc <= 0 || isStopped) {
+        if (window.MonirPopup && window.MonirPopup.alert) {
+            window.MonirPopup.alert(
+                'عفواً، لا يمكن دخول الحصة المباشرة لأن رصيدك الحالي هو (0) حصص. اضغط على تجديد الاشتراك لشحن باقتك الآن.',
+                'تجديد الاشتراك مطلوب 🔒',
+                () => { if (typeof openPaymobModal === 'function') openPaymobModal(); }
+            );
+        } else {
+            alert('عفواً، لا يمكن الدخول للحصة لأن رصيدك 0 حصص. يرجى تجديد الاشتراك.');
+            if (typeof openPaymobModal === 'function') openPaymobModal();
+        }
+        return;
+    }
+
     const url = getNextDueMeetUrl();
     joinMeet(null, url);
 }
 
 function copyNextDueMeet() {
+    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+
+    if (rc <= 0) {
+        if (window.MonirPopup && window.MonirPopup.toast) {
+            window.MonirPopup.toast('🔒 رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً للحصول على رابط القاعة', 'error');
+        } else {
+            alert('رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً');
+        }
+        return;
+    }
+
     const url = getNextDueMeetUrl();
     const btn = document.getElementById('heroCopyMeetBtn');
     if (window.copyMeetLink) {
