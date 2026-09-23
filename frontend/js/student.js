@@ -2476,24 +2476,24 @@ const WEDNESDAY_TAFSIR_CONFIG = {
     girls_10_and_up: {
         url: "https://zoom.us/j/98264506630",
         label: "فئة البنات (10 سنوات فيما فوق)",
-        episodeTitle: "الحلقة الثانية: 🎧 «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
-        timeLabel: "كل أربعاء الساعة 5:00 م (تفتح 4:50 م)",
+        episodeTitle: "الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
+        timeLabel: "كل أربعاء الساعة 5:00 م (الرابط مفتوح ومتاح)",
         minAge: 10,
         gender: "f",
-        openMins: 1010,  // 16:50 (4:50 PM)
+        openMins: 0,
         startMins: 1020, // 17:00 (5:00 PM)
-        endMins: 1085    // 18:05 (6:05 PM)
+        endMins: 1440
     },
     boys_under_10: {
         url: "https://zoom.us/j/98264506630",
         label: "فئة الأولاد (أقل من 10 سنوات)",
-        episodeTitle: "الحلقة الثانية: 🎧 «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
-        timeLabel: "كل أربعاء الساعة 6:30 م (تفتح 6:20 م)",
+        episodeTitle: "الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
+        timeLabel: "كل أربعاء الساعة 6:30 م (الرابط مفتوح ومتاح)",
         maxAge: 9,
         gender: "m",
-        openMins: 1100,  // 18:20 (6:20 PM)
+        openMins: 0,
         startMins: 1110, // 18:30 (6:30 PM)
-        endMins: 1175    // 19:35 (7:35 PM)
+        endMins: 1440
     }
 };
 
@@ -2521,62 +2521,27 @@ function getWednesdayTafsirStatus(studentAge, studentGender) {
     const isAdminOrSupervisor = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor') || urlParams.has('all_cohorts'));
 
     let matchedKey = null;
-    if (gender === 'f' && age >= 10) {
+    if (gender === 'f') {
         matchedKey = 'girls_10_and_up';
-    } else if (gender === 'm' && age < 10) {
+    } else {
         matchedKey = 'boys_under_10';
     }
 
-    const cfg = matchedKey ? WEDNESDAY_TAFSIR_CONFIG[matchedKey] : null;
-
-    if (!cfg && !isAdminOrSupervisor) {
-        return {
-            isEligible: false,
-            isVisible: false,
-            isWithinWindow: false,
-            zoomUrl: "https://zoom.us/j/98264506630",
-            label: "جلسة التفسير والتدبر",
-            timeLabel: "الأربعاء"
-        };
-    }
-
-    const activeCfg = cfg || WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up;
-
-    // Simulation / testing flags
-    if (urlParams.has('test_wednesday') || urlParams.has('sim_wednesday') || urlParams.get('force_live') === 'wednesday') {
-        return {
-            isEligible: true,
-            isVisible: true,
-            isWithinWindow: true,
-            cohortKey: matchedKey || 'girls_10_and_up',
-            cfg: activeCfg,
-            zoomUrl: activeCfg.url,
-            label: activeCfg.label,
-            timeLabel: activeCfg.timeLabel
-        };
-    }
-
-    const timeInfo = getCairoTimeInfo();
-    const day = timeInfo.dayOfWeek;
-    const cairoMins = timeInfo.totalMinutes;
-    const localMins = (timeInfo.localTotalMinutes !== undefined) ? timeInfo.localTotalMinutes : cairoMins;
-
-    // Day 3 = Wednesday
-    const isWednesday = (day === 3);
-    const inWindowCairo = isWednesday && (cairoMins >= activeCfg.openMins && cairoMins <= activeCfg.endMins);
-    const inWindowLocal = isWednesday && (localMins >= activeCfg.openMins && localMins <= activeCfg.endMins);
-    const isWithinWindow = inWindowCairo || inWindowLocal;
+    const cfg = WEDNESDAY_TAFSIR_CONFIG[matchedKey];
+    const isTargetGirl = (gender === 'f' && age >= 10);
+    const isTargetBoy = (gender === 'm' && age < 10);
+    const isEligible = isTargetGirl || isTargetBoy || isAdminOrSupervisor;
 
     return {
-        isEligible: true,
+        isEligible: isEligible,
         isVisible: true,
-        isWithinWindow: isWithinWindow,
-        isEnded: isWednesday && (cairoMins > activeCfg.endMins),
+        isWithinWindow: true, // Link is always open as requested
+        isEnded: false,
         cohortKey: matchedKey,
-        cfg: activeCfg,
-        zoomUrl: activeCfg.url,
-        label: activeCfg.label,
-        timeLabel: activeCfg.timeLabel
+        cfg: cfg,
+        zoomUrl: cfg.url,
+        label: cfg.label,
+        timeLabel: cfg.timeLabel
     };
 }
 
@@ -3003,6 +2968,73 @@ function updateMondayHadithNoticeByStudent(studentAge, studentGender) {
     }
 }
 
+function updateWednesdayTafsirNoticeByStudent(studentAge, studentGender) {
+    const slotG = document.getElementById('wednesdaySlotGirls10AndUp');
+    const slotB = document.getElementById('wednesdaySlotBoysUnder10');
+    const notTargeted = document.getElementById('wednesdaySlotNotTargeted');
+    const badgeG = document.getElementById('wednesdayTargetBadgeGirls');
+    const badgeB = document.getElementById('wednesdayTargetBadgeBoys');
+
+    if (!slotG || !slotB) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const userRole = (window.currentLoggedInUser && window.currentLoggedInUser.role) || 
+                     (window.currentSessionUser && window.currentSessionUser.role) || 
+                     urlParams.get('role');
+    const isAdminOrTeacher = (userRole === 'admin' || userRole === 'teacher' || urlParams.has('supervisor') || urlParams.has('all_cohorts'));
+
+    if (isAdminOrTeacher) {
+        slotG.classList.remove('hidden');
+        slotB.classList.remove('hidden');
+        if (badgeG) badgeG.classList.remove('hidden');
+        if (badgeB) badgeB.classList.remove('hidden');
+        if (notTargeted) notTargeted.classList.add('hidden');
+        return;
+    }
+
+    const age = (studentAge !== undefined && studentAge !== null && !isNaN(studentAge)) ? parseInt(studentAge, 10) : 9;
+    let gender = studentGender;
+    if (!gender || (gender !== 'f' && gender !== 'm')) {
+        const s = (window.currentStudentData && window.currentStudentData.student) || {};
+        const sName = s.name || '';
+        const sExplicit = s.gender || s.parent_name || '';
+        const sCode = s.student_code || s.id || currentStudentId;
+        gender = guessStudentGender(sName, sExplicit, sCode);
+    }
+
+    // Hide both slots initially
+    slotG.classList.add('hidden');
+    slotB.classList.add('hidden');
+    if (badgeG) badgeG.classList.add('hidden');
+    if (badgeB) badgeB.classList.add('hidden');
+    if (notTargeted) notTargeted.classList.add('hidden');
+
+    // Girls NEVER see Boys, and Boys NEVER see Girls!
+    if (gender === 'f') {
+        if (age >= 10) {
+            slotG.classList.remove('hidden');
+            slotG.classList.add('ring-2', 'ring-pink-500', 'bg-pink-50/60');
+            if (badgeG) badgeG.classList.remove('hidden');
+        } else {
+            if (notTargeted) {
+                notTargeted.classList.remove('hidden');
+                notTargeted.innerText = 'هذه الحلقة مخصصة لفئة البنات (10 سنوات فما فوق). موعد حلقتكِ كان أمس الثلاثاء.';
+            }
+        }
+    } else {
+        if (age < 10) {
+            slotB.classList.remove('hidden');
+            slotB.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50/60');
+            if (badgeB) badgeB.classList.remove('hidden');
+        } else {
+            if (notTargeted) {
+                notTargeted.classList.remove('hidden');
+                notTargeted.innerText = 'هذه الحلقة مخصصة لفئة الأولاد (أقل من 10 سنوات). موعد فئتك في جدول المسابقة.';
+            }
+        }
+    }
+}
+
 function syncZoomLiveStatusAll() {
     let studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
                        ((window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.age) ? parseInt(window.currentStudentData.student.age) : 9);
@@ -3024,9 +3056,10 @@ function syncZoomLiveStatusAll() {
 
     const timeInfo = getCairoTimeInfo();
 
-    // 1. Filter Friday & Monday notices strictly for the student's cohort
+    // 1. Filter Friday, Monday, and Wednesday notices strictly for the student's cohort
     updateFridayScheduleNoticeByAge(studentAge);
     updateMondayHadithNoticeByStudent(studentAge, sGender);
+    updateWednesdayTafsirNoticeByStudent(studentAge, sGender);
     if (typeof updateGenderBadgeUI === 'function') { updateGenderBadgeUI(sGender); }
 
     const isKid = (studentAge < 10);
@@ -3193,103 +3226,34 @@ function syncZoomLiveStatusAll() {
     const isTargetBoy = (sGender === 'm' && studentAge < 10);
 
     if (wednesdayCard) {
-        if (wednesdayBadgeGirls) {
-            if (isTargetGirl) wednesdayBadgeGirls.classList.remove('hidden');
-            else wednesdayBadgeGirls.classList.add('hidden');
-        }
-        if (wednesdayBadgeBoys) {
-            if (isTargetBoy) wednesdayBadgeBoys.classList.remove('hidden');
-            else wednesdayBadgeBoys.classList.add('hidden');
-        }
-
-        if (wednesdaySlotGirls) {
-            if (isTargetGirl) {
-                wednesdaySlotGirls.classList.add('ring-2', 'ring-pink-500', 'bg-pink-50/60');
-            } else {
-                wednesdaySlotGirls.classList.remove('ring-2', 'ring-pink-500', 'bg-pink-50/60');
-            }
-        }
-        if (wednesdaySlotBoys) {
-            if (isTargetBoy) {
-                wednesdaySlotBoys.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50/60');
-            } else {
-                wednesdaySlotBoys.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50/60');
-            }
-        }
-
-        const isWednesday = (timeInfo.dayOfWeek === 3);
-        const dayPrefix = isWednesday ? 'اليوم ' : 'الأربعاء ';
-        const cairoMins = timeInfo.totalMinutes;
-
-        // Girls 10+ slot (5:00 PM, opens 4:50 PM / 1010 mins, ends 1085 mins)
-        const inGirlsWindow = isWednesday && (cairoMins >= 1010 && cairoMins <= 1085);
-        const isGirlsEnded = isWednesday && (cairoMins > 1085);
+        // Active Zoom button for Girls (always open)
         if (wednesdayActionGirls) {
-            if (inGirlsWindow || (urlParams.has('sim_wednesday') && isTargetGirl)) {
-                wednesdayActionGirls.innerHTML = `
-                    <a href="${WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
-                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>دخول حلقة البنات الآن (Zoom)</span>
-                    </a>
-                `;
-            } else if (isGirlsEnded) {
-                wednesdayActionGirls.innerHTML = `
-                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                        انتهت جلسة اليوم
-                    </span>
-                `;
-            } else {
-                wednesdayActionGirls.innerHTML = `
-                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                        مقفول — يفتح ${dayPrefix}4:50 م
-                    </span>
-                `;
-            }
+            wednesdayActionGirls.innerHTML = `
+                <a href="${WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
+                    <span>دخول حلقة البنات الآن (Zoom)</span>
+                </a>
+            `;
         }
 
-        // Boys < 10 slot (6:30 PM, opens 6:20 PM / 1100 mins, ends 1175 mins)
-        const inBoysWindow = isWednesday && (cairoMins >= 1100 && cairoMins <= 1175);
-        const isBoysEnded = isWednesday && (cairoMins > 1175);
+        // Active Zoom button for Boys (always open)
         if (wednesdayActionBoys) {
-            if (inBoysWindow || (urlParams.has('sim_wednesday') && isTargetBoy)) {
-                wednesdayActionBoys.innerHTML = `
-                    <a href="${WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
-                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>دخول حلقة الأولاد الآن (Zoom)</span>
-                    </a>
-                `;
-            } else if (isBoysEnded) {
-                wednesdayActionBoys.innerHTML = `
-                    <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                        انتهت جلسة اليوم
-                    </span>
-                `;
-            } else {
-                wednesdayActionBoys.innerHTML = `
-                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                        مقفول — يفتح ${dayPrefix}6:20 م
-                    </span>
-                `;
-            }
+            wednesdayActionBoys.innerHTML = `
+                <a href="${WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
+                    <span>دخول حلقة الأولاد الآن (Zoom)</span>
+                </a>
+            `;
         }
 
-        // Header Action for Wednesday card
+        // Header Action for Wednesday card (always active link for the student's cohort)
         if (wednesdayAction) {
-            if (wednesdayStatus && wednesdayStatus.isWithinWindow) {
-                wednesdayAction.innerHTML = `
-                    <a href="${wednesdayStatus.zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
-                        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                        <span>دخول الحلقة 2 الآن (${wednesdayStatus.label})</span>
-                    </a>
-                `;
-            } else {
-                const targetOpenTime = isTargetGirl ? '4:50 م' : (isTargetBoy ? '6:20 م' : '5:00 م');
-                wednesdayAction.innerHTML = `
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                        مقفول — يفتح ${dayPrefix}${targetOpenTime}
-                    </span>
-                `;
-            }
+            const isGirl = (sGender === 'f');
+            const targetUrl = (isGirl && studentAge >= 10) ? WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up.url : WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url;
+            const targetLabel = (isGirl && studentAge >= 10) ? 'دخول حلقة البنات (Zoom)' : ((!isGirl && studentAge < 10) ? 'دخول حلقة الأولاد (Zoom)' : 'دخول حلقة التفسير (Zoom)');
+            wednesdayAction.innerHTML = `
+                <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center w-full sm:w-auto">
+                    <span>${targetLabel}</span>
+                </a>
+            `;
         }
     }
 
@@ -3607,34 +3571,15 @@ function renderGeneralTrackView() {
             `;
         }
     } else if (currentGeneralTrack === 'tafsir') {
-        if (wednesdayStatus && wednesdayStatus.isWithinWindow) {
-            headerLiveActionHtml = `
-                <a href="${wednesdayStatus.zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 animate-pulse">
-                    <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                    <span>دخول جلسة التفسير (الحلقة 2) الآن ↗</span>
-                </a>
-            `;
-        } else if (sundayStatus && sundayStatus.isWithinWindow) {
-            headerLiveActionHtml = `
-                <a href="${SUNDAY_TAFSIR_CONFIG.url}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5 animate-pulse">
-                    <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                    <span>دخول محاضرة التفسير المباشرة ↗</span>
-                </a>
-            `;
-        } else {
-            const isWedToday = (timeInfo.dayOfWeek === 3);
-            let openMsg = 'يفتح الأحد 7:50 م';
-            if (isWedToday) {
-                if (sGender === 'f' && studentAge >= 10) openMsg = 'يفتح اليوم 4:50 م';
-                else if (sGender === 'm' && studentAge < 10) openMsg = 'يفتح اليوم 6:20 م';
-                else openMsg = 'يفتح اليوم 4:50 م';
-            }
-            headerLiveActionHtml = `
-                <span class="bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-bold px-3 py-1.5 rounded-xl cursor-not-allowed">
-                    مقفول — ${openMsg}
-                </span>
-            `;
-        }
+        const isBoyTarget = (sGender === 'm' && studentAge < 10);
+        const isGirlTarget = (sGender === 'f' && studentAge >= 10);
+        const tafsirUrl = (wednesdayStatus && wednesdayStatus.zoomUrl) ? wednesdayStatus.zoomUrl : (isBoyTarget ? WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url : WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up.url);
+        const btnLabel = isBoyTarget ? 'دخول حلقة الأولاد (Zoom)' : (isGirlTarget ? 'دخول حلقة البنات (Zoom)' : 'دخول حلقة التفسير (Zoom)');
+        headerLiveActionHtml = `
+            <a href="${tafsirUrl}" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs px-4 py-2 rounded-xl transition shadow flex items-center justify-center gap-1.5">
+                <span>${btnLabel} ↗</span>
+            </a>
+        `;
     } else {
         headerLiveActionHtml = zoomStatus.html || '';
     }

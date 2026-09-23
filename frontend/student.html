@@ -351,44 +351,49 @@
                             </div>
                         </div>
 
-                        <!-- 2 Slots for Wednesday (بنات 10 فما فوق | أولاد أقل من 10) -->
+                        <!-- 2 Slots for Wednesday (يظهر لكل طالب فئته المعتمدة فقط دون اختلاط) -->
                         <div class="space-y-2.5">
                             <!-- 1. بنات 10 سنوات فيما فوق (الساعة 5:00 م) -->
-                            <div id="wednesdaySlotGirls10AndUp" class="p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
+                            <div id="wednesdaySlotGirls10AndUp" class="hidden p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
                                 <div>
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة البنات (10 سنوات فيما فوق)</strong>
                                         <span id="wednesdayTargetBadgeGirls" class="hidden bg-pink-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-2xs">فئتك وقاعتك المعتمدة</span>
                                     </div>
-                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 5:00 م (يفتح الرابط تلقائياً 4:50 م)</span>
+                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 5:00 م (الرابط مفتوح ومتاح)</span>
                                 </div>
                                 <div id="wednesdayActionSlotGirls10AndUp" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح اليوم 4:50 م
-                                    </span>
+                                    <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
+                                        <span>دخول حلقة البنات (Zoom)</span>
+                                    </a>
                                 </div>
                             </div>
 
                             <!-- 2. أولاد أقل من 10 سنوات (الساعة 6:30 م) -->
-                            <div id="wednesdaySlotBoysUnder10" class="p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
+                            <div id="wednesdaySlotBoysUnder10" class="hidden p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
                                 <div>
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الأولاد (أقل من 10 سنوات)</strong>
                                         <span id="wednesdayTargetBadgeBoys" class="hidden bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-2xs">فئتك وقاعتك المعتمدة</span>
                                     </div>
-                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 6:30 م (يفتح الرابط تلقائياً 6:20 م)</span>
+                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 6:30 م (الرابط مفتوح ومتاح)</span>
                                 </div>
                                 <div id="wednesdayActionSlotBoysUnder10" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح اليوم 6:20 م
-                                    </span>
+                                    <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
+                                        <span>دخول حلقة الأولاد (Zoom)</span>
+                                    </a>
                                 </div>
+                            </div>
+
+                            <!-- Not targeted cohort message for other students -->
+                            <div id="wednesdaySlotNotTargeted" class="hidden p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 font-bold text-center">
+                                هذه الحلقة مخصصة لفئة البنات (10 سنوات فما فوق) وفئة الأولاد (أقل من 10 سنوات). يمكنك متابعة جدول فئتك عبر المسار الأسبوعي.
                             </div>
                         </div>
 
                         <!-- Footer note -->
                         <div class="bg-indigo-100/40 p-2.5 rounded-lg text-[11px] text-indigo-950 font-medium border border-indigo-200/60 leading-relaxed">
-                            تفتح قاعة البث المباشر (Zoom) تلقائياً قبل بدء كل موعد بـ 10 دقائق للانضمام مع المعلم دون أي خصم من الرصيد.
+                            رابط البث المباشر (Zoom) متاح ومفتوح للانضمام للقاعة مباشرة دون أي خصم من الرصيد.
                         </div>
                     </div>
 
