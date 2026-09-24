@@ -337,17 +337,17 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-1.5 overflow-x-auto flex-1 sm:justify-end">
-                            <button type="button" id="tabBtnAllTracks" onclick="switchPortalTrack('all')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
-                                <span>الكل</span>
-                                <span id="badgeCountAllTracks" class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
-                            </button>
-                            <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
-                                <span>مسار القرآن والتدبر</span>
+                            <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
+                                <span>مسار القرآن</span>
                                 <span id="badgeCountQuranTrack" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
                             </button>
                             <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
-                                <span>الكورسات والبرامج التعليمية</span>
+                                <span>الكورسات</span>
                                 <span id="badgeCountCoursesTrack" class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                            </button>
+                            <button type="button" id="tabBtnCompetitionTrack" onclick="switchPortalTrack('competition')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                                <span>محاضرات المسابقة</span>
+                                <span id="badgeCountCompetitionTrack" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">متاح</span>
                             </button>
                         </div>
                     </div>
@@ -1686,16 +1686,23 @@
             if (mainArea) mainArea.className = "lg:col-span-12 space-y-5 sm:space-y-6";
             hide(asideCol);
             show(trackSwitcher);
-            show(coursesSection);
-            if (quranSection) {
-                if (window.currentPortalTrack === 'courses') hide(quranSection);
-                else show(quranSection);
-            }
-            hide(lecturesSection);
-            hide(generalLecturesSection);
             hide(certificatesPanel);
             hide(detailsPanel);
-            if (coursesSection) coursesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            hide(lecturesSection);
+            if (window.currentPortalTrack === 'competition') {
+                hide(coursesSection);
+                hide(quranSection);
+                show(generalLecturesSection);
+                if (generalLecturesSection) generalLecturesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                show(coursesSection);
+                if (quranSection) {
+                    if (window.currentPortalTrack === 'courses') hide(quranSection);
+                    else show(quranSection);
+                }
+                hide(generalLecturesSection);
+                if (coursesSection) coursesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         } else if (v === 'schedule') {
             hide(statsOverview);
             if (mainArea) mainArea.className = "lg:col-span-12 space-y-5 sm:space-y-6";
@@ -1818,6 +1825,6 @@
     </script>
 
     <script src="js/api_mock.js?v=20260923_v1"></script>
-    <script src="js/student.js?v=20260924_v3"></script>
+    <script src="js/student.js?v=20260924_v4"></script>
 </body>
 </html>
