@@ -300,7 +300,7 @@ async function loadStudentProfile() {
 
             const displayName = s.name || (s.student_code ? ('طالب ' + s.student_code) : 'طالب الأكاديمية');
             document.getElementById('studentName').innerText = displayName;
-            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
+            document.getElementById('studentDetails').innerText = (s.age || 9) + ' سنوات';
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id || currentStudentId).padStart(4, '0'));
             document.getElementById('parentName').innerText = 'ولي أمر معتمد (محجوب)';
             const parentPhoneEl = document.getElementById('parentPhone');
@@ -313,7 +313,7 @@ async function loadStudentProfile() {
 
             const displayName = s.name || (s.student_code ? ('طالب ' + s.student_code) : 'طالب الأكاديمية');
             document.getElementById('studentName').innerText = displayName;
-            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
+            document.getElementById('studentDetails').innerText = (s.age || 9) + ' سنوات';
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(s.id || currentStudentId).padStart(4, '0'));
             document.getElementById('parentName').innerText = s.parent_name || 'ولي أمر الطالب';
             const parentPhoneEl = document.getElementById('parentPhone');
@@ -339,7 +339,7 @@ async function loadStudentProfile() {
             const phoneVal = s.parent_phone || s.phone || (initialUser && (initialUser.parent_phone || initialUser.phone)) || 'غير مسجل';
 
             document.getElementById('studentName').innerText = finalName;
-            document.getElementById('studentDetails').innerText = 'السن: ' + (s.age || 9) + ' سنوات';
+            document.getElementById('studentDetails').innerText = (s.age || 9) + ' سنوات';
             document.getElementById('studentCode').innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
             
             const groupCodeEl = document.getElementById('groupCode');
