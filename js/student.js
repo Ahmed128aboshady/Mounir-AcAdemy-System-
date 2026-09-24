@@ -1180,27 +1180,6 @@ function renderEnrolledCoursesTabs(courses) {
         }
     }
 
-    const selectContainer = document.getElementById('courseDropdownSelectContainer');
-    if (selectContainer) {
-        if (safeCourses.length > 1) {
-            selectContainer.classList.remove('hidden');
-            selectContainer.innerHTML = `
-                <div class="flex items-center gap-2 bg-indigo-50/80 p-1.5 rounded-xl border border-indigo-200">
-                    <span class="text-xs font-black text-indigo-950 pr-1 shrink-0">اختر المسار:</span>
-                    <select onchange="selectCourseTab(this.value)" class="bg-white border border-indigo-300 text-slate-900 font-black text-xs rounded-lg px-2.5 py-1.5 outline-none cursor-pointer shadow-2xs">
-                        ${safeCourses.map(c => {
-                            const name = c.course_name || c.name || c.title;
-                            return `<option value="${name}" ${name === selectedCourseName ? 'selected' : ''}>${name}</option>`;
-                        }).join('')}
-                    </select>
-                </div>
-            `;
-        } else {
-            selectContainer.classList.add('hidden');
-            selectContainer.innerHTML = '';
-        }
-    }
-
     const isAccordionMode = safeCourses.length > 1;
 
     safeCourses.forEach((c, idx) => {
