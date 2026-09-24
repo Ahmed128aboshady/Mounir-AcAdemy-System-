@@ -3699,7 +3699,7 @@ function syncZoomLiveStatusAll() {
     if (fridayBadge) {
         if (status.isWithinWindow) {
             fridayBadge.innerHTML = `
-                <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
+                <a href="${zoomUrl}" target="_blank" rel="noopener noreferrer" class="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center w-full sm:w-auto">
                     <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
                     <span>دخول البث المباشر (${isKid ? 'الأطفال' : 'الطلاب'})</span>
                 </a>
@@ -3720,7 +3720,7 @@ function syncZoomLiveStatusAll() {
     if (slotKidsAction) {
         if (isKid && status.isWithinWindow) {
             slotKidsAction.innerHTML = `
-                <a href="${ZOOM_CONFIG.kids.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
+                <a href="${ZOOM_CONFIG.kids.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
                     <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
                     <span>دخول البث المباشر (Zoom)</span>
                 </a>
@@ -3737,7 +3737,7 @@ function syncZoomLiveStatusAll() {
     if (slotAdultsAction) {
         if (!isKid && status.isWithinWindow) {
             slotAdultsAction.innerHTML = `
-                <a href="${ZOOM_CONFIG.adults.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
+                <a href="${ZOOM_CONFIG.adults.url}" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5 animate-pulse text-center">
                     <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
                     <span>دخول البث المباشر (Zoom)</span>
                 </a>
