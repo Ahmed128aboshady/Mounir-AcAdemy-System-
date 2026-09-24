@@ -1742,10 +1742,55 @@
     }
     window.setPortalView = setPortalView;
 
+    function initTabsHorizontalScroll() {
+        const slider = document.querySelector('.profile-tabs');
+        if (!slider) return;
+        let isDown = false;
+        let startX, scrollLeft;
+        let hasMoved = false;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            hasMoved = false;
+            slider.style.cursor = 'grabbing';
+            slider.style.userSelect = 'none';
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        const stopDrag = () => {
+            if (!isDown) return;
+            isDown = false;
+            slider.style.cursor = 'grab';
+            slider.style.removeProperty('user-select');
+        };
+
+        slider.addEventListener('mouseleave', stopDrag);
+        slider.addEventListener('mouseup', stopDrag);
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX);
+            if (Math.abs(walk) > 3) hasMoved = true;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+
+        slider.addEventListener('wheel', (e) => {
+            if (e.deltaY !== 0 && !e.shiftKey) {
+                slider.scrollLeft += e.deltaY;
+            }
+        }, { passive: true });
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setPortalView('overview'));
+        document.addEventListener('DOMContentLoaded', () => {
+            setPortalView('overview');
+            initTabsHorizontalScroll();
+        });
     } else {
         setPortalView('overview');
+        initTabsHorizontalScroll();
     }
 
     function showLockedCertificateNotice() {
