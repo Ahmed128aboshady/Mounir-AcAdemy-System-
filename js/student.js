@@ -952,29 +952,22 @@ window.getCourseCategoryMeta = getCourseCategoryMeta;
 
 function getFilteredCoursesList() {
     if (!Array.isArray(enrolledCoursesList) || enrolledCoursesList.length === 0) return [];
-    if (currentPortalTrack === 'quran') {
-        return enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
-    }
     if (currentPortalTrack === 'courses') {
         return enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'courses');
-    }
-    if (currentPortalTrack === 'competition') {
-        return [];
     }
     return enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
 }
 
 function switchPortalTrack(track) {
-    currentPortalTrack = track || 'quran';
+    currentPortalTrack = (track === 'courses') ? 'courses' : 'quran';
 
     const tabQuran = document.getElementById('tabBtnQuranTrack');
     const tabCourses = document.getElementById('tabBtnCoursesTrack');
-    const tabComp = document.getElementById('tabBtnCompetitionTrack');
 
     const activeClasses = ['bg-[#1F274B]', 'text-white', 'shadow-xs', 'font-black'];
     const inactiveClasses = ['text-slate-600', 'hover:bg-slate-100', 'font-bold'];
 
-    [tabQuran, tabCourses, tabComp].forEach(t => {
+    [tabQuran, tabCourses].forEach(t => {
         if (!t) return;
         activeClasses.forEach(c => t.classList.remove(c));
         inactiveClasses.forEach(c => t.classList.remove(c));
@@ -983,15 +976,9 @@ function switchPortalTrack(track) {
     if (currentPortalTrack === 'quran' && tabQuran) {
         activeClasses.forEach(c => tabQuran.classList.add(c));
         if (tabCourses) inactiveClasses.forEach(c => tabCourses.classList.add(c));
-        if (tabComp) inactiveClasses.forEach(c => tabComp.classList.add(c));
     } else if (currentPortalTrack === 'courses' && tabCourses) {
         activeClasses.forEach(c => tabCourses.classList.add(c));
         if (tabQuran) inactiveClasses.forEach(c => tabQuran.classList.add(c));
-        if (tabComp) inactiveClasses.forEach(c => tabComp.classList.add(c));
-    } else if (currentPortalTrack === 'competition' && tabComp) {
-        activeClasses.forEach(c => tabComp.classList.add(c));
-        if (tabQuran) inactiveClasses.forEach(c => tabQuran.classList.add(c));
-        if (tabCourses) inactiveClasses.forEach(c => tabCourses.classList.add(c));
     }
 
     const filterLabel = document.getElementById('activeTrackFilterLabel');
@@ -1006,10 +993,8 @@ function switchPortalTrack(track) {
 
     const bQuran = document.getElementById('badgeCountQuranTrack');
     const bCourses = document.getElementById('badgeCountCoursesTrack');
-    const bComp = document.getElementById('badgeCountCompetitionTrack');
     if (bQuran) bQuran.innerText = quranCourses.length;
     if (bCourses) bCourses.innerText = academicCourses.length;
-    if (bComp) bComp.innerText = 'متاح';
 
     if (sectionIcon) sectionIcon.innerText = '';
 
@@ -1027,21 +1012,6 @@ function switchPortalTrack(track) {
         if (quranPlanSection) quranPlanSection.classList.add('hidden');
         if (coursesTabs) coursesTabs.className = "grid grid-cols-1 md:grid-cols-2 gap-3.5 col-span-full";
         if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
-    } else if (currentPortalTrack === 'competition') {
-        if (filterLabel) filterLabel.innerText = 'محاضرات المسابقة والبث المباشر العام';
-        if (enrolledCoursesSection) enrolledCoursesSection.classList.add('hidden');
-        if (quranPlanSection) quranPlanSection.classList.add('hidden');
-        if (lecturesSection) lecturesSection.classList.add('hidden');
-        if (generalLecturesSection) {
-            generalLecturesSection.classList.remove('hidden');
-            if (typeof toggleScheduleNoticesDropdown === 'function') {
-                toggleScheduleNoticesDropdown(true);
-            }
-            try {
-                generalLecturesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } catch(e) {}
-        }
-        return;
     }
 
     const filtered = getFilteredCoursesList();
