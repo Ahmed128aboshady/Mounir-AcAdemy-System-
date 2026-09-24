@@ -1570,10 +1570,7 @@ async function loadSelectedCourseLectures() {
             // Skip locked future stages if user only wants active/unlocked stages
             if (blockNum > 1 && !someUnlocked) continue;
 
-            // Block header
-            const blockHeader = document.createElement('div');
-            blockHeader.className = 'bg-[#1F274B] text-white px-4 py-3 rounded-xl flex items-center justify-between text-xs font-bold shadow-sm';
-            
+            // Block header (accordion)
             let badgeText = '';
             let badgeClass = '';
             if (allUnlocked) {
@@ -1598,16 +1595,35 @@ async function loadSelectedCourseLectures() {
             };
             const stageTitle = arabicOrdinals[blockNum] || `المرحلة ${blockNum}`;
 
+            // Default: block 1 open, rest closed
+            const isOpenByDefault = (blockNum === 1);
+
+            // Accordion wrapper
+            const accordionWrapper = document.createElement('div');
+            accordionWrapper.className = 'rounded-xl overflow-hidden shadow-sm';
+
+            const blockHeader = document.createElement('div');
+            blockHeader.className = 'bg-[#1F274B] text-white px-4 py-3 flex items-center justify-between text-xs font-bold cursor-pointer select-none';
             blockHeader.innerHTML = `
                 <div class="flex items-center gap-2.5 flex-wrap">
                     <span class="text-sm font-black">${stageTitle}</span>
                     <span class="${badgeClass}">${badgeText}</span>
                 </div>
+                <svg class="accordion-chevron w-4 h-4 transition-transform duration-300 flex-shrink-0 ${isOpenByDefault ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
             `;
 
             // Block lectures container
             const blockContainer = document.createElement('div');
-            blockContainer.className = 'space-y-3';
+            blockContainer.className = 'space-y-3 px-1 pt-2 pb-1 bg-transparent overflow-hidden transition-all duration-300';
+            if (!isOpenByDefault) {
+                blockContainer.style.maxHeight = '0px';
+                blockContainer.style.paddingTop = '0';
+                blockContainer.style.paddingBottom = '0';
+            } else {
+                blockContainer.style.maxHeight = '2000px';
+            }
 
             blockLectures.forEach(l => {
                 const isScheduledToday = isLectureScheduledToday(l);
@@ -1616,9 +1632,28 @@ async function loadSelectedCourseLectures() {
                 blockContainer.appendChild(card);
             });
 
+            // Toggle logic
+            blockHeader.addEventListener('click', () => {
+                const isOpen = blockContainer.style.maxHeight !== '0px';
+                const chevron = blockHeader.querySelector('.accordion-chevron');
+                if (isOpen) {
+                    blockContainer.style.maxHeight = '0px';
+                    blockContainer.style.paddingTop = '0';
+                    blockContainer.style.paddingBottom = '0';
+                    if (chevron) chevron.classList.remove('rotate-180');
+                } else {
+                    blockContainer.style.maxHeight = '2000px';
+                    blockContainer.style.paddingTop = '';
+                    blockContainer.style.paddingBottom = '';
+                    if (chevron) chevron.classList.add('rotate-180');
+                }
+            });
+
+            accordionWrapper.appendChild(blockHeader);
+            accordionWrapper.appendChild(blockContainer);
+
             if (renderTarget) {
-                renderTarget.appendChild(blockHeader);
-                renderTarget.appendChild(blockContainer);
+                renderTarget.appendChild(accordionWrapper);
             } else {
                 // Fallback to old containers
                 const b1El = document.getElementById('block1Lectures');

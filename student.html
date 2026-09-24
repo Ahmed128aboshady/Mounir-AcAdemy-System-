@@ -336,16 +336,16 @@
                                 تصفح سلس بين مساراتك
                             </span>
                         </div>
-                        <div class="flex items-center gap-1.5 overflow-x-auto flex-1 sm:justify-end">
-                            <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
+                        <div id="trackSwitcherTabsRow" class="horizontal-scroll-row items-center gap-2 flex-1 sm:justify-end py-1 px-0.5">
+                            <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="shrink-0 py-2 px-4 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
                                 <span>مسار القرآن</span>
                                 <span id="badgeCountQuranTrack" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
                             </button>
-                            <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                            <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="shrink-0 py-2 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
                                 <span>الكورسات</span>
                                 <span id="badgeCountCoursesTrack" class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
                             </button>
-                            <button type="button" id="tabBtnCompetitionTrack" onclick="switchPortalTrack('competition')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                            <button type="button" id="tabBtnCompetitionTrack" onclick="switchPortalTrack('competition')" class="shrink-0 py-2 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
                                 <span>محاضرات المسابقة</span>
                                 <span id="badgeCountCompetitionTrack" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">متاح</span>
                             </button>
@@ -1753,44 +1753,49 @@
     window.setPortalView = setPortalView;
 
     function initTabsHorizontalScroll() {
-        const slider = document.querySelector('.profile-tabs');
-        if (!slider) return;
-        let isDown = false;
-        let startX, scrollLeft;
-        let hasMoved = false;
+        const targets = [
+            document.querySelector('.profile-tabs'),
+            document.getElementById('trackSwitcherTabsRow')
+        ].filter(Boolean);
 
-        slider.addEventListener('mousedown', (e) => {
-            isDown = true;
-            hasMoved = false;
-            slider.style.cursor = 'grabbing';
-            slider.style.userSelect = 'none';
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
+        targets.forEach(slider => {
+            let isDown = false;
+            let startX, scrollLeft;
+            let hasMoved = false;
+
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                hasMoved = false;
+                slider.style.cursor = 'grabbing';
+                slider.style.userSelect = 'none';
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+
+            const stopDrag = () => {
+                if (!isDown) return;
+                isDown = false;
+                slider.style.cursor = 'grab';
+                slider.style.removeProperty('user-select');
+            };
+
+            slider.addEventListener('mouseleave', stopDrag);
+            slider.addEventListener('mouseup', stopDrag);
+
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX);
+                if (Math.abs(walk) > 3) hasMoved = true;
+                slider.scrollLeft = scrollLeft - walk;
+            });
+
+            slider.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0 && !e.shiftKey) {
+                    slider.scrollLeft += e.deltaY;
+                }
+            }, { passive: true });
         });
-
-        const stopDrag = () => {
-            if (!isDown) return;
-            isDown = false;
-            slider.style.cursor = 'grab';
-            slider.style.removeProperty('user-select');
-        };
-
-        slider.addEventListener('mouseleave', stopDrag);
-        slider.addEventListener('mouseup', stopDrag);
-
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX);
-            if (Math.abs(walk) > 3) hasMoved = true;
-            slider.scrollLeft = scrollLeft - walk;
-        });
-
-        slider.addEventListener('wheel', (e) => {
-            if (e.deltaY !== 0 && !e.shiftKey) {
-                slider.scrollLeft += e.deltaY;
-            }
-        }, { passive: true });
     }
 
     if (document.readyState === 'loading') {
@@ -1828,6 +1833,6 @@
     </script>
 
     <script src="js/api_mock.js?v=20260923_v1"></script>
-    <script src="js/student.js?v=20260924_v5"></script>
+    <script src="js/student.js?v=20260924_v6"></script>
 </body>
 </html>

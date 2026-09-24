@@ -328,6 +328,25 @@ html, body {
     display: none;
 }
 
+.horizontal-scroll-row,
+#trackSwitcherTabsRow {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+}
+
+.horizontal-scroll-row::-webkit-scrollbar,
+#trackSwitcherTabsRow::-webkit-scrollbar {
+    display: none;
+}
+
 .profile-tab {
     flex-shrink: 0;
     border: 0;
