@@ -896,6 +896,31 @@ function getCourseCategoryMeta(c) {
     const cName = (c.course_name || c.name || c.title || '').trim().toLowerCase();
     const trackType = classifyCourseTrack(c);
 
+    if (cName.includes('حديث')) {
+        return {
+            type: 'hadith',
+            badgeText: 'مسار الحديث الشريف',
+            badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+            icon: ''
+        };
+    }
+    if (cName.includes('تجويد')) {
+        return {
+            type: 'tajweed',
+            badgeText: 'مسار أحكام التجويد',
+            badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+            icon: ''
+        };
+    }
+    if (cName.includes('تفسير')) {
+        return {
+            type: 'tafsir',
+            badgeText: 'مسار التفسير والتدبر',
+            badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+            icon: ''
+        };
+    }
+
     if (trackType === 'quran') {
         return {
             type: 'quran',
@@ -950,7 +975,56 @@ function getCourseCategoryMeta(c) {
 }
 window.getCourseCategoryMeta = getCourseCategoryMeta;
 
+const COMPETITION_COURSES = [
+    {
+        course_name: 'مسار الحديث الشريف',
+        track_name: 'competition',
+        teacher_name: 'معلم معتمد',
+        group_id: 'CMP-H01',
+        remaining_credits: 4,
+        total_lectures_unlocked: 4,
+        present_count: 2,
+        subscription_days: 'الإثنين',
+        lecture_time: '6:30 م - 8:30 م',
+        session_duration: 'جلسة أسبوعية تفاعلية',
+        account_status: 'متاح مجاناً',
+        google_meet_url: 'https://zoom.us/j/98264506630'
+    },
+    {
+        course_name: 'مسار أحكام التجويد ومخارج الحروف',
+        track_name: 'competition',
+        teacher_name: 'معلم معتمد',
+        group_id: 'CMP-T01',
+        remaining_credits: 4,
+        total_lectures_unlocked: 4,
+        present_count: 2,
+        subscription_days: 'الجمعة',
+        lecture_time: '1:50 م - 2:50 م',
+        session_duration: 'جلسة أسبوعية تفاعلية',
+        account_status: 'متاح مجاناً',
+        google_meet_url: 'https://zoom.us/j/98264506630'
+    },
+    {
+        course_name: 'مسار التفسير والتدبر',
+        track_name: 'competition',
+        teacher_name: 'معلم معتمد',
+        group_id: 'CMP-F01',
+        remaining_credits: 4,
+        total_lectures_unlocked: 4,
+        present_count: 2,
+        subscription_days: 'الأحد والأربعاء',
+        lecture_time: '5:00 م - 8:00 م',
+        session_duration: 'جلسة أسبوعية تفاعلية',
+        account_status: 'متاح مجاناً',
+        google_meet_url: 'https://zoom.us/j/98264506630'
+    }
+];
+window.COMPETITION_COURSES = COMPETITION_COURSES;
+
 function getFilteredCoursesList() {
+    if (currentPortalTrack === 'competition') {
+        return COMPETITION_COURSES;
+    }
     if (!Array.isArray(enrolledCoursesList) || enrolledCoursesList.length === 0) return [];
     if (currentPortalTrack === 'courses') {
         return enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'courses');
@@ -959,15 +1033,16 @@ function getFilteredCoursesList() {
 }
 
 function switchPortalTrack(track) {
-    currentPortalTrack = (track === 'courses') ? 'courses' : 'quran';
+    currentPortalTrack = track || 'quran';
 
     const tabQuran = document.getElementById('tabBtnQuranTrack');
     const tabCourses = document.getElementById('tabBtnCoursesTrack');
+    const tabComp = document.getElementById('tabBtnCompetitionTrack');
 
     const activeClasses = ['bg-[#1F274B]', 'text-white', 'shadow-xs', 'font-black'];
     const inactiveClasses = ['text-slate-600', 'hover:bg-slate-100', 'font-bold'];
 
-    [tabQuran, tabCourses].forEach(t => {
+    [tabQuran, tabCourses, tabComp].forEach(t => {
         if (!t) return;
         activeClasses.forEach(c => t.classList.remove(c));
         inactiveClasses.forEach(c => t.classList.remove(c));
@@ -976,16 +1051,21 @@ function switchPortalTrack(track) {
     if (currentPortalTrack === 'quran' && tabQuran) {
         activeClasses.forEach(c => tabQuran.classList.add(c));
         if (tabCourses) inactiveClasses.forEach(c => tabCourses.classList.add(c));
+        if (tabComp) inactiveClasses.forEach(c => tabComp.classList.add(c));
     } else if (currentPortalTrack === 'courses' && tabCourses) {
         activeClasses.forEach(c => tabCourses.classList.add(c));
         if (tabQuran) inactiveClasses.forEach(c => tabQuran.classList.add(c));
+        if (tabComp) inactiveClasses.forEach(c => tabComp.classList.add(c));
+    } else if (currentPortalTrack === 'competition' && tabComp) {
+        activeClasses.forEach(c => tabComp.classList.add(c));
+        if (tabQuran) inactiveClasses.forEach(c => tabQuran.classList.add(c));
+        if (tabCourses) inactiveClasses.forEach(c => tabCourses.classList.add(c));
     }
 
     const filterLabel = document.getElementById('activeTrackFilterLabel');
     const sectionIcon = document.getElementById('enrolledSectionIcon');
     const quranPlanSection = document.getElementById('quranPlanSection');
     const enrolledCoursesSection = document.getElementById('enrolledCoursesMainSection');
-    const generalLecturesSection = document.getElementById('generalLecturesSection');
     const lecturesSection = document.getElementById('lecturesSection');
 
     const quranCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
@@ -993,8 +1073,10 @@ function switchPortalTrack(track) {
 
     const bQuran = document.getElementById('badgeCountQuranTrack');
     const bCourses = document.getElementById('badgeCountCoursesTrack');
+    const bComp = document.getElementById('badgeCountCompetitionTrack');
     if (bQuran) bQuran.innerText = quranCourses.length;
     if (bCourses) bCourses.innerText = academicCourses.length;
+    if (bComp) bComp.innerText = COMPETITION_COURSES.length;
 
     if (sectionIcon) sectionIcon.innerText = '';
 
@@ -1005,13 +1087,16 @@ function switchPortalTrack(track) {
         if (enrolledCoursesSection) enrolledCoursesSection.classList.remove('hidden');
         if (quranPlanSection) quranPlanSection.classList.remove('hidden');
         if (coursesTabs) coursesTabs.className = "flex flex-col gap-3.5";
-        if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
     } else if (currentPortalTrack === 'courses') {
         if (filterLabel) filterLabel.innerText = 'الكورسات والبرامج التعليمية (' + academicCourses.length + ')';
         if (enrolledCoursesSection) enrolledCoursesSection.classList.remove('hidden');
         if (quranPlanSection) quranPlanSection.classList.add('hidden');
         if (coursesTabs) coursesTabs.className = "grid grid-cols-1 md:grid-cols-2 gap-3.5 col-span-full";
-        if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
+    } else if (currentPortalTrack === 'competition') {
+        if (filterLabel) filterLabel.innerText = 'محاضرات المسابقة (' + COMPETITION_COURSES.length + ')';
+        if (enrolledCoursesSection) enrolledCoursesSection.classList.remove('hidden');
+        if (quranPlanSection) quranPlanSection.classList.add('hidden');
+        if (coursesTabs) coursesTabs.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 col-span-full";
     }
 
     const filtered = getFilteredCoursesList();
@@ -1287,6 +1372,28 @@ function calculateGroupUpcomingDates(dayName, count) {
     return dates;
 }
 
+const COMPETITION_LECTURES_MAP = {
+    'مسار الحديث الشريف': [
+        { id: 901, block_number: 1, lecture_number: 1, title: 'مدخل إلى الأربعين النووية ومكانة السنة', scheduled_time: 'الإثنين 6:30 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 902, block_number: 1, lecture_number: 2, title: 'حديث «إنما الأعمال بالنيات» وقواعد الإخلاص', scheduled_time: 'الإثنين 6:30 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 903, block_number: 1, lecture_number: 3, title: 'مجلس الحديث: «لو محدش شايفك… من ستكون؟»', scheduled_time: 'الإثنين 6:30 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 904, block_number: 1, lecture_number: 4, title: 'آداب طالب العلم وتطبيق السنة في الحياة اليومية', scheduled_time: 'الإثنين 6:30 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
+    ],
+    'مسار أحكام التجويد ومخارج الحروف': [
+        { id: 911, block_number: 1, lecture_number: 1, title: 'مخارج الحروف العامة والخاصة (الحلق واللسان)', scheduled_time: 'الجمعة 1:50 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 912, block_number: 1, lecture_number: 2, title: 'أحكام النون الساكنة والتنوين (الإظهار الحلقي والإدغام)', scheduled_time: 'الجمعة 1:50 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 913, block_number: 1, lecture_number: 3, title: 'أحكام الإقلاب والإخفاء الحقيقي وتطبيقات عملية', scheduled_time: 'الجمعة 1:50 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 914, block_number: 1, lecture_number: 4, title: 'أحكام الميم الساكنة وأقسام المدود', scheduled_time: 'الجمعة 1:50 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
+    ],
+    'مسار التفسير والتدبر': [
+        { id: 921, block_number: 1, lecture_number: 1, title: 'مقدمة في علوم التفسير وقواعد تدبر آيات القرآن', scheduled_time: 'الأربعاء 5:00 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 922, block_number: 1, lecture_number: 2, title: 'جلسة التفسير: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»', scheduled_time: 'الأربعاء 5:00 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 923, block_number: 1, lecture_number: 3, title: 'هدايات سورة الفاتحة وتزكية النفس بالإيمان', scheduled_time: 'الأربعاء 5:00 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
+        { id: 924, block_number: 1, lecture_number: 4, title: 'تدبر قصار السور وأثرها في الصلاة والخشوع', scheduled_time: 'الأربعاء 5:00 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
+    ]
+};
+window.COMPETITION_LECTURES_MAP = COMPETITION_LECTURES_MAP;
+
 async function loadSelectedCourseLectures() {
     if (!selectedCourseName) return;
     
@@ -1295,7 +1402,16 @@ async function loadSelectedCourseLectures() {
         const currentCourseInfo = enrolledCoursesList.find(c => c.course_name === selectedCourseName) || enrolledCoursesList[0] || {};
         const remainingCredits = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (currentCourseInfo.total_lectures_unlocked || 12);
 
-        if (window.MonirDB && window.MonirDB.isConfigured()) {
+        if (COMPETITION_LECTURES_MAP && COMPETITION_LECTURES_MAP[selectedCourseName]) {
+            data = {
+                course_name: selectedCourseName,
+                total_lectures_unlocked: 4,
+                unlocked_blocks: 1,
+                remaining_credits: 4,
+                renewal_count: 0,
+                lectures: COMPETITION_LECTURES_MAP[selectedCourseName]
+            };
+        } else if (window.MonirDB && window.MonirDB.isConfigured()) {
             try {
                 const sbLecs = await window.MonirDB.getCourseLectures(selectedCourseName);
                 if (sbLecs && sbLecs.length > 0) {
