@@ -219,6 +219,28 @@
                     <span class="text-slate-500 font-mono text-xs font-bold bg-white px-2 py-0.5 rounded border border-slate-200" id="modalStudentCode"></span>
                 </div>
 
+                <!-- Previous Plan Reference Banner & Fast Actions -->
+                <div id="modalLastPlanSection" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-extrabold text-slate-700 flex items-center gap-1">
+                            <span>📌</span>
+                            <span>الخطة السابقة المسجلة للطالب:</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-bold" id="modalLastPlanDate">حفظ سابق</span>
+                    </div>
+                    <div class="text-[11px] text-slate-600 space-y-0.5 font-medium leading-relaxed bg-white p-2 rounded-lg border border-slate-100" id="modalLastPlanSummary">
+                        <!-- Injected via JS -->
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <button type="button" onclick="shiftPreviousHifzToMadi()" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-black py-1.5 px-2 rounded-lg text-[10px] transition flex items-center justify-center gap-1 cursor-pointer" title="ينقل الحفظ السابق إلى خانة الماضي القريب ويفرغ خانة الحفظ الجديد">
+                            <span>⏩ نقل الحفظ السابق للماضي القريب</span>
+                        </button>
+                        <button type="button" onclick="clearPlanInputs()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-1.5 px-2.5 rounded-lg text-[10px] transition flex items-center justify-center gap-1 cursor-pointer" title="تفريغ الخانات لكتابة ورد جديد">
+                            <span>🧹 تفريغ الخانات</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 1. الحفظ الجديد -->
                 <div>
                     <label class="block font-black text-emerald-950 mb-1 flex items-center gap-1.5">
@@ -1622,6 +1644,35 @@
 
         let activeModalStudentCode = null;
 
+        let _lastPlanSnapshot = null;
+
+        function shiftPreviousHifzToMadi() {
+            if (_lastPlanSnapshot && _lastPlanSnapshot.hifz) {
+                const qareebIn = document.getElementById('modalMadiQareebInput');
+                const hifzIn = document.getElementById('modalHifzInput');
+                if (qareebIn) qareebIn.value = _lastPlanSnapshot.hifz;
+                if (hifzIn) {
+                    hifzIn.value = '';
+                    hifzIn.focus();
+                }
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast('تم نقل الحفظ السابق إلى الماضي القريب وتفريغ خانة الحفظ الجديد ⏩', 'info');
+                }
+            }
+        }
+
+        function clearPlanInputs() {
+            const hifzIn = document.getElementById('modalHifzInput');
+            const qareebIn = document.getElementById('modalMadiQareebInput');
+            const baeedIn = document.getElementById('modalMadiBaeedInput');
+            const notesIn = document.getElementById('modalNotesInput');
+            if (hifzIn) hifzIn.value = '';
+            if (qareebIn) qareebIn.value = '';
+            if (baeedIn) baeedIn.value = '';
+            if (notesIn) notesIn.value = '';
+            if (hifzIn) hifzIn.focus();
+        }
+
         function setQuickNote(txt) {
             const input = document.getElementById('modalNotesInput');
             if (!input) return;
@@ -1683,6 +1734,22 @@
                     if (!notes) notes = p.notes || '';
                 }
             } catch(e) {}
+
+            _lastPlanSnapshot = { hifz, madiQareeb, madiBaeed, notes };
+            const lastSec = document.getElementById('modalLastPlanSection');
+            const lastSum = document.getElementById('modalLastPlanSummary');
+            if (lastSec && lastSum) {
+                if (hifz || madiQareeb || madiBaeed) {
+                    lastSec.classList.remove('hidden');
+                    let summaryHtml = '';
+                    if (hifz) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-emerald-800">🟢 الورد السابق:</span> <span class="font-black text-slate-800">${hifz}</span></div>`;
+                    if (madiQareeb) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-blue-800">🔵 الماضي القريب:</span> <span class="text-slate-700">${madiQareeb}</span></div>`;
+                    if (madiBaeed) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-purple-800">🟣 الماضي البعيد:</span> <span class="text-slate-700">${madiBaeed}</span></div>`;
+                    lastSum.innerHTML = summaryHtml;
+                } else {
+                    lastSec.classList.add('hidden');
+                }
+            }
 
             const hifzIn = document.getElementById('modalHifzInput');
             const qareebIn = document.getElementById('modalMadiQareebInput');
