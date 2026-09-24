@@ -1209,10 +1209,16 @@ function renderEnrolledCoursesTabs(courses) {
 
             <!-- Action Toolbar Buttons (EdTech Level) -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
-                <a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
-                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                    <span>دخول القاعة الذكية</span>
-                </a>
+                ${(remCredits <= 0 || statusText === 'موقوف' || statusText === 'inactive')
+                    ? `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                        <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
+                        <span>رصيدك منتهي (0) — تجديد الآن</span>
+                       </button>`
+                    : `<a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+                        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                        <span>دخول القاعة الذكية</span>
+                       </a>`
+                }
                 <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
                     <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
                         <span>المنهج والمحاضرات</span>
