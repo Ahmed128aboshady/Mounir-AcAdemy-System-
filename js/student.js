@@ -1537,9 +1537,12 @@ async function loadSelectedCourseLectures() {
             const allUnlocked = blockLectures.every(l => l.is_unlocked);
             const someUnlocked = blockLectures.some(l => l.is_unlocked);
 
+            // Skip locked future stages if user only wants active/unlocked stages
+            if (blockNum > 1 && !someUnlocked) continue;
+
             // Block header
             const blockHeader = document.createElement('div');
-            blockHeader.className = 'bg-[#1F274B] text-white px-4 py-3 rounded-xl flex justify-between items-center text-xs font-bold shadow-sm';
+            blockHeader.className = 'bg-[#1F274B] text-white px-4 py-3 rounded-xl flex items-center justify-between text-xs font-bold shadow-sm';
             
             let badgeText = '';
             let badgeClass = '';
@@ -1555,12 +1558,21 @@ async function loadSelectedCourseLectures() {
                 badgeClass = 'bg-red-400 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold';
             }
 
+            const arabicOrdinals = {
+                1: 'المرحلة الأولى',
+                2: 'المرحلة الثانية',
+                3: 'المرحلة الثالثة',
+                4: 'المرحلة الرابعة',
+                5: 'المرحلة الخامسة',
+                6: 'المرحلة السادسة'
+            };
+            const stageTitle = arabicOrdinals[blockNum] || `المرحلة ${blockNum}`;
+
             blockHeader.innerHTML = `
-                <span class="flex items-center gap-2 flex-wrap">
-                    <span class="text-sm font-black">المرحلة ${blockNum}: المحاضرات (${blockStart} إلى ${blockEnd})</span>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="text-sm font-black">${stageTitle}</span>
                     <span class="${badgeClass}">${badgeText}</span>
-                </span>
-                <span class="text-blue-200 text-xs font-mono">${subDays}</span>
+                </div>
             `;
 
             // Block lectures container
