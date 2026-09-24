@@ -1155,7 +1155,6 @@ function renderEnrolledCoursesTabs(courses) {
             <div class="flex justify-between items-start flex-wrap gap-2">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span class="${meta.badgeClass} border font-black px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">${meta.badgeText}</span>
                         <span class="bg-slate-900 text-amber-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-700">ID: ${groupId}</span>
                         <span class="${statusColor} border font-black px-2 py-0.5 rounded-full text-[10px]">${statusText}</span>
                         ${isSelected ? '<span class="bg-indigo-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-2xs">النشط حالياً</span>' : ''}
