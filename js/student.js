@@ -1096,7 +1096,7 @@ function switchPortalTrack(track) {
         if (filterLabel) filterLabel.innerText = 'محاضرات المسابقة (' + COMPETITION_COURSES.length + ')';
         if (enrolledCoursesSection) enrolledCoursesSection.classList.remove('hidden');
         if (quranPlanSection) quranPlanSection.classList.add('hidden');
-        if (coursesTabs) coursesTabs.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 col-span-full";
+        if (coursesTabs) coursesTabs.className = "flex flex-col gap-2.5 col-span-full";
     }
 
     const filtered = getFilteredCoursesList();
@@ -1180,10 +1180,34 @@ function renderEnrolledCoursesTabs(courses) {
         }
     }
 
-    safeCourses.forEach(c => {
+    const selectContainer = document.getElementById('courseDropdownSelectContainer');
+    if (selectContainer) {
+        if (safeCourses.length > 1) {
+            selectContainer.classList.remove('hidden');
+            selectContainer.innerHTML = `
+                <div class="flex items-center gap-2 bg-indigo-50/80 p-1.5 rounded-xl border border-indigo-200">
+                    <span class="text-xs font-black text-indigo-950 pr-1 shrink-0">اختر المسار:</span>
+                    <select onchange="selectCourseTab(this.value)" class="bg-white border border-indigo-300 text-slate-900 font-black text-xs rounded-lg px-2.5 py-1.5 outline-none cursor-pointer shadow-2xs">
+                        ${safeCourses.map(c => {
+                            const name = c.course_name || c.name || c.title;
+                            return `<option value="${name}" ${name === selectedCourseName ? 'selected' : ''}>${name}</option>`;
+                        }).join('')}
+                    </select>
+                </div>
+            `;
+        } else {
+            selectContainer.classList.add('hidden');
+            selectContainer.innerHTML = '';
+        }
+    }
+
+    const isAccordionMode = safeCourses.length > 1;
+
+    safeCourses.forEach((c, idx) => {
         if (!c) return;
         const cName = c.course_name || c.name || c.title || 'مسار القرآن الكريم والتدبر';
-        const isSelected = (selectedCourseName ? (cName === selectedCourseName) : true);
+        const isSelected = (selectedCourseName ? (cName === selectedCourseName) : (idx === 0));
+        const isExpanded = isAccordionMode ? isSelected : true;
         const card = document.createElement('div');
         
         const meta = getCourseCategoryMeta(c);
@@ -1227,28 +1251,40 @@ function renderEnrolledCoursesTabs(courses) {
             ? window.getGroupMeetUrl(groupId, c.teacher_id || teacherName)
             : (c.google_meet_url || 'https://meet.google.com');
 
-        const activeClass = isSelected 
-            ? 'border-2 border-indigo-600 bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 shadow-md ring-2 ring-indigo-200/80 transform scale-[1.005]' 
-            : 'border-2 border-slate-200/90 bg-white hover:border-indigo-300 hover:shadow-sm';
+        const activeBorderClass = isSelected 
+            ? 'border-2 border-indigo-600 shadow-md ring-2 ring-indigo-200/80' 
+            : 'border-2 border-slate-200/90 hover:border-indigo-300 shadow-xs';
 
-        card.className = 'p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition space-y-3 relative h-full flex flex-col justify-between ' + activeClass;
-        card.onclick = () => selectCourseTab(cName);
+        card.className = `rounded-2xl sm:rounded-3xl bg-white overflow-hidden transition-all duration-300 ${activeBorderClass}`;
 
         const teacherInitial = teacherName ? teacherName.trim().charAt(0) : 'م';
 
-        card.innerHTML = `
-            <div class="flex justify-between items-start flex-wrap gap-2">
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span class="bg-slate-900 text-amber-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-700">ID: ${groupId}</span>
-                        <span class="${statusColor} border font-black px-2 py-0.5 rounded-full text-[10px]">${statusText}</span>
-                        ${isSelected ? '<span class="bg-indigo-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-2xs">النشط حالياً</span>' : ''}
+        if (isAccordionMode) {
+            // Dropdown / Accordion Card Layout
+            card.innerHTML = `
+                <!-- Dropdown Header (Always visible) -->
+                <div onclick="toggleCourseAccordion('${cName}', ${idx})" class="p-3.5 sm:p-4 flex items-center justify-between text-right cursor-pointer gap-2 select-none transition ${isSelected ? 'bg-gradient-to-r from-[#1F274B] via-indigo-900 to-indigo-800 text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-900'}">
+                    <div class="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                        <span class="${isSelected ? 'bg-white/20 text-white border-white/30' : 'bg-slate-900 text-amber-300 border-slate-700'} font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border">ID: ${groupId}</span>
+                        <span class="${isSelected ? 'bg-emerald-400 text-slate-950 font-black' : statusColor + ' border'} px-2 py-0.5 rounded-full text-[10px]">${statusText}</span>
+                        ${isSelected ? '<span class="bg-indigo-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full">النشط حالياً</span>' : ''}
+                        <h4 class="font-black text-sm sm:text-base truncate w-full sm:w-auto mt-0.5 ${isSelected ? 'text-white' : 'text-slate-900'}">
+                            ${cName}
+                        </h4>
+                        <span class="text-xs ${isSelected ? 'text-indigo-200' : 'text-slate-500'}">(${daysText || 'أسبوعياً'} • ${timeText || 'محدد مع المعلم'})</span>
                     </div>
-                    <h4 class="font-black text-base sm:text-lg text-slate-900 leading-tight">
-                        ${cName}
-                    </h4>
-                    <div class="flex items-center gap-2 mt-1.5">
-                        <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-900 font-black text-[11px] flex items-center justify-center shrink-0 border border-indigo-200">
+                    <div class="flex items-center gap-1.5 shrink-0 bg-black/10 hover:bg-black/20 px-2.5 py-1 rounded-lg">
+                        <span class="text-[11px] font-bold ${isSelected ? 'text-white' : 'text-slate-600'}">${isExpanded ? 'طي' : 'عرض'}</span>
+                        <svg id="courseCardIcon_${idx}" class="w-4 h-4 transition-transform duration-300 transform ${isExpanded ? 'rotate-180' : ''} ${isSelected ? 'text-white' : 'text-slate-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Dropdown Body (Collapsible content) -->
+                <div id="courseCardBody_${idx}" class="${isExpanded ? '' : 'hidden'} p-4 sm:p-5 space-y-3 border-t border-slate-100 bg-white">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-900 font-black text-xs flex items-center justify-center shrink-0 border border-indigo-200">
                             ${teacherInitial}
                         </div>
                         <div class="text-xs">
@@ -1256,67 +1292,163 @@ function renderEnrolledCoursesTabs(courses) {
                             <span class="text-slate-400 text-[10px] mr-1">• مدرب معتمد بالأكاديمية</span>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Real-time Progress Bar (EasyT / Yanfaa style) -->
-            <div class="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-600 font-bold">نسبة إنجاز المنهج:</span>
-                    <span class="font-black text-indigo-900 font-mono">${progressPercent}%</span>
-                </div>
-                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
-                </div>
-                <div class="flex justify-between items-center text-[10px] sm:text-[11px] text-slate-500 font-medium">
-                    <span>حضور مؤكد: <strong class="text-emerald-700 font-bold">${presentCount} حصص</strong></span>
-                    <span>المتبقي بالرصيد: <strong class="text-blue-900 font-bold">${remCredits} حصص</strong></span>
-                </div>
-            </div>
+                    <!-- Progress Bar -->
+                    <div class="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600 font-bold">نسبة إنجاز المنهج:</span>
+                            <span class="font-black text-indigo-900 font-mono">${progressPercent}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                            <span>حضور مؤكد: <strong class="text-emerald-700 font-bold">${presentCount} حصص</strong></span>
+                            <span>المتبقي بالرصيد: <strong class="text-blue-900 font-bold">${remCredits} حصص</strong></span>
+                        </div>
+                    </div>
 
-            <!-- Schedule & Timings Grid -->
-            <div class="bg-slate-100/70 p-2.5 rounded-xl text-xs border border-slate-200/80">
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-800 font-bold">
-                    <div>
-                        <span class="text-slate-400 block text-[10px]">الموعد</span>
-                        <strong class="text-blue-900 truncate block text-[11px] sm:text-xs">${timeText || 'محدد مع المعلم'}</strong>
+                    <!-- Timings -->
+                    <div class="bg-slate-100/70 p-2.5 rounded-xl text-xs border border-slate-200/80">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-800 font-bold">
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">الموعد</span>
+                                <strong class="text-blue-900 truncate block text-[11px] sm:text-xs">${timeText || 'محدد مع المعلم'}</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">مدة السيشن</span>
+                                <strong class="text-emerald-800 truncate block text-[11px] sm:text-xs">${durationText}</strong>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <span class="text-slate-400 block text-[10px]">أيام الاشتراك</span>
+                                <strong class="text-slate-950 truncate block text-[11px] sm:text-xs">${daysText || 'أسبوعياً'}</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-slate-400 block text-[10px]">مدة السيشن</span>
-                        <strong class="text-emerald-800 truncate block text-[11px] sm:text-xs">${durationText}</strong>
-                    </div>
-                    <div class="col-span-2 sm:col-span-1">
-                        <span class="text-slate-400 block text-[10px]">أيام الاشتراك</span>
-                        <strong class="text-slate-950 truncate block text-[11px] sm:text-xs">${daysText || 'أسبوعياً'}</strong>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Action Toolbar Buttons (EdTech Level) -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
-                ${(remCredits <= 0 || statusText === 'موقوف' || statusText === 'inactive')
-                    ? `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
-                        <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
-                        <span>رصيدك منتهي (0) — تجديد الآن</span>
-                       </button>`
-                    : `<a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
-                        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                        <span>دخول القاعة الذكية</span>
-                       </a>`
-                }
-                <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
-                    <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
-                        <span>المنهج والمحاضرات</span>
-                    </button>
-                    <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
-                        <span>اختبارات</span>
-                    </button>
+                    <!-- Actions -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
+                        <a href="${meetUrl}" target="_blank" rel="noopener noreferrer" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                            <span>دخول القاعة الذكية</span>
+                        </a>
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
+                            <button type="button" onclick="selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
+                                <span>المنهج والمحاضرات</span>
+                            </button>
+                            <button type="button" onclick="openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
+                                <span>اختبارات</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // Standard Single Card Layout
+            card.className = 'p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition space-y-3 relative h-full flex flex-col justify-between ' + activeBorderClass;
+            card.onclick = () => selectCourseTab(cName);
+            card.innerHTML = `
+                <div class="flex justify-between items-start flex-wrap gap-2">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                            <span class="bg-slate-900 text-amber-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-700">ID: ${groupId}</span>
+                            <span class="${statusColor} border font-black px-2 py-0.5 rounded-full text-[10px]">${statusText}</span>
+                            ${isSelected ? '<span class="bg-indigo-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-2xs">النشط حالياً</span>' : ''}
+                        </div>
+                        <h4 class="font-black text-base sm:text-lg text-slate-900 leading-tight">
+                            ${cName}
+                        </h4>
+                        <div class="flex items-center gap-2 mt-1.5">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-900 font-black text-[11px] flex items-center justify-center shrink-0 border border-indigo-200">
+                                ${teacherInitial}
+                            </div>
+                            <div class="text-xs">
+                                <span class="font-extrabold text-slate-800">أ. ${teacherName}</span>
+                                <span class="text-slate-400 text-[10px] mr-1">• مدرب معتمد بالأكاديمية</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Progress Bar -->
+                <div class="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-600 font-bold">نسبة إنجاز المنهج:</span>
+                        <span class="font-black text-indigo-900 font-mono">${progressPercent}%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                        <span>حضور مؤكد: <strong class="text-emerald-700 font-bold">${presentCount} حصص</strong></span>
+                        <span>المتبقي بالرصيد: <strong class="text-blue-900 font-bold">${remCredits} حصص</strong></span>
+                    </div>
+                </div>
+
+                <!-- Schedule & Timings Grid -->
+                <div class="bg-slate-100/70 p-2.5 rounded-xl text-xs border border-slate-200/80">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-800 font-bold">
+                        <div>
+                            <span class="text-slate-400 block text-[10px]">الموعد</span>
+                            <strong class="text-blue-900 truncate block text-[11px] sm:text-xs">${timeText || 'محدد مع المعلم'}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px]">مدة السيشن</span>
+                            <strong class="text-emerald-800 truncate block text-[11px] sm:text-xs">${durationText}</strong>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <span class="text-slate-400 block text-[10px]">أيام الاشتراك</span>
+                            <strong class="text-slate-950 truncate block text-[11px] sm:text-xs">${daysText || 'أسبوعياً'}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar Buttons -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
+                    ${(remCredits <= 0 || statusText === 'موقوف' || statusText === 'inactive')
+                        ? `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                            <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
+                            <span>رصيدك منتهي (0) — تجديد الآن</span>
+                           </button>`
+                        : `<a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                            <span>دخول القاعة الذكية</span>
+                           </a>`
+                    }
+                    <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
+                        <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
+                            <span>المنهج والمحاضرات</span>
+                        </button>
+                        <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
+                            <span>اختبارات</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
         container.appendChild(card);
     });
 }
+
+function toggleCourseAccordion(courseName, idx) {
+    if (selectedCourseName !== courseName) {
+        selectCourseTab(courseName);
+    } else {
+        const bodyEl = document.getElementById(`courseCardBody_${idx}`);
+        const iconEl = document.getElementById(`courseCardIcon_${idx}`);
+        if (bodyEl) {
+            const isHidden = bodyEl.classList.contains('hidden');
+            if (isHidden) {
+                bodyEl.classList.remove('hidden');
+                if (iconEl) iconEl.classList.add('rotate-180');
+            } else {
+                bodyEl.classList.add('hidden');
+                if (iconEl) iconEl.classList.remove('rotate-180');
+            }
+        }
+    }
+}
+window.toggleCourseAccordion = toggleCourseAccordion;
 
 function selectCourseTab(cName) {
     selectedCourseName = cName;
