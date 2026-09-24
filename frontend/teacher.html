@@ -39,7 +39,7 @@
         .group-card { transition: box-shadow 0.2s; }
         .group-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         .student-row:hover { background: #f8fafc; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 0.75rem; overflow-y: auto; }
         .modal-overlay.hidden { display: none; }
         .privacy-shield { background: linear-gradient(135deg, #1F274B, #2D396E); }
         .rating-star { cursor: pointer; font-size: 1.25rem; transition: transform 0.1s; }
@@ -199,8 +199,9 @@
 
     <!-- Modal: Update Quran Progress & Revision Plan -->
     <div id="updateSurahModal" class="modal-overlay hidden">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200">
-            <div class="flex justify-between items-center mb-4 pb-2.5 border-b border-slate-100">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto">
+            <!-- Modal Header (Pinned at top) -->
+            <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-slate-100 shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-sm">📖</span>
                     <div>
@@ -210,7 +211,9 @@
                 </div>
                 <button onclick="closeModal('updateSurahModal')" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
-            <div class="space-y-3.5 text-xs">
+
+            <!-- Scrollable Content Body -->
+            <div class="space-y-3 text-xs overflow-y-auto pr-1 flex-1 min-h-0">
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
                     <div>
                         <span class="text-slate-500 text-[10px] block">الطالب:</span>
@@ -278,20 +281,21 @@
                 </div>
 
                 <!-- Quick Assistance Chips -->
-                <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                <div class="flex items-center gap-1.5 flex-wrap pt-0.5 pb-1">
                     <span class="text-[10px] text-slate-400 font-bold">عبارات سريعة:</span>
                     <button type="button" onclick="setQuickNote('ممتاز جداً ومتقن ما شاء الله 🌟')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">ممتاز جداً 🌟</button>
                     <button type="button" onclick="setQuickNote('جيد، مع التنبيه على مخارج الحروف والمدود')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تركيز على التجويد 🎯</button>
                     <button type="button" onclick="setQuickNote('يرجى تثبيت الماضي القريب جيداً في البيت')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تثبيت الماضي 🔁</button>
                 </div>
+            </div>
 
-                <div class="pt-3 flex gap-2 border-t border-slate-100">
-                    <button type="button" id="btnSaveSurahPlan" onclick="saveSurahProgress()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
-                        <span>💾</span>
-                        <span id="btnSaveSurahPlanText">حفظ الخطة وإشعار ولي الأمر</span>
-                    </button>
-                    <button type="button" onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer">إلغاء</button>
-                </div>
+            <!-- Pinned Footer Action Buttons (Always Visible at bottom of modal) -->
+            <div class="pt-3 flex gap-2 border-t border-slate-100 shrink-0 mt-2 bg-white">
+                <button type="button" id="btnSaveSurahPlan" onclick="saveSurahProgress()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer text-xs sm:text-sm">
+                    <span>💾</span>
+                    <span id="btnSaveSurahPlanText">حفظ الخطة وإشعار ولي الأمر</span>
+                </button>
+                <button type="button" onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition cursor-pointer text-xs">إلغاء</button>
             </div>
         </div>
     </div>
