@@ -167,8 +167,8 @@ function renderModalStudentsList(list) {
             ? window.getStudentGender(stCode, sName, s.gender || s.parent_name)
             : 'm';
         const genderBadge = (sGender === 'f')
-            ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👧 بنت</span>'
-            : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">👦 ولد</span>';
+            ? '<span class="bg-pink-100 text-pink-700 text-[10px] font-bold px-1.5 py-0.5 rounded">بنت</span>'
+            : '<span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded">ولد</span>';
 
         return `
             <div class="p-2.5 rounded-xl border ${isCurrent ? 'bg-indigo-50 border-indigo-300' : 'bg-slate-50 hover:bg-slate-100 border-slate-200'} flex items-center justify-between gap-2 transition">
@@ -182,7 +182,7 @@ function renderModalStudentsList(list) {
                     <div class="text-[11px] text-slate-500 truncate">${s.parent_name ? 'ولي الأمر: ' + s.parent_name : ''}</div>
                 </div>
                 <button type="button" onclick="switchAdminStudentView(${s.id})" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shrink-0 cursor-pointer">
-                    ${isCurrent ? 'الحالي ✓' : 'اختيار ➔'}
+                    ${isCurrent ? 'الحالي' : 'اختيار'}
                 </button>
             </div>
         `;
@@ -608,53 +608,53 @@ function getCourseCategoryMeta(c) {
     if (trackType === 'quran') {
         return {
             type: 'quran',
-            badgeText: '📖 مسار القرآن الكريم والتدبر',
+            badgeText: 'مسار القرآن الكريم والتدبر',
             badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-            icon: '📖'
+            icon: ''
         };
     }
 
     if (cName.includes('برمج') || cName.includes('scratch') || cName.includes('python') || cName.includes('ai') || cName.includes('ذكاء')) {
         return {
             type: 'programming',
-            badgeText: '💻 برمجة وذكاء اصطناعي',
+            badgeText: 'برمجة وذكاء اصطناعي',
             badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
-            icon: '💻'
+            icon: ''
         };
     }
 
     if (cName.includes('إنجليز') || cName.includes('انجليز') || cName.includes('english') || cName.includes('phonics') || cName.includes('لغة')) {
         return {
             type: 'languages',
-            badgeText: '🗣️ محادثة ولغة إنجليزية',
+            badgeText: 'محادثة ولغة إنجليزية',
             badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
-            icon: '🗣️'
+            icon: ''
         };
     }
 
     if (cName.includes('تأسيس') || cName.includes('نور البيان') || cName.includes('عربي') || cName.includes('قراءة')) {
         return {
             type: 'foundation',
-            badgeText: '✍️ تأسيس ونور البيان',
+            badgeText: 'تأسيس ونور البيان',
             badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
-            icon: '✍️'
+            icon: ''
         };
     }
 
     if (cName.includes('عقيدة') || cName.includes('فقه') || cName.includes('سلوك') || cName.includes('أخلاق')) {
         return {
             type: 'values',
-            badgeText: '🕌 علوم شرعية وتعديل سلوك',
+            badgeText: 'علوم شرعية وتعديل سلوك',
             badgeClass: 'bg-teal-100 text-teal-800 border-teal-300',
-            icon: '🕌'
+            icon: ''
         };
     }
 
     return {
         type: 'courses',
-        badgeText: '🎓 كورس تدريبي معتمد',
+        badgeText: 'كورس تدريبي معتمد',
         badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-        icon: '🎓'
+        icon: ''
     };
 }
 window.getCourseCategoryMeta = getCourseCategoryMeta;
@@ -707,17 +707,16 @@ function switchPortalTrack(track) {
     const quranCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
     const academicCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'courses');
 
+    if (sectionIcon) sectionIcon.innerText = '';
+
     if (currentPortalTrack === 'quran') {
         if (filterLabel) filterLabel.innerText = 'مسار القرآن الكريم والتدبر (' + quranCourses.length + ')';
-        if (sectionIcon) sectionIcon.innerText = '📖';
         if (quranPlanSection) quranPlanSection.classList.remove('hidden');
     } else if (currentPortalTrack === 'courses') {
         if (filterLabel) filterLabel.innerText = 'الكورسات والبرامج التعليمية (' + academicCourses.length + ')';
-        if (sectionIcon) sectionIcon.innerText = '🎓';
         if (quranPlanSection) quranPlanSection.classList.add('hidden'); // Hide Quran Plan when in courses mode!
     } else {
         if (filterLabel) filterLabel.innerText = 'جميع الاشتراكات والمسارات (' + enrolledCoursesList.length + ')';
-        if (sectionIcon) sectionIcon.innerText = '🌐';
         if (quranPlanSection) {
             if (quranCourses.length > 0) quranPlanSection.classList.remove('hidden');
             else quranPlanSection.classList.add('hidden');
@@ -778,7 +777,7 @@ function renderEnrolledCoursesTabs(courses) {
             container.innerHTML = `
                 <div class="col-span-full bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 border-2 border-indigo-200/90 rounded-2xl sm:rounded-3xl p-6 text-center space-y-3.5 shadow-sm">
                     <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-3xl shadow-xs">
-                        🎓
+                        
                     </div>
                     <div>
                         <h4 class="text-base sm:text-lg font-black text-slate-900">أنت لست مسجلاً في مسار الكورسات بعد</h4>
@@ -863,7 +862,7 @@ function renderEnrolledCoursesTabs(courses) {
                         <span class="${meta.badgeClass} border font-black px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">${meta.badgeText}</span>
                         <span class="bg-slate-900 text-amber-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-700">ID: ${groupId}</span>
                         <span class="${statusColor} border font-black px-2 py-0.5 rounded-full text-[10px]">${statusText}</span>
-                        ${isSelected ? '<span class="bg-indigo-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-2xs">✓ النشط حالياً</span>' : ''}
+                        ${isSelected ? '<span class="bg-indigo-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-2xs">النشط حالياً</span>' : ''}
                     </div>
                     <h4 class="font-black text-base sm:text-lg text-slate-900 leading-tight">
                         ${cName}
@@ -899,15 +898,15 @@ function renderEnrolledCoursesTabs(courses) {
             <div class="bg-slate-100/70 p-2.5 rounded-xl text-xs border border-slate-200/80">
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-800 font-bold">
                     <div>
-                        <span class="text-slate-400 block text-[10px]">⏰ الموعد</span>
+                        <span class="text-slate-400 block text-[10px]">الموعد</span>
                         <strong class="text-blue-900 truncate block text-[11px] sm:text-xs">${timeText || 'محدد مع المعلم'}</strong>
                     </div>
                     <div>
-                        <span class="text-slate-400 block text-[10px]">⏱️ مدة السيشن</span>
+                        <span class="text-slate-400 block text-[10px]">مدة السيشن</span>
                         <strong class="text-emerald-800 truncate block text-[11px] sm:text-xs">${durationText}</strong>
                     </div>
                     <div class="col-span-2 sm:col-span-1">
-                        <span class="text-slate-400 block text-[10px]">📅 أيام الاشتراك</span>
+                        <span class="text-slate-400 block text-[10px]">أيام الاشتراك</span>
                         <strong class="text-slate-950 truncate block text-[11px] sm:text-xs">${daysText || 'أسبوعياً'}</strong>
                     </div>
                 </div>
@@ -920,10 +919,10 @@ function renderEnrolledCoursesTabs(courses) {
                     <span>دخول القاعة الذكية</span>
                 </a>
                 <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
-                    <span>📚 المنهج والمحاضرات</span>
+                    <span>المنهج والمحاضرات</span>
                 </button>
                 <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-2.5 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
-                    <span>📝</span>
+                    <span>اختبارات</span>
                 </button>
             </div>
         `;
@@ -1239,7 +1238,7 @@ async function loadSelectedCourseLectures() {
             let badgeText = '';
             let badgeClass = '';
             if (allUnlocked) {
-                badgeText = 'مفعلة بالكامل ✓';
+                badgeText = 'مفعلة بالكامل';
                 badgeClass = 'bg-emerald-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold';
             } else if (someUnlocked) {
                 const unlockedCount = blockLectures.filter(l => l.is_unlocked).length;
@@ -1337,12 +1336,12 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             <div class="flex items-center gap-1.5 flex-wrap">
                 ${plan.hifz ? `
                 <span class="inline-flex items-center gap-1 text-[11px] font-black text-emerald-950 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-md shadow-2xs">
-                    <span>🟢 الورد:</span>
+                    <span>الورد:</span>
                     <strong>${plan.hifz}</strong>
                 </span>` : ''}
                 ${plan.madi_qareeb ? `
                 <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-                    <span>🔵 الماضي:</span>
+                    <span>الماضي:</span>
                     <span>${plan.madi_qareeb}</span>
                 </span>` : ''}
             </div>
@@ -1350,7 +1349,7 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     } else if (isCurrentDue || isScheduledToday || l.status === 'live') {
         quranBadge = `
             <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
-                <span>📖 الورد: يُحدد بالحلقة</span>
+                <span>الورد: يُحدد بالحلقة</span>
             </span>
         `;
     }
@@ -1360,11 +1359,9 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
         <div class="mt-3 pt-3 border-t border-emerald-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer">
-                    <span>🎥</span>
                     <span>دخول الحصة المباشرة (Google Meet)</span>
                 </button>
                 <button type="button" onclick="copyMeetLink('${meetLink}')" class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition border border-slate-200 flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ رابط الحصة">
-                    <span>📋</span>
                     <span class="hidden sm:inline">نسخ الرابط</span>
                 </button>
             </div>
@@ -1381,7 +1378,6 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             : '<span class="badge-status badge-locked">مغلقة • تتطلب تجديد الاشتراك</span>';
         actionBtn = `
             <button onclick="openPaymobModal()" class="w-full bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs py-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
-                <span>⚡</span>
                 <span>تجديد الاشتراك وشحن الحصص لفتح المحاضرة</span>
             </button>
         `;
@@ -1395,14 +1391,14 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             
             let attBadge = '';
             if (isPresent) {
-                attBadge = '<span class="text-emerald-600 font-bold text-xs flex items-center gap-1"><span>✓</span> <span>تم تسجيل حضورك (' + (l.attendance.duration_minutes || 60) + ' دقيقة)</span></span>';
+                attBadge = '<span class="text-emerald-600 font-bold text-xs flex items-center gap-1"><span>تم تسجيل حضورك (' + (l.attendance.duration_minutes || 60) + ' دقيقة)</span></span>';
             } else if (isAbsent) {
-                attBadge = '<span class="text-red-600 font-bold text-xs flex items-center gap-1"><span>✕</span> <span>لم يتم الحضور (غياب مسجل)</span></span>';
+                attBadge = '<span class="text-red-600 font-bold text-xs flex items-center gap-1"><span>لم يتم الحضور (غياب مسجل)</span></span>';
             } else {
                 attBadge = '<span class="text-slate-600 font-medium text-xs">تمت المحاضرة</span>';
             }
                 
-            statusBadge = '<span class="badge-status badge-completed">مكتملة ✓</span>';
+            statusBadge = '<span class="badge-status badge-completed">مكتملة</span>';
             actionBtn = `
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
                     <div>${attBadge}</div>
@@ -1436,28 +1432,26 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
                 <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/90 rounded-2xl p-3 text-xs mb-2.5 shadow-2xs space-y-2">
                     <div class="flex items-center justify-between flex-wrap gap-2 pb-1.5 border-b border-emerald-200/60">
                         <div class="flex items-center gap-1.5">
-                            <span class="text-base">📖</span>
                             <strong class="text-xs font-black text-emerald-950">خطة الحفظ والمراجعة المقررة لهذه الحصة</strong>
                         </div>
                         <span class="text-[10px] font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-full">مسار القرآن الكريم</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div class="bg-white/95 p-2 rounded-xl border border-emerald-200 shadow-2xs">
-                            <span class="text-[10px] text-emerald-800 font-black block mb-0.5">🟢 الحفظ الجديد:</span>
+                            <span class="text-[10px] text-emerald-800 font-black block mb-0.5">الحفظ الجديد:</span>
                             <strong class="text-xs text-slate-900 block">${plan.hifz || 'يُحدد بالحلقة'}</strong>
                         </div>
                         <div class="bg-white/95 p-2 rounded-xl border border-blue-200 shadow-2xs">
-                            <span class="text-[10px] text-blue-800 font-black block mb-0.5">🔵 الماضي القريب:</span>
+                            <span class="text-[10px] text-blue-800 font-black block mb-0.5">الماضي القريب:</span>
                             <strong class="text-xs text-slate-800 block">${plan.madi_qareeb || '—'}</strong>
                         </div>
                         <div class="bg-white/95 p-2 rounded-xl border border-purple-200 shadow-2xs">
-                            <span class="text-[10px] text-purple-800 font-black block mb-0.5">🟣 الماضي البعيد:</span>
+                            <span class="text-[10px] text-purple-800 font-black block mb-0.5">الماضي البعيد:</span>
                             <strong class="text-xs text-slate-800 block">${plan.madi_baeed || '—'}</strong>
                         </div>
                     </div>
                     ${plan.notes ? `
                         <div class="text-[11px] text-emerald-950 bg-emerald-100/70 p-2 rounded-xl border border-emerald-200 font-medium flex items-start gap-1.5">
-                            <span>💡</span>
                             <div><strong>توجيهات المعلم:</strong> ${plan.notes}</div>
                         </div>
                     ` : ''}
@@ -1518,12 +1512,12 @@ function updateBottomMeetButtonState(rc) {
     if (rc <= 0) {
         btn.className = "flex flex-col items-center gap-0.5 text-amber-700 active:scale-95 py-1 px-3 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { if (typeof openPaymobModal === 'function') openPaymobModal(); };
-        if (icon) icon.innerText = '🔒';
+        if (icon) icon.innerText = '';
         if (label) label.innerText = 'رصيد 0 • تجديد';
     } else {
         btn.className = "flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { joinNextDueMeet(); };
-        if (icon) icon.innerText = '🎥';
+        if (icon) icon.innerText = '';
         if (label) label.innerText = 'دخول الحصة';
     }
 }
@@ -1538,7 +1532,7 @@ function joinMeet(lectureId, meetUrl) {
         if (window.MonirPopup && window.MonirPopup.alert) {
             window.MonirPopup.alert(
                 'عفواً، لا يمكن الدخول لقاعة الحصة المباشرة لأن رصيد الحصص المتاح لديك حالياً هو (0) حصص. يرجى تجديد الاشتراك وشحن باقتك لمتابعة الحضور مع المعلم.',
-                'تجديد الاشتراك مطلوب 🔒',
+                'تجديد الاشتراك مطلوب',
                 () => { if (typeof openPaymobModal === 'function') openPaymobModal(); }
             );
         } else {
@@ -1587,7 +1581,7 @@ function joinNextDueMeet() {
         if (window.MonirPopup && window.MonirPopup.alert) {
             window.MonirPopup.alert(
                 'عفواً، لا يمكن دخول الحصة المباشرة لأن رصيدك الحالي هو (0) حصص. اضغط على تجديد الاشتراك لشحن باقتك الآن.',
-                'تجديد الاشتراك مطلوب 🔒',
+                'تجديد الاشتراك مطلوب',
                 () => { if (typeof openPaymobModal === 'function') openPaymobModal(); }
             );
         } else {
@@ -1608,7 +1602,7 @@ function copyNextDueMeet() {
 
     if (rc <= 0) {
         if (window.MonirPopup && window.MonirPopup.toast) {
-            window.MonirPopup.toast('🔒 رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً للحصول على رابط القاعة', 'error');
+            window.MonirPopup.toast('رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً للحصول على رابط القاعة', 'error');
         } else {
             alert('رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً');
         }
@@ -1621,7 +1615,7 @@ function copyNextDueMeet() {
         window.copyMeetLink(url, btn);
     } else if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(() => {
-            if (window.MonirPopup) window.MonirPopup.toast('✅ تم نسخ رابط الحصة بنجاح!', 'success');
+            if (window.MonirPopup) window.MonirPopup.toast('تم نسخ رابط الحصة بنجاح', 'success');
             else alert('تم نسخ رابط الحصة بنجاح!');
         }).catch(() => {
             prompt('رابط الحصة المباشر:', url);
@@ -1953,8 +1947,8 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                 notifs.unshift({
                     id: 'quran_plan_pinned',
                     type: 'quran_plan',
-                    title: '📖 إشعار خطة الحفظ والمراجعة القرآنية',
-                    message: `🟢 الحفظ الجديد: ${plan.hifz || '—'}\n🔵 الماضي القريب: ${plan.madi_qareeb || '—'}\n🟣 الماضي البعيد: ${plan.madi_baeed || '—'}${plan.notes ? '\n📝 توجيهات: ' + plan.notes : ''}`,
+                    title: 'إشعار خطة الحفظ والمراجعة القرآنية',
+                    message: `الحفظ الجديد: ${plan.hifz || '—'}\nالماضي القريب: ${plan.madi_qareeb || '—'}\nالماضي البعيد: ${plan.madi_baeed || '—'}${plan.notes ? '\nتوجيهات: ' + plan.notes : ''}`,
                     is_read: 0,
                     created_at: plan.updated_at || new Date().toISOString()
                 });
@@ -1970,7 +1964,7 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                 notifs.unshift({
                     id: 'zoom_live_pinned',
                     type: 'zoom_live',
-                    title: (studentAgeForNotif < 10) ? '🔴 بث مباشر (Zoom): حلقة الأطفال والناشئة' : '🔴 بث مباشر (Zoom): محاضرة الطلاب والكبار',
+                    title: (studentAgeForNotif < 10) ? 'بث مباشر (Zoom): حلقة الأطفال والناشئة' : 'بث مباشر (Zoom): محاضرة الطلاب والكبار',
                     message: `بدأت الآن المحاضرة التفاعلية المباشرة عبر Zoom (${studentAgeForNotif < 10 ? 'فئة أقل من 10 سنوات • 1:50 م إلى 2:25 م' : 'فئة 10 سنوات فما فوق • 2:20 م إلى 2:50 م'}). انقر على الزر بالأسفل للدخول مباشرة للقاعة والتواصل مع المعلم.`,
                     action_url: 'https://zoom.us/j/98264506630',
                     is_read: 0,
@@ -1984,7 +1978,7 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                 notifs.unshift({
                     id: 'zoom_sunday_live_pinned',
                     type: 'zoom_live',
-                    title: '🔴 بث مباشر مجاني (Zoom): محاضرة التفسير والتدبر',
+                    title: 'بث مباشر مجاني (Zoom): محاضرة التفسير والتدبر',
                     message: 'بدأت الآن محاضرة التفسير والتدبر الأسبوعية المجانية (الأحد من 8:00 م إلى 9:00 م). انقر على الزر للدخول مباشرة للقاعة دون أي خصم من رصيدك.',
                     action_url: 'https://zoom.us/j/98264506630',
                     is_read: 0,
@@ -2020,7 +2014,6 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                         div.innerHTML = `
                             <div class="flex justify-between items-center mb-1.5">
                                 <span class="font-black flex items-center gap-1.5 text-blue-900">
-                                    <span class="text-base">📹</span>
                                     <span>${n.title}</span>
                                     <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
                                 </span>
@@ -2028,7 +2021,7 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                             </div>
                             <p class="font-medium text-[11px] leading-relaxed text-slate-700 mb-2.5">${n.message}</p>
                             <a href="${n.action_url || 'https://zoom.us/j/98264506630'}" target="_blank" rel="noopener noreferrer" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-sm active:scale-95">
-                                <span>انضم للبث المباشر (Zoom) 🚀</span>
+                                <span>انضم للبث المباشر (Zoom)</span>
                             </a>
                         `;
                     } else {
@@ -2037,7 +2030,7 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                         div.innerHTML = `
                             <div class="flex justify-between items-center mb-1">
                                 <span class="font-extrabold flex items-center gap-1.5">
-                                    <span>${n.type === 'quran_plan' ? '📖' : '🔔'}</span>
+                                    
                                     <span>${n.title}</span>
                                     ${isUnread ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>' : ''}
                                 </span>
@@ -2134,7 +2127,7 @@ function fallbackCopyText(text, btn) {
 function showCopySuccess(btn) {
     if (!btn) return;
     const oldHtml = btn.innerHTML;
-    btn.innerHTML = '<span>تم النسخ ✔</span>';
+    btn.innerHTML = '<span>تم النسخ</span>';
     btn.classList.add('bg-emerald-200', 'text-emerald-950');
     setTimeout(() => {
         btn.innerHTML = oldHtml;
@@ -2226,7 +2219,7 @@ function selectRenewalPackage(pkgId) {
     if (vodafoneAmt) vodafoneAmt.innerText = pkg.price.toFixed(2) + ' ج.م';
 
     const btnTxt = document.getElementById('btnPaymobSubmitText');
-    if (btnTxt) btnTxt.innerText = '📋 تسجيل إشعار سداد (' + pkg.price.toFixed(2) + ' ج.م) - قيد المراجعة';
+    if (btnTxt) btnTxt.innerText = 'تسجيل إشعار سداد (' + pkg.price.toFixed(2) + ' ج.م) - قيد المراجعة';
 
     updateWhatsAppTransferLink();
 }
@@ -2365,7 +2358,7 @@ async function submitPaymobPayment() {
             }
         }
 
-        btn.innerHTML = 'تم تسجيل الطلب بنجاح ✔';
+        btn.innerHTML = 'تم تسجيل الطلب بنجاح';
         btn.className = 'w-full bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl';
 
         setTimeout(() => {
@@ -2396,7 +2389,7 @@ function refreshData() {
 }
 
 // ==========================================
-// 🎙️ GENERAL ACADEMY LECTURES & QUIZZES SYSTEM
+// GENERAL ACADEMY LECTURES & QUIZZES SYSTEM
 // ==========================================
 
 async function loadGeneralLectures() {
@@ -2633,7 +2626,7 @@ function getSundayTafsirStatus(studentAge) {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// 📜 Tuesday Girls Tafsir Live Config (جلسة التفسير والتدبر للبنات أقل من 10 سنوات)
+// Tuesday Girls Tafsir Live Config (جلسة التفسير والتدبر للبنات أقل من 10 سنوات)
 // ═════════════════════════════════════════════════════════════════════
 const TUESDAY_GIRLS_TAFSIR_CONFIG = {
     url: "https://zoom.us/j/98264506630",
@@ -2718,7 +2711,7 @@ function getTuesdayGirlsTafsirStatus(studentAge, studentGender) {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// 📜 Wednesday Tafsir & Tadabbur Live Config (جلسات الأربعاء - مسار التفسير والتدبر)
+// Wednesday Tafsir & Tadabbur Live Config (جلسات الأربعاء - مسار التفسير والتدبر)
 // ═════════════════════════════════════════════════════════════════════
 const WEDNESDAY_TAFSIR_CONFIG = {
     girls_10_and_up: {
@@ -2794,7 +2787,7 @@ function getWednesdayTafsirStatus(studentAge, studentGender) {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// 📜 Monday Hadith Council Live Config (مجلس الحديث الشريف - الإثنين)
+// Monday Hadith Council Live Config (مجلس الحديث الشريف - الإثنين)
 // ═════════════════════════════════════════════════════════════════════
 const MONDAY_HADITH_CONFIG = {
     girls_under_10: {
@@ -2898,10 +2891,10 @@ function updateGenderBadgeUI(gender) {
     const labelEl = document.getElementById('studentGenderLabel');
     if (!emojiEl || !labelEl) return;
     if (gender === 'f') {
-        emojiEl.innerText = '👧';
+        emojiEl.innerText = '';
         labelEl.innerText = 'طالبة (بنت)';
     } else {
-        emojiEl.innerText = '👦';
+        emojiEl.innerText = '';
         labelEl.innerText = 'طالب (ولد)';
     }
 }
@@ -2953,7 +2946,7 @@ async function toggleStudentGenderFromPortal() {
     }
 
     // Toast feedback
-    const label = (newGender === 'f') ? 'طالبة (بنت 👧)' : 'طالب (ولد 👦)';
+    const label = (newGender === 'f') ? 'طالبة (بنت)' : 'طالب (ولد)';
     if (window.MonirPopup && window.MonirPopup.toast) {
         window.MonirPopup.toast(`تم تغيير تصنيف الطالب إلى ${label} بنجاح!`, 'success');
     } else {
@@ -3973,7 +3966,7 @@ function renderGeneralTrackView() {
 }
 
 // ==========================================
-// ✍️ INTERACTIVE QUIZ MODAL CONTROLLER
+// INTERACTIVE QUIZ MODAL CONTROLLER
 // ==========================================
 
 function openQuizzesModal() {
@@ -4025,7 +4018,7 @@ function loadQuizzesList() {
                     <span class="text-[11px] text-slate-500 font-medium">3 أسئلة تفاعلية • 15 درجة</span>
                 </div>
                 <button onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs font-black px-4 py-2 rounded-xl transition shrink-0 cursor-pointer">
-                    ${sub ? 'إعادة الاختبار 🔄' : 'بدء الاختبار ✍️'}
+                    ${sub ? 'إعادة الاختبار' : 'بدء الاختبار'}
                 </button>
             </div>
         `;
@@ -4091,7 +4084,7 @@ function renderActiveQuestions() {
                 <label onclick="selectQuizOption(${q.id}, ${optIdx})" class="flex items-center gap-3 p-3 rounded-xl border transition cursor-pointer select-none ${isSelected ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-950 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70 text-slate-700'}">
                     <input type="radio" name="question_${q.id}" value="${optIdx}" ${isSelected ? 'checked' : ''} class="hidden">
                     <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white font-black text-xs' : 'border-slate-300 bg-white'}">
-                        ${isSelected ? '✔' : ''}
+                        ${isSelected ? '•' : ''}
                     </span>
                     <span class="text-xs leading-relaxed">${opt}</span>
                 </label>
@@ -4209,7 +4202,7 @@ async function submitActiveQuiz() {
 
         const isSuccess = percentage >= (quiz.passing_score || 70);
         if (resIcon) {
-            resIcon.innerHTML = isSuccess ? '🏆' : '📚';
+            resIcon.innerHTML = isSuccess ? 'ناجح' : 'غير مجتاز';
             resIcon.className = `w-16 h-16 ${isSuccess ? 'bg-amber-100 text-amber-900' : 'bg-blue-100 text-blue-900'} rounded-full flex items-center justify-center mx-auto text-2xl font-black shadow-inner`;
         }
         if (resTitle) {
@@ -4239,7 +4232,7 @@ function backToQuizList() {
 }
 
 // ==========================================
-// 📜 CUMULATIVE GRADEBOOK TRANSCRIPT MODAL
+// CUMULATIVE GRADEBOOK TRANSCRIPT MODAL
 // ==========================================
 
 function toggleGradebookModal() {
@@ -4262,9 +4255,9 @@ function renderGradebookTranscript() {
     let totalMax = 0;
 
     const tracksConfig = [
-        { key: 'tajweed', title: 'مسار أحكام التجويد', icon: '🌟' },
-        { key: 'tafsir', title: 'مسار التفسير وتدبر القرآن', icon: '📖' },
-        { key: 'hadith', title: 'مسار الحديث الشريف والسنة', icon: '📜' }
+        { key: 'tajweed', title: 'مسار أحكام التجويد', icon: '' },
+        { key: 'tafsir', title: 'مسار التفسير وتدبر القرآن', icon: '' },
+        { key: 'hadith', title: 'مسار الحديث الشريف والسنة', icon: '' }
     ];
 
     let html = '';
@@ -4302,7 +4295,7 @@ function renderGradebookTranscript() {
                     <div class="bg-white p-2.5 rounded-xl border border-slate-200">
                         <span class="text-[10px] text-slate-400 block font-bold">الأسبوع 1 (15د)</span>
                         ${w1Score !== null ? `
-                            <strong class="text-emerald-700 font-black text-xs block mt-1">${w1Score} / 15 ✔</strong>
+                            <strong class="text-emerald-700 font-black text-xs block mt-1">${w1Score} / 15</strong>
                         ` : `
                             <span class="text-amber-700 font-bold block mt-1">قيد الحل</span>
                         `}
@@ -4339,13 +4332,13 @@ function renderGradebookTranscript() {
     if (percentageEl) percentageEl.textContent = `${grandPercentage}%`;
     if (rankEl) {
         if (grandPercentage >= 90) {
-            rankEl.textContent = 'ممتاز مع مرتبة الشرف 🏆';
+            rankEl.textContent = 'ممتاز مع مرتبة الشرف';
             rankEl.className = 'text-xs font-black text-amber-600 block mt-0.5';
         } else if (grandPercentage >= 75) {
-            rankEl.textContent = 'جيد جداً مرتفع 🌟';
+            rankEl.textContent = 'جيد جداً مرتفع';
             rankEl.className = 'text-xs font-black text-emerald-600 block mt-0.5';
         } else if (grandPercentage > 0) {
-            rankEl.textContent = 'جاري التحصيل 👍';
+            rankEl.textContent = 'جاري التحصيل';
             rankEl.className = 'text-xs font-black text-blue-600 block mt-0.5';
         } else {
             rankEl.textContent = 'في انتظار بدء الاختبارات';

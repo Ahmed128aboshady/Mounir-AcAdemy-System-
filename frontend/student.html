@@ -54,14 +54,12 @@
             <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                 <!-- Support & Tickets Button -->
                 <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-2 sm:px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الدعم والشكاوى">
-                    <span class="text-xs">💬</span>
                     <span class="hidden sm:inline">الدعم والشكاوى</span>
                     <span class="sm:hidden text-[11px]">الدعم</span>
                 </button>
 
                 <!-- Notifications Bell -->
                 <button onclick="toggleNotifications()" class="relative p-1.5 sm:p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الإشعارات">
-                    <span class="text-sm">🔔</span>
                     <span class="hidden sm:inline text-xs font-bold">الإشعارات</span>
                     <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">1</span>
                 </button>
@@ -77,22 +75,18 @@
             <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5">
                     <span class="bg-indigo-600 text-white font-black px-2 py-0.5 rounded-lg flex items-center gap-1 text-[11px] shadow-xs">
-                        <span>👑</span>
                         <span>إشراف الإدارة</span>
                     </span>
                     <span class="text-slate-300 font-bold hidden md:inline text-[11px]">تبديل الطالب:</span>
                 </div>
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <button type="button" onclick="openStudentSearchModal()" class="bg-indigo-900/90 hover:bg-indigo-800 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-indigo-500/40 flex items-center gap-1 cursor-pointer" title="بحث سريع بين كل الطلاب">
-                        <span>🔍</span>
                         <span>بحث</span>
                     </button>
                     <a href="admin.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-slate-700 flex items-center gap-1">
-                        <span>🏠</span>
                         <span>الإدارة</span>
                     </a>
                     <a href="teacher.html" target="_blank" class="bg-emerald-800/90 hover:bg-emerald-700 text-emerald-100 hover:text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-emerald-600/50 flex items-center gap-1">
-                        <span>👨‍🏫</span>
                         <span>المعلمين</span>
                     </a>
                 </div>
@@ -153,9 +147,9 @@
                     </h2>
                     <div class="flex items-center gap-2 flex-wrap mt-1">
                         <p class="text-[11px] sm:text-xs text-blue-200 font-medium" id="studentDetails">السن: 9 سنوات</p>
-                        <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full cursor-pointer transition shadow-2xs" title="انقر لتعديل نوع الطالب (ولد / بنت)">
-                            <span id="studentGenderEmoji">👧</span>
-                            <span id="studentGenderLabel">طالبة (بنت)</span>
+                        <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full cursor-pointer transition shadow-2xs" title="انقر لتعديل نوع الطالب (ولد / بنت)">
+                            <span id="studentGenderEmoji" class="hidden"></span>
+                            <span id="studentGenderLabel">طالب (ولد)</span>
                             <span class="text-[9px] text-amber-300 underline font-normal mr-0.5">تغيير</span>
                         </button>
                     </div>
@@ -163,12 +157,12 @@
                     <!-- 4 Info Tiles -->
                     <div class="mt-2.5 sm:mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 text-xs text-slate-200">
                         <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">🆔 كود الطالب (ID)</span>
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">كود الطالب (ID)</span>
                             <strong class="font-mono text-xs sm:text-sm tracking-wider text-amber-300 block truncate" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></strong>
                         </div>
 
                         <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">👤 ولي الأمر</span>
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">ولي الأمر</span>
                             <strong class="text-xs sm:text-sm block truncate text-white" id="parentName"><script>(function(){
                                 const u=window.__PRELOADED_USER__;
                                 if(u&&u.full_name){
@@ -189,7 +183,7 @@
                         </div>
 
                         <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">📞 هاتف ولي الأمر</span>
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">هاتف ولي الأمر</span>
                             <strong class="font-mono text-xs sm:text-sm text-emerald-300 block truncate" id="parentPhone"><script>(function(){
                                 let u = window.__PRELOADED_USER__;
                                 let phone = u ? (u.parent_phone || u.phone) : null;
@@ -203,7 +197,7 @@
                         </div>
 
                         <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">📚 إجمالي الكورسات</span>
+                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">إجمالي الكورسات</span>
                             <strong class="text-emerald-400 text-xs sm:text-sm block truncate" id="enrolledCoursesCount"><script>(function(){const u=window.__PRELOADED_USER__;document.write(u?'1 مسار تدريبي':'---');})();</script></strong>
                         </div>
                     </div>
@@ -225,7 +219,6 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                 <div class="flex items-center gap-2 px-1">
                     <span class="text-xs font-black text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
-                        <span>🎯</span>
                         <span>المسار التعليمي المعروض:</span>
                     </span>
                     <span id="activeTrackNoticeBadge" class="hidden sm:inline-block bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-indigo-200">
@@ -234,15 +227,15 @@
                 </div>
                 <div class="flex items-center gap-1.5 overflow-x-auto flex-1 sm:justify-end">
                     <button type="button" id="tabBtnAllTracks" onclick="switchPortalTrack('all')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
-                        <span>🌐 الكل</span>
+                        <span>الكل</span>
                         <span id="badgeCountAllTracks" class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
                     </button>
                     <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
-                        <span>📖 مسار القرآن والتدبر</span>
+                        <span>مسار القرآن والتدبر</span>
                         <span id="badgeCountQuranTrack" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
                     </button>
                     <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
-                        <span>🎓 الكورسات والبرامج التعليمية</span>
+                        <span>الكورسات والبرامج التعليمية</span>
                         <span id="badgeCountCoursesTrack" class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
                     </button>
                 </div>
@@ -254,12 +247,9 @@
             <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
             <div class="relative z-10 space-y-3">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-                    <div class="flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-base font-black">📖</span>
-                        <div>
-                            <h3 class="text-xs sm:text-sm font-black text-white">خطة الحفظ والمراجعة القرآنية</h3>
-                            <p class="text-[10px] text-emerald-200/80">الورد المعتمد للطالب لمتابعته في البيت والحلقة</p>
-                        </div>
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-black text-white">خطة الحفظ والمراجعة القرآنية</h3>
+                        <p class="text-[10px] text-emerald-200/80">الورد المعتمد للطالب لمتابعته في البيت والحلقة</p>
                     </div>
                     <span id="quranPlanUpdatedBadge" class="text-[10px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">معتمد من المعلم</span>
                 </div>
@@ -269,7 +259,7 @@
                     <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-emerald-400/30">
                         <div class="flex items-center gap-1.5 mb-1 text-emerald-300 font-extrabold text-[11px]">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>🟢 الحفظ الجديد المقرر:</span>
+                            <span>الحفظ الجديد المقرر:</span>
                         </div>
                         <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planHifzDisplay">جاري التحديد مع المعلم...</strong>
                     </div>
@@ -278,7 +268,7 @@
                     <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-blue-400/30">
                         <div class="flex items-center gap-1.5 mb-1 text-blue-300 font-extrabold text-[11px]">
                             <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                            <span>🔵 الماضي القريب (مراجعة):</span>
+                            <span>الماضي القريب (مراجعة):</span>
                         </div>
                         <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiQareebDisplay">جاري التحديد مع المعلم...</strong>
                     </div>
@@ -287,7 +277,7 @@
                     <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-purple-400/30">
                         <div class="flex items-center gap-1.5 mb-1 text-purple-300 font-extrabold text-[11px]">
                             <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-                            <span>🟣 الماضي البعيد (تثبيت):</span>
+                            <span>الماضي البعيد (تثبيت):</span>
                         </div>
                         <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiBaeedDisplay">جاري التحديد مع المعلم...</strong>
                     </div>
@@ -295,7 +285,6 @@
 
                 <!-- توجيهات المعلم -->
                 <div id="planNotesContainer" class="hidden bg-black/20 p-2.5 rounded-xl border border-white/10 text-xs flex items-start gap-2">
-                    <span class="text-amber-300 text-sm">💡</span>
                     <div>
                         <span class="text-[10px] text-amber-200 font-bold block">توجيهات المعلم لولي الأمر:</span>
                         <p class="text-[11px] text-slate-100 font-medium" id="planNotesDisplay"></p>
@@ -737,7 +726,6 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div class="flex items-center gap-2 flex-wrap">
                     <h3 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-1.5" id="enrolledCoursesHeaderTitle">
-                        <span id="enrolledSectionIcon">🎓</span>
                         <span>المسارات والكورسات المشترك بها:</span>
                     </h3>
                     <span id="activeTrackFilterLabel" class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-indigo-200">
@@ -746,7 +734,6 @@
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                     <button onclick="openPaymobModal()" class="flex-1 sm:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 active:scale-[0.98]">
-                        <span>⚡</span>
                         <span>شحن وتجديد الرصيد</span>
                     </button>
                 </div>
@@ -812,7 +799,7 @@
             <!-- Dynamic Lecture Blocks Container (populated by loadSelectedCourseLectures in student.js) -->
             <div id="lectureBlocksContainer" class="space-y-5">
                 <div class="text-center py-10 text-slate-400">
-                    <div class="text-4xl mb-2 animate-bounce">📚</div>
+                    <div class="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                     <p class="font-bold text-sm">جاري تحميل جدول المحاضرات...</p>
                 </div>
             </div>
@@ -954,7 +941,7 @@
         <div class="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl font-black shrink-0">📜</span>
+                    <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xs font-black shrink-0">سجل</span>
                     <div>
                         <h3 class="font-black text-base text-slate-900">سجل الدرجات التراكمي للطالب</h3>
                         <p class="text-[11px] text-slate-500 font-medium">سجل معتمد للمحاضرات العامة والاختبارات الأسبوعية والنهائية</p>
@@ -997,7 +984,7 @@
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-9 h-9 bg-gradient-to-tr from-indigo-700 to-purple-600 text-white rounded-xl flex items-center justify-center font-black text-base shadow-sm">⚡</span>
+                    
                     <div>
                         <h3 class="font-extrabold text-base text-slate-900 leading-tight">شحن وتجديد الاشتراك</h3>
                         <p class="text-[11px] text-slate-500 font-medium">التحويل عبر إنستا باي أو فودافون كاش وإرسال الإشعار</p>
@@ -1090,7 +1077,7 @@
                     <label id="payMethodTab_instapay" class="pay-method-opt border-2 border-indigo-600 bg-indigo-50/70 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-indigo-950 transition shadow-xs">
                         <input type="radio" name="payMethod" value="instapay" checked class="hidden" onchange="updatePayMethodVisual(this)">
                         <span class="flex items-center gap-1 text-sm font-black">
-                            <span>⚡</span> إنستا باي (InstaPay)
+                            إنستا باي (InstaPay)
                         </span>
                         <span class="text-[10px] text-indigo-700 font-normal">تحويل بنكي فوري مجاني</span>
                     </label>
@@ -1099,7 +1086,7 @@
                     <label id="payMethodTab_vodafone_cash" class="pay-method-opt border-2 border-slate-200 hover:border-slate-300 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-semibold text-slate-700 transition">
                         <input type="radio" name="payMethod" value="vodafone_cash" class="hidden" onchange="updatePayMethodVisual(this)">
                         <span class="flex items-center gap-1 text-sm font-black">
-                            <span>📱</span> فودافون كاش
+                            فودافون كاش
                         </span>
                         <span class="text-[10px] text-slate-500 font-normal">تحويل محفظة إلكترونية</span>
                     </label>
@@ -1111,7 +1098,7 @@
             <div id="instapayDetailsBox" class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5 mb-3.5 text-xs space-y-2.5">
                 <div class="flex items-center justify-between">
                     <span class="font-black text-indigo-950 flex items-center gap-1.5 text-xs">
-                        <span>⚡</span> بيانات التحويل عبر إنستا باي (InstaPay):
+                        بيانات التحويل عبر إنستا باي (InstaPay):
                     </span>
                     <span class="bg-indigo-700 text-white font-black text-[10px] px-2 py-0.5 rounded-full">حساب معتمد</span>
                 </div>
@@ -1121,7 +1108,7 @@
                         <div class="flex items-center gap-2">
                             <span class="font-mono font-black text-slate-900 text-sm tracking-wider" id="instapayAccNum">009348060001</span>
                             <button type="button" onclick="copyTransferText('009348060001', this)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                <span>📋 نسخ</span>
+                                <span>نسخ الحساب</span>
                             </button>
                         </div>
                     </div>
@@ -1144,7 +1131,7 @@
             <div id="vodafoneDetailsBox" class="hidden bg-rose-50/90 border-2 border-rose-200 rounded-2xl p-3.5 mb-3.5 text-xs space-y-2.5">
                 <div class="flex items-center justify-between">
                     <span class="font-black text-rose-950 flex items-center gap-1.5 text-xs">
-                        <span>📱</span> بيانات التحويل عبر محفظة فودافون كاش:
+                        بيانات التحويل عبر محفظة فودافون كاش:
                     </span>
                     <span class="bg-rose-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full">محفظة كاش</span>
                 </div>
@@ -1154,7 +1141,7 @@
                         <div class="flex items-center gap-2">
                             <span class="font-mono font-black text-rose-700 text-base tracking-wider" id="vodafoneCashNum">01002530197</span>
                             <button type="button" onclick="copyTransferText('01002530197', this)" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                <span>📋 نسخ</span>
+                                <span>نسخ الحساب</span>
                             </button>
                         </div>
                     </div>
@@ -1168,7 +1155,7 @@
             <!-- Step-by-Step Payment Notice -->
             <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-3.5 mb-3.5 text-xs text-amber-950">
                 <div class="flex items-start gap-2.5">
-                    <span class="text-xl">⚠️</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 mt-1 shrink-0"></span>
                     <div class="space-y-1 leading-relaxed">
                         <strong class="font-black block text-amber-900 text-sm">تنبيه هام حول طريقة السداد:</strong>
                         <p class="text-slate-700">السداد لا يتم بخصم إلكتروني مباشر من هذا الموقع، بل عبر <strong>التحويل المالي المباشر</strong> من هاتفك باتباع الخطوات التالية:</p>
@@ -1185,16 +1172,15 @@
             <!-- Primary Action: WhatsApp Direct Link -->
             <div class="space-y-2.5">
                 <a id="btnSendWhatsAppTransfer" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform hover:scale-[1.01] text-center">
-                    <span>📲 إرسال صورة التحويل وتفعيل الحصص فوراً (واتساب)</span>
+                    <span>إرسال صورة التحويل وتفعيل الحصص فوراً (واتساب)</span>
                 </a>
 
                 <!-- Secondary Action: Register Transfer Notice (Pending Review) -->
                 <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2">
-                    <span id="btnPaymobSubmitText">📋 تسجيل إشعار سداد (400.00 ج.م) - قيد المراجعة</span>
+                    <span id="btnPaymobSubmitText">تسجيل إشعار سداد (400.00 ج.م) - قيد المراجعة</span>
                 </button>
             </div>
             <p class="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
-                <span>🔒</span>
                 <span>لا يتم تفعيل الرصيد إلا بعد مراجعة صورة إشعار التحويل من قبل الإدارة</span>
             </p>
         </div>
@@ -1205,7 +1191,7 @@
         <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-blue-100 text-[#2D396E] flex items-center justify-center font-black text-sm">🔔</span>
+                    
                     <div>
                         <h3 class="font-black text-sm sm:text-base text-slate-900">مركز الإشعارات والتنبيهات</h3>
                         <p class="text-[11px] text-slate-500">إشعارات الحفظ والمراجعة والمواعيد من المعلم</p>
@@ -1283,7 +1269,7 @@
 
             <div class="space-y-2">
                 <a id="btnWhatsAppReceipt" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md text-center">
-                    <span>📲 إرسال صورة التحويل وتأكيد التفعيل عبر WhatsApp</span>
+                    <span>إرسال صورة التحويل وتأكيد التفعيل عبر WhatsApp</span>
                 </a>
                 <button onclick="closeReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">
                     إغلاق
@@ -1295,22 +1281,18 @@
     <!-- Mobile Fixed Bottom Navigation Bar (App-like Quick Actions for Parents) -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl safe-bottom">
         <button type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-[#41519C] active:text-[#41519C] py-1 px-2.5 rounded-xl transition cursor-pointer">
-            <span class="text-base">🎓</span>
             <span class="text-[10px] font-bold">كارت الطالب</span>
         </button>
 
         <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
-            <span class="text-base" id="bottomNavMeetIcon">🎥</span>
-            <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
+            <span id="bottomNavMeetIcon"></span><span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
         </button>
 
         <button type="button" onclick="openPaymobModal()" class="flex flex-col items-center gap-0.5 text-amber-700 hover:text-amber-800 active:scale-95 py-1 px-2.5 rounded-xl transition cursor-pointer">
-            <span class="text-base">⚡</span>
             <span class="text-[10px] font-extrabold">شحن وتجديد</span>
         </button>
 
         <button type="button" onclick="openSupportModal()" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-blue-900 active:text-blue-900 py-1 px-2.5 rounded-xl transition cursor-pointer">
-            <span class="text-base">💬</span>
             <span class="text-[10px] font-bold">الدعم والأعذار</span>
         </button>
     </nav>
@@ -1320,7 +1302,7 @@
         <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-100 text-[#41519C] flex items-center justify-center font-black">🔍</span>
+                    
                     <div>
                         <h3 class="font-black text-sm text-slate-900">بحث وتحديد طالب</h3>
                         <p class="text-[11px] text-slate-500">اختر أي طالب لعرض صفحته وحضوره ورصيده فوراً</p>
@@ -1329,7 +1311,7 @@
                 <button onclick="closeStudentSearchModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
             <div class="py-3 flex-shrink-0">
-                <input type="text" id="studentModalSearchInput" oninput="filterModalStudents(this.value)" placeholder="🔍 ابحث باسم الطالب أو الكود ST... أو المجموعة G..." class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
+                <input type="text" id="studentModalSearchInput" oninput="filterModalStudents(this.value)" placeholder="ابحث باسم الطالب أو الكود ST... أو المجموعة G..." class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none">
             </div>
             <div id="modalStudentsResultsList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-[220px] max-h-[50vh]">
                 <!-- Injected via JS -->
