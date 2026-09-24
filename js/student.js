@@ -411,9 +411,27 @@ async function loadStudentProfile() {
         const curCourseForBottom = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
         updateBottomMeetButtonState(curCourseForBottom.remaining_credits !== undefined ? curCourseForBottom.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0));
 
-        renderEnrolledCoursesTabs(enrolledCoursesList);
+        // Update Track counts in UI
+        const quranCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
+        const academicCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'courses');
+
+        const bAll = document.getElementById('badgeCountAllTracks');
+        const bQuran = document.getElementById('badgeCountQuranTrack');
+        const bCourses = document.getElementById('badgeCountCoursesTrack');
+
+        if (bAll) bAll.innerText = enrolledCoursesList.length;
+        if (bQuran) bQuran.innerText = quranCourses.length;
+        if (bCourses) bCourses.innerText = academicCourses.length;
+
+        // Auto-select best track for student
+        if (quranCourses.length === 0 && academicCourses.length > 0) {
+            currentPortalTrack = 'courses';
+        } else if (quranCourses.length > 0 && academicCourses.length === 0) {
+            currentPortalTrack = 'quran';
+        }
+
+        switchPortalTrack(currentPortalTrack);
         checkAndRenderQuranWidget(enrolledCoursesList);
-        loadSelectedCourseLectures();
         if (typeof syncZoomLiveStatusAll === 'function') {
             syncZoomLiveStatusAll();
         } else if (typeof renderGeneralTrackView === 'function') {
@@ -550,6 +568,194 @@ function checkAndRenderQuranWidget(courses) {
     loadNotifications(sId, sCode, plan);
 }
 
+let currentPortalTrack = 'all'; // 'all' | 'quran' | 'courses'
+
+function classifyCourseTrack(c) {
+    if (!c) return 'quran';
+    const cName = (c.course_name || c.name || c.title || '').trim().toLowerCase();
+    const tName = (c.track_name || '').trim().toLowerCase();
+
+    if (tName.includes('كورس') || tName.includes('لغات') || tName.includes('علوم') || tName.includes('برمج') || tName.includes('تأسيس') || tName.includes('مهارات') || tName.includes('أكاديم')) {
+        return 'courses';
+    }
+    if (tName.includes('قرآن') || tName.includes('قران') || tName.includes('تجويد') || tName.includes('تفسير') || tName.includes('حديث')) {
+        return 'quran';
+    }
+
+    const courseKeywords = [
+        'كورس', 'course', 'برمج', 'scratch', 'python', 'ai', 'ذكاء اصطناعي', 'روبوت', 'robot',
+        'إنجليز', 'انجليز', 'english', 'phonics', 'speakup', 'لغة', 'لغات',
+        'تأسيس', 'نور البيان', 'قراءة وكتابة', 'عربي', 'إملاء', 'املاء', 'خط',
+        'حاسب', 'كمبيوتر', 'فوتوشوب', 'تصميم', 'جرافيك',
+        'سلوك', 'تعديل سلوك', 'تنمية مهارات', 'صعوبات تعلم',
+        'عقيدة', 'فقه', 'أخلاق', 'سيرة', 'رياضيات', 'math', 'علوم', 'science'
+    ];
+
+    for (const kw of courseKeywords) {
+        if (cName.includes(kw)) {
+            return 'courses';
+        }
+    }
+
+    return 'quran';
+}
+window.classifyCourseTrack = classifyCourseTrack;
+
+function getCourseCategoryMeta(c) {
+    const cName = (c.course_name || c.name || c.title || '').trim().toLowerCase();
+    const trackType = classifyCourseTrack(c);
+
+    if (trackType === 'quran') {
+        return {
+            type: 'quran',
+            badgeText: '📖 مسار القرآن الكريم والتدبر',
+            badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+            icon: '📖'
+        };
+    }
+
+    if (cName.includes('برمج') || cName.includes('scratch') || cName.includes('python') || cName.includes('ai') || cName.includes('ذكاء')) {
+        return {
+            type: 'programming',
+            badgeText: '💻 برمجة وذكاء اصطناعي',
+            badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+            icon: '💻'
+        };
+    }
+
+    if (cName.includes('إنجليز') || cName.includes('انجليز') || cName.includes('english') || cName.includes('phonics') || cName.includes('لغة')) {
+        return {
+            type: 'languages',
+            badgeText: '🗣️ محادثة ولغة إنجليزية',
+            badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
+            icon: '🗣️'
+        };
+    }
+
+    if (cName.includes('تأسيس') || cName.includes('نور البيان') || cName.includes('عربي') || cName.includes('قراءة')) {
+        return {
+            type: 'foundation',
+            badgeText: '✍️ تأسيس ونور البيان',
+            badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
+            icon: '✍️'
+        };
+    }
+
+    if (cName.includes('عقيدة') || cName.includes('فقه') || cName.includes('سلوك') || cName.includes('أخلاق')) {
+        return {
+            type: 'values',
+            badgeText: '🕌 علوم شرعية وتعديل سلوك',
+            badgeClass: 'bg-teal-100 text-teal-800 border-teal-300',
+            icon: '🕌'
+        };
+    }
+
+    return {
+        type: 'courses',
+        badgeText: '🎓 كورس تدريبي معتمد',
+        badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+        icon: '🎓'
+    };
+}
+window.getCourseCategoryMeta = getCourseCategoryMeta;
+
+function getFilteredCoursesList() {
+    if (!Array.isArray(enrolledCoursesList) || enrolledCoursesList.length === 0) return [];
+    if (currentPortalTrack === 'quran') {
+        return enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
+    }
+    if (currentPortalTrack === 'courses') {
+        return enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'courses');
+    }
+    return enrolledCoursesList;
+}
+
+function switchPortalTrack(track) {
+    currentPortalTrack = track || 'all';
+
+    const tabAll = document.getElementById('tabBtnAllTracks');
+    const tabQuran = document.getElementById('tabBtnQuranTrack');
+    const tabCourses = document.getElementById('tabBtnCoursesTrack');
+
+    const activeClasses = ['bg-[#1F274B]', 'text-white', 'shadow-xs', 'font-black'];
+    const inactiveClasses = ['text-slate-600', 'hover:bg-slate-100', 'font-bold'];
+
+    [tabAll, tabQuran, tabCourses].forEach(t => {
+        if (!t) return;
+        activeClasses.forEach(c => t.classList.remove(c));
+        inactiveClasses.forEach(c => t.classList.remove(c));
+    });
+
+    if (currentPortalTrack === 'all' && tabAll) {
+        activeClasses.forEach(c => tabAll.classList.add(c));
+        if (tabQuran) inactiveClasses.forEach(c => tabQuran.classList.add(c));
+        if (tabCourses) inactiveClasses.forEach(c => tabCourses.classList.add(c));
+    } else if (currentPortalTrack === 'quran' && tabQuran) {
+        activeClasses.forEach(c => tabQuran.classList.add(c));
+        if (tabAll) inactiveClasses.forEach(c => tabAll.classList.add(c));
+        if (tabCourses) inactiveClasses.forEach(c => tabCourses.classList.add(c));
+    } else if (currentPortalTrack === 'courses' && tabCourses) {
+        activeClasses.forEach(c => tabCourses.classList.add(c));
+        if (tabAll) inactiveClasses.forEach(c => tabAll.classList.add(c));
+        if (tabQuran) inactiveClasses.forEach(c => tabQuran.classList.add(c));
+    }
+
+    const filterLabel = document.getElementById('activeTrackFilterLabel');
+    const sectionIcon = document.getElementById('enrolledSectionIcon');
+    const quranPlanSection = document.getElementById('quranPlanSection');
+
+    const quranCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
+    const academicCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'courses');
+
+    if (currentPortalTrack === 'quran') {
+        if (filterLabel) filterLabel.innerText = 'مسار القرآن الكريم والتدبر (' + quranCourses.length + ')';
+        if (sectionIcon) sectionIcon.innerText = '📖';
+        if (quranPlanSection) quranPlanSection.classList.remove('hidden');
+    } else if (currentPortalTrack === 'courses') {
+        if (filterLabel) filterLabel.innerText = 'الكورسات والبرامج التعليمية (' + academicCourses.length + ')';
+        if (sectionIcon) sectionIcon.innerText = '🎓';
+        if (quranPlanSection) quranPlanSection.classList.add('hidden'); // Hide Quran Plan when in courses mode!
+    } else {
+        if (filterLabel) filterLabel.innerText = 'جميع الاشتراكات والمسارات (' + enrolledCoursesList.length + ')';
+        if (sectionIcon) sectionIcon.innerText = '🌐';
+        if (quranPlanSection) {
+            if (quranCourses.length > 0) quranPlanSection.classList.remove('hidden');
+            else quranPlanSection.classList.add('hidden');
+        }
+    }
+
+    const filtered = getFilteredCoursesList();
+    if (filtered.length > 0) {
+        const stillSelected = filtered.find(c => c.course_name === selectedCourseName);
+        if (!stillSelected) {
+            selectedCourseName = filtered[0].course_name;
+        }
+    }
+
+    renderEnrolledCoursesTabs(filtered);
+    loadSelectedCourseLectures();
+}
+window.switchPortalTrack = switchPortalTrack;
+
+function requestCourseEnrollmentPrompt(courseName) {
+    const student = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const sName = student.name || document.getElementById('studentName')?.innerText || 'طالب بالأكاديمية';
+    const sCode = student.student_code || document.getElementById('studentCode')?.innerText || 'ST0000';
+    
+    const msg = `السلام عليكم ورحمة الله وبركاته،\nأرغب في تسجيل الطالب: (${sName}) - كود الطالب: (${sCode})\nفي (${courseName}).\nيرجى تزويدي بالمواعيد المتاحة وأسعار الباقات وتفاصيل الحصص.`;
+    const waUrl = 'https://wa.me/201118599442?text=' + encodeURIComponent(msg);
+    window.open(waUrl, '_blank');
+}
+window.requestCourseEnrollmentPrompt = requestCourseEnrollmentPrompt;
+
+function scrollToLectures() {
+    const el = document.getElementById('lecturesSection');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+window.scrollToLectures = scrollToLectures;
+
 function renderEnrolledCoursesTabs(courses) {
     const container = document.getElementById('enrolledCoursesTabs');
     if (!container) return;
@@ -564,11 +770,38 @@ function renderEnrolledCoursesTabs(courses) {
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const parentPhoneNum = curStudent.parent_phone || curStudent.phone || (activeSessUser && (activeSessUser.parent_phone || activeSessUser.phone)) || 'غير مسجل';
 
-    const safeCourses = (Array.isArray(courses) && courses.length > 0) ? courses : [];
+    const safeCourses = (Array.isArray(courses)) ? courses : [];
 
+    // Empty state when filtered courses is empty
     if (safeCourses.length === 0) {
-        container.innerHTML = '<div class="text-center py-8 text-slate-400"><p class="font-bold">جاري تحميل بيانات الكورسات...</p></div>';
-        return;
+        if (currentPortalTrack === 'courses') {
+            container.innerHTML = `
+                <div class="col-span-full bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 border-2 border-indigo-200/90 rounded-2xl sm:rounded-3xl p-6 text-center space-y-3.5 shadow-sm">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-3xl shadow-xs">
+                        🎓
+                    </div>
+                    <div>
+                        <h4 class="text-base sm:text-lg font-black text-slate-900">أنت لست مسجلاً في مسار الكورسات بعد!</h4>
+                        <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto mt-1 leading-relaxed">
+                            حسابك مسجل حالياً في مسار القرآن الكريم والتدبر. يمكنك الانضمام فوراً لباقة كورسات الأكاديمية (البرمجة والذكاء الاصطناعي، اللغات والمحادثة، تأسيس نور البيان، والعقيدة وبناء الشخصية).
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-center gap-2 pt-1 flex-wrap">
+                        <a href="#exploreAcademyCoursesSection" class="bg-[#1F274B] hover:bg-slate-900 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+                            <span>✨</span>
+                            <span>تصفح باقة الكورسات المتاحة أدناه</span>
+                        </a>
+                        <button onclick="switchPortalTrack('quran')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">
+                            ← العودة لمسار القرآن الكريم
+                        </button>
+                    </div>
+                </div>
+            `;
+            return;
+        } else {
+            container.innerHTML = '<div class="text-center py-8 text-slate-400 col-span-full font-bold text-xs">لا توجد مسارات مسجلة لهذا القسم حالياً.</div>';
+            return;
+        }
     }
 
     safeCourses.forEach(c => {
@@ -577,22 +810,19 @@ function renderEnrolledCoursesTabs(courses) {
         const isSelected = (selectedCourseName ? (cName === selectedCourseName) : true);
         const card = document.createElement('div');
         
-        const activeClass = isSelected 
-            ? 'border-2 border-emerald-600 bg-emerald-50/70 shadow-md transform scale-[1.01]' 
-            : 'border border-slate-200 bg-white hover:border-slate-300 shadow-sm';
-            
-        card.className = 'p-4 rounded-2xl cursor-pointer transition space-y-3 ' + activeClass;
-        card.onclick = () => selectCourseTab(cName);
-        
-        const teacherName = c.teacher_name || '';
-        const groupId = c.group_id || curStudent.group_id || '';
+        const meta = getCourseCategoryMeta(c);
+        const teacherName = c.teacher_name || 'معلم معتمد';
+        const groupId = c.group_id || curStudent.group_id || 'G000';
         const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 0;
-        const totalUnlocked = (c.total_lectures_unlocked !== undefined && c.total_lectures_unlocked >= remCredits) ? c.total_lectures_unlocked : remCredits;
+        const presentCount = (c.present_count !== undefined) ? c.present_count : 0;
+        const totalUnlocked = (c.total_lectures_unlocked !== undefined && c.total_lectures_unlocked >= remCredits) ? c.total_lectures_unlocked : (remCredits + presentCount);
+        const totalToShow = Math.max(1, totalUnlocked);
+        const progressPercent = Math.min(100, Math.round((presentCount / totalToShow) * 100)) || 0;
+
         const daysText = c.subscription_days || '';
         let rawTimeVal = c.lecture_time || '';
         let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
 
-        
         const statusText = c.account_status || curStudent.account_status || 'نشط';
         const statusColor = (statusText === 'نشط' || statusText.includes('ساري')) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
 
@@ -617,44 +847,88 @@ function renderEnrolledCoursesTabs(courses) {
             }
         }
 
+        const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+            ? window.getGroupMeetUrl(groupId, c.teacher_id || teacherName)
+            : (c.google_meet_url || 'https://meet.google.com');
+
+        const activeClass = isSelected 
+            ? 'border-2 border-indigo-600 bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 shadow-md ring-2 ring-indigo-200/80 transform scale-[1.005]' 
+            : 'border-2 border-slate-200/90 bg-white hover:border-indigo-300 hover:shadow-sm';
+
+        card.className = 'p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition space-y-3 relative ' + activeClass;
+        card.onclick = () => selectCourseTab(cName);
+
+        const teacherInitial = teacherName ? teacherName.trim().charAt(0) : 'م';
+
         card.innerHTML = `
             <div class="flex justify-between items-start flex-wrap gap-2">
-                <div>
+                <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span class="bg-slate-900 text-amber-300 font-mono text-[11px] font-extrabold px-2.5 py-0.5 rounded-md border border-slate-700">معرف الجروب: ${groupId}</span>
-                        <span class="${statusColor} border font-black px-2.5 py-0.5 rounded-full text-[10px]">🟢 حالة الحساب: ${statusText}</span>
+                        <span class="${meta.badgeClass} border font-black px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">${meta.badgeText}</span>
+                        <span class="bg-slate-900 text-amber-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-700">ID: ${groupId}</span>
+                        <span class="${statusColor} border font-black px-2 py-0.5 rounded-full text-[10px]">${statusText}</span>
+                        ${isSelected ? '<span class="bg-indigo-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-2xs">✓ النشط حالياً</span>' : ''}
                     </div>
-                    <h4 class="font-black text-lg text-slate-900 flex items-center gap-2">
-                        <span>${cName}</span>
+                    <h4 class="font-black text-base sm:text-lg text-slate-900 leading-tight">
+                        ${cName}
                     </h4>
-                    <p class="text-xs font-black text-blue-900 mt-1 flex items-center gap-1">
-                        <span>👨‍🏫 المعلم المشرف:</span>
-                        <span class="underline decoration-blue-400">أ. ${teacherName}</span>
-                    </p>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-900 font-black text-[11px] flex items-center justify-center shrink-0 border border-indigo-200">
+                            ${teacherInitial}
+                        </div>
+                        <div class="text-xs">
+                            <span class="font-extrabold text-slate-800">أ. ${teacherName}</span>
+                            <span class="text-slate-400 text-[10px] mr-1">• مدرب معتمد بالأكاديمية</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-slate-100/90 p-3 rounded-xl text-xs border border-slate-200/80 space-y-2">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-800 font-bold">
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-slate-500">⏰ موعد المحاضرة:</span>
-                        <strong class="text-blue-900 font-extrabold">${timeText}</strong>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-slate-500">⏱️ مدة السيشن:</span>
-                        <strong class="text-emerald-800 font-extrabold">${durationText}</strong>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-slate-500">📅 أيام الاشتراك:</span>
-                        <strong class="text-slate-950 font-extrabold">${daysText}</strong>
-                    </div>
-
+            <!-- Real-time Progress Bar (EasyT / Yanfaa style) -->
+            <div class="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-600 font-bold">نسبة إنجاز المنهج:</span>
+                    <span class="font-black text-indigo-900 font-mono">${progressPercent}%</span>
+                </div>
+                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                    <span>حضور مؤكد: <strong class="text-emerald-700 font-bold">${presentCount} حصص</strong></span>
+                    <span>المتبقي بالرصيد: <strong class="text-blue-900 font-bold">${remCredits} حصص</strong></span>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center text-xs pt-1 text-slate-600 font-semibold">
-                <span>المحاضرات المفعلة بالسيستم: <strong class="text-blue-900">${totalUnlocked} / ${totalUnlocked}</strong></span>
-                <span>حالة الحضور والمتابعة: <strong class="text-emerald-700">100% منتظم</strong></span>
+            <!-- Schedule & Timings Grid -->
+            <div class="bg-slate-100/70 p-2.5 rounded-xl text-xs border border-slate-200/80">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-slate-800 font-bold">
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">⏰ الموعد</span>
+                        <strong class="text-blue-900 truncate block text-[11px] sm:text-xs">${timeText || 'محدد مع المعلم'}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">⏱️ مدة السيشن</span>
+                        <strong class="text-emerald-800 truncate block text-[11px] sm:text-xs">${durationText}</strong>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <span class="text-slate-400 block text-[10px]">📅 أيام الاشتراك</span>
+                        <strong class="text-slate-950 truncate block text-[11px] sm:text-xs">${daysText || 'أسبوعياً'}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Toolbar Buttons (EdTech Level) -->
+            <div class="flex items-center gap-1.5 pt-1">
+                <a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-black text-xs py-2.5 px-2 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    <span>دخول القاعة الذكية</span>
+                </a>
+                <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
+                    <span>📚 المنهج والمحاضرات</span>
+                </button>
+                <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-2.5 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
+                    <span>📝</span>
+                </button>
             </div>
         `;
         container.appendChild(card);
@@ -663,7 +937,7 @@ function renderEnrolledCoursesTabs(courses) {
 
 function selectCourseTab(cName) {
     selectedCourseName = cName;
-    renderEnrolledCoursesTabs(enrolledCoursesList);
+    renderEnrolledCoursesTabs(getFilteredCoursesList());
     loadSelectedCourseLectures();
 }
 

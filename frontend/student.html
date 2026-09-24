@@ -220,6 +220,35 @@
             </div>
         </section>
 
+        <!-- Track Switcher: Dual-Track Segmented Controller (Quran vs Academic Courses) -->
+        <section id="dualTrackSwitcherSection" class="bg-white border-2 border-indigo-100 rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 shadow-sm">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                <div class="flex items-center gap-2 px-1">
+                    <span class="text-xs font-black text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+                        <span>🎯</span>
+                        <span>المسار التعليمي المعروض:</span>
+                    </span>
+                    <span id="activeTrackNoticeBadge" class="hidden sm:inline-block bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-indigo-200">
+                        تصفح سلس بين مساراتك
+                    </span>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto flex-1 sm:justify-end">
+                    <button type="button" id="tabBtnAllTracks" onclick="switchPortalTrack('all')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
+                        <span>🌐 الكل</span>
+                        <span id="badgeCountAllTracks" class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                    </button>
+                    <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                        <span>📖 مسار القرآن والتدبر</span>
+                        <span id="badgeCountQuranTrack" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                    </button>
+                    <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                        <span>🎓 الكورسات والبرامج التعليمية</span>
+                        <span id="badgeCountCoursesTrack" class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- Quran Progress & Revision Plan Card (خطة الحفظ والمراجعة المقررة للطالب) -->
         <section id="quranPlanSection" class="bg-gradient-to-r from-emerald-900 via-teal-900 to-[#1F274B] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg border border-emerald-500/30 relative overflow-hidden">
             <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -703,20 +732,32 @@
             </div>
         </section>
 
-        <!-- 2. Enrolled Courses Tabs (Interactive Course Switcher for Student) -->
-        <section class="space-y-3">
+        <!-- 2. Enrolled Courses & Learning Tracks (Interactive EdTech Dashboard) -->
+        <section class="space-y-3" id="enrolledCoursesMainSection">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <h3 class="text-sm font-extrabold text-slate-900">
-                    الكورسات والمسارات المشترك بها الطالب:
-                </h3>
-                <button onclick="openPaymobModal()" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 active:scale-[0.98]">
-                    <span>⚡</span>
-                    <span>شحن وتجديد الاشتراك (جروب / برايفت)</span>
-                </button>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-1.5" id="enrolledCoursesHeaderTitle">
+                        <span id="enrolledSectionIcon">🎓</span>
+                        <span>المسارات والكورسات المشترك بها:</span>
+                    </h3>
+                    <span id="activeTrackFilterLabel" class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-indigo-200">
+                        جميع الاشتراكات
+                    </span>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                    <a href="#exploreAcademyCoursesSection" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl border border-slate-200 transition flex items-center gap-1">
+                        <span>✨</span>
+                        <span>استكشف باقة الكورسات</span>
+                    </a>
+                    <button onclick="openPaymobModal()" class="flex-1 sm:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                        <span>⚡</span>
+                        <span>شحن وتجديد الرصيد</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Dynamic Courses Pills -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="enrolledCoursesTabs">
+            <!-- Dynamic Courses Grid (EasyT, Yanfaa, Almentor Style Cards) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4" id="enrolledCoursesTabs">
                 <div class="p-6 rounded-2xl border border-slate-200 bg-slate-50/80 text-center py-6 text-slate-400 font-bold text-xs col-span-full">
                     <div class="animate-spin text-2xl mb-2">⏳</div>
                     جاري تحميل بيانات الكورسات والمسارات...
@@ -747,8 +788,6 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>اختبارات وتدريبات</span>
                 </button>
-                
-
             </div>
         </section>
 
@@ -782,6 +821,138 @@
                 </div>
             </div>
 
+        </section>
+
+        <!-- 4. Explore Academy Courses Catalog (استكشف باقة كورسات الأكاديمية - على غرار منصات EasyT, Yanfaa, Almentor) -->
+        <section id="exploreAcademyCoursesSection" class="bg-gradient-to-br from-slate-900 via-[#1F274B] to-indigo-950 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border-2 border-indigo-500/30 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-white/10">
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">باقة البرامج المعتمدة</span>
+                        <h3 class="text-sm sm:text-base font-black text-white">استكشف باقة كورسات أكاديمية منير</h3>
+                    </div>
+                    <p class="text-[11px] sm:text-xs text-indigo-200">برامج تعليمية تفاعلية مصممة خصيصاً لتطوير مهارات طفلك العلمية واللغوية والتقنية</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                    <a href="students_courses_onboarding_template.xlsx" download class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5 shrink-0" title="تحميل شيت التسجيل بصيغة Excel">
+                        <span>📥</span>
+                        <span>شيت التسجيل (Excel)</span>
+                    </a>
+                    <a href="https://wa.me/201118599442?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D9%81%D9%8A%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D9%83%D9%88%D8%B1%D8%B3%D8%A7%D8%AA%20%D8%A7%D9%84%D8%A3%D9%83%D8%A7%D8%AF%D9%8A%D9%85%D9%8A%D8%A9" target="_blank" rel="noopener noreferrer" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md shrink-0">
+                        <span>💬</span>
+                        <span>استشارة تسجيل</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Courses Grid (4 Top Academy Courses) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                
+                <!-- Course 1: Programming & AI -->
+                <div class="bg-white/5 hover:bg-white/10 border border-indigo-400/30 rounded-2xl p-4 transition space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="bg-purple-500/20 text-purple-300 border border-purple-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full">💻 تكنولوجيا وبرمجة</span>
+                            <span class="text-amber-300 font-mono text-[11px] font-bold">السن: 8 - 16 سنة</span>
+                        </div>
+                        <h4 class="text-sm sm:text-base font-black text-white">كورس البرمجة والذكاء الاصطناعي للأطفال (Scratch & Python)</h4>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                            تطوير التفكير المنطقي، برمجة الألعاب التفاعلية، مدخل للذكاء الاصطناعي، ومشاريع برمجية حقيقية يبتكرها الطالب بنفسه.
+                        </p>
+                        <div class="mt-2.5 flex items-center gap-2 text-[11px] text-indigo-200">
+                            <span>⏱️ 8 حصص شهرياً</span>
+                            <span>•</span>
+                            <span>👥 مجموعات تفاعلية صغيرة</span>
+                            <span>•</span>
+                            <span>📜 شهادة معتمدة</span>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                        <button onclick="requestCourseEnrollmentPrompt('كورس البرمجة والذكاء الاصطناعي')" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white font-black text-xs py-2.5 rounded-xl shadow transition text-center cursor-pointer">
+                            طلب الانضمام للكورس عبر واتساب
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Course 2: Arabic Foundation & Nour Al-Bayan -->
+                <div class="bg-white/5 hover:bg-white/10 border border-amber-400/30 rounded-2xl p-4 transition space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full">✍️ تأسيس وقراءة</span>
+                            <span class="text-amber-300 font-mono text-[11px] font-bold">السن: 5 - 12 سنة</span>
+                        </div>
+                        <h4 class="text-sm sm:text-base font-black text-white">كورس تأسيس القراءة والكتابة ونور البيان (اللغة العربية)</h4>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                            معالجة صعوبات القراءة، إتقان أصوات الحركات والمدود، التهجي السلس، وقراءة القرآن الكريم بالرسم العثماني بطلاقة.
+                        </p>
+                        <div class="mt-2.5 flex items-center gap-2 text-[11px] text-amber-200">
+                            <span>⏱️ 8 حصص شهرياً</span>
+                            <span>•</span>
+                            <span>🎯 تأسيس من الصفر للاحتراف</span>
+                            <span>•</span>
+                            <span>👩‍🏫 معلمات متخصصات</span>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                        <button onclick="requestCourseEnrollmentPrompt('كورس تأسيس القراءة والكتابة ونور البيان')" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-black text-xs py-2.5 rounded-xl shadow transition text-center cursor-pointer">
+                            طلب الانضمام للكورس عبر واتساب
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Course 3: English Conversation & Phonics -->
+                <div class="bg-white/5 hover:bg-white/10 border border-blue-400/30 rounded-2xl p-4 transition space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="bg-blue-500/20 text-blue-300 border border-blue-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full">🗣️ لغات وتحدث</span>
+                            <span class="text-amber-300 font-mono text-[11px] font-bold">السن: 6 - 15 سنة</span>
+                        </div>
+                        <h4 class="text-sm sm:text-base font-black text-white">كورس المحادثة واللغة الإنجليزية للأطفال (Phonics & SpeakUp)</h4>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                            كسر حاجز الخوف من التحدث، إتقان الفونكس والنطق البريطاني/الأمريكي، محادثات حية ومواقف واقعية تفاعلية ممتعة.
+                        </p>
+                        <div class="mt-2.5 flex items-center gap-2 text-[11px] text-blue-200">
+                            <span>⏱️ 8 حصص شهرياً</span>
+                            <span>•</span>
+                            <span>🎮 ألعاب وأنشطة تفاعلية</span>
+                            <span>•</span>
+                            <span>🌟 تقييم مستمر</span>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                        <button onclick="requestCourseEnrollmentPrompt('كورس المحادثة واللغة الإنجليزية')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs py-2.5 rounded-xl shadow transition text-center cursor-pointer">
+                            طلب الانضمام للكورس عبر واتساب
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Course 4: Islamic Values & Character Building -->
+                <div class="bg-white/5 hover:bg-white/10 border border-emerald-400/30 rounded-2xl p-4 transition space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full">🕌 علوم شرعية وسلوك</span>
+                            <span class="text-amber-300 font-mono text-[11px] font-bold">السن: 7 - 16 سنة</span>
+                        </div>
+                        <h4 class="text-sm sm:text-base font-black text-white">كورس العقيدة والفقه وتعديل السلوك وبناء الشخصية</h4>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                            ترسيخ المفاهيم الإيمانية، فقه العبادات (الصلاة والطهارة) عملياً، السيرة النبوية، وغرس القيم التربوية والسلوكيات القويمة.
+                        </p>
+                        <div class="mt-2.5 flex items-center gap-2 text-[11px] text-emerald-200">
+                            <span>⏱️ 4 إلى 8 حصص</span>
+                            <span>•</span>
+                            <span>🌱 تطبيق عملي للأخلاق</span>
+                            <span>•</span>
+                            <span>👨‍🏫 نخبة من التربويين</span>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                        <button onclick="requestCourseEnrollmentPrompt('كورس العقيدة والفقه وتعديل السلوك')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-black text-xs py-2.5 rounded-xl shadow transition text-center cursor-pointer">
+                            طلب الانضمام للكورس عبر واتساب
+                        </button>
+                    </div>
+                </div>
+
+            </div>
         </section>
 
 
