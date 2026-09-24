@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="shortcut icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/custom.css?v=20260924_v2">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script>
         (function() {
@@ -40,29 +40,62 @@
 </head>
 <body class="bg-slate-50 text-slate-800 pb-28 sm:pb-20">
 
-    <!-- Top Navigation -->
-    <header class="bg-white border-b border-slate-200 py-2.5 sm:py-3 px-3 sm:px-4 sticky top-0 z-40 shadow-sm">
-        <div class="max-w-4xl mx-auto flex justify-between items-center gap-2">
-            <div class="flex items-center gap-2 min-w-0 flex-shrink-0">
-                <a href="index.html" class="flex items-center shrink-0"><img src="images/monir_logo_trans.png" alt="أكاديمية منير" class="h-8 w-auto object-contain"></a>
+    <!-- Global SVG Symbol Icons (No decorative emojis, clean modern EdTech lines) -->
+    <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+        <symbol id="book" viewBox="0 0 24 24"><path d="M12 6c-3-3-7-2-9-2v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3 0-6-1-9 2v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m8 14-2 7 6-3 6 3-2-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21v-2a8 8 0 0 1 16 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+        <symbol id="edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7a2 2 0 0 0-4-4L5 15l-1 5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="qr" viewBox="0 0 24 24"><path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h3v3h-3v-3zm3-3h3v3h-3v-3zm-3-3h3v3h-3v-3zm6 6h-3v3h3v-3z" fill="currentColor"/></symbol>
+    </svg>
+
+    <!-- Top Navigation (Reference: Topbar + Breadcrumb + User Profile) -->
+    <header class="bg-white border-b border-slate-200 py-2.5 sm:py-3 px-3 sm:px-6 sticky top-0 z-40 shadow-xs">
+        <div class="max-w-6xl mx-auto flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0 flex-shrink-0">
+                <a href="index.html" class="flex items-center shrink-0">
+                    <img src="images/monir_logo_trans.png" alt="أكاديمية منير" class="h-8 sm:h-9 w-auto object-contain">
+                </a>
+                <div class="hidden sm:block border-r border-slate-200 h-6"></div>
                 <div class="min-w-0">
-                    <h1 class="font-bold text-xs sm:text-sm text-slate-900 leading-tight whitespace-nowrap">بوابة الطالب<span class="hidden sm:inline"> وولي الأمر</span></h1>
-                    <p class="text-[10px] sm:text-[11px] text-slate-500 truncate" id="headerCourseSubtitle">أكاديمية منير</p>
+                    <div class="text-xs text-slate-500 font-semibold hidden sm:block">
+                        مساحتي التعليمية &nbsp;/&nbsp; <b class="text-slate-900 font-bold">حسابي الشخصي</b>
+                    </div>
+                    <h1 class="font-black text-xs sm:text-sm text-slate-900 leading-tight sm:hidden whitespace-nowrap">بوابة الطالب</h1>
+                    <p class="text-[10px] text-slate-500 truncate sm:hidden" id="headerCourseSubtitle">أكاديمية منير</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <!-- Mini User Info (Reference: topuser) -->
+                <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-xl">
+                    <span class="text-xs font-bold text-slate-700" id="topUserName"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script></span>
+                    <div class="w-7 h-7 rounded-full bg-emerald-100 text-[#1F274B] font-black text-xs flex items-center justify-center border border-emerald-200 shrink-0" id="topUserInitials">
+                        <script>(function(){
+                            const u = window.__PRELOADED_USER__;
+                            const name = (u && (u.full_name || u.username)) || 'ط';
+                            const parts = name.trim().split(/\s+/);
+                            document.write(parts.length >= 2 ? (parts[0][0] + ' ' + parts[1][0]) : (parts[0] ? parts[0][0] : 'ط'));
+                        })();</script>
+                    </div>
+                </div>
+
                 <!-- Support & Tickets Button -->
-                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-2 sm:px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الدعم والشكاوى">
-                    <span class="hidden sm:inline">الدعم والشكاوى</span>
-                    <span class="sm:hidden text-[11px]">الدعم</span>
+                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-2.5 sm:px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1.5 shrink-0" title="الدعم والشكاوى">
+                    <svg class="w-3.5 h-3.5 text-slate-500"><use href="#user"/></svg>
+                    <span class="hidden sm:inline">الدعم</span>
                 </button>
 
                 <!-- Notifications Bell -->
                 <button onclick="toggleNotifications()" class="relative p-1.5 sm:p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الإشعارات">
-                    <span class="hidden sm:inline text-xs font-bold">الإشعارات</span>
+                    <svg class="w-4 h-4 text-slate-600"><use href="#calendar"/></svg>
                     <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">1</span>
                 </button>
+
+                <!-- Auth/Logout Button -->
                 <a href="login.html" id="studentAuthBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 sm:px-2.5 py-1.5 rounded-lg font-bold transition border border-slate-200 flex items-center gap-1 shrink-0"><script>(function(){const u=window.__PRELOADED_USER__;if(u){const name=(u.full_name?u.full_name.split(' ')[0]:u.username);document.write('<span class="hidden sm:inline">تسجيل الخروج ('+name+')</span><span class="sm:hidden text-[11px]">خروج</span>');document.currentScript.parentElement.className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2 sm:px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 shrink-0";document.currentScript.parentElement.title="تسجيل الخروج ("+name+")";}else{document.write('<span class="text-[11px] sm:text-xs">دخول</span>');}})();</script></a>
             </div>
         </div>
@@ -70,7 +103,7 @@
 
     <!-- Admin Supervisor Toolbar for Students (يظهر فقط للإدارة أو المعلم عند استعراض صفحات الطلاب) -->
     <div id="adminStudentSupervisorBar" class="hidden bg-gradient-to-r from-indigo-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-indigo-500/60 py-1.5 sm:py-2 px-3 sm:px-4 shadow-md sticky top-[49px] sm:top-[57px] z-30">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-3 text-xs">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-3 text-xs">
             <!-- Row 1: Status Badge & Quick Navigation Controls -->
             <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5">
@@ -102,7 +135,7 @@
     </div>
 
     <!-- Main Container -->
-    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-6 space-y-3.5 sm:space-y-6">
+    <main class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
         <!-- Top Notification Banner -->
         <div id="topNotificationBanner" class="hidden bg-amber-50 border-r-4 border-amber-500 rounded-xl p-3 sm:p-4 shadow-sm flex items-start justify-between gap-3 text-xs">
@@ -131,684 +164,906 @@
             </a>
         </div>
 
-        <!-- 1. Digital Student ID Smart Card -->
-        <section class="student-id-card p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg relative overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 relative z-10">
-                <div class="w-full sm:w-auto">
-                    <!-- Top Badges -->
-                    <div class="flex items-center gap-2 mb-2 flex-wrap">
-                        <span class="bg-[#57BA9E] text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">كارت الطالب الرقمي</span>
-                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full" id="accountStatusBadge">اشتراك ساري (نشط)</span>
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 1. Modern EdTech Profile Card (Reference: .profile + .tabs)        -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <section class="profile-card">
+            <!-- Cover with geometric concentric arcs & motivational quote -->
+            <div class="profile-cover">
+                <div class="profile-cover-text">
+                    رحلتك في طلب العلم والقرآن تبدأ بخطوة • ومستقبلك تصنعه أنت
+                </div>
+            </div>
+
+            <!-- Profile Body with Avatar & Metadata -->
+            <div class="profile-body">
+                <div class="profile-avatar initials" id="profileAvatarInitials">
+                    <script>(function(){
+                        const u = window.__PRELOADED_USER__;
+                        const name = (u && (u.full_name || u.username)) || 'طالب';
+                        const parts = name.trim().split(/\s+/);
+                        document.write(parts.length >= 2 ? (parts[0][0] + ' ' + parts[1][0]) : (parts[0] ? parts[0][0] : 'ط'));
+                    })();</script>
+                </div>
+
+                <div class="flex-1 min-w-0 pt-2 sm:pt-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h2 class="text-lg sm:text-2xl font-black text-slate-900 leading-tight flex items-center gap-2">
+                                <span id="studentName"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script></span>
+                                <span class="verified-badge" title="حساب متدرب موثق">✓</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5" id="studentTrackSubtitle">
+                                متدرب في المسار التعليمي المعتمد بالأكاديمية
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="bg-emerald-500/15 text-emerald-800 border border-emerald-400/30 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full" id="accountStatusBadge">
+                                اشتراك ساري (نشط)
+                            </span>
+                            <button onclick="openPaymobModal()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                <span>تجديد الباقة</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Student Name -->
-                    <h2 class="text-lg sm:text-2xl font-black mb-0.5 text-white leading-tight flex items-center gap-2" id="studentName">
-                        <script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script>
-                    </h2>
-                    <div class="flex items-center gap-2 flex-wrap mt-1">
-                        <p class="text-[11px] sm:text-xs text-blue-200 font-medium" id="studentDetails">السن: 9 سنوات</p>
-                        <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full cursor-pointer transition shadow-2xs" title="انقر لتعديل نوع الطالب (ولد / بنت)">
-                            <span id="studentGenderEmoji" class="hidden"></span>
-                            <span id="studentGenderLabel">طالب (ولد)</span>
-                            <span class="text-[9px] text-amber-300 underline font-normal mr-0.5">تغيير</span>
+                    <!-- Metadata Row -->
+                    <div class="flex items-center gap-3 sm:gap-5 flex-wrap mt-3 text-xs text-slate-600">
+                        <span class="flex items-center gap-1">
+                            <span class="text-slate-400 font-medium">رقم المتدرب:</span>
+                            <bdi class="font-mono font-black text-[#1F274B]" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></bdi>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="text-slate-400 font-medium">السن:</span>
+                            <strong class="text-slate-800 font-bold" id="studentDetails">9 سنوات</strong>
+                            <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-[10px] font-black px-2 py-0.5 rounded-md cursor-pointer transition mr-1" title="انقر لتعديل نوع الطالب">
+                                <span id="studentGenderEmoji" class="hidden"></span>
+                                <span id="studentGenderLabel">طالب (ولد)</span>
+                                <span class="text-[9px] text-blue-600 underline mr-0.5">تعديل</span>
+                            </button>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="text-slate-400 font-medium">ولي الأمر:</span>
+                            <strong class="text-slate-800 font-bold" id="parentName">أ. ولي الأمر المعتمد</strong>
+                        </span>
+                        <span class="hidden md:flex items-center gap-1">
+                            <span class="text-slate-400 font-medium">الهاتف:</span>
+                            <strong class="font-mono font-bold text-slate-700" id="parentPhone">011...</strong>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="text-slate-400 font-medium">المسارات:</span>
+                            <strong class="text-emerald-700 font-bold" id="enrolledCoursesCount">1 مسار تدريبي</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Navigation Tabs (Reference: .tabs) -->
+            <div class="profile-tabs" role="tablist" aria-label="أقسام الحساب">
+                <button class="profile-tab active" role="tab" aria-selected="true" data-view="overview" onclick="setPortalView('overview')">
+                    <svg class="w-4 h-4 inline ml-1.5"><use href="#grid"/></svg>
+                    نظرة عامة
+                </button>
+                <button class="profile-tab" role="tab" aria-selected="false" data-view="courses" onclick="setPortalView('courses')">
+                    <svg class="w-4 h-4 inline ml-1.5"><use href="#book"/></svg>
+                    دوراتي التدريبية
+                </button>
+                <button class="profile-tab" role="tab" aria-selected="false" data-view="schedule" onclick="setPortalView('schedule')">
+                    <svg class="w-4 h-4 inline ml-1.5"><use href="#calendar"/></svg>
+                    جدول المحاضرات والبث
+                </button>
+                <button class="profile-tab" role="tab" aria-selected="false" data-view="certificates" onclick="setPortalView('certificates')">
+                    <svg class="w-4 h-4 inline ml-1.5"><use href="#award"/></svg>
+                    الشهادات والإنجازات
+                </button>
+                <button class="profile-tab" role="tab" aria-selected="false" data-view="details" onclick="setPortalView('details')">
+                    <svg class="w-4 h-4 inline ml-1.5"><use href="#user"/></svg>
+                    البيانات الشخصية
+                </button>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 2. KPI Stats Summary Grid (Reference: .stats)                      -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <section class="kpi-stats-grid" id="portalStatsOverview">
+            <!-- Stat 1: دورات ومسارات مسجّلة -->
+            <div class="kpi-stat-card">
+                <div class="kpi-stat-icon">
+                    <svg><use href="#book"/></svg>
+                </div>
+                <div>
+                    <b class="text-xl sm:text-2xl font-black text-slate-900 block leading-tight" id="statEnrolledCourses">1</b>
+                    <span class="text-xs text-slate-500 font-bold">مسار مسجّل</span>
+                </div>
+            </div>
+
+            <!-- Stat 2: حصص الحضور المؤكدة -->
+            <div class="kpi-stat-card">
+                <div class="kpi-stat-icon" style="background:#eaf0f8;color:#2D396E">
+                    <svg><use href="#clock"/></svg>
+                </div>
+                <div>
+                    <b class="text-xl sm:text-2xl font-black text-emerald-600 block leading-tight" id="presentCount">0</b>
+                    <span class="text-xs text-slate-500 font-bold">حصة حضور مؤكدة</span>
+                </div>
+            </div>
+
+            <!-- Stat 3: رصيد الحصص المتاح -->
+            <div class="kpi-stat-card">
+                <div class="kpi-stat-icon" style="background:#fff4e4;color:#b68d49">
+                    <svg><use href="#award"/></svg>
+                </div>
+                <div>
+                    <b class="text-xl sm:text-2xl font-black text-blue-900 block leading-tight" id="statRemainingCredits">8</b>
+                    <span class="text-xs text-slate-500 font-bold">حصص متبقية بالرصيد</span>
+                </div>
+            </div>
+
+            <!-- Stat 4: نسبة الانضباط والحضور -->
+            <div class="kpi-stat-card">
+                <div class="kpi-stat-icon" style="background:#edf6f2;color:#236E58">
+                    <svg><use href="#calendar"/></svg>
+                </div>
+                <div>
+                    <b class="text-xl sm:text-2xl font-black text-indigo-950 block leading-tight" id="statAttendanceRate">100<span class="text-sm font-bold text-slate-500">%</span></b>
+                    <span class="text-xs text-slate-500 font-bold">نسبة الحضور والالتزام</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hidden elements for backward JS compatibility -->
+        <span id="absentCount" class="hidden">0</span>
+        <span id="renewalCountBadge" class="hidden">المرحلة الأولى</span>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 3. Responsive 2-Column Dashboard Grid (Reference: .columns)        -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start" id="portalMainColumnsGrid">
+
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <!-- Main Content Area: Columns 1-8                                -->
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <div class="lg:col-span-8 space-y-5 sm:space-y-6">
+
+                <!-- Track Switcher: Dual-Track Segmented Controller -->
+                <section id="dualTrackSwitcherSection" class="bg-white border-2 border-indigo-100 rounded-2xl p-2 sm:p-2.5 shadow-2xs">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 px-1">
+                            <span class="text-xs font-black text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+                                <span>المسار التعليمي المعروض:</span>
+                            </span>
+                            <span id="activeTrackNoticeBadge" class="hidden sm:inline-block bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-indigo-200">
+                                تصفح سلس بين مساراتك
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 overflow-x-auto flex-1 sm:justify-end">
+                            <button type="button" id="tabBtnAllTracks" onclick="switchPortalTrack('all')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
+                                <span>الكل</span>
+                                <span id="badgeCountAllTracks" class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                            </button>
+                            <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                                <span>مسار القرآن والتدبر</span>
+                                <span id="badgeCountQuranTrack" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
+                            </button>
+                            <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
+                                <span>الكورسات والبرامج التعليمية</span>
+                                <span id="badgeCountCoursesTrack" class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Enrolled Courses & In-Progress Learning (Reference: كمّل من مكان ما وقفت) -->
+                <section class="space-y-3" id="enrolledCoursesMainSection">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900" id="enrolledCoursesHeaderTitle">
+                                كمّل من مكان ما وقفت
+                            </h3>
+                            <p class="text-xs text-slate-500">تابع دروسك، ادخل القاعة الذكية، واطلع على نسبة إنجاز المنهج</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="activeTrackFilterLabel" class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-indigo-200">
+                                جميع الاشتراكات
+                            </span>
+                            <button onclick="openPaymobModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs">
+                                شحن وتجديد
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Courses Grid (rendered by student.js) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4" id="enrolledCoursesTabs">
+                        <div class="p-6 rounded-2xl border border-slate-200 bg-slate-50/80 text-center py-6 text-slate-400 font-bold text-xs col-span-full">
+                            <div class="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            جاري تحميل بيانات الكورسات والمسارات...
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quran Progress & Revision Plan Card (خطة الحفظ والمراجعة المقررة للطالب) -->
+                <section id="quranPlanSection" class="bg-gradient-to-r from-emerald-900 via-teal-900 to-[#1F274B] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg border border-emerald-500/30 relative overflow-hidden">
+                    <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="relative z-10 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                            <div>
+                                <h3 class="text-xs sm:text-sm font-black text-white">خطة الحفظ والمراجعة القرآنية</h3>
+                                <p class="text-[10px] text-emerald-200/80">الورد المعتمد للطالب لمتابعته في البيت والحلقة</p>
+                            </div>
+                            <span id="quranPlanUpdatedBadge" class="text-[10px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">معتمد من المعلم</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                            <!-- 1. الحفظ الجديد -->
+                            <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-emerald-400/30">
+                                <div class="flex items-center gap-1.5 mb-1 text-emerald-300 font-extrabold text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>الحفظ الجديد المقرر:</span>
+                                </div>
+                                <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planHifzDisplay">جاري التحديد مع المعلم...</strong>
+                            </div>
+
+                            <!-- 2. الماضي القريب -->
+                            <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-blue-400/30">
+                                <div class="flex items-center gap-1.5 mb-1 text-blue-300 font-extrabold text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                                    <span>الماضي القريب (مراجعة):</span>
+                                </div>
+                                <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiQareebDisplay">جاري التحديد مع المعلم...</strong>
+                            </div>
+
+                            <!-- 3. الماضي البعيد -->
+                            <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-purple-400/30">
+                                <div class="flex items-center gap-1.5 mb-1 text-purple-300 font-extrabold text-[11px]">
+                                    <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                                    <span>الماضي البعيد (تثبيت):</span>
+                                </div>
+                                <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiBaeedDisplay">جاري التحديد مع المعلم...</strong>
+                            </div>
+                        </div>
+
+                        <!-- توجيهات المعلم -->
+                        <div id="planNotesContainer" class="hidden bg-black/20 p-2.5 rounded-xl border border-white/10 text-xs flex items-start gap-2">
+                            <div>
+                                <span class="text-[10px] text-amber-200 font-bold block">توجيهات المعلم لولي الأمر:</span>
+                                <p class="text-[11px] text-slate-100 font-medium" id="planNotesDisplay"></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Course Lectures & Detailed Syllabus System (#lecturesSection) -->
+                <section class="space-y-4" id="lecturesSection">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-extrabold text-slate-900" id="selectedCourseTitle">جدول المحاضرات</h3>
+                        </div>
+                        <button onclick="refreshData()" class="text-xs text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">تحديث</button>
+                    </div>
+
+                    <!-- Paymob Renewal Callout Banner -->
+                    <div id="renewalBanner" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div>
+                            <span class="bg-slate-950 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">تجديد الاشتراك</span>
+                            <h4 class="text-lg font-black mt-1" id="renewalBannerTitle">رصيدك على وشك الانتهاء — جدد الآن!</h4>
+                            <p class="text-xs text-amber-950 font-semibold mt-0.5" id="renewalBannerSubtitle">اختر الباقة المناسبة بضغطة زر وسيتم شحن الرصيد وفتح المحاضرات فوراً.</p>
+                        </div>
+                        <button onclick="openPaymobModal()" class="w-full sm:w-auto bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-xs px-6 py-3 rounded-xl shadow-md whitespace-nowrap transition transform hover:scale-105">
+                            تجديد الآن واختيار الباقة
                         </button>
                     </div>
-                    
-                    <!-- 4 Info Tiles -->
-                    <div class="mt-2.5 sm:mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 text-xs text-slate-200">
-                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">كود الطالب (ID)</span>
-                            <strong class="font-mono text-xs sm:text-sm tracking-wider text-amber-300 block truncate" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></strong>
-                        </div>
 
-                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">ولي الأمر</span>
-                            <strong class="text-xs sm:text-sm block truncate text-white" id="parentName"><script>(function(){
-                                const u=window.__PRELOADED_USER__;
-                                if(u&&u.full_name){
-                                    const fn=u.full_name.trim();
-                                    const prefixes=['معتصم بالله','عبد الله','عبدالله','عبد الرحمن','عبدالرحمن','عبد الرحيم','عز الدين','سيف الدين','نور الدين'];
-                                    for(const p of prefixes){
-                                        if(fn.startsWith(p+' ')){
-                                            document.write('أ. '+fn.substring(p.length).trim()+' (ولي الأمر)');
-                                            return;
-                                        }
-                                    }
-                                    const parts=fn.split(/\s+/);
-                                    document.write(parts.length>=2?('أ. '+parts.slice(1).join(' ')+' (ولي الأمر)'):('ولي أمر '+fn));
-                                }else{
-                                    document.write('ولي أمر معتمد');
-                                }
-                            })();</script></strong>
-                        </div>
-
-                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">هاتف ولي الأمر</span>
-                            <strong class="font-mono text-xs sm:text-sm text-emerald-300 block truncate" id="parentPhone"><script>(function(){
-                                let u = window.__PRELOADED_USER__;
-                                let phone = u ? (u.parent_phone || u.phone) : null;
-                                if (!phone && window.DEFAULT_DB && window.DEFAULT_DB.students) {
-                                    const uname = (u && u.username) ? u.username.toLowerCase() : 'st0419';
-                                    const st = window.DEFAULT_DB.students.find(s => (s.student_code && s.student_code.toLowerCase() === uname));
-                                    if (st) phone = st.parent_phone || st.phone;
-                                }
-                                document.write(phone || '01118599442');
-                            })();</script></strong>
-                        </div>
-
-                        <div class="bg-white/10 sm:bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl">
-                            <span class="text-slate-300 sm:text-slate-400 block text-[10px] font-bold">إجمالي الكورسات</span>
-                            <strong class="text-emerald-400 text-xs sm:text-sm block truncate" id="enrolledCoursesCount"><script>(function(){const u=window.__PRELOADED_USER__;document.write(u?'1 مسار تدريبي':'---');})();</script></strong>
+                    <!-- Dynamic Lecture Blocks Container (populated by loadSelectedCourseLectures in student.js) -->
+                    <div id="lectureBlocksContainer" class="space-y-5">
+                        <div class="text-center py-10 text-slate-400">
+                            <div class="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <p class="font-bold text-sm">جاري تحميل جدول المحاضرات...</p>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- QR Code Box (Compact & Responsive on Mobile) -->
-                <div class="bg-white/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl shadow-xl flex items-center justify-between sm:flex-col sm:justify-center gap-2.5 sm:gap-1.5 w-full sm:w-auto self-center sm:self-auto shrink-0 border border-slate-200">
-                    <script>(function(){const u=window.__PRELOADED_USER__;const code=(u&&u.username)?u.username:'MONIR-LMS';document.write('<img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(code)+'" alt="QR Code" class="w-12 h-12 sm:w-20 sm:h-20 rounded-lg object-contain shrink-0">');})();</script>
-                    <div class="text-right sm:text-center min-w-0">
-                        <span class="text-[11px] text-slate-800 font-extrabold block">باركود الحضور الذكي</span>
-                        <span class="text-[10px] text-slate-500 block">للمسح والمتابعة السريعة</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Track Switcher: Dual-Track Segmented Controller (Quran vs Academic Courses) -->
-        <section id="dualTrackSwitcherSection" class="bg-white border-2 border-indigo-100 rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 shadow-sm">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-2 px-1">
-                    <span class="text-xs font-black text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
-                        <span>المسار التعليمي المعروض:</span>
-                    </span>
-                    <span id="activeTrackNoticeBadge" class="hidden sm:inline-block bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-indigo-200">
-                        تصفح سلس بين مساراتك
-                    </span>
-                </div>
-                <div class="flex items-center gap-1.5 overflow-x-auto flex-1 sm:justify-end">
-                    <button type="button" id="tabBtnAllTracks" onclick="switchPortalTrack('all')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs cursor-pointer select-none whitespace-nowrap">
-                        <span>الكل</span>
-                        <span id="badgeCountAllTracks" class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
-                    </button>
-                    <button type="button" id="tabBtnQuranTrack" onclick="switchPortalTrack('quran')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
-                        <span>مسار القرآن والتدبر</span>
-                        <span id="badgeCountQuranTrack" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">1</span>
-                    </button>
-                    <button type="button" id="tabBtnCoursesTrack" onclick="switchPortalTrack('courses')" class="flex-1 sm:flex-none py-2 px-3.5 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
-                        <span>الكورسات والبرامج التعليمية</span>
-                        <span id="badgeCountCoursesTrack" class="bg-indigo-100 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quran Progress & Revision Plan Card (خطة الحفظ والمراجعة المقررة للطالب) -->
-        <section id="quranPlanSection" class="bg-gradient-to-r from-emerald-900 via-teal-900 to-[#1F274B] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg border border-emerald-500/30 relative overflow-hidden">
-            <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="relative z-10 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-                    <div>
-                        <h3 class="text-xs sm:text-sm font-black text-white">خطة الحفظ والمراجعة القرآنية</h3>
-                        <p class="text-[10px] text-emerald-200/80">الورد المعتمد للطالب لمتابعته في البيت والحلقة</p>
-                    </div>
-                    <span id="quranPlanUpdatedBadge" class="text-[10px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">معتمد من المعلم</span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                    <!-- 1. الحفظ الجديد -->
-                    <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-emerald-400/30">
-                        <div class="flex items-center gap-1.5 mb-1 text-emerald-300 font-extrabold text-[11px]">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span>الحفظ الجديد المقرر:</span>
+                <!-- General Academy Lectures & Weekly Quizzes Section (منظومة المحاضرات العامة والاختبارات الأسبوعية) -->
+                <section id="generalLecturesSection" class="bg-white border-2 border-indigo-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm sm:text-base font-black text-slate-900">المحاضرات العامة والاختبارات الأسبوعية</h3>
+                                    <span class="bg-amber-100 text-amber-900 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full">معتمدة أكاديمياً</span>
+                                </div>
+                                <p class="text-[11px] sm:text-xs text-slate-500">استمع للملخص الصوتي، حمّل الـ PDF، انضم للبث المباشر، واجتز الاختبار الأسبوعي فوراً</p>
+                            </div>
                         </div>
-                        <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planHifzDisplay">جاري التحديد مع المعلم...</strong>
-                    </div>
-
-                    <!-- 2. الماضي القريب -->
-                    <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-blue-400/30">
-                        <div class="flex items-center gap-1.5 mb-1 text-blue-300 font-extrabold text-[11px]">
-                            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                            <span>الماضي القريب (مراجعة):</span>
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                            <button onclick="toggleGradebookModal()" class="flex-1 sm:flex-none bg-slate-100 hover:bg-slate-200 text-[#1F274B] text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center border border-slate-200 cursor-pointer">
+                                <span>سجل درجاتي التراكمي</span>
+                            </button>
+                            <button type="button" onclick="toggleGeneralLecturesSection()" class="flex-1 sm:flex-none bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-indigo-200 cursor-pointer select-none">
+                                <span id="generalLecturesToggleText">طي القسم</span>
+                                <span id="generalLecturesToggleIcon" class="text-[10px]">▲</span>
+                            </button>
                         </div>
-                        <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiQareebDisplay">جاري التحديد مع المعلم...</strong>
                     </div>
 
-                    <!-- 3. الماضي البعيد -->
-                    <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-purple-400/30">
-                        <div class="flex items-center gap-1.5 mb-1 text-purple-300 font-extrabold text-[11px]">
-                            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-                            <span>الماضي البعيد (تثبيت):</span>
+                    <!-- Body Wrapper that collapses and expands -->
+                    <div id="generalLecturesSectionBody" class="space-y-4">
+
+                        <!-- Collapsible Schedule Notices Dropdown (محاضرات المسابقة - المحاضرات العامة لجميع الطلاب) -->
+                        <div class="border-2 border-indigo-200/90 rounded-2xl sm:rounded-3xl bg-white shadow-sm overflow-hidden" id="competitionLecturesCard">
+                            <button type="button" onclick="toggleScheduleNoticesDropdown()" 
+                                class="w-full p-3 sm:p-4 flex items-center justify-between text-right bg-gradient-to-r from-[#1F274B] via-indigo-900 to-indigo-800 text-white hover:opacity-95 transition cursor-pointer gap-2 select-none">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <div>
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-black text-xs sm:text-base text-white">محاضرات المسابقة</span>
+                                            <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">لا تخصم من الرصيد</span>
+                                            <span id="schedActiveBadge" class="hidden bg-red-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full animate-pulse">
+                                                بث مباشر متاح الآن
+                                            </span>
+                                            <span id="todayLectureBadge" class="hidden bg-emerald-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">موعدك اليوم</span>
+                                        </div>
+                                        <span class="text-[10px] sm:text-[11px] text-indigo-200 block mt-0.5">انقر هنا لفتح أو إغلاق جدول وروابط دخول حلقات التفسير والحديث والتجويد لجميع الفئات</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-xs text-white font-extrabold shrink-0 bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-xl transition">
+                                    <span id="schedToggleText">عرض المحاضرات</span>
+                                    <span id="schedToggleIcon" class="text-[10px] transition-transform duration-300">▼</span>
+                                </div>
+                            </button>
+
+                            <!-- Dropdown Collapsible Content (كروت محاضرات المسابقة لجميع الفئات) -->
+                            <div id="scheduleNoticesDropdownContent" class="hidden p-3 sm:p-4 space-y-3.5 border-t border-slate-100 bg-slate-50/60">
+
+                                <!-- 0. بطاقة يوم الأربعاء (اليوم): مسار التفسير والتدبر (الحلقة 2) -->
+                                <div id="wednesdayTafsirNoticeCard" class="bg-gradient-to-br from-indigo-50/90 via-white to-purple-50/50 border-2 border-indigo-400 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xs">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-indigo-100">
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="bg-indigo-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md">الأربعاء (اليوم)</span>
+                                                <strong class="text-xs sm:text-sm font-black text-slate-900">مسار التفسير والتدبر</strong>
+                                                <span class="bg-purple-100 text-purple-900 text-[10px] font-bold px-2 py-0.5 rounded border border-purple-200">الحلقة الثانية</span>
+                                            </div>
+                                            <div class="mt-1 flex items-center gap-1.5 text-indigo-950 font-black text-xs sm:text-sm flex-wrap">
+                                                <span>عنوان الحلقة:</span>
+                                                <span class="bg-indigo-100/90 text-indigo-900 px-2.5 py-0.5 rounded-lg border border-indigo-200 text-[11px] sm:text-xs">"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟"</span>
+                                            </div>
+                                        </div>
+                                        <div id="wednesdayTafsirActionContainer" class="w-full sm:w-auto">
+                                            <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                                                تفتح في موعد فئتك
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2.5">
+                                        <!-- 1. بنات 10 سنوات فيما فوق (الساعة 5:00 م) -->
+                                        <div id="wednesdaySlotGirls10AndUp" class="hidden p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة البنات (10 سنوات فيما فوق)</strong>
+                                                    <span id="wednesdayTargetBadgeGirls" class="hidden bg-pink-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-2xs">فئتك وقاعتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 5:00 م (الرابط مفتوح ومتاح)</span>
+                                            </div>
+                                            <div id="wednesdayActionSlotGirls10AndUp" class="w-full sm:w-auto shrink-0">
+                                                <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
+                                                    <span>دخول حلقة البنات (Zoom)</span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- 2. أولاد أقل من 10 سنوات (الساعة 6:30 م) -->
+                                        <div id="wednesdaySlotBoysUnder10" class="hidden p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الأولاد (أقل من 10 سنوات)</strong>
+                                                    <span id="wednesdayTargetBadgeBoys" class="hidden bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-2xs">فئتك وقاعتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 6:30 م (الرابط مفتوح ومتاح)</span>
+                                            </div>
+                                            <div id="wednesdayActionSlotBoysUnder10" class="w-full sm:w-auto shrink-0">
+                                                <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
+                                                    <span>دخول حلقة الأولاد (Zoom)</span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Not targeted cohort message for other students -->
+                                        <div id="wednesdaySlotNotTargeted" class="hidden p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 font-bold text-center">
+                                            هذه الحلقة مخصصة لفئة البنات (10 سنوات فما فوق) وفئة الأولاد (أقل من 10 سنوات). يمكنك متابعة جدول فئتك عبر المسار الأسبوعي.
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-indigo-100/40 p-2.5 rounded-lg text-[11px] text-indigo-950 font-medium border border-indigo-200/60 leading-relaxed">
+                                        رابط البث المباشر (Zoom) متاح ومفتوح للانضمام للقاعة مباشرة دون أي خصم من الرصيد.
+                                    </div>
+                                </div>
+
+                                <!-- 1. بطاقة يوم الجمعة: أحكام التجويد ومخارج الحروف -->
+                                <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-2xs">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="bg-amber-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الجمعة</span>
+                                                <strong class="text-xs sm:text-sm font-black text-slate-900">محاضرة أحكام التجويد ومخارج الحروف</strong>
+                                                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">Zoom</span>
+                                            </div>
+                                            <span class="text-[11px] text-slate-500 font-medium block mt-0.5">محاضرة تفاعلية أسبوعية عبر منصة Zoom لجميع الطلاب</span>
+                                        </div>
+                                        <div id="fridayLiveBadgeSlot" class="w-full sm:w-auto">
+                                            <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                                                مقفول — يفتح الجمعة
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <!-- Kids Slot (< 10) -->
+                                        <div id="slotNoticeKids" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الأطفال (أقل من 10 سنوات)</strong>
+                                                    <span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-amber-950 font-bold block mt-0.5">الموعد: كل جمعة من 1:50 م إلى 2:25 م (يفتح الرابط 1:50 مساءً)</span>
+                                            </div>
+                                            <div id="slotNoticeKidsAction" class="w-full sm:w-auto shrink-0">
+                                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                    مقفول — يفتح الجمعة 1:50 م
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Adults Slot (>= 10) -->
+                                        <div id="slotNoticeAdults" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الطلاب (10 سنوات فما فوق)</strong>
+                                                    <span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-amber-950 font-bold block mt-0.5">الموعد: كل جمعة من 2:20 م إلى 2:50 م (يفتح الرابط 2:20 مساءً)</span>
+                                            </div>
+                                            <div id="slotNoticeAdultsAction" class="w-full sm:w-auto shrink-0">
+                                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                    مقفول — يفتح الجمعة 2:20 م
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="fridayScheduleZoomActionContainer"></div>
+
+                                    <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
+                                        تنويه: يفتح رابط زووم حصرياً أثناء موعد الحصة المباشرة كل جمعة، والتسجيلات مقفولة حتى رفعها بواسطة المشرفين.
+                                    </div>
+                                </div>
+
+                                <!-- 2. بطاقة يوم الأحد: التفسير وتدبر القرآن الكريم -->
+                                <div id="sundayTafsirNoticeCard" class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-2xs">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الأحد</span>
+                                                <strong class="text-xs sm:text-sm font-black text-slate-900">محاضرة التفسير وتدبر القرآن الكريم</strong>
+                                                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">فئة 10 سنوات فما فوق</span>
+                                            </div>
+                                            <span class="text-[11px] text-slate-500 font-medium block mt-0.5">محاضرة عامة للتدبر وتزكية النفس لجميع الطلاب 10 سنوات فما فوق</span>
+                                        </div>
+                                        <div id="sundayTafsirActionContainer" class="w-full sm:w-auto">
+                                            <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                                                مقفول — يفتح الأحد 7:50 م
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                        <div>
+                                            <strong class="text-xs sm:text-sm text-slate-900 font-black block">موعد المحاضرة الأسبوعي المباشر</strong>
+                                            <span class="text-xs text-emerald-950 font-bold block mt-0.5">كل يوم أحد من 8:00 م إلى 9:00 م (يفتح الرابط تلقائياً 7:50 مساءً)</span>
+                                        </div>
+                                        <div id="sundayTafsirActionSlot" class="w-full sm:w-auto shrink-0">
+                                            <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                مقفول — يفتح الأحد 7:50 م
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
+                                        متاحة ومجانية لجميع الطلاب المشتركين دون خصم أي رصيد من الحصص الشهرية، ويفتح الرابط كل أحد 7:50 مساءً.
+                                    </div>
+                                </div>
+
+                                <!-- 2.1 بطاقة يوم الثلاثاء: جلسة التفسير والتدبر (بنات أقل من 10 سنوات حصراً) -->
+                                <div id="tuesdayGirlsTafsirNoticeCard" class="hidden bg-gradient-to-br from-pink-50/70 via-white to-rose-50/50 border-2 border-pink-300 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xs">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-pink-100">
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="bg-pink-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الثلاثاء (اليوم)</span>
+                                                <strong class="text-xs sm:text-sm font-black text-slate-900">جلسة التفسير وتدبر القرآن الكريم</strong>
+                                                <span class="bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-0.5 rounded border border-pink-200">فئة البنات (أقل من 10 سنوات)</span>
+                                            </div>
+                                            <div class="mt-1 flex items-center gap-1 text-pink-900 font-black text-xs sm:text-sm">
+                                                <span>الحلقة الثانية:</span>
+                                                <span class="bg-pink-100/90 text-pink-800 px-2 py-0.5 rounded-lg border border-pink-200">"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟"</span>
+                                            </div>
+                                        </div>
+                                        <div id="tuesdayGirlsTafsirActionContainer" class="w-full sm:w-auto">
+                                            <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                                                مقفول — يفتح اليوم 8:20 م
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 bg-pink-50/70 rounded-xl border border-pink-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <strong class="text-xs sm:text-sm text-slate-900 font-black">موعد البث المباشر للقاعة</strong>
+                                                <span class="bg-pink-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                            </div>
+                                            <span class="text-xs text-pink-950 font-bold block mt-0.5">اليوم الثلاثاء من 8:30 م إلى 9:30 م (يفتح الرابط 8:20 مساءً)</span>
+                                        </div>
+                                        <div id="tuesdayGirlsTafsirActionSlot" class="w-full sm:w-auto shrink-0">
+                                            <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                مقفول — يفتح اليوم 8:20 م
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
+                                        تنويه: هذه الجلسة مخصصة للبنات فقط (أقل من 10 سنوات)، ويفتح رابط الزووم تلقائياً الساعة 8:20 مساءً لبدء الحلقة الثانية.
+                                    </div>
+                                </div>
+
+                                <!-- 3. بطاقة يوم الإثنين: مجلس الحديث الشريف (الحلقة الثانية) -->
+                                <div id="mondayHadithNoticeCard" class="bg-white border-2 border-indigo-300/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xs">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-indigo-100">
+                                        <div>
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الإثنين</span>
+                                                <strong class="text-xs sm:text-sm font-black text-slate-900">مجلس الحديث الشريف: «لو محدش شايفك… من ستكون؟»</strong>
+                                                <span class="bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-100">الحلقة الثانية</span>
+                                                <span class="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-100">اليوم</span>
+                                            </div>
+                                            <span class="text-[11px] text-slate-500 font-medium block mt-0.5">مدارسة أحاديث المراقبة والإخلاص وتزكية النفس</span>
+                                        </div>
+                                        <div id="mondayHadithActionContainer" class="w-full sm:w-auto">
+                                            <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
+                                                تفتح في موعد فئتك
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div id="hadithTargetedCohortContainer" class="space-y-2">
+                                        <!-- 1. بنات أقل من 10 سنوات -->
+                                        <div id="hadithSlotGirlsUnder10" class="hidden p-3 bg-indigo-50/60 rounded-xl border border-indigo-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة البنات (أقل من 10 سنوات)</strong>
+                                                    <span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل إثنين من 6:30 م إلى 7:25 م (يفتح الرابط 6:20 مساءً)</span>
+                                            </div>
+                                            <div id="hadithActionSlotGirlsUnder10" class="w-full sm:w-auto shrink-0">
+                                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                    مقفول — يفتح اليوم 6:20 م
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- 2. بنات 10 سنوات وأكبر -->
+                                        <div id="hadithSlotGirls10AndUp" class="hidden p-3 bg-purple-50/60 rounded-xl border border-purple-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة البنات (10 سنوات وأكبر)</strong>
+                                                    <span class="bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-purple-950 font-bold block mt-0.5">الموعد: كل إثنين من 7:30 م إلى 8:30 م (يفتح الرابط 7:20 مساءً)</span>
+                                            </div>
+                                            <div id="hadithActionSlotGirls10AndUp" class="w-full sm:w-auto shrink-0">
+                                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                    مقفول — يفتح اليوم 7:20 م
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- 3. أولاد أقل من 10 سنوات -->
+                                        <div id="hadithSlotBoysUnder10" class="hidden p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة الأولاد (أقل من 10 سنوات)</strong>
+                                                    <span class="bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-emerald-950 font-bold block mt-0.5">الموعد: كل إثنين من 7:30 م إلى 8:30 م (يفتح الرابط 7:20 مساءً)</span>
+                                            </div>
+                                            <div id="hadithActionSlotBoysUnder10" class="w-full sm:w-auto shrink-0">
+                                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                    مقفول — يفتح اليوم 7:20 م
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- 4. أولاد 10 سنوات وأكبر -->
+                                        <div id="hadithSlotBoys10AndUp" class="hidden p-3 bg-blue-50/60 rounded-xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 flex-wrap">
+                                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة الأولاد (10 سنوات وأكبر)</strong>
+                                                    <span class="bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
+                                                </div>
+                                                <span class="text-xs text-blue-950 font-bold block mt-0.5">الموعد: كل إثنين من 7:30 م إلى 8:30 م (يفتح الرابط 7:20 مساءً)</span>
+                                            </div>
+                                            <div id="hadithActionSlotBoys10AndUp" class="w-full sm:w-auto shrink-0">
+                                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
+                                                    مقفول — يفتح اليوم 7:20 م
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
+                                        تفتح قاعة البث المباشر تلقائياً قبل بدء المجلس بـ 10 دقائق للانضمام مع المعلم.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiBaeedDisplay">جاري التحديد مع المعلم...</strong>
-                    </div>
-                </div>
 
-                <!-- توجيهات المعلم -->
-                <div id="planNotesContainer" class="hidden bg-black/20 p-2.5 rounded-xl border border-white/10 text-xs flex items-start gap-2">
-                    <div>
-                        <span class="text-[10px] text-amber-200 font-bold block">توجيهات المعلم لولي الأمر:</span>
-                        <p class="text-[11px] text-slate-100 font-medium" id="planNotesDisplay"></p>
-                    </div>
-                </div>
-            </div>
-        </section>
+                        <script>
+                        function toggleGeneralLecturesSection(forceOpen) {
+                            const content = document.getElementById('generalLecturesSectionBody');
+                            const icon = document.getElementById('generalLecturesToggleIcon');
+                            const text = document.getElementById('generalLecturesToggleText');
+                            if (!content) return;
+                            const isOpening = (forceOpen === true) || content.classList.contains('hidden');
+                            if (isOpening) {
+                                content.classList.remove('hidden');
+                                if (icon) icon.innerText = '▲';
+                                if (text) text.innerText = 'طي القسم';
+                            } else {
+                                content.classList.add('hidden');
+                                if (icon) icon.innerText = '▼';
+                                if (text) text.innerText = 'عرض القسم';
+                            }
+                        }
+                        window.toggleGeneralLecturesSection = toggleGeneralLecturesSection;
 
-        <!-- General Academy Lectures & Weekly Quizzes Section (منظومة المحاضرات العامة والاختبارات الأسبوعية) -->
-        <section id="generalLecturesSection" class="bg-white border-2 border-indigo-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h3 class="text-sm sm:text-base font-black text-slate-900">المحاضرات العامة والاختبارات الأسبوعية</h3>
-                            <span class="bg-amber-100 text-amber-900 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full">معتمدة أكاديمياً</span>
+                        function toggleScheduleNoticesDropdown(forceOpen) {
+                            const content = document.getElementById('scheduleNoticesDropdownContent');
+                            const icon = document.getElementById('schedToggleIcon');
+                            const text = document.getElementById('schedToggleText');
+                            if (!content) return;
+                            const isOpening = (forceOpen === true) || content.classList.contains('hidden');
+                            if (isOpening) {
+                                content.classList.remove('hidden');
+                                if (icon) icon.innerText = '▲';
+                                if (text) text.innerText = 'إخفاء المحاضرات';
+                            } else {
+                                content.classList.add('hidden');
+                                if (icon) icon.innerText = '▼';
+                                if (text) text.innerText = 'عرض المحاضرات';
+                            }
+                        }
+                        window.toggleScheduleNoticesDropdown = toggleScheduleNoticesDropdown;
+                        </script>
+
+                        <!-- Tracks Switcher Dropdown Menu -->
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-slate-800 whitespace-nowrap">المسار الأسبوعي الحالي:</span>
+                            </div>
+                            <div class="w-full sm:w-auto flex-1 sm:max-w-md">
+                                <select id="selectStudentGeneralTrack" onchange="selectGeneralTrack(this.value)" class="w-full bg-white border border-slate-300 hover:border-indigo-400 text-slate-900 font-black text-xs sm:text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer shadow-2xs transition">
+                                    <option value="hadith" selected>مسار الحديث الشريف — الحلقة 2: «لو محدش شايفك… من ستكون؟» (الأسبوع 2)</option>
+                                    <option value="tajweed">مسار أحكام التجويد ومخارج الحروف (الأسبوع 2)</option>
+                                    <option value="tafsir">مسار التفسير والتدبر — الحلقة 2: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟» (الأسبوع 2)</option>
+                                </select>
+                            </div>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-slate-500">استمع للملخص الصوتي، حمّل الـ PDF، انضم للبث المباشر، واجتز الاختبار الأسبوعي فوراً</p>
+
+                        <!-- Track Content Dynamic Card Container -->
+                        <div id="generalTrackCardContainer" class="space-y-4">
+                            <!-- Dynamically populated by renderGeneralTrackView() in student.js -->
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-                    <button onclick="toggleGradebookModal()" class="flex-1 sm:flex-none bg-slate-100 hover:bg-slate-200 text-[#1F274B] text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center border border-slate-200 cursor-pointer">
-                        <span>سجل درجاتي التراكمي</span>
-                    </button>
-                    <button type="button" onclick="toggleGeneralLecturesSection()" class="flex-1 sm:flex-none bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-indigo-200 cursor-pointer select-none">
-                        <span id="generalLecturesToggleText">طي القسم</span>
-                        <span id="generalLecturesToggleIcon" class="text-[10px]">▲</span>
-                    </button>
-                </div>
-            </div>
+                </section>
 
-            <!-- Body Wrapper that collapses and expands -->
-            <div id="generalLecturesSectionBody" class="space-y-4">
-
-            <!-- Collapsible Schedule Notices Dropdown (محاضرات المسابقة - المحاضرات العامة لجميع الطلاب) -->
-            <div class="border-2 border-indigo-200/90 rounded-2xl sm:rounded-3xl bg-white shadow-sm overflow-hidden" id="competitionLecturesCard">
-                <button type="button" onclick="toggleScheduleNoticesDropdown()" 
-                    class="w-full p-3 sm:p-4 flex items-center justify-between text-right bg-gradient-to-r from-[#1F274B] via-indigo-900 to-indigo-800 text-white hover:opacity-95 transition cursor-pointer gap-2 select-none">
-                    <div class="flex items-center gap-2.5 flex-wrap">
+                <!-- Certificates & Achievements Panel (#certificatesPanel) (Reference: .panel #certificatesPanel) -->
+                <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs" id="certificatesPanel">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-100 mb-4">
                         <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-black text-xs sm:text-base text-white">محاضرات المسابقة</span>
-                                <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">لا تخصم من الرصيد</span>
-                                <span id="schedActiveBadge" class="hidden bg-red-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full animate-pulse">
-                                    بث مباشر متاح الآن
-                                </span>
-                                <span id="todayLectureBadge" class="hidden bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">موعدك اليوم</span>
-                            </div>
-                            <span class="text-[10px] sm:text-[11px] text-indigo-200 block mt-0.5">انقر هنا لفتح أو إغلاق جدول وروابط دخول حلقات التفسير والحديث والتجويد لجميع الفئات</span>
+                            <h3 class="font-black text-base text-slate-900">إنجازات وشهادات تستحق الفخر</h3>
+                            <p class="text-xs text-slate-500">سجل إنجازاتك في الاختبارات والمحاضرات العامة بالأكاديمية</p>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-1.5 text-xs text-white font-extrabold shrink-0 bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-xl transition">
-                        <span id="schedToggleText">عرض المحاضرات</span>
-                        <span id="schedToggleIcon" class="text-[10px] transition-transform duration-300">▼</span>
-                    </div>
-                </button>
-
-                <!-- Dropdown Collapsible Content (كروت محاضرات المسابقة لجميع الفئات) -->
-                <div id="scheduleNoticesDropdownContent" class="hidden p-3 sm:p-4 space-y-3.5 border-t border-slate-100 bg-slate-50/60">
-
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <!-- 0. بطاقة يوم الأربعاء (اليوم): مسار التفسير والتدبر (الحلقة 2) -->
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <div id="wednesdayTafsirNoticeCard" class="bg-gradient-to-br from-indigo-50/90 via-white to-purple-50/50 border-2 border-indigo-400 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xs">
-                        <!-- Header Row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-indigo-100">
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="bg-indigo-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-md">الأربعاء (اليوم)</span>
-                                    <strong class="text-xs sm:text-sm font-black text-slate-900">مسار التفسير والتدبر</strong>
-                                    <span class="bg-purple-100 text-purple-900 text-[10px] font-bold px-2 py-0.5 rounded border border-purple-200">الحلقة الثانية</span>
-                                </div>
-                                <div class="mt-1 flex items-center gap-1.5 text-indigo-950 font-black text-xs sm:text-sm flex-wrap">
-                                    <span>عنوان الحلقة:</span>
-                                    <span class="bg-indigo-100/90 text-indigo-900 px-2.5 py-0.5 rounded-lg border border-indigo-200 text-[11px] sm:text-xs">"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟"</span>
-                                </div>
-                            </div>
-                            <div id="wednesdayTafsirActionContainer" class="w-full sm:w-auto">
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                                    تفتح في موعد فئتك
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- 2 Slots for Wednesday (يظهر لكل طالب فئته المعتمدة فقط دون اختلاط) -->
-                        <div class="space-y-2.5">
-                            <!-- 1. بنات 10 سنوات فيما فوق (الساعة 5:00 م) -->
-                            <div id="wednesdaySlotGirls10AndUp" class="hidden p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة البنات (10 سنوات فيما فوق)</strong>
-                                        <span id="wednesdayTargetBadgeGirls" class="hidden bg-pink-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-2xs">فئتك وقاعتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 5:00 م (الرابط مفتوح ومتاح)</span>
-                                </div>
-                                <div id="wednesdayActionSlotGirls10AndUp" class="w-full sm:w-auto shrink-0">
-                                    <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
-                                        <span>دخول حلقة البنات (Zoom)</span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!-- 2. أولاد أقل من 10 سنوات (الساعة 6:30 م) -->
-                            <div id="wednesdaySlotBoysUnder10" class="hidden p-3 bg-white rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs transition">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الأولاد (أقل من 10 سنوات)</strong>
-                                        <span id="wednesdayTargetBadgeBoys" class="hidden bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-2xs">فئتك وقاعتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل أربعاء الساعة 6:30 م (الرابط مفتوح ومتاح)</span>
-                                </div>
-                                <div id="wednesdayActionSlotBoysUnder10" class="w-full sm:w-auto shrink-0">
-                                    <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5 text-center">
-                                        <span>دخول حلقة الأولاد (Zoom)</span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!-- Not targeted cohort message for other students -->
-                            <div id="wednesdaySlotNotTargeted" class="hidden p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 font-bold text-center">
-                                هذه الحلقة مخصصة لفئة البنات (10 سنوات فما فوق) وفئة الأولاد (أقل من 10 سنوات). يمكنك متابعة جدول فئتك عبر المسار الأسبوعي.
-                            </div>
-                        </div>
-
-                        <!-- Footer note -->
-                        <div class="bg-indigo-100/40 p-2.5 rounded-lg text-[11px] text-indigo-950 font-medium border border-indigo-200/60 leading-relaxed">
-                            رابط البث المباشر (Zoom) متاح ومفتوح للانضمام للقاعة مباشرة دون أي خصم من الرصيد.
-                        </div>
+                        <button onclick="toggleGradebookModal()" class="text-xs font-bold text-[#41519C] hover:text-[#1F274B] bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-xl border border-indigo-200 transition cursor-pointer">
+                            عرض السجل التراكمي للدرجات ←
+                        </button>
                     </div>
 
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <!-- 1. بطاقة يوم الجمعة: أحكام التجويد ومخارج الحروف -->
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-2xs">
-                        <!-- Header Row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="bg-amber-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الجمعة</span>
-                                    <strong class="text-xs sm:text-sm font-black text-slate-900">محاضرة أحكام التجويد ومخارج الحروف</strong>
-                                    <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">Zoom</span>
-                                </div>
-                                <span class="text-[11px] text-slate-500 font-medium block mt-0.5">محاضرة تفاعلية أسبوعية عبر منصة Zoom لجميع الطلاب</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl">
+                            <div class="achievement-medal">
+                                <svg class="w-6 h-6"><use href="#award"/></svg>
                             </div>
-                            <div id="fridayLiveBadgeSlot" class="w-full sm:w-auto">
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                                    مقفول — يفتح الجمعة
-                                </span>
+                            <div class="min-w-0 flex-1">
+                                <strong class="text-xs font-black text-slate-900 block truncate" id="certHifzTitle">مسار القرآن الكريم والتلاوة</strong>
+                                <span class="text-[11px] text-slate-500 block mt-0.5 truncate" id="certHifzSubtitle">متابعة مستمرة للحفظ والمراجعة مع المعلم</span>
+                                <span class="inline-block mt-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">حساب نشط</span>
                             </div>
                         </div>
 
-                        <!-- 2 Slots (يظهر للطالب موعد فئته فقط) -->
-                        <div class="space-y-2">
-                            <!-- Kids Slot (< 10) -->
-                            <div id="slotNoticeKids" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الأطفال (أقل من 10 سنوات)</strong>
-                                        <span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-amber-950 font-bold block mt-0.5">الموعد: كل جمعة من 1:50 م إلى 2:25 م (يفتح الرابط 1:50 مساءً)</span>
-                                </div>
-                                <div id="slotNoticeKidsAction" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح الجمعة 1:50 م
-                                    </span>
-                                </div>
+                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl">
+                            <div class="achievement-medal" style="background:#edf6f2;color:#236E58">
+                                <svg class="w-6 h-6"><use href="#award"/></svg>
                             </div>
-
-                            <!-- Adults Slot (>= 10) -->
-                            <div id="slotNoticeAdults" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">فئة الطلاب (10 سنوات فما فوق)</strong>
-                                        <span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-amber-950 font-bold block mt-0.5">الموعد: كل جمعة من 2:20 م إلى 2:50 م (يفتح الرابط 2:20 مساءً)</span>
-                                </div>
-                                <div id="slotNoticeAdultsAction" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح الجمعة 2:20 م
-                                    </span>
-                                </div>
+                            <div class="min-w-0 flex-1">
+                                <strong class="text-xs font-black text-slate-900 block truncate">سجل الاختبارات والتقييمات</strong>
+                                <span class="text-[11px] text-slate-500 block mt-0.5 truncate" id="certQuizzesSummary">التقدير العام: ممتاز مع مرتبة الشرف</span>
+                                <span class="inline-block mt-1.5 text-[10px] font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded-md" id="certQuizzesScore">المجموع: 100%</span>
                             </div>
-                        </div>
-
-                        <div id="fridayScheduleZoomActionContainer"></div>
-
-                        <!-- Footer note -->
-                        <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
-                            تنويه: يفتح رابط زووم حصرياً أثناء موعد الحصة المباشرة كل جمعة، والتسجيلات مقفولة حتى رفعها بواسطة المشرفين.
                         </div>
                     </div>
+                </section>
 
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <!-- 2. بطاقة يوم الأحد: التفسير وتدبر القرآن الكريم -->
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <div id="sundayTafsirNoticeCard" class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-2xs">
-                        <!-- Header Row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الأحد</span>
-                                    <strong class="text-xs sm:text-sm font-black text-slate-900">محاضرة التفسير وتدبر القرآن الكريم</strong>
-                                    <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">فئة 10 سنوات فما فوق</span>
-                                </div>
-                                <span class="text-[11px] text-slate-500 font-medium block mt-0.5">محاضرة عامة للتدبر وتزكية النفس لجميع الطلاب 10 سنوات فما فوق</span>
-                            </div>
-                            <div id="sundayTafsirActionContainer" class="w-full sm:w-auto">
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                                    مقفول — يفتح الأحد 7:50 م
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Schedule details -->
-                        <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                            <div>
-                                <strong class="text-xs sm:text-sm text-slate-900 font-black block">موعد المحاضرة الأسبوعي المباشر</strong>
-                                <span class="text-xs text-emerald-950 font-bold block mt-0.5">كل يوم أحد من 8:00 م إلى 9:00 م (يفتح الرابط تلقائياً 7:50 مساءً)</span>
-                            </div>
-                            <div id="sundayTafsirActionSlot" class="w-full sm:w-auto shrink-0">
-                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                    مقفول — يفتح الأحد 7:50 م
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Footer note -->
-                        <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
-                            متاحة ومجانية لجميع الطلاب المشتركين دون خصم أي رصيد من الحصص الشهرية، ويفتح الرابط كل أحد 7:50 مساءً.
+                <!-- Personal Details Panel (#detailsPanel) (Reference: .panel #detailsPanel) -->
+                <section id="detailsPanel" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hidden">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+                        <div>
+                            <h3 class="font-black text-base text-slate-900">البيانات الشخصية للمتدرب</h3>
+                            <p class="text-xs text-slate-500">تفاصيل الحساب، الاشتراك، وبيانات ولي الأمر المسجلة رسمياً</p>
                         </div>
                     </div>
-
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <!-- 2.1 بطاقة يوم الثلاثاء: جلسة التفسير والتدبر (بنات أقل من 10 سنوات حصراً) -->
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <div id="tuesdayGirlsTafsirNoticeCard" class="hidden bg-gradient-to-br from-pink-50/70 via-white to-rose-50/50 border-2 border-pink-300 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xs">
-                        <!-- Header Row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-pink-100">
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="bg-pink-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الثلاثاء (اليوم)</span>
-                                    <strong class="text-xs sm:text-sm font-black text-slate-900">جلسة التفسير وتدبر القرآن الكريم</strong>
-                                    <span class="bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-0.5 rounded border border-pink-200">فئة البنات (أقل من 10 سنوات)</span>
-                                </div>
-                                <div class="mt-1 flex items-center gap-1 text-pink-900 font-black text-xs sm:text-sm">
-                                    <span>الحلقة الثانية:</span>
-                                    <span class="bg-pink-100/90 text-pink-800 px-2 py-0.5 rounded-lg border border-pink-200">"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟"</span>
-                                </div>
-                            </div>
-                            <div id="tuesdayGirlsTafsirActionContainer" class="w-full sm:w-auto">
-                                <span class="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                                    مقفول — يفتح اليوم 8:20 م
-                                </span>
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">الاسم الكامل للطالب</span>
+                            <strong class="text-sm font-black text-slate-900 block" id="detailsStudentName">طالب الأكاديمية</strong>
                         </div>
-
-                        <!-- Schedule details -->
-                        <div class="p-3 bg-pink-50/70 rounded-xl border border-pink-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <strong class="text-xs sm:text-sm text-slate-900 font-black">موعد البث المباشر للقاعة</strong>
-                                    <span class="bg-pink-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                </div>
-                                <span class="text-xs text-pink-950 font-bold block mt-0.5">اليوم الثلاثاء من 8:30 م إلى 9:30 م (يفتح الرابط 8:20 مساءً)</span>
-                            </div>
-                            <div id="tuesdayGirlsTafsirActionSlot" class="w-full sm:w-auto shrink-0">
-                                <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                    مقفول — يفتح اليوم 8:20 م
-                                </span>
-                            </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">كود الطالب (ID)</span>
+                            <strong class="text-sm font-mono font-black text-[#1F274B] block" id="detailsStudentCode">ST1088</strong>
                         </div>
-
-                        <!-- Footer note -->
-                        <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
-                            تنويه: هذه الجلسة مخصصة للبنات فقط (أقل من 10 سنوات)، ويفتح رابط الزووم تلقائياً الساعة 8:20 مساءً لبدء الحلقة الثانية.
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">ولي الأمر المعتمد</span>
+                            <strong class="text-sm font-bold text-slate-900 block" id="detailsParentName">ولي أمر الطالب</strong>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">هاتف ولي الأمر</span>
+                            <strong class="text-sm font-mono font-bold text-emerald-800 block" id="detailsParentPhone">011...</strong>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">المسار التعليمي</span>
+                            <strong class="text-sm font-bold text-indigo-900 block" id="detailsTrackName">مسار تحفيظ القرآن الكريم والعلوم الشرعية</strong>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">حالة الحساب والاشتراك</span>
+                            <strong class="text-sm font-bold text-emerald-700 block" id="detailsAccountStatus">نشط وساري</strong>
                         </div>
                     </div>
+                </section>
 
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <!-- 3. بطاقة يوم الإثنين: مجلس الحديث الشريف (الحلقة الثانية) -->
-                    <!-- ═══════════════════════════════════════════════════════ -->
-                    <div id="mondayHadithNoticeCard" class="bg-white border-2 border-indigo-300/90 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-xs">
-                        <!-- Header Row -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-indigo-100">
-                            <div>
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded">الإثنين</span>
-                                    <strong class="text-xs sm:text-sm font-black text-slate-900">مجلس الحديث الشريف: «لو محدش شايفك… من ستكون؟»</strong>
-                                    <span class="bg-indigo-50 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-100">الحلقة الثانية</span>
-                                    <span class="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-100">اليوم</span>
-                                </div>
-                                <span class="text-[11px] text-slate-500 font-medium block mt-0.5">مدارسة أحاديث المراقبة والإخلاص وتزكية النفس</span>
-                            </div>
-                            <div id="mondayHadithActionContainer" class="w-full sm:w-auto">
-                                <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg block text-center whitespace-nowrap">
-                                    تفتح في موعد فئتك
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Targeted Live Session Container (يظهر للطالب قاعته المخصصة فقط بناءً على جنسه وعمره) -->
-                        <div id="hadithTargetedCohortContainer" class="space-y-2">
-                            <!-- 1. بنات أقل من 10 سنوات -->
-                            <div id="hadithSlotGirlsUnder10" class="hidden p-3 bg-indigo-50/60 rounded-xl border border-indigo-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة البنات (أقل من 10 سنوات)</strong>
-                                        <span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-indigo-950 font-bold block mt-0.5">الموعد: كل إثنين من 6:30 م إلى 7:25 م (يفتح الرابط 6:20 مساءً)</span>
-                                </div>
-                                <div id="hadithActionSlotGirlsUnder10" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح اليوم 6:20 م
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- 2. بنات 10 سنوات وأكبر -->
-                            <div id="hadithSlotGirls10AndUp" class="hidden p-3 bg-purple-50/60 rounded-xl border border-purple-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة البنات (10 سنوات وأكبر)</strong>
-                                        <span class="bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-purple-950 font-bold block mt-0.5">الموعد: كل إثنين من 7:30 م إلى 8:30 م (يفتح الرابط 7:20 مساءً)</span>
-                                </div>
-                                <div id="hadithActionSlotGirls10AndUp" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح اليوم 7:20 م
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- 3. أولاد أقل من 10 سنوات -->
-                            <div id="hadithSlotBoysUnder10" class="hidden p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة الأولاد (أقل من 10 سنوات)</strong>
-                                        <span class="bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-emerald-950 font-bold block mt-0.5">الموعد: كل إثنين من 7:30 م إلى 8:30 م (يفتح الرابط 7:20 مساءً)</span>
-                                </div>
-                                <div id="hadithActionSlotBoysUnder10" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح اليوم 7:20 م
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- 4. أولاد 10 سنوات وأكبر -->
-                            <div id="hadithSlotBoys10AndUp" class="hidden p-3 bg-blue-50/60 rounded-xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div>
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <strong class="text-xs sm:text-sm text-slate-900 font-black">قاعة فئة الأولاد (10 سنوات وأكبر)</strong>
-                                        <span class="bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">فئتك المعتمدة</span>
-                                    </div>
-                                    <span class="text-xs text-blue-950 font-bold block mt-0.5">الموعد: كل إثنين من 7:30 م إلى 8:30 م (يفتح الرابط 7:20 مساءً)</span>
-                                </div>
-                                <div id="hadithActionSlotBoys10AndUp" class="w-full sm:w-auto shrink-0">
-                                    <span class="w-full sm:w-auto bg-slate-100 text-slate-500 border border-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl block text-center whitespace-nowrap cursor-not-allowed">
-                                        مقفول — يفتح اليوم 7:20 م
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Footer note -->
-                        <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] text-slate-600 font-medium border border-slate-200/70 leading-relaxed">
-                            تفتح قاعة البث المباشر تلقائياً قبل بدء المجلس بـ 10 دقائق للانضمام مع المعلم.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <script>
-            function toggleGeneralLecturesSection(forceOpen) {
-                const content = document.getElementById('generalLecturesSectionBody');
-                const icon = document.getElementById('generalLecturesToggleIcon');
-                const text = document.getElementById('generalLecturesToggleText');
-                if (!content) return;
-                const isOpening = (forceOpen === true) || content.classList.contains('hidden');
-                if (isOpening) {
-                    content.classList.remove('hidden');
-                    if (icon) icon.innerText = '▲';
-                    if (text) text.innerText = 'طي القسم';
-                } else {
-                    content.classList.add('hidden');
-                    if (icon) icon.innerText = '▼';
-                    if (text) text.innerText = 'عرض القسم';
-                }
-            }
-            window.toggleGeneralLecturesSection = toggleGeneralLecturesSection;
-
-            function toggleScheduleNoticesDropdown(forceOpen) {
-                const content = document.getElementById('scheduleNoticesDropdownContent');
-                const icon = document.getElementById('schedToggleIcon');
-                const text = document.getElementById('schedToggleText');
-                if (!content) return;
-                const isOpening = (forceOpen === true) || content.classList.contains('hidden');
-                if (isOpening) {
-                    content.classList.remove('hidden');
-                    if (icon) icon.innerText = '▲';
-                    if (text) text.innerText = 'إخفاء المحاضرات';
-                } else {
-                    content.classList.add('hidden');
-                    if (icon) icon.innerText = '▼';
-                    if (text) text.innerText = 'عرض المحاضرات';
-                }
-            }
-            window.toggleScheduleNoticesDropdown = toggleScheduleNoticesDropdown;
-            </script>
-
-            <!-- Tracks Switcher Dropdown Menu (دروب منيو اختيار المسار العام) -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-slate-50 p-3 sm:p-3.5 rounded-2xl border border-slate-200">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-black text-slate-800 whitespace-nowrap">المسار الأسبوعي الحالي:</span>
-                </div>
-                <div class="w-full sm:w-auto flex-1 sm:max-w-md">
-                    <select id="selectStudentGeneralTrack" onchange="selectGeneralTrack(this.value)" class="w-full bg-white border border-slate-300 hover:border-indigo-400 text-slate-900 font-black text-xs sm:text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer shadow-2xs transition">
-                        <option value="hadith" selected>مسار الحديث الشريف — الحلقة 2: «لو محدش شايفك… من ستكون؟» (الأسبوع 2)</option>
-                        <option value="tajweed">مسار أحكام التجويد ومخارج الحروف (الأسبوع 2)</option>
-                        <option value="tafsir">مسار التفسير والتدبر — الحلقة 2: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟» (الأسبوع 2)</option>
-                    </select>
-                </div>
             </div>
 
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <!-- Aside Column: Columns 9-12 (Reference: .asidegrid)            -->
+            <!-- ───────────────────────────────────────────────────────────── -->
+            <div class="lg:col-span-4 space-y-5" id="portalAsideColumn">
 
-            <!-- Track Content Dynamic Card Container -->
-            <div id="generalTrackCardContainer" class="space-y-4">
-                <!-- Dynamically populated by renderGeneralTrackView() in student.js -->
-            </div>
-            </div>
-        </section>
+                <!-- 1. Upcoming Schedule Panel (Reference: .schedule) -->
+                <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs" id="schedulePanel">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-3.5">
+                        <div>
+                            <h3 class="font-black text-sm text-slate-900">محاضراتك القادمة</h3>
+                            <p class="text-[11px] text-slate-500">حلقات البث المباشر ومجالس المسابقة</p>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400"><use href="#calendar"/></svg>
+                    </div>
 
-        <!-- 2. Enrolled Courses & Learning Tracks (Interactive EdTech Dashboard) -->
-        <section class="space-y-3" id="enrolledCoursesMainSection">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <h3 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-1.5" id="enrolledCoursesHeaderTitle">
-                        <span>المسارات والكورسات المشترك بها:</span>
-                    </h3>
-                    <span id="activeTrackFilterLabel" class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-indigo-200">
-                        جميع الاشتراكات
-                    </span>
-                </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-                    <button onclick="openPaymobModal()" class="flex-1 sm:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 active:scale-[0.98]">
-                        <span>شحن وتجديد الرصيد</span>
+                    <div class="space-y-3.5 text-xs">
+                        <!-- Wednesday Session -->
+                        <div class="schedule-item">
+                            <span class="schedule-tag">الأربعاء (اليوم)</span>
+                            <strong class="font-black text-slate-900 block mt-1">مسار التفسير والتدبر — الحلقة 2</strong>
+                            <p class="text-slate-500 text-[11px] mt-0.5">"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟"</p>
+                            <div class="flex justify-between items-center text-[11px] text-slate-600 mt-2 font-bold">
+                                <span>5:00 م بنات / 6:30 م أولاد</span>
+                                <a href="https://zoom.us/j/98264506630" target="_blank" class="text-emerald-700 hover:underline">دخول Zoom ←</a>
+                            </div>
+                        </div>
+
+                        <!-- Friday Session -->
+                        <div class="schedule-item" style="border-color:#b68d49">
+                            <span class="schedule-tag" style="background:#fff4e4;color:#b68d49">الجمعة الأسبوعي</span>
+                            <strong class="font-black text-slate-900 block mt-1">محاضرة أحكام التجويد ومخارج الحروف</strong>
+                            <p class="text-slate-500 text-[11px] mt-0.5">محاضرة تفاعلية أسبوعية لجميع المراحل</p>
+                            <div class="flex justify-between items-center text-[11px] text-slate-600 mt-2 font-bold">
+                                <span>1:50 م للأطفال / 2:20 م للطلاب</span>
+                                <span class="text-slate-400 font-normal">عبر Zoom</span>
+                            </div>
+                        </div>
+
+                        <!-- Monday Session -->
+                        <div class="schedule-item" style="border-color:#41519C">
+                            <span class="schedule-tag" style="background:#eaf0f8;color:#2D396E">الإثنين</span>
+                            <strong class="font-black text-slate-900 block mt-1">مجلس الحديث الشريف (الحلقة 2)</strong>
+                            <p class="text-slate-500 text-[11px] mt-0.5">«لو محدش شايفك… من ستكون؟»</p>
+                            <div class="flex justify-between items-center text-[11px] text-slate-600 mt-2 font-bold">
+                                <span>6:30 م و 7:30 م (حسب الفئة)</span>
+                                <span class="text-slate-400 font-normal">بث مباشر</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="setPortalView('schedule')" class="w-full mt-4 bg-slate-50 hover:bg-slate-100 text-[#1F274B] font-extrabold text-xs py-2 px-3 rounded-xl border border-slate-200 transition text-center block cursor-pointer">
+                        عرض كامل جدول المحاضرات والروابط ←
                     </button>
-                </div>
-            </div>
+                </section>
 
-            <!-- Dynamic Courses Grid (EasyT, Yanfaa, Almentor Style Cards) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4" id="enrolledCoursesTabs">
-                <div class="p-6 rounded-2xl border border-slate-200 bg-slate-50/80 text-center py-6 text-slate-400 font-bold text-xs col-span-full">
-                    <div class="animate-spin text-2xl mb-2">⏳</div>
-                    جاري تحميل بيانات الكورسات والمسارات...
-                </div>
-            </div>
-        </section>
+                <!-- 2. Goal & Subscription Status Card (Reference: .goal) -->
+                <section class="goal-card rounded-2xl p-5 shadow-xs">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-black text-sm text-slate-900">متابعة باقتك ورصيدك</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5">رصيد الحصص المتاح لديك حالياً</p>
+                        </div>
+                        <span class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">ساري</span>
+                    </div>
 
-        <!-- Course Action Toolbar (Quizzes & Drive & Stats) -->
-        <section class="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-            <div class="grid grid-cols-3 gap-2 flex-1 min-w-[280px]">
-                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
-                    <div class="text-[10px] font-semibold text-slate-500">حضور مؤكد</div>
-                    <div class="text-base font-extrabold text-emerald-600 mt-0.5" id="presentCount">0</div>
-                </div>
-                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
-                    <div class="text-[10px] font-semibold text-slate-500">غياب</div>
-                    <div class="text-base font-extrabold text-red-600 mt-0.5" id="absentCount">0</div>
-                </div>
-                <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
-                    <div class="text-[10px] font-semibold text-slate-500">مرات التجديد</div>
-                    <div class="text-base font-extrabold text-amber-600 mt-0.5" id="renewalCountBadge">المرحلة الأولى</div>
-                </div>
-            </div>
+                    <div class="flex items-baseline gap-1.5 mt-3">
+                        <b class="text-3xl font-black text-emerald-800" id="goalRemainingCreditsDisplay">8</b>
+                        <span class="text-xs text-slate-600 font-bold">/ حصص متبقية في الباقة</span>
+                    </div>
 
-            <div class="flex items-center gap-2">
-                <!-- Quizzes Button -->
-                <button onclick="openQuizzesModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>اختبارات وتدريبات</span>
-                </button>
-            </div>
-        </section>
+                    <div class="w-full bg-emerald-100 h-2 rounded-full overflow-hidden mt-2.5">
+                        <div id="goalProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full transition-all duration-500" style="width: 100%"></div>
+                    </div>
 
-        <!-- 3. Course Lectures & Dynamic Block System (generated by student.js) -->
-        <section class="space-y-4" id="lecturesSection">
-            
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="text-lg font-extrabold text-slate-900" id="selectedCourseTitle">جدول المحاضرات</h3>
-                </div>
-                <button onclick="refreshData()" class="text-xs text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">تحديث</button>
-            </div>
+                    <p class="text-[11px] text-slate-600 mt-2 leading-relaxed">
+                        شحن الرصيد يفتح لك المحاضرات والشهادات ويضمن استمرارية حضورك مع المعلم.
+                    </p>
 
-            <!-- Paymob Renewal Callout Banner -->
-            <div id="renewalBanner" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div>
-                    <span class="bg-slate-950 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">تجديد الاشتراك عبر Paymob</span>
-                    <h4 class="text-lg font-black mt-1" id="renewalBannerTitle">رصيدك على وشك الانتهاء — جدد الآن!</h4>
-                    <p class="text-xs text-amber-950 font-semibold mt-0.5" id="renewalBannerSubtitle">اختر الباقة المناسبة (جروب أو برايفت) بضغطة زر وسيتم شحن الرصيد وفتح المحاضرات فوراً.</p>
-                </div>
-                <button onclick="openPaymobModal()" class="w-full sm:w-auto bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-xs px-6 py-3 rounded-xl shadow-md whitespace-nowrap transition transform hover:scale-105">
-                    تجديد الآن واختيار الباقة
-                </button>
-            </div>
+                    <button onclick="openPaymobModal()" class="w-full mt-3 bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                        <span>تجديد الاشتراك وشحن الحصص</span>
+                        <span>←</span>
+                    </button>
+                </section>
 
-            <!-- Dynamic Lecture Blocks Container (populated by loadSelectedCourseLectures in student.js) -->
-            <div id="lectureBlocksContainer" class="space-y-5">
-                <div class="text-center py-10 text-slate-400">
-                    <div class="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p class="font-bold text-sm">جاري تحميل جدول المحاضرات...</p>
-                </div>
-            </div>
+                <!-- 3. Smart Attendance QR Code Card -->
+                <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs text-center space-y-2">
+                    <div class="inline-block p-2 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
+                        <script>(function(){const u=window.__PRELOADED_USER__;const code=(u&&u.username)?u.username:'MONIR-LMS';document.write('<img id="studentQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(code)+'" alt="QR Code" class="w-28 h-28 mx-auto rounded-lg object-contain">');})();</script>
+                    </div>
+                    <div>
+                        <strong class="text-xs font-black text-slate-900 block" id="studentQrCodeText">باركود الحضور الذكي</strong>
+                        <span class="text-[11px] text-slate-500 block">للمسح السريع في الحلقات والأنشطة</span>
+                    </div>
+                </section>
 
-        </section>
+                <!-- 4. Support & Parent Care Card -->
+                <section class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2.5">
+                    <strong class="font-black text-xs text-slate-900 block">هل تحتاج مساعدة أو تنسيق موعد؟</strong>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                        فريق خدمة أولياء الأمور متاح للرد على أي استفسارات أو تنسيق أعذار الغياب.
+                    </p>
+                    <div class="flex items-center gap-2 pt-1">
+                        <a href="https://wa.me/201002530197" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2 px-3 rounded-xl transition text-center shadow-2xs">
+                            واتساب الدعم
+                        </a>
+                        <button type="button" onclick="openSupportModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs py-2 px-3 rounded-xl border border-slate-200 transition text-center cursor-pointer">
+                            إرسال تذكرة
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- Academic Footer (Reference: .footer) -->
+        <footer class="pt-6 pb-4 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500 font-medium">
+            <span>© ٢٠٢٦ أكاديمية منير. جميع الحقوق محفوظة.</span>
+            <span>كل يوم، خطوة أقرب نحو التميز القرآني والعلمي.</span>
+        </footer>
 
     </main>
 
-        <!-- Modal: Notifications List -->
+    <!-- Modal: Notifications List -->
     <div id="notificationsModal" class="modal-overlay hidden">
         <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200">
             <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
@@ -834,7 +1089,6 @@
                 <button onclick="closeSupportModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
 
-            <!-- Support Tabs -->
             <div class="flex border-b border-slate-200 mb-4 text-xs font-bold">
                 <button onclick="switchSupportTab('new')" id="tabSupportNew" class="py-2 px-4 border-b-2 border-blue-900 text-blue-900">
                     تقديم تذكرة جديدة
@@ -844,7 +1098,6 @@
                 </button>
             </div>
 
-            <!-- Tab 1: New Ticket Form -->
             <div id="supportFormTab" class="space-y-3 text-xs">
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">نوع الاستفسار / الشكوى:</label>
@@ -872,7 +1125,6 @@
                 </button>
             </div>
 
-            <!-- Tab 2: Tickets History List -->
             <div id="supportListTab" class="hidden space-y-3 max-h-80 overflow-y-auto pr-1 text-xs">
                 <!-- Injected via JS -->
             </div>
@@ -890,14 +1142,12 @@
                 <button onclick="closeQuizzesModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
 
-            <!-- Quiz Selection View -->
             <div id="quizSelectionView" class="space-y-3">
                 <div id="quizzesListContainer" class="space-y-2.5">
                     <!-- Injected via JS -->
                 </div>
             </div>
 
-            <!-- Quiz Questions Interactive Active View -->
             <div id="quizActiveView" class="hidden space-y-4 text-xs">
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center">
                     <strong class="text-slate-900 font-black text-sm" id="activeQuizTitle">اختبار المرحلة</strong>
@@ -918,7 +1168,6 @@
                 </div>
             </div>
 
-            <!-- Quiz Result View -->
             <div id="quizResultView" class="hidden text-center py-6 space-y-4 text-xs">
                 <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-xl font-black" id="quizResultIcon">
                     100%
@@ -972,7 +1221,7 @@
             </div>
 
             <div class="mt-5 pt-3 border-t border-slate-100 flex justify-end">
-                <button onclick="toggleGradebookModal()" class="bg-[#1F274B] text-white font-bold text-xs px-6 py-2.5 rounded-xl transition">
+                <button onclick="toggleGradebookModal()" class="bg-[#1F274B] text-white font-bold text-xs px-6 py-2.5 rounded-xl transition cursor-pointer">
                     إغلاق السجل
                 </button>
             </div>
@@ -984,7 +1233,6 @@
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    
                     <div>
                         <h3 class="font-extrabold text-base text-slate-900 leading-tight">شحن وتجديد الاشتراك</h3>
                         <p class="text-[11px] text-slate-500 font-medium">التحويل عبر إنستا باي أو فودافون كاش وإرسال الإشعار</p>
@@ -1011,67 +1259,40 @@
                 <p class="text-[11px] text-slate-500">حدد الباقة المناسبة ليتم احتساب المبلغ المطلوب وتجهيز بيانات التحويل</p>
             </div>
 
-            <!-- Packages Selection (2 Options: Group 400 EGP & Private 1000 EGP) -->
-            <div class="space-y-2 mb-4">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-slate-800">اختر باقة التجديد المناسبة:</span>
-                    <span class="text-[10px] text-slate-500 font-medium">اشتراك شهري مرن</span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <!-- Package: Group 4 (400 EGP) - Selected by Default -->
-                    <div id="pkgCard_group_4" onclick="selectRenewalPackage('group_4')" class="pkg-card cursor-pointer border-2 border-blue-600 bg-blue-50/50 rounded-2xl p-3.5 transition relative flex flex-col justify-between shadow-sm">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-black text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md">جروب (مجموعة)</span>
-                                <span class="text-xs font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">400 ج.م</span>
-                            </div>
-                            <h4 class="font-extrabold text-xs text-slate-900 mt-2">باقة الـ 4 محاضرات شهرياً</h4>
-                            <p class="text-[11px] text-slate-500 mt-0.5 font-medium">حصة أسبوعياً (45-60 دقيقة)</p>
-                        </div>
-                        <div class="mt-2.5 pt-2 border-t border-blue-100 flex items-center justify-between text-[10px]">
-                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+4 حصص لرصيدك</span>
-                            <span class="pkg-indicator font-black text-blue-700">مُحدد ◉</span>
-                        </div>
+            <!-- Packages Selection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs" id="paymobPackageOptions">
+                <!-- Group Package Option (400 EGP) -->
+                <label id="pkgCard_group" class="border-2 border-indigo-600 bg-indigo-50/70 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition shadow-2xs relative">
+                    <input type="radio" name="paymobPkg" value="group" checked class="hidden" onchange="selectPaymobPackage('group', 400, 'باقة 8 محاضرات شهرياً (مجموعة)')">
+                    <span class="absolute top-2.5 left-2.5 bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full">الأكثر طلباً</span>
+                    <div>
+                        <strong class="block text-slate-900 font-black text-sm">باقة المجموعات</strong>
+                        <span class="text-slate-500 text-[11px] block mt-0.5">8 محاضرات شهرياً مع المجموعة</span>
                     </div>
-
-                    <!-- Package: Private 4 (60 min) (1000 EGP) -->
-                    <div id="pkgCard_private_4_60" onclick="selectRenewalPackage('private_4_60')" class="pkg-card cursor-pointer border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-3.5 transition bg-white relative flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">برايفت (فردي خاص)</span>
-                                <span class="text-xs font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">1000 ج.م</span>
-                            </div>
-                            <h4 class="font-extrabold text-xs text-slate-900 mt-2">4 محاضرات (ساعة كاملة)</h4>
-                            <p class="text-[11px] text-slate-500 mt-0.5 font-medium">60 دقيقة للحصة — متابعة فردية 1:1</p>
-                        </div>
-                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                            <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+4 حصص ساعة</span>
-                            <span class="pkg-indicator font-bold text-slate-400">اختيار ◯</span>
-                        </div>
+                    <div class="mt-3 pt-2 border-t border-indigo-100 flex justify-between items-baseline">
+                        <span class="text-indigo-950 font-black text-base">400.00 <small class="text-xs font-bold text-slate-600">ج.م</small></span>
+                        <span class="text-[10px] text-emerald-700 font-bold">50 ج.م / حصة</span>
                     </div>
-                </div>
+                </label>
+
+                <!-- Private Package Option (1000 EGP) -->
+                <label id="pkgCard_private" class="border-2 border-slate-200 hover:border-slate-300 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition relative">
+                    <input type="radio" name="paymobPkg" value="private" class="hidden" onchange="selectPaymobPackage('private', 1000, 'باقة 8 محاضرات شهرياً (برايفت)')">
+                    <span class="absolute top-2.5 left-2.5 bg-amber-500 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded-full">VIP فردي</span>
+                    <div>
+                        <strong class="block text-slate-900 font-black text-sm">باقة برايفت VIP</strong>
+                        <span class="text-slate-500 text-[11px] block mt-0.5">8 محاضرات فردية خاصة (واحد لواحد)</span>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between items-baseline">
+                        <span class="text-slate-900 font-black text-base">1000.00 <small class="text-xs font-bold text-slate-600">ج.م</small></span>
+                        <span class="text-[10px] text-purple-700 font-bold">125 ج.م / حصة</span>
+                    </div>
+                </label>
             </div>
 
-            <!-- Order Summary Box -->
-            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-4 rounded-2xl mb-4 text-xs space-y-2 shadow-inner">
-                <div class="flex justify-between items-center text-slate-300">
-                    <span>الباقة المختارة:</span>
-                    <strong class="text-amber-300 font-bold" id="paymobServiceName">باقة الـ 4 محاضرات شهرياً (جروب (مجموعة))</strong>
-                </div>
-                <div class="flex justify-between items-center text-slate-300">
-                    <span>الرصيد الذي سيُضاف:</span>
-                    <strong class="text-emerald-400 font-bold" id="paymobCreditsToAdd">+4 حصص جديدة (45-60 دقيقة)</strong>
-                </div>
-                <div class="flex justify-between items-center text-white text-sm font-black pt-2 border-t border-slate-700/60">
-                    <span>المبلغ المطلوب تحويله:</span>
-                    <span class="text-amber-400 text-base" id="paymobAmountText">400.00 ج.م</span>
-                </div>
-            </div>
-
-            <!-- Payment Methods Selector (InstaPay & Vodafone Cash) -->
-            <div class="space-y-2 mb-3 text-xs">
-                <label class="block font-bold text-slate-800">اختر طريقة التحويل:</label>
+            <!-- Payment Method Selection -->
+            <div class="mb-4 text-xs">
+                <label class="block font-bold text-slate-800 mb-1.5">اختر طريقة التحويل:</label>
                 <div class="grid grid-cols-2 gap-2.5">
                     <!-- InstaPay Tab -->
                     <label id="payMethodTab_instapay" class="pay-method-opt border-2 border-indigo-600 bg-indigo-50/70 p-3 rounded-2xl text-center cursor-pointer flex flex-col items-center gap-1 font-bold text-indigo-950 transition shadow-xs">
@@ -1141,7 +1362,7 @@
                         <div class="flex items-center gap-2">
                             <span class="font-mono font-black text-rose-700 text-base tracking-wider" id="vodafoneCashNum">01002530197</span>
                             <button type="button" onclick="copyTransferText('01002530197', this)" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-                                <span>نسخ الحساب</span>
+                                <span>نسخ الرقم</span>
                             </button>
                         </div>
                     </div>
@@ -1175,36 +1396,14 @@
                     <span>إرسال صورة التحويل وتفعيل الحصص فوراً (واتساب)</span>
                 </a>
 
-                <!-- Secondary Action: Register Transfer Notice (Pending Review) -->
-                <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2">
+                <!-- Secondary Action: Register Transfer Notice -->
+                <button id="btnPaymobSubmit" onclick="submitPaymobPayment()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2 cursor-pointer">
                     <span id="btnPaymobSubmitText">تسجيل إشعار سداد (400.00 ج.م) - قيد المراجعة</span>
                 </button>
             </div>
             <p class="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
                 <span>لا يتم تفعيل الرصيد إلا بعد مراجعة صورة إشعار التحويل من قبل الإدارة</span>
             </p>
-        </div>
-    </div>
-
-    <!-- Modal: Notifications for Student & Parent (إشعارات الحفظ والمراجعة) -->
-    <div id="notificationsModal" class="modal-overlay hidden">
-        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
-                <div class="flex items-center gap-2">
-                    
-                    <div>
-                        <h3 class="font-black text-sm sm:text-base text-slate-900">مركز الإشعارات والتنبيهات</h3>
-                        <p class="text-[11px] text-slate-500">إشعارات الحفظ والمراجعة والمواعيد من المعلم</p>
-                    </div>
-                </div>
-                <button onclick="toggleNotifications()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none cursor-pointer">&times;</button>
-            </div>
-            <div id="notificationsList" class="flex-1 overflow-y-auto space-y-2.5 py-3 pr-1 min-h-[160px] max-h-[50vh]">
-                <!-- Injected via JS -->
-            </div>
-            <div class="pt-3 border-t border-slate-100 flex justify-end flex-shrink-0">
-                <button type="button" onclick="toggleNotifications()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition cursor-pointer">إغلاق</button>
-            </div>
         </div>
     </div>
 
@@ -1221,7 +1420,7 @@
 
             <!-- Pending Review Notice -->
             <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3.5 text-amber-900 leading-relaxed text-[11px] flex items-start gap-2">
-                <span class="text-base">⏳</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 mt-1 shrink-0"></span>
                 <div>
                     <strong class="font-bold block text-amber-950">الطلب قيد المراجعة:</strong>
                     <span>لتأكيد السداد وتفعيل الحصص في رصيدك فوراً، يرجى الضغط على الزر الأخضر بالأسفل وإرسال صورة إيصال التحويل (الاسكرين شوت) للإدارة عبر واتساب.</span>
@@ -1239,11 +1438,11 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">كود الطالب:</span>
-                    <strong class="text-slate-950" id="receiptStudentCode">MNR-2026-1042</strong>
+                    <strong class="text-slate-950" id="receiptStudentCode">ST1088</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">المسار التدريبي:</span>
-                    <strong class="text-slate-950 font-sans" id="receiptCourseName">كتالوج الشباب 2.0</strong>
+                    <strong class="text-slate-950 font-sans" id="receiptCourseName">مسار تحفيظ القرآن الكريم</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">باقة التجديد:</span>
@@ -1255,15 +1454,15 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">المبلغ المطلوب:</span>
-                    <strong class="text-emerald-700 font-bold text-sm" id="receiptAmount">500.00 ج.م</strong>
+                    <strong class="text-emerald-700 font-bold text-sm" id="receiptAmount">400.00 ج.م</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">تاريخ الطلب:</span>
-                    <span class="text-slate-600" id="receiptDate">2026-09-08</span>
+                    <span class="text-slate-600" id="receiptDate">2026-09-24</span>
                 </div>
                 <div class="flex justify-between pt-2 border-t border-slate-200">
                     <span class="font-sans text-slate-500">حالة السداد:</span>
-                    <span id="receiptStatusBadge" class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px] font-sans">⏳ قيد التحقق (بانتظار صورة التحويل)</span>
+                    <span id="receiptStatusBadge" class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px] font-sans">قيد التحقق (بانتظار صورة التحويل)</span>
                 </div>
             </div>
 
@@ -1271,7 +1470,7 @@
                 <a id="btnWhatsAppReceipt" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md text-center">
                     <span>إرسال صورة التحويل وتأكيد التفعيل عبر WhatsApp</span>
                 </a>
-                <button onclick="closeReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition">
+                <button onclick="closeReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">
                     إغلاق
                 </button>
             </div>
@@ -1280,19 +1479,23 @@
 
     <!-- Mobile Fixed Bottom Navigation Bar (App-like Quick Actions for Parents) -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl safe-bottom">
-        <button type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-[#41519C] active:text-[#41519C] py-1 px-2.5 rounded-xl transition cursor-pointer">
+        <button type="button" onclick="setPortalView('overview'); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-[#41519C] active:text-[#41519C] py-1 px-2.5 rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4"><use href="#user"/></svg>
             <span class="text-[10px] font-bold">كارت الطالب</span>
         </button>
 
         <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
-            <span id="bottomNavMeetIcon"></span><span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
+            <span id="bottomNavMeetIcon"></span>
+            <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
         </button>
 
         <button type="button" onclick="openPaymobModal()" class="flex flex-col items-center gap-0.5 text-amber-700 hover:text-amber-800 active:scale-95 py-1 px-2.5 rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4"><use href="#award"/></svg>
             <span class="text-[10px] font-extrabold">شحن وتجديد</span>
         </button>
 
         <button type="button" onclick="openSupportModal()" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-blue-900 active:text-blue-900 py-1 px-2.5 rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4"><use href="#edit"/></svg>
             <span class="text-[10px] font-bold">الدعم والأعذار</span>
         </button>
     </nav>
@@ -1302,7 +1505,6 @@
         <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center gap-2">
-                    
                     <div>
                         <h3 class="font-black text-sm text-slate-900">بحث وتحديد طالب</h3>
                         <p class="text-[11px] text-slate-500">اختر أي طالب لعرض صفحته وحضوره ورصيده فوراً</p>
@@ -1323,7 +1525,68 @@
         </div>
     </div>
 
+    <!-- Tab View Switching Controller Script -->
+    <script>
+    function setPortalView(v) {
+        document.querySelectorAll('.profile-tab').forEach(t => {
+            const isActive = (t.dataset.view === v);
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', String(isActive));
+        });
+
+        const coursesSection = document.getElementById('enrolledCoursesMainSection');
+        const lecturesSection = document.getElementById('lecturesSection');
+        const quranSection = document.getElementById('quranPlanSection');
+        const generalLecturesSection = document.getElementById('generalLecturesSection');
+        const certificatesPanel = document.getElementById('certificatesPanel');
+        const detailsPanel = document.getElementById('detailsPanel');
+        const schedulePanel = document.getElementById('schedulePanel');
+
+        if (v === 'overview') {
+            if (coursesSection) coursesSection.classList.remove('hidden');
+            if (lecturesSection) lecturesSection.classList.remove('hidden');
+            if (quranSection && window.hasQuranCourses !== false) quranSection.classList.remove('hidden');
+            if (generalLecturesSection) generalLecturesSection.classList.remove('hidden');
+            if (certificatesPanel) certificatesPanel.classList.remove('hidden');
+            if (detailsPanel) detailsPanel.classList.add('hidden');
+        } else if (v === 'courses') {
+            if (coursesSection) coursesSection.classList.remove('hidden');
+            if (lecturesSection) lecturesSection.classList.remove('hidden');
+            if (quranSection) quranSection.classList.remove('hidden');
+            if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
+            if (certificatesPanel) certificatesPanel.classList.add('hidden');
+            if (detailsPanel) detailsPanel.classList.add('hidden');
+            if (coursesSection) coursesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (v === 'schedule') {
+            if (coursesSection) coursesSection.classList.add('hidden');
+            if (lecturesSection) lecturesSection.classList.add('hidden');
+            if (quranSection) quranSection.classList.add('hidden');
+            if (generalLecturesSection) generalLecturesSection.classList.remove('hidden');
+            if (certificatesPanel) certificatesPanel.classList.add('hidden');
+            if (detailsPanel) detailsPanel.classList.add('hidden');
+            if (generalLecturesSection) generalLecturesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (v === 'certificates') {
+            if (coursesSection) coursesSection.classList.add('hidden');
+            if (lecturesSection) lecturesSection.classList.add('hidden');
+            if (quranSection) quranSection.classList.add('hidden');
+            if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
+            if (certificatesPanel) certificatesPanel.classList.remove('hidden');
+            if (detailsPanel) detailsPanel.classList.add('hidden');
+            if (certificatesPanel) certificatesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (v === 'details') {
+            if (coursesSection) coursesSection.classList.add('hidden');
+            if (lecturesSection) lecturesSection.classList.add('hidden');
+            if (quranSection) quranSection.classList.add('hidden');
+            if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
+            if (certificatesPanel) certificatesPanel.classList.add('hidden');
+            if (detailsPanel) detailsPanel.classList.remove('hidden');
+            if (detailsPanel) detailsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+    window.setPortalView = setPortalView;
+    </script>
+
     <script src="js/api_mock.js?v=20260923_v1"></script>
-    <script src="js/student.js?v=20260923_v1"></script>
+    <script src="js/student.js?v=20260924_v2"></script>
 </body>
 </html>

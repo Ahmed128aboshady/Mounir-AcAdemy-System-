@@ -439,6 +439,60 @@ async function loadStudentProfile() {
         }
         
         const badge = document.getElementById('notifBadge');
+        
+        // ── Reference Modern EdTech Layout Synchronization ─────────────
+        const finalStudentName = (s.name || (initialUser && (initialUser.full_name || initialUser.username)) || 'طالب الأكاديمية').trim();
+        const nameTokens = finalStudentName.split(/\s+/);
+        const stInitials = nameTokens.length >= 2 ? (nameTokens[0][0] + ' ' + nameTokens[1][0]) : (nameTokens[0] ? nameTokens[0][0] : 'ط');
+        
+        const avatarInitialsEl = document.getElementById('profileAvatarInitials');
+        if (avatarInitialsEl) avatarInitialsEl.innerText = stInitials;
+        const topUserInitialsEl = document.getElementById('topUserInitials');
+        if (topUserInitialsEl) topUserInitialsEl.innerText = stInitials;
+        const topUserNameEl = document.getElementById('topUserName');
+        if (topUserNameEl) topUserNameEl.innerText = finalStudentName;
+
+        // Details Panel Fields
+        const dName = document.getElementById('detailsStudentName');
+        if (dName) dName.innerText = finalStudentName;
+        const dCode = document.getElementById('detailsStudentCode');
+        if (dCode) dCode.innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
+        const dParent = document.getElementById('detailsParentName');
+        if (dParent) dParent.innerText = document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب';
+        const dPhone = document.getElementById('detailsParentPhone');
+        if (dPhone) dPhone.innerText = (parentPhoneEl && parentPhoneEl.innerText) ? parentPhoneEl.innerText : 'غير مسجل';
+        const dStatus = document.getElementById('detailsAccountStatus');
+        if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
+        const dTrack = document.getElementById('detailsTrackName');
+        if (dTrack) {
+            dTrack.innerText = (quranCourses.length > 0 && academicCourses.length > 0)
+                ? 'مسار مشترك (قرآن كريم وبرامج تعليمية)'
+                : (quranCourses.length > 0 ? 'مسار تحفيظ القرآن الكريم والعلوم الشرعية' : 'مسار البرامج التعليمية والكورسات');
+        }
+
+        // Subtitle under Student Name in Profile Card
+        const subTitleEl = document.getElementById('studentTrackSubtitle');
+        if (subTitleEl) {
+            subTitleEl.innerText = (quranCourses.length > 0 && academicCourses.length > 0)
+                ? 'متدرب في المسار المشترك: القرآن الكريم والبرامج التعليمية'
+                : (quranCourses.length > 0 ? 'متدرب في مسار القرآن الكريم والحديث الشريف' : 'متدرب في مسار البرامج التعليمية والكورسات');
+        }
+
+        // KPI Stats
+        const statEnrolledEl = document.getElementById('statEnrolledCourses');
+        if (statEnrolledEl) statEnrolledEl.innerText = enrolledCoursesList.length || 1;
+        const curRemCredits = (curCourseForBottom.remaining_credits !== undefined) ? curCourseForBottom.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0);
+        const statRemEl = document.getElementById('statRemainingCredits');
+        if (statRemEl) statRemEl.innerText = curRemCredits;
+        const goalRemEl = document.getElementById('goalRemainingCreditsDisplay');
+        if (goalRemEl) goalRemEl.innerText = curRemCredits;
+        const goalBar = document.getElementById('goalProgressBar');
+        if (goalBar) {
+            const totPkg = Math.max(8, curRemCredits);
+            const pct = Math.min(100, Math.round((curRemCredits / totPkg) * 100));
+            goalBar.style.width = pct + '%';
+        }
+    
         if (data.unread_notifications > 0) {
             badge.innerText = data.unread_notifications;
             badge.classList.remove('hidden');

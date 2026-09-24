@@ -220,4 +220,240 @@ html, body {
     }
 }
 
+/* ══════════════════════════════════════════════════════════════════ */
+/* Modern EdTech Profile Layout (Reference: New folder 63)           */
+/* ══════════════════════════════════════════════════════════════════ */
+.profile-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+.profile-cover {
+    height: 125px;
+    background: linear-gradient(135deg, #152238 0%, #1F274B 50%, #2D396E 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 20px 32px;
+}
+
+.profile-cover::before, .profile-cover::after {
+    content: "";
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    border: 1px solid rgba(87, 186, 158, 0.22);
+    border-radius: 50%;
+    left: -70px;
+    top: -220px;
+    pointer-events: none;
+}
+
+.profile-cover::after {
+    width: 500px;
+    height: 500px;
+    left: -120px;
+    top: -270px;
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+.profile-cover-text {
+    position: relative;
+    z-index: 1;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.profile-body {
+    padding: 0 28px 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    position: relative;
+}
+
+.profile-avatar {
+    width: 92px;
+    height: 92px;
+    border: 5px solid white;
+    border-radius: 50%;
+    background: #edf6f2;
+    color: #1F274B;
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 800;
+    margin-top: -46px;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px -2px rgba(31, 39, 75, 0.15);
+}
+
+.verified-badge {
+    background: #e6f4dd;
+    color: #436836;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 24px;
+    padding: 0 28px;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.profile-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-tab {
+    border: 0;
+    background: none;
+    padding: 14px 0 12px;
+    white-space: nowrap;
+    color: #718096;
+    font-size: 13px;
+    font-weight: 700;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.profile-tab.active, .profile-tab:hover {
+    color: #1F274B;
+    border-color: #57BA9E;
+}
+
+/* KPI Stats Section */
+.kpi-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.kpi-stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #edf6f2;
+    color: #2D396E;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.kpi-stat-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Schedule List Card */
+.schedule-item {
+    border-right: 3px solid #57BA9E;
+    padding: 0 14px;
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+}
+
+.schedule-item:last-child {
+    margin-bottom: 0;
+}
+
+.schedule-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #236E58;
+    background: #e8f8f4;
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+/* Achievement Item */
+.achievement-item {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.achievement-medal {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #b68d49;
+    background: #fff6e5;
+    flex-shrink: 0;
+}
+
+/* Weekly Goal / Subscription Card */
+.goal-card {
+    background: linear-gradient(135deg, #f5fbf7 0%, #edf6f2 100%);
+    border: 1px solid #c9ebd8;
+}
+
+@media(max-width: 900px) {
+    .kpi-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .profile-cover {
+        height: 95px;
+        padding: 16px;
+    }
+    .profile-cover-text {
+        font-size: 11px;
+    }
+    .profile-body {
+        padding: 0 18px 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .profile-avatar {
+        width: 76px;
+        height: 76px;
+        font-size: 22px;
+        margin-top: -38px;
+    }
+    .profile-tabs {
+        padding: 0 16px;
+        gap: 18px;
+    }
+}
+
+
 
