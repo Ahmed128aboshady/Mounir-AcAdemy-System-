@@ -967,17 +967,19 @@ function renderEnrolledCoursesTabs(courses) {
             </div>
 
             <!-- Action Toolbar Buttons (EdTech Level) -->
-            <div class="flex items-center gap-1.5 pt-1">
-                <a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-black text-xs py-2.5 px-2 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
+                <a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
                     <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                     <span>دخول القاعة الذكية</span>
                 </a>
-                <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
-                    <span>المنهج والمحاضرات</span>
-                </button>
-                <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-2.5 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
-                    <span>اختبارات</span>
-                </button>
+                <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
+                    <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
+                        <span>المنهج والمحاضرات</span>
+                    </button>
+                    <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
+                        <span>اختبارات</span>
+                    </button>
+                </div>
             </div>
         `;
         container.appendChild(card);
@@ -1564,14 +1566,14 @@ function updateBottomMeetButtonState(rc) {
     const label = document.getElementById('bottomNavMeetLabel');
     if (!btn) return;
     if (rc <= 0) {
-        btn.className = "flex flex-col items-center gap-0.5 text-amber-700 active:scale-95 py-1 px-3 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
+        btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-amber-700 active:scale-95 py-1 px-1 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { if (typeof openPaymobModal === 'function') openPaymobModal(); };
-        if (icon) icon.innerText = '';
+        if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#award"/></svg>';
         if (label) label.innerText = 'رصيد 0 • تجديد';
     } else {
-        btn.className = "flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer";
+        btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { joinNextDueMeet(); };
-        if (icon) icon.innerText = '';
+        if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#clock"/></svg>';
         if (label) label.innerText = 'دخول الحصة';
     }
 }

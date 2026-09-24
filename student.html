@@ -207,33 +207,35 @@
                         </div>
                     </div>
 
-                    <!-- Metadata Row -->
-                    <div class="flex items-center gap-3 sm:gap-5 flex-wrap mt-3 text-xs text-slate-600">
-                        <span class="flex items-center gap-1">
-                            <span class="text-slate-400 font-medium">رقم المتدرب:</span>
+                    <!-- Metadata Row (Responsive 2x2 Micro-Grid on Mobile, Sleek Flex on Desktop) -->
+                    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 mt-3 text-xs text-slate-600">
+                        <div class="bg-slate-50/80 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/70 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
+                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">رقم المتدرب:</span>
                             <bdi class="font-mono font-black text-[#1F274B]" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></bdi>
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="text-slate-400 font-medium">السن:</span>
-                            <strong class="text-slate-800 font-bold" id="studentDetails">9 سنوات</strong>
-                            <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-[10px] font-black px-2 py-0.5 rounded-md cursor-pointer transition mr-1" title="انقر لتعديل نوع الطالب">
-                                <span id="studentGenderEmoji" class="hidden"></span>
-                                <span id="studentGenderLabel">طالب (ولد)</span>
-                                <span class="text-[9px] text-blue-600 underline mr-0.5">تعديل</span>
-                            </button>
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="text-slate-400 font-medium">ولي الأمر:</span>
-                            <strong class="text-slate-800 font-bold" id="parentName">أ. ولي الأمر المعتمد</strong>
-                        </span>
-                        <span class="hidden md:flex items-center gap-1">
+                        </div>
+                        <div class="bg-slate-50/80 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/70 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
+                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">السن والنوع:</span>
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <strong class="text-slate-800 font-bold" id="studentDetails">9 سنوات</strong>
+                                <button id="studentGenderToggleBtn" onclick="toggleStudentGenderFromPortal()" class="inline-flex items-center gap-0.5 bg-white sm:bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-[10px] font-black px-1.5 py-0.5 rounded-md cursor-pointer transition" title="انقر لتعديل نوع الطالب">
+                                    <span id="studentGenderEmoji" class="hidden"></span>
+                                    <span id="studentGenderLabel">طالب (ولد)</span>
+                                    <span class="text-[9px] text-blue-600 underline">تعديل</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50/80 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/70 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
+                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">ولي الأمر:</span>
+                            <strong class="text-slate-800 font-bold truncate" id="parentName">أ. ولي الأمر المعتمد</strong>
+                        </div>
+                        <div class="bg-slate-50/80 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/70 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
+                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">المسارات:</span>
+                            <strong class="text-emerald-700 font-bold" id="enrolledCoursesCount">1 مسار تدريبي</strong>
+                        </div>
+                        <div class="hidden md:flex items-center gap-1">
                             <span class="text-slate-400 font-medium">الهاتف:</span>
                             <strong class="font-mono font-bold text-slate-700" id="parentPhone">011...</strong>
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="text-slate-400 font-medium">المسارات:</span>
-                            <strong class="text-emerald-700 font-bold" id="enrolledCoursesCount">1 مسار تدريبي</strong>
-                        </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1478,25 +1480,25 @@
     </div>
 
     <!-- Mobile Fixed Bottom Navigation Bar (App-like Quick Actions for Parents) -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around sm:hidden shadow-2xl safe-bottom">
-        <button type="button" onclick="setPortalView('overview'); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-[#41519C] active:text-[#41519C] py-1 px-2.5 rounded-xl transition cursor-pointer">
+    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-between sm:hidden shadow-2xl safe-bottom">
+        <button type="button" onclick="setPortalView('overview'); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:text-[#1F274B] active:text-[#1F274B] py-1 px-1 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4"><use href="#user"/></svg>
-            <span class="text-[10px] font-bold">كارت الطالب</span>
+            <span class="text-[10px] font-bold">حسابي</span>
         </button>
 
-        <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex flex-col items-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-3.5 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
-            <span id="bottomNavMeetIcon"></span>
+        <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
+            <span id="bottomNavMeetIcon" class="flex items-center justify-center"><svg class="w-4 h-4"><use href="#clock"/></svg></span>
             <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
         </button>
 
-        <button type="button" onclick="openPaymobModal()" class="flex flex-col items-center gap-0.5 text-amber-700 hover:text-amber-800 active:scale-95 py-1 px-2.5 rounded-xl transition cursor-pointer">
+        <button type="button" onclick="openPaymobModal()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-amber-700 hover:text-amber-800 active:scale-95 py-1 px-1 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4"><use href="#award"/></svg>
-            <span class="text-[10px] font-extrabold">شحن وتجديد</span>
+            <span class="text-[10px] font-extrabold">تجديد</span>
         </button>
 
-        <button type="button" onclick="openSupportModal()" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-blue-900 active:text-blue-900 py-1 px-2.5 rounded-xl transition cursor-pointer">
+        <button type="button" onclick="openSupportModal()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:text-blue-900 active:text-blue-900 py-1 px-1 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4"><use href="#edit"/></svg>
-            <span class="text-[10px] font-bold">الدعم والأعذار</span>
+            <span class="text-[10px] font-bold">الدعم</span>
         </button>
     </nav>
 
@@ -1532,6 +1534,11 @@
             const isActive = (t.dataset.view === v);
             t.classList.toggle('active', isActive);
             t.setAttribute('aria-selected', String(isActive));
+            if (isActive && typeof t.scrollIntoView === 'function') {
+                try {
+                    t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                } catch(e) {}
+            }
         });
 
         const coursesSection = document.getElementById('enrolledCoursesMainSection');
