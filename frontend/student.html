@@ -364,63 +364,66 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic Courses Grid (rendered by student.js) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4" id="enrolledCoursesTabs">
-                        <div class="p-6 rounded-2xl border border-slate-200 bg-slate-50/80 text-center py-6 text-slate-400 font-bold text-xs col-span-full">
-                            <div class="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                            جاري تحميل بيانات الكورسات والمسارات...
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Quran Progress & Revision Plan Card (خطة الحفظ والمراجعة المقررة للطالب) -->
-                <section id="quranPlanSection" class="bg-gradient-to-r from-emerald-900 via-teal-900 to-[#1F274B] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg border border-emerald-500/30 relative overflow-hidden">
-                    <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="relative z-10 space-y-3">
-                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-                            <div>
-                                <h3 class="text-xs sm:text-sm font-black text-white">خطة الحفظ والمراجعة القرآنية</h3>
-                                <p class="text-[10px] text-emerald-200/80">الورد المعتمد للطالب لمتابعته في البيت والحلقة</p>
+                    <!-- Dynamic Courses and Quran Plan Grid (Side by side on desktop) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 items-stretch" id="coursesAndPlanContainer">
+                        <!-- Dynamic Courses Grid (rendered by student.js) -->
+                        <div class="flex flex-col gap-3.5" id="enrolledCoursesTabs">
+                            <div class="p-6 rounded-2xl border border-slate-200 bg-slate-50/80 text-center py-6 text-slate-400 font-bold text-xs col-span-full">
+                                <div class="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                جاري تحميل بيانات الكورسات والمسارات...
                             </div>
-                            <span id="quranPlanUpdatedBadge" class="text-[10px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">معتمد من المعلم</span>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                            <!-- 1. الحفظ الجديد -->
-                            <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-emerald-400/30">
-                                <div class="flex items-center gap-1.5 mb-1 text-emerald-300 font-extrabold text-[11px]">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                    <span>الحفظ الجديد المقرر:</span>
+                        <!-- Quran Progress & Revision Plan Card (خطة الحفظ والمراجعة المقررة للطالب) -->
+                        <section id="quranPlanSection" class="bg-gradient-to-br from-emerald-900 via-teal-950 to-[#1F274B] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border-2 border-emerald-500/30 relative overflow-hidden flex flex-col justify-between h-full">
+                            <div class="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                            <div class="relative z-10 space-y-3 flex flex-col h-full justify-between">
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                                    <div>
+                                        <h3 class="text-xs sm:text-sm font-black text-white">خطة الحفظ والمراجعة القرآنية</h3>
+                                        <p class="text-[10px] text-emerald-200/80">الورد المعتمد للطالب لمتابعته في البيت والحلقة</p>
+                                    </div>
+                                    <span id="quranPlanUpdatedBadge" class="text-[10px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">معتمد من المعلم</span>
                                 </div>
-                                <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planHifzDisplay">جاري التحديد مع المعلم...</strong>
-                            </div>
 
-                            <!-- 2. الماضي القريب -->
-                            <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-blue-400/30">
-                                <div class="flex items-center gap-1.5 mb-1 text-blue-300 font-extrabold text-[11px]">
-                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                                    <span>الماضي القريب (مراجعة):</span>
+                                <div class="grid grid-cols-1 gap-2.5 text-xs flex-1 justify-center my-auto">
+                                    <!-- 1. الحفظ الجديد -->
+                                    <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-emerald-400/30 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 text-emerald-300 font-extrabold text-[11px] shrink-0">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            <span>الحفظ الجديد المقرر:</span>
+                                        </div>
+                                        <strong class="text-white text-xs sm:text-sm font-black text-left truncate" id="planHifzDisplay">جاري التحديد مع المعلم...</strong>
+                                    </div>
+
+                                    <!-- 2. الماضي القريب -->
+                                    <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-blue-400/30 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 text-blue-300 font-extrabold text-[11px] shrink-0">
+                                            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                                            <span>الماضي القريب (مراجعة):</span>
+                                        </div>
+                                        <strong class="text-white text-xs sm:text-sm font-black text-left truncate" id="planMadiQareebDisplay">جاري التحديد مع المعلم...</strong>
+                                    </div>
+
+                                    <!-- 3. الماضي البعيد -->
+                                    <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-purple-400/30 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 text-purple-300 font-extrabold text-[11px] shrink-0">
+                                            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                                            <span>الماضي البعيد (تثبيت):</span>
+                                        </div>
+                                        <strong class="text-white text-xs sm:text-sm font-black text-left truncate" id="planMadiBaeedDisplay">جاري التحديد مع المعلم...</strong>
+                                    </div>
                                 </div>
-                                <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiQareebDisplay">جاري التحديد مع المعلم...</strong>
-                            </div>
 
-                            <!-- 3. الماضي البعيد -->
-                            <div class="bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-purple-400/30">
-                                <div class="flex items-center gap-1.5 mb-1 text-purple-300 font-extrabold text-[11px]">
-                                    <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-                                    <span>الماضي البعيد (تثبيت):</span>
+                                <!-- توجيهات المعلم -->
+                                <div id="planNotesContainer" class="hidden bg-black/20 p-2.5 rounded-xl border border-white/10 text-xs flex items-start gap-2">
+                                    <div>
+                                        <span class="text-[10px] text-amber-200 font-bold block">توجيهات المعلم لولي الأمر:</span>
+                                        <p class="text-[11px] text-slate-100 font-medium" id="planNotesDisplay"></p>
+                                    </div>
                                 </div>
-                                <strong class="text-white text-xs sm:text-sm font-black block leading-relaxed" id="planMadiBaeedDisplay">جاري التحديد مع المعلم...</strong>
                             </div>
-                        </div>
-
-                        <!-- توجيهات المعلم -->
-                        <div id="planNotesContainer" class="hidden bg-black/20 p-2.5 rounded-xl border border-white/10 text-xs flex items-start gap-2">
-                            <div>
-                                <span class="text-[10px] text-amber-200 font-bold block">توجيهات المعلم لولي الأمر:</span>
-                                <p class="text-[11px] text-slate-100 font-medium" id="planNotesDisplay"></p>
-                            </div>
-                        </div>
+                        </section>
                     </div>
                 </section>
 
@@ -1825,6 +1828,6 @@
     </script>
 
     <script src="js/api_mock.js?v=20260923_v1"></script>
-    <script src="js/student.js?v=20260924_v4"></script>
+    <script src="js/student.js?v=20260924_v5"></script>
 </body>
 </html>

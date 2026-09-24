@@ -1013,15 +1013,19 @@ function switchPortalTrack(track) {
 
     if (sectionIcon) sectionIcon.innerText = '';
 
+    const coursesTabs = document.getElementById('enrolledCoursesTabs');
+
     if (currentPortalTrack === 'quran') {
         if (filterLabel) filterLabel.innerText = 'مسار القرآن الكريم والتدبر (' + quranCourses.length + ')';
         if (enrolledCoursesSection) enrolledCoursesSection.classList.remove('hidden');
         if (quranPlanSection) quranPlanSection.classList.remove('hidden');
+        if (coursesTabs) coursesTabs.className = "flex flex-col gap-3.5";
         if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
     } else if (currentPortalTrack === 'courses') {
         if (filterLabel) filterLabel.innerText = 'الكورسات والبرامج التعليمية (' + academicCourses.length + ')';
         if (enrolledCoursesSection) enrolledCoursesSection.classList.remove('hidden');
         if (quranPlanSection) quranPlanSection.classList.add('hidden');
+        if (coursesTabs) coursesTabs.className = "grid grid-cols-1 md:grid-cols-2 gap-3.5 col-span-full";
         if (generalLecturesSection) generalLecturesSection.classList.add('hidden');
     } else if (currentPortalTrack === 'competition') {
         if (filterLabel) filterLabel.innerText = 'محاضرات المسابقة والبث المباشر العام';
@@ -1172,7 +1176,7 @@ function renderEnrolledCoursesTabs(courses) {
             ? 'border-2 border-indigo-600 bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 shadow-md ring-2 ring-indigo-200/80 transform scale-[1.005]' 
             : 'border-2 border-slate-200/90 bg-white hover:border-indigo-300 hover:shadow-sm';
 
-        card.className = 'p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition space-y-3 relative ' + activeClass;
+        card.className = 'p-4 sm:p-5 rounded-2xl sm:rounded-3xl cursor-pointer transition space-y-3 relative h-full flex flex-col justify-between ' + activeClass;
         card.onclick = () => selectCourseTab(cName);
 
         const teacherInitial = teacherName ? teacherName.trim().charAt(0) : 'م';
