@@ -875,31 +875,43 @@
                             <h3 class="font-black text-base text-slate-900">إنجازات وشهادات تستحق الفخر</h3>
                             <p class="text-xs text-slate-500">سجل إنجازاتك في الاختبارات والمحاضرات العامة بالأكاديمية</p>
                         </div>
-                        <button onclick="toggleGradebookModal()" class="text-xs font-bold text-[#41519C] hover:text-[#1F274B] bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-xl border border-indigo-200 transition cursor-pointer">
-                            عرض السجل التراكمي للدرجات ←
-                        </button>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button type="button" onclick="openCertificateModal()" class="text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                                <svg class="w-3.5 h-3.5"><use href="#award"/></svg>
+                                <span>عرض الشهادة المعتمدة</span>
+                            </button>
+                            <button type="button" onclick="toggleGradebookModal()" class="text-xs font-bold text-[#41519C] hover:text-[#1F274B] bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition cursor-pointer">
+                                <span>السجل التراكمي ←</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="certificatesGridContainer">
+                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl cursor-pointer hover:border-emerald-300 transition" onclick="openCertificateModal()">
                             <div class="achievement-medal">
                                 <svg class="w-6 h-6"><use href="#award"/></svg>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <strong class="text-xs font-black text-slate-900 block truncate" id="certHifzTitle">مسار القرآن الكريم والتلاوة</strong>
                                 <span class="text-[11px] text-slate-500 block mt-0.5 truncate" id="certHifzSubtitle">متابعة مستمرة للحفظ والمراجعة مع المعلم</span>
-                                <span class="inline-block mt-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">حساب نشط</span>
+                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    <span class="inline-block text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md" id="certCourseStatus">حساب نشط</span>
+                                    <span class="text-[10px] text-indigo-700 font-bold underline">معاينة الشهادة الرسمية</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl">
+                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl cursor-pointer hover:border-indigo-300 transition" onclick="toggleGradebookModal()">
                             <div class="achievement-medal" style="background:#edf6f2;color:#236E58">
                                 <svg class="w-6 h-6"><use href="#award"/></svg>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <strong class="text-xs font-black text-slate-900 block truncate">سجل الاختبارات والتقييمات</strong>
                                 <span class="text-[11px] text-slate-500 block mt-0.5 truncate" id="certQuizzesSummary">التقدير العام: ممتاز مع مرتبة الشرف</span>
-                                <span class="inline-block mt-1.5 text-[10px] font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded-md" id="certQuizzesScore">المجموع: 100%</span>
+                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    <span class="inline-block text-[10px] font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded-md" id="certQuizzesScore">المجموع: 100%</span>
+                                    <span class="text-[10px] text-[#1F274B] font-bold underline">تفاصيل الدرجات</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -907,13 +919,17 @@
 
                 <!-- Personal Details Panel (#detailsPanel) (Reference: .panel #detailsPanel) -->
                 <section id="detailsPanel" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hidden">
-                    <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-100 mb-4">
                         <div>
                             <h3 class="font-black text-base text-slate-900">البيانات الشخصية للمتدرب</h3>
                             <p class="text-xs text-slate-500">تفاصيل الحساب، الاشتراك، وبيانات ولي الأمر المسجلة رسمياً</p>
                         </div>
+                        <button type="button" onclick="openSupportModal()" class="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 rounded-xl border border-slate-200 transition cursor-pointer flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5"><use href="#edit"/></svg>
+                            <span>طلب تعديل بيانات أو مساعدة</span>
+                        </button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                         <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
                             <span class="text-slate-400 font-bold block mb-1">الاسم الكامل للطالب</span>
                             <strong class="text-sm font-black text-slate-900 block" id="detailsStudentName">طالب الأكاديمية</strong>
@@ -938,6 +954,18 @@
                             <span class="text-slate-400 font-bold block mb-1">حالة الحساب والاشتراك</span>
                             <strong class="text-sm font-bold text-emerald-700 block" id="detailsAccountStatus">نشط وساري</strong>
                         </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">المعلم المشرف المعتمد</span>
+                            <strong class="text-sm font-bold text-slate-900 block" id="detailsTeacherName">أ. مصطفى عيد</strong>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">كود المجموعة وموعد الحصة</span>
+                            <strong class="text-sm font-mono font-bold text-indigo-950 block" id="detailsGroupInfo">G182 — 5:30 م</strong>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
+                            <span class="text-slate-400 font-bold block mb-1">رصيد الحصص المتاح</span>
+                            <strong class="text-sm font-bold text-emerald-700 block" id="detailsRemainingCredits">8 حصص متبقية</strong>
+                        </div>
                     </div>
                 </section>
 
@@ -958,39 +986,8 @@
                         <svg class="w-5 h-5 text-slate-400"><use href="#calendar"/></svg>
                     </div>
 
-                    <div class="space-y-3.5 text-xs">
-                        <!-- Wednesday Session -->
-                        <div class="schedule-item">
-                            <span class="schedule-tag">الأربعاء (اليوم)</span>
-                            <strong class="font-black text-slate-900 block mt-1">مسار التفسير والتدبر — الحلقة 2</strong>
-                            <p class="text-slate-500 text-[11px] mt-0.5">"ماذا يدخل أذني… وإلى أين يأخذ قلبي؟"</p>
-                            <div class="flex justify-between items-center text-[11px] text-slate-600 mt-2 font-bold">
-                                <span>5:00 م بنات / 6:30 م أولاد</span>
-                                <a href="https://zoom.us/j/98264506630" target="_blank" class="text-emerald-700 hover:underline">دخول Zoom ←</a>
-                            </div>
-                        </div>
-
-                        <!-- Friday Session -->
-                        <div class="schedule-item" style="border-color:#b68d49">
-                            <span class="schedule-tag" style="background:#fff4e4;color:#b68d49">الجمعة الأسبوعي</span>
-                            <strong class="font-black text-slate-900 block mt-1">محاضرة أحكام التجويد ومخارج الحروف</strong>
-                            <p class="text-slate-500 text-[11px] mt-0.5">محاضرة تفاعلية أسبوعية لجميع المراحل</p>
-                            <div class="flex justify-between items-center text-[11px] text-slate-600 mt-2 font-bold">
-                                <span>1:50 م للأطفال / 2:20 م للطلاب</span>
-                                <span class="text-slate-400 font-normal">عبر Zoom</span>
-                            </div>
-                        </div>
-
-                        <!-- Monday Session -->
-                        <div class="schedule-item" style="border-color:#41519C">
-                            <span class="schedule-tag" style="background:#eaf0f8;color:#2D396E">الإثنين</span>
-                            <strong class="font-black text-slate-900 block mt-1">مجلس الحديث الشريف (الحلقة 2)</strong>
-                            <p class="text-slate-500 text-[11px] mt-0.5">«لو محدش شايفك… من ستكون؟»</p>
-                            <div class="flex justify-between items-center text-[11px] text-slate-600 mt-2 font-bold">
-                                <span>6:30 م و 7:30 م (حسب الفئة)</span>
-                                <span class="text-slate-400 font-normal">بث مباشر</span>
-                            </div>
-                        </div>
+                    <div class="space-y-3.5 text-xs" id="upcomingScheduleList">
+                        <!-- Populated dynamically via renderUpcomingScheduleList() -->
                     </div>
 
                     <button type="button" onclick="setPortalView('schedule')" class="w-full mt-4 bg-slate-50 hover:bg-slate-100 text-[#1F274B] font-extrabold text-xs py-2 px-3 rounded-xl border border-slate-200 transition text-center block cursor-pointer">
@@ -1225,6 +1222,85 @@
             <div class="mt-5 pt-3 border-t border-slate-100 flex justify-end">
                 <button onclick="toggleGradebookModal()" class="bg-[#1F274B] text-white font-bold text-xs px-6 py-2.5 rounded-xl transition cursor-pointer">
                     إغلاق السجل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Official Student Certificate View & Print -->
+    <div id="certificateModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 text-center relative max-h-[92vh] overflow-y-auto">
+            <button onclick="closeCertificateModal()" class="absolute top-4 left-4 text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer leading-none">&times;</button>
+            
+            <div id="certificatePrintableArea" class="border-4 border-double border-indigo-900/40 p-5 sm:p-7 rounded-2xl bg-gradient-to-b from-amber-50/20 via-white to-indigo-50/20 relative">
+                <!-- Academic Seal & Logo -->
+                <div class="flex items-center justify-between gap-4 mb-4 border-b pb-3 border-indigo-100">
+                    <img src="images/monir_logo_trans.png" alt="أكاديمية منير" class="h-9 sm:h-10 w-auto object-contain">
+                    <div class="text-left font-mono text-[10px] text-slate-500">
+                        <span>CERTIFICATE ID: </span>
+                        <strong class="text-indigo-950 font-black" id="certModalCode">ST-2026-CERT</strong>
+                    </div>
+                </div>
+
+                <span class="inline-block text-[11px] sm:text-xs font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-300 px-3.5 py-1 rounded-full">
+                    شهادة تقدير وإتمام مرحلة تدريبية
+                </span>
+
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-3 font-serif">
+                    أكاديمية منير للقرآن الكريم والعلوم الحديثة
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">تمنح هذه الشهادة المعتمدة تقديراً للاجتهاد والتفوق العلمي والالتزام بالحلقات</p>
+
+                <div class="my-5 py-3 border-y border-dashed border-slate-200">
+                    <p class="text-xs text-slate-600">يشهد المشرف العام وإدارة الأكاديمية بأن المتدرب/ـة:</p>
+                    <h3 class="text-xl sm:text-2xl font-black text-indigo-950 mt-1 mb-1.5" id="certModalStudentName">
+                        طالب الأكاديمية
+                    </h3>
+                    <p class="text-xs text-slate-700 leading-relaxed">
+                        قد اجتاز بنجاح واقتدار متطلبات مرحلة التدريب والتحصيل في:
+                        <br>
+                        <strong class="text-xs sm:text-sm font-black text-emerald-800" id="certModalCourseName">مسار تحفيظ القرآن الكريم والتدبر</strong>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 text-xs mb-5">
+                    <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px]">نسبة الحضور والالتزام</span>
+                        <b class="text-emerald-800 font-black text-sm" id="certModalAttendance">100%</b>
+                    </div>
+                    <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px]">التقدير التراكمي</span>
+                        <b class="text-indigo-950 font-black text-xs sm:text-sm" id="certModalGrade">امتياز مع مرتبة الشرف</b>
+                    </div>
+                    <div class="bg-slate-50 p-2 sm:p-2.5 rounded-xl border border-slate-200">
+                        <span class="text-slate-400 block text-[10px]">تاريخ الاعتماد</span>
+                        <b class="text-slate-800 font-bold text-[11px]" id="certModalDate">سبتمبر 2026</b>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-xs text-slate-600 pt-2 border-t border-slate-100">
+                    <div class="text-right">
+                        <span class="block text-[10px] text-slate-400">المعلم المشرف</span>
+                        <strong class="font-bold text-slate-800 text-[11px]" id="certModalTeacherName">أ. مصطفى عيد</strong>
+                    </div>
+                    <div class="text-center">
+                        <span class="inline-block px-2.5 py-0.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-full font-bold text-[10px]">
+                            ختم رسمي معتمد ✓
+                        </span>
+                    </div>
+                    <div class="text-left">
+                        <span class="block text-[10px] text-slate-400">إدارة الأكاديمية</span>
+                        <strong class="font-bold text-slate-800 text-[11px]">م. أحمد أبو شادي</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-2.5 mt-5">
+                <button type="button" onclick="window.print()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center gap-1.5">
+                    <span>طباعة / حفظ الشهادة PDF</span>
+                </button>
+                <button type="button" onclick="closeCertificateModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer">
+                    إغلاق
                 </button>
             </div>
         </div>
@@ -1566,12 +1642,12 @@
             if (coursesSection) coursesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else if (v === 'schedule') {
             if (coursesSection) coursesSection.classList.add('hidden');
-            if (lecturesSection) lecturesSection.classList.add('hidden');
+            if (lecturesSection) lecturesSection.classList.remove('hidden');
             if (quranSection) quranSection.classList.add('hidden');
             if (generalLecturesSection) generalLecturesSection.classList.remove('hidden');
             if (certificatesPanel) certificatesPanel.classList.add('hidden');
             if (detailsPanel) detailsPanel.classList.add('hidden');
-            if (generalLecturesSection) generalLecturesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (lecturesSection) lecturesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else if (v === 'certificates') {
             if (coursesSection) coursesSection.classList.add('hidden');
             if (lecturesSection) lecturesSection.classList.add('hidden');
@@ -1580,6 +1656,7 @@
             if (certificatesPanel) certificatesPanel.classList.remove('hidden');
             if (detailsPanel) detailsPanel.classList.add('hidden');
             if (certificatesPanel) certificatesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (typeof window.renderCertificatesPanel === 'function') window.renderCertificatesPanel();
         } else if (v === 'details') {
             if (coursesSection) coursesSection.classList.add('hidden');
             if (lecturesSection) lecturesSection.classList.add('hidden');
@@ -1588,9 +1665,26 @@
             if (certificatesPanel) certificatesPanel.classList.add('hidden');
             if (detailsPanel) detailsPanel.classList.remove('hidden');
             if (detailsPanel) detailsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (typeof window.renderDetailsPanel === 'function') window.renderDetailsPanel();
         }
     }
     window.setPortalView = setPortalView;
+
+    function openCertificateModal() {
+        const m = document.getElementById('certificateModal');
+        if (m) {
+            m.classList.remove('hidden');
+            if (typeof window.populateCertificateModalData === 'function') {
+                window.populateCertificateModalData();
+            }
+        }
+    }
+    function closeCertificateModal() {
+        const m = document.getElementById('certificateModal');
+        if (m) m.classList.add('hidden');
+    }
+    window.openCertificateModal = openCertificateModal;
+    window.closeCertificateModal = closeCertificateModal;
     </script>
 
     <script src="js/api_mock.js?v=20260923_v1"></script>

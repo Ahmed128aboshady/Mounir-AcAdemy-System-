@@ -493,6 +493,27 @@ async function loadStudentProfile() {
             goalBar.style.width = pct + '%';
         }
     
+// ── Render Dynamic Upcoming Schedule, Certificates & Details ──
+        renderUpcomingScheduleList();
+        renderCertificatesPanel();
+        renderDetailsPanel();
+
+        // Proactive Low Balance Notification
+        const topBanner = document.getElementById('topNotificationBanner');
+        const topTitle = document.getElementById('topNotifTitle');
+        const topMsg = document.getElementById('topNotifMsg');
+        if (topBanner && topTitle && topMsg) {
+            if (curRemCredits <= 0) {
+                topTitle.innerText = 'تنبيه: رصيد الباقة منتهي (0 حصص)';
+                topMsg.innerText = 'رصيد الحصص المتاح لديك حالياً هو (0) حصص. يرجى تجديد الاشتراك لضمان تأكيد حجز مقعدك في الحلقات القادمة مع المعلم.';
+                topBanner.classList.remove('hidden');
+            } else if (curRemCredits <= 2) {
+                topTitle.innerText = 'تذكير بقرب انتهاء الباقة (' + curRemCredits + ' حصص متبقية)';
+                topMsg.innerText = 'تبقى في باقتك حصتان فقط. ننصح بالتجديد المبكر لتفادي انقطاع مواعيد الحلقات والمحاضرات.';
+                topBanner.classList.remove('hidden');
+            }
+        }
+
         if (data.unread_notifications > 0) {
             badge.innerText = data.unread_notifications;
             badge.classList.remove('hidden');
@@ -503,6 +524,237 @@ async function loadStudentProfile() {
         console.error("Error loading student profile:", err);
     }
 }
+
+// ═════════════════════════════════════════════════════════════════════
+// DYNAMIC UPCOMING SCHEDULE & CERTIFICATES & DETAILS LINKAGE (UX / الربط)
+// ═════════════════════════════════════════════════════════════════════
+
+function renderUpcomingScheduleList() {
+    const container = document.getElementById('upcomingScheduleList');
+    if (!container) return;
+
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const courses = (enrolledCoursesList && enrolledCoursesList.length > 0)
+        ? enrolledCoursesList
+        : (curStudent.course_name ? [{
+            course_name: curStudent.course_name,
+            group_id: curStudent.group_id,
+            teacher_name: curStudent.teacher_name,
+            lecture_time: curStudent.lecture_time,
+            subscription_days: curStudent.subscription_days,
+            remaining_credits: curStudent.remaining_credits,
+            session_duration: curStudent.session_duration
+        }] : []);
+
+    if (courses.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-400">
+                <p class="font-bold">لا توجد محاضرات مجدولة حالياً</p>
+                <button type="button" onclick="openPaymobModal()" class="mt-2 text-xs font-black text-indigo-700 underline">
+                    اشترك الآن في الباقات المتاحة ←
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+
+    // Render next sessions for enrolled courses
+    courses.forEach((c, idx) => {
+        const cName = c.course_name || c.name || 'مسار القرآن الكريم والتدبر';
+        const teacher = c.teacher_name || 'معلم معتمد';
+        const days = c.subscription_days || 'أسبوعياً';
+        const timeVal = c.lecture_time || 'محدد مع المعلم';
+        const dur = c.session_duration ? (c.session_duration + ' دقيقة') : '30 دقيقة';
+        const rc = (c.remaining_credits !== undefined) ? c.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+        const gid = c.group_id || curStudent.group_id || 'G000';
+
+        const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+            ? window.getGroupMeetUrl(gid, c.teacher_id || teacher)
+            : (c.google_meet_url || 'https://meet.google.com');
+
+        const upcomingDates = calculateGroupUpcomingDates(days, 1);
+        const nextDateStr = (upcomingDates && upcomingDates[0]) ? upcomingDates[0].dateFormatted : days;
+
+        const borderColor = idx === 0 ? '#57BA9E' : '#41519C';
+        const tagBg = idx === 0 ? '#e8f8f4' : '#eaf0f8';
+        const tagColor = idx === 0 ? '#236E58' : '#2D396E';
+        const tagLabel = idx === 0 ? 'المحاضرة القادمة' : 'جلسة متابعة';
+
+        html += `
+            <div class="schedule-item" style="border-color:${borderColor}">
+                <div class="flex items-center justify-between gap-1 mb-1">
+                    <span class="schedule-tag" style="background:${tagBg};color:${tagColor}">${tagLabel} • ${nextDateStr}</span>
+                    <span class="font-mono text-[10px] text-slate-400 font-bold">${gid}</span>
+                </div>
+                <strong class="font-black text-slate-900 block">${cName}</strong>
+                <p class="text-slate-500 text-[11px] mt-0.5">المعلم: أ. ${teacher} • مدة الحصة: ${dur}</p>
+                <div class="flex items-center justify-between text-[11px] mt-2 pt-1 border-t border-slate-100 flex-wrap gap-2">
+                    <span class="font-bold text-slate-700">${timeVal}</span>
+                    ${rc <= 0
+                        ? `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`
+                        : `<a href="${meetUrl}" target="_blank" rel="noopener noreferrer" class="text-emerald-700 hover:text-emerald-800 font-black hover:underline flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>دخول القاعة الذكية ←</span>
+                           </a>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+
+    // Add Friday General Broadcast
+    html += `
+        <div class="schedule-item" style="border-color:#b68d49">
+            <div class="flex items-center justify-between gap-1 mb-1">
+                <span class="schedule-tag" style="background:#fff4e4;color:#b68d49">الجمعة الأسبوعي</span>
+                <span class="bg-red-100 text-red-700 text-[9px] font-black px-1.5 py-0.5 rounded-full">بث عام</span>
+            </div>
+            <strong class="font-black text-slate-900 block">مجلس التجويد والتدبر الأسبوعي</strong>
+            <p class="text-slate-500 text-[11px] mt-0.5">محاضرة تفاعلية أسبوعية مفتوحة لجميع الطلاب والأهالي</p>
+            <div class="flex items-center justify-between text-[11px] mt-2 pt-1 border-t border-slate-100 flex-wrap gap-2">
+                <span class="font-bold text-slate-700">1:50 م للأطفال / 2:20 م للطلاب</span>
+                <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="text-indigo-700 hover:text-indigo-900 font-black hover:underline">
+                    دخول Zoom ←
+                </a>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+function renderCertificatesPanel() {
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    
+    const hifzTitleEl = document.getElementById('certHifzTitle');
+    const hifzSubtitleEl = document.getElementById('certHifzSubtitle');
+    const courseStatusEl = document.getElementById('certCourseStatus');
+    const quizzesSummaryEl = document.getElementById('certQuizzesSummary');
+    const quizzesScoreEl = document.getElementById('certQuizzesScore');
+
+    const courseTitle = curCourse.course_name || curStudent.course_name || 'مسار القرآن الكريم والتجويد';
+    const presentCount = (curCourse.present_count !== undefined) ? curCourse.present_count : (curStudent.present_count || 0);
+    const absentCount = (curCourse.absent_count !== undefined) ? curCourse.absent_count : (curStudent.absent_count || 0);
+    const totalSessions = presentCount + absentCount;
+    const rate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 100;
+
+    if (hifzTitleEl) hifzTitleEl.innerText = courseTitle;
+    if (hifzSubtitleEl) {
+        hifzSubtitleEl.innerText = `حضور مؤكد: ${presentCount} حصص • نسبة الالتزام: ${rate}% • المعلم: أ. ${curCourse.teacher_name || curStudent.teacher_name || 'معتمد'}`;
+    }
+    if (courseStatusEl) {
+        const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits || 0);
+        courseStatusEl.innerText = rc > 0 ? 'مرحلة جارية (نشط)' : 'مكتملة / تجديد مطلوب';
+        courseStatusEl.className = rc > 0 
+            ? 'inline-block text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md'
+            : 'inline-block text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md';
+    }
+
+    // Quizzes Performance
+    if (cachedStudentSubmissions && cachedStudentSubmissions.length > 0) {
+        const total = cachedStudentSubmissions.reduce((acc, sub) => acc + (Number(sub.score) || 0), 0);
+        const avg = Math.round(total / cachedStudentSubmissions.length);
+        let rank = 'ممتاز مع مرتبة الشرف';
+        if (avg < 60) rank = 'يحتاج لمتابعة';
+        else if (avg < 75) rank = 'جيد';
+        else if (avg < 85) rank = 'جيد جداً';
+
+        if (quizzesSummaryEl) quizzesSummaryEl.innerText = `التقدير التراكمي: ${rank} (المعدل ${avg}%)`;
+        if (quizzesScoreEl) quizzesScoreEl.innerText = `المحصل: ${avg}% (${cachedStudentSubmissions.length} اختبارات)`;
+    } else {
+        if (quizzesSummaryEl) quizzesSummaryEl.innerText = 'التقدير العام: ممتاز ومواظب على الحلقات';
+        if (quizzesScoreEl) quizzesScoreEl.innerText = 'المجموع: 100% (تقييم الحفظ والالتزام)';
+    }
+}
+
+function renderDetailsPanel() {
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+
+    const dName = document.getElementById('detailsStudentName');
+    if (dName) dName.innerText = (curStudent.name || (window.__PRELOADED_USER__ && (window.__PRELOADED_USER__.full_name || window.__PRELOADED_USER__.username)) || 'طالب الأكاديمية').trim();
+    
+    const dCode = document.getElementById('detailsStudentCode');
+    if (dCode) dCode.innerText = curStudent.student_code || ('ST' + String(curStudent.id || currentStudentId).padStart(4, '0'));
+    
+    const dParent = document.getElementById('detailsParentName');
+    if (dParent) dParent.innerText = curStudent.parent_name || (document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب');
+    
+    const dPhone = document.getElementById('detailsParentPhone');
+    if (dPhone) dPhone.innerText = curStudent.parent_phone || (document.getElementById('parentPhone') ? document.getElementById('parentPhone').innerText : 'غير مسجل');
+    
+    const dStatus = document.getElementById('detailsAccountStatus');
+    if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (curStudent.account_status || 'نشط') + ')';
+
+    const dTeacher = document.getElementById('detailsTeacherName');
+    if (dTeacher) dTeacher.innerText = 'أ. ' + (curCourse.teacher_name || curStudent.teacher_name || 'مصطفى عيد');
+
+    const dGroup = document.getElementById('detailsGroupInfo');
+    if (dGroup) {
+        const gid = curCourse.group_id || curStudent.group_id || 'G182';
+        const time = curCourse.lecture_time || curStudent.lecture_time || '5:30 م';
+        const days = curCourse.subscription_days || curStudent.subscription_days || 'أسبوعياً';
+        dGroup.innerText = `${gid} • ${days} (${time})`;
+    }
+
+    const dCredits = document.getElementById('detailsRemainingCredits');
+    if (dCredits) {
+        const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits || 0);
+        dCredits.innerText = rc + ' حصص متبقية';
+    }
+}
+
+function populateCertificateModalData() {
+    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
+    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+
+    const studentName = (curStudent.name || (window.__PRELOADED_USER__ && (window.__PRELOADED_USER__.full_name || window.__PRELOADED_USER__.username)) || 'طالب الأكاديمية').trim();
+    const courseName = curCourse.course_name || curStudent.course_name || 'مسار تحفيظ القرآن الكريم والتدبر';
+    const teacherName = curCourse.teacher_name || curStudent.teacher_name || 'مصطفى عيد';
+    const studentCode = curStudent.student_code || ('ST' + String(curStudent.id || currentStudentId).padStart(4, '0'));
+
+    const presentCount = (curCourse.present_count !== undefined) ? curCourse.present_count : (curStudent.present_count || 0);
+    const absentCount = (curCourse.absent_count !== undefined) ? curCourse.absent_count : (curStudent.absent_count || 0);
+    const totalSessions = presentCount + absentCount;
+    const rate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 100;
+
+    let grade = 'امتياز مع مرتبة الشرف';
+    if (cachedStudentSubmissions && cachedStudentSubmissions.length > 0) {
+        const total = cachedStudentSubmissions.reduce((acc, sub) => acc + (Number(sub.score) || 0), 0);
+        const avg = Math.round(total / cachedStudentSubmissions.length);
+        if (avg < 60) grade = 'مقبول';
+        else if (avg < 75) grade = 'جيد مرتفع';
+        else if (avg < 85) grade = 'جيد جداً';
+        else grade = 'امتياز مع مرتبة الشرف';
+    }
+
+    const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const now = new Date();
+    const dateFormatted = months[now.getMonth()] + ' ' + now.getFullYear();
+
+    const nameEl = document.getElementById('certModalStudentName');
+    if (nameEl) nameEl.innerText = studentName;
+    const courseEl = document.getElementById('certModalCourseName');
+    if (courseEl) courseEl.innerText = courseName;
+    const teacherEl = document.getElementById('certModalTeacherName');
+    if (teacherEl) teacherEl.innerText = 'أ. ' + teacherName;
+    const attEl = document.getElementById('certModalAttendance');
+    if (attEl) attEl.innerText = rate + '%';
+    const gradeEl = document.getElementById('certModalGrade');
+    if (gradeEl) gradeEl.innerText = grade;
+    const dateEl = document.getElementById('certModalDate');
+    if (dateEl) dateEl.innerText = dateFormatted;
+    const codeEl = document.getElementById('certModalCode');
+    if (codeEl) codeEl.innerText = studentCode + '-CERT-' + now.getFullYear();
+}
+
+window.renderUpcomingScheduleList = renderUpcomingScheduleList;
+window.renderCertificatesPanel = renderCertificatesPanel;
+window.renderDetailsPanel = renderDetailsPanel;
+window.populateCertificateModalData = populateCertificateModalData;
 
 function extractQuranPlan(rawSurah, rawAya, studentId, studentCode) {
     let plan = {
@@ -1087,6 +1339,9 @@ async function loadSelectedCourseLectures() {
         }
         
         document.getElementById('selectedCourseTitle').innerText = 'جدول محاضرات: ' + (data.course_name || selectedCourseName);
+        if (typeof renderUpcomingScheduleList === "function") renderUpcomingScheduleList();
+        if (typeof renderCertificatesPanel === "function") renderCertificatesPanel();
+        if (typeof renderDetailsPanel === "function") renderDetailsPanel();
         
         if (currentCourseInfo) {
             document.getElementById('presentCount').innerText = (currentCourseInfo.present_count !== undefined) ? currentCourseInfo.present_count : 0;
