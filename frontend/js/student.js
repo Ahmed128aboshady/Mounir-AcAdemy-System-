@@ -1054,9 +1054,14 @@ function requestCourseEnrollmentPrompt(courseName) {
 window.requestCourseEnrollmentPrompt = requestCourseEnrollmentPrompt;
 
 function scrollToLectures() {
+    if (typeof window.setPortalView === 'function') {
+        window.setPortalView('schedule');
+    }
     const el = document.getElementById('lecturesSection');
     if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
     }
 }
 window.scrollToLectures = scrollToLectures;
