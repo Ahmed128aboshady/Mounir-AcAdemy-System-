@@ -876,9 +876,9 @@
                             <p class="text-xs text-slate-500">سجل إنجازاتك في الاختبارات والمحاضرات العامة بالأكاديمية</p>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button type="button" onclick="openCertificateModal()" class="text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                                <svg class="w-3.5 h-3.5"><use href="#award"/></svg>
-                                <span>عرض الشهادة المعتمدة</span>
+                            <button type="button" onclick="showLockedCertificateNotice()" class="text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 border border-amber-200 shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-amber-600"><use href="#clock"/></svg>
+                                <span>الشهادة مقفولة — ستفتح قريباً</span>
                             </button>
                             <button type="button" onclick="toggleGradebookModal()" class="text-xs font-bold text-[#41519C] hover:text-[#1F274B] bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition cursor-pointer">
                                 <span>السجل التراكمي ←</span>
@@ -887,16 +887,21 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="certificatesGridContainer">
-                        <div class="achievement-item bg-slate-50/80 border border-slate-200 p-4 rounded-xl cursor-pointer hover:border-emerald-300 transition" onclick="openCertificateModal()">
-                            <div class="achievement-medal">
+                        <div class="achievement-item bg-amber-50/40 border border-amber-200/80 p-4 rounded-xl cursor-pointer hover:border-amber-300 transition" onclick="showLockedCertificateNotice()">
+                            <div class="achievement-medal bg-amber-100 text-amber-800">
                                 <svg class="w-6 h-6"><use href="#award"/></svg>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <strong class="text-xs font-black text-slate-900 block truncate" id="certHifzTitle">مسار القرآن الكريم والتلاوة</strong>
+                                <div class="flex items-center justify-between gap-1">
+                                    <strong class="text-xs font-black text-slate-900 block truncate" id="certHifzTitle">مسار القرآن الكريم والتلاوة</strong>
+                                    <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md shrink-0">مقفولة حالياً</span>
+                                </div>
                                 <span class="text-[11px] text-slate-500 block mt-0.5 truncate" id="certHifzSubtitle">متابعة مستمرة للحفظ والمراجعة مع المعلم</span>
                                 <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span class="inline-block text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md" id="certCourseStatus">حساب نشط</span>
-                                    <span class="text-[10px] text-indigo-700 font-bold underline">معاينة الشهادة الرسمية</span>
+                                    <span class="text-[10px] text-amber-700 font-extrabold flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-amber-600"><use href="#clock"/></svg>
+                                        <span>ستفتح قريباً فور إتمام الدورة والاختبار</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -1224,6 +1229,40 @@
                     إغلاق السجل
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Locked Certificate Notice (الشهادة مقفولة — ستفتح قريباً) -->
+    <div id="lockedCertificateModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-inner">
+                <svg class="w-8 h-8"><use href="#award"/></svg>
+            </div>
+            
+            <div class="space-y-1.5">
+                <span class="inline-block bg-amber-50 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-amber-200">
+                    قيد الإعداد والاعتماد الأكاديمي
+                </span>
+                <h3 class="text-base sm:text-lg font-black text-slate-900">الشهادة مقفولة حالياً</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    الشهادة مقفولة وستفتح <b>قريباً</b> فور استكمال متطلبات الدورة واجتياز الاختبار النهائي واعتماد الدرجات من إدارة الأكاديمية.
+                </p>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-right space-y-1.5 text-xs">
+                <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-slate-500 font-bold">حالة المرحلة الحالية:</span>
+                    <span class="text-emerald-700 font-black">جاري التدريب والمتابعة</span>
+                </div>
+                <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-slate-500 font-bold">موعد فتح الشهادة:</span>
+                    <span class="text-amber-800 font-black">ستفتح قريباً بإذن الله</span>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeLockedCertificateModal()" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs py-3 rounded-xl shadow-md transition cursor-pointer">
+                حسناً، فهمت ذلك
+            </button>
         </div>
     </div>
 
@@ -1720,14 +1759,21 @@
         setPortalView('overview');
     }
 
+    function showLockedCertificateNotice() {
+        const m = document.getElementById('lockedCertificateModal');
+        if (m) m.classList.remove('hidden');
+        else alert('الشهادة مقفولة حالياً — ستفتح قريباً للطالب فور انتهاء الدورة واجتياز الاختبار النهائي.');
+    }
+    function closeLockedCertificateModal() {
+        const m = document.getElementById('lockedCertificateModal');
+        if (m) m.classList.add('hidden');
+    }
+    window.showLockedCertificateNotice = showLockedCertificateNotice;
+    window.closeLockedCertificateModal = closeLockedCertificateModal;
+
     function openCertificateModal() {
-        const m = document.getElementById('certificateModal');
-        if (m) {
-            m.classList.remove('hidden');
-            if (typeof window.populateCertificateModalData === 'function') {
-                window.populateCertificateModalData();
-            }
-        }
+        // الشهادة مقفولة حالياً للطالب وتفتح قريباً
+        showLockedCertificateNotice();
     }
     function closeCertificateModal() {
         const m = document.getElementById('certificateModal');

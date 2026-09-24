@@ -646,11 +646,8 @@ function renderCertificatesPanel() {
         hifzSubtitleEl.innerText = `حضور مؤكد: ${presentCount} حصص • نسبة الالتزام: ${rate}% • المعلم: أ. ${curCourse.teacher_name || curStudent.teacher_name || 'معتمد'}`;
     }
     if (courseStatusEl) {
-        const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits || 0);
-        courseStatusEl.innerText = rc > 0 ? 'مرحلة جارية (نشط)' : 'مكتملة / تجديد مطلوب';
-        courseStatusEl.className = rc > 0 
-            ? 'inline-block text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md'
-            : 'inline-block text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md';
+        courseStatusEl.innerText = 'مقفولة حالياً';
+        courseStatusEl.className = 'inline-block text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md';
     }
 
     // Quizzes Performance
