@@ -3192,15 +3192,14 @@ function guessStudentGender(name, explicitGender, studentCode) {
 }
 
 function updateGenderBadgeUI(gender) {
-    const emojiEl = document.getElementById('studentGenderEmoji');
     const labelEl = document.getElementById('studentGenderLabel');
-    if (!emojiEl || !labelEl) return;
+    if (!labelEl) return;
     if (gender === 'f') {
-        emojiEl.innerText = '';
         labelEl.innerText = 'طالبة (بنت)';
+        labelEl.className = 'inline-block bg-pink-50 border border-pink-200 text-pink-800 text-[10px] font-black px-2 py-0.5 rounded-md';
     } else {
-        emojiEl.innerText = '';
         labelEl.innerText = 'طالب (ولد)';
+        labelEl.className = 'inline-block bg-blue-50 border border-blue-200 text-blue-900 text-[10px] font-black px-2 py-0.5 rounded-md';
     }
 }
 
