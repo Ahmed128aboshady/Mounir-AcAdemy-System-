@@ -1299,14 +1299,6 @@
             const todayDateStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + s.id + '_' + todayDateStr;
             const todayRecordedStatus = localStorage.getItem(todayKey);
-            let todayBadge = '';
-            if (todayRecordedStatus === 'present') {
-                todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md shadow-xs">✓ سُجل حضور اليوم</span></div>`;
-            } else if (todayRecordedStatus === 'absent') {
-                todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md shadow-xs">✗ سُجل غياب اليوم</span></div>`;
-            } else if (todayRecordedStatus === 'excused') {
-                todayBadge = `<div class="w-full text-center mb-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md shadow-xs">⚠️ سُجل عذر اليوم</span></div>`;
-            }
 
             let actionsHtml = '';
             if (isInactive) {
@@ -1330,12 +1322,45 @@
                     ? `<button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-50 select-none inline-flex items-center gap-0.5" title="استُنفد عذر هذا الاشتراك (عذر واحد لكل ${cycleDesc}) - يتجدد تلقائياً بعد ${remText}"><span>🔒</span><span>عذر</span></button>`
                     : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر متاح لاشتراك الحصص الحالي (عذر واحد لكل ${cycleDesc})">عذر</button>`;
 
-                actionsHtml = `
-                    ${todayBadge}
-                    <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
+                let recordButtonsHtml = '';
+                if (todayRecordedStatus === 'present') {
+                    recordButtonsHtml = `
+                        <button type="button" disabled class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل حضور الطالب اليوم بنجاح وخصم حصة">
+                            <span>✓</span><span>تم الحضور</span>
+                        </button>
+                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل حضور اليوم وإعادة الحصة لرصيد الطالب">
+                            تراجع
+                        </button>
+                    `;
+                } else if (todayRecordedStatus === 'absent') {
+                    recordButtonsHtml = `
+                        <button type="button" disabled class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل غياب الطالب اليوم">
+                            <span>✗</span><span>تم الغياب</span>
+                        </button>
+                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'absent')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل غياب اليوم وإعادة الحصة لرصيد الطالب">
+                            تراجع
+                        </button>
+                    `;
+                } else if (todayRecordedStatus === 'excused') {
+                    recordButtonsHtml = `
+                        <button type="button" disabled class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل عذر الطالب اليوم">
+                            <span>⚠️</span><span>تم العذر</span>
+                        </button>
+                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'excused')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل عذر اليوم">
+                            تراجع
+                        </button>
+                    `;
+                } else {
+                    recordButtonsHtml = `
                         <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
                         ${excuseButtonHtml}
                         <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
+                    `;
+                }
+
+                actionsHtml = `
+                    <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
+                        ${recordButtonsHtml}
                         <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
                         <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
                     </div>
@@ -1639,6 +1664,55 @@
                 enableButtons();
             } finally {
                 delete window._inFlightSessionLocks[studentId];
+            }
+        }
+
+        async function undoTodayAttendance(studentId, enrollmentId, status) {
+            const todayDateStr = new Date().toISOString().split('T')[0];
+            const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
+            let confirmed = false;
+            const confirmMsg = 'هل تود بالتأكيد التراجع عن تسجيل الحصة لهذا اليوم؟\nسيتم إعادة الحصة تلقائياً لرصيد الطالب وإلغاء تسجيل اليوم.';
+            if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
+                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد التراجع عن التسجيل', 'warning', 'نعم، تراجع واستعادة الحصة', 'إلغاء');
+            } else {
+                confirmed = confirm('تأكيد التراجع عن التسجيل\n\n' + confirmMsg);
+            }
+            if (!confirmed) return;
+
+            try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    let enrQuery = client.from('enrollments').select('*');
+                    if (enrollmentId) enrQuery = enrQuery.eq('id', enrollmentId);
+                    else enrQuery = enrQuery.eq('student_id', studentId);
+                    const { data: enrList } = await enrQuery.limit(1);
+                    if (enrList && enrList[0]) {
+                        const e = enrList[0];
+                        let updates = {};
+                        if (status === 'present') {
+                            updates.remaining_credits = (e.remaining_credits || 0) + 1;
+                            updates.present_count = Math.max(0, (e.present_count || 0) - 1);
+                        } else if (status === 'absent') {
+                            updates.remaining_credits = (e.remaining_credits || 0) + 1;
+                            updates.absent_count = Math.max(0, (e.absent_count || 0) - 1);
+                        } else if (status === 'excused') {
+                            updates.excuse_count = Math.max(0, (e.excuse_count || 0) - 1);
+                            updates.max_allowed_excuses = 1;
+                        }
+                        await client.from('enrollments').update(updates).eq('id', e.id);
+                    }
+                }
+                localStorage.removeItem(todayKey);
+                const toastMsg = 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ✓';
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(toastMsg, 'success');
+                } else {
+                    alert(toastMsg);
+                }
+                await loadTeacherGroups();
+            } catch(err) {
+                console.error('Error undoing attendance:', err);
+                alert('حدث خطأ أثناء التراجع: ' + (err.message || err));
             }
         }
 

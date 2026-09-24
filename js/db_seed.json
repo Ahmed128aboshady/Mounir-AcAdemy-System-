@@ -23192,7 +23192,8 @@
       "subscription_days": "الأحد",
       "lecture_time": "الاحد واربع الساعة ٤",
       "teacher_name": "أبو بكر",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G104"
+      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G104",
+      "present_count": 1
     },
     {
       "id": 150,
@@ -25582,7 +25583,7 @@
       "unlocked_blocks": 1,
       "total_lectures_unlocked": 4,
       "renewal_count": 0,
-      "remaining_credits": 8,
+      "remaining_credits": 5,
       "excuse_count": 0,
       "max_allowed_excuses": 1,
       "current_surah": "سورة الرحمن - المرحلة الأولى",
@@ -25592,7 +25593,8 @@
       "subscription_days": "الاثنين و الخميس",
       "lecture_time": "الإثنين والخميس الساعة ٤.٣٠م",
       "teacher_name": "عمر امام",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G165"
+      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G165",
+      "present_count": 1
     },
     {
       "id": 270,
@@ -25602,7 +25604,7 @@
       "unlocked_blocks": 1,
       "total_lectures_unlocked": 4,
       "renewal_count": 0,
-      "remaining_credits": 8,
+      "remaining_credits": 5,
       "excuse_count": 0,
       "max_allowed_excuses": 1,
       "current_surah": "سورة الرحمن - المرحلة الأولى",
@@ -25612,7 +25614,8 @@
       "subscription_days": "الاثنين و الخميس",
       "lecture_time": "الإثنين والخميس الساعة ٤.٣٠م",
       "teacher_name": "عمر امام",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G165"
+      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G165",
+      "present_count": 1
     },
     {
       "id": 271,
@@ -28553,7 +28556,8 @@
       "subscription_days": "الاثنين",
       "lecture_time": "الاثنين 3:30 برايفت    R8",
       "teacher_name": "احمد عصام",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G334"
+      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G334",
+      "present_count": 2
     },
     {
       "id": 418,
