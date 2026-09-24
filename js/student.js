@@ -498,21 +498,9 @@ async function loadStudentProfile() {
         renderCertificatesPanel();
         renderDetailsPanel();
 
-        // Proactive Low Balance Notification
+        // Proactive Low Balance Notification - managed cleanly inside top notifications center
         const topBanner = document.getElementById('topNotificationBanner');
-        const topTitle = document.getElementById('topNotifTitle');
-        const topMsg = document.getElementById('topNotifMsg');
-        if (topBanner && topTitle && topMsg) {
-            if (curRemCredits <= 0) {
-                topTitle.innerText = 'تنبيه: رصيد الباقة منتهي (0 حصص)';
-                topMsg.innerText = 'رصيد الحصص المتاح لديك حالياً هو (0) حصص. يرجى تجديد الاشتراك لضمان تأكيد حجز مقعدك في الحلقات القادمة مع المعلم.';
-                topBanner.classList.remove('hidden');
-            } else if (curRemCredits <= 2) {
-                topTitle.innerText = 'تذكير بقرب انتهاء الباقة (' + curRemCredits + ' حصص متبقية)';
-                topMsg.innerText = 'تبقى في باقتك حصتان فقط. ننصح بالتجديد المبكر لتفادي انقطاع مواعيد الحلقات والمحاضرات.';
-                topBanner.classList.remove('hidden');
-            }
-        }
+        if (topBanner) topBanner.classList.add('hidden');
 
         if (data.unread_notifications > 0) {
             badge.innerText = data.unread_notifications;
@@ -2337,13 +2325,24 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
                                 <span>انضم للبث المباشر (Zoom)</span>
                             </a>
                         `;
+                    } else if (n.type === 'quran_plan') {
+                        div.className = 'p-3.5 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-teal-50/40 to-slate-50 text-xs text-emerald-950 font-bold shadow-2xs';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1.5 pb-1 border-b border-emerald-200/80">
+                                <span class="font-black flex items-center gap-1.5 text-emerald-900">
+                                    <svg class="w-4 h-4 text-emerald-700 shrink-0"><use href="#book"/></svg>
+                                    <span>${n.title}</span>
+                                </span>
+                                <span class="text-[10px] bg-emerald-200/90 text-emerald-900 font-black px-2 py-0.5 rounded-full">خطة معتمدة</span>
+                            </div>
+                            <p class="font-normal text-[11px] leading-relaxed whitespace-pre-line text-emerald-950 mt-1">${n.message}</p>
+                        `;
                     } else {
                         div.className = 'p-3 rounded-2xl border text-xs transition ' + 
                             (isUnread ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 text-emerald-950 font-bold shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-700');
                         div.innerHTML = `
                             <div class="flex justify-between items-center mb-1">
                                 <span class="font-extrabold flex items-center gap-1.5">
-                                    
                                     <span>${n.title}</span>
                                     ${isUnread ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>' : ''}
                                 </span>
@@ -2357,17 +2356,10 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
             }
         }
 
-        // 6. Top banner on student page
+        // 6. Keep top banner hidden - all notifications reside cleanly in the top header notifications bell
         const topBanner = document.getElementById('topNotificationBanner');
-        if (topBanner && notifs.length > 0) {
-            const topN = notifs[0];
-            const titleEl = document.getElementById('topNotifTitle');
-            const msgEl = document.getElementById('topNotifMsg');
-            if (titleEl && msgEl) {
-                titleEl.innerText = topN.title;
-                msgEl.innerText = topN.message.replace(/\n/g, ' • ');
-                topBanner.classList.remove('hidden');
-            }
+        if (topBanner) {
+            topBanner.classList.add('hidden');
         }
     } catch (err) {
         console.error("Error loading notifications:", err);
