@@ -781,18 +781,14 @@ function renderEnrolledCoursesTabs(courses) {
                         🎓
                     </div>
                     <div>
-                        <h4 class="text-base sm:text-lg font-black text-slate-900">أنت لست مسجلاً في مسار الكورسات بعد!</h4>
+                        <h4 class="text-base sm:text-lg font-black text-slate-900">أنت لست مسجلاً في مسار الكورسات بعد</h4>
                         <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto mt-1 leading-relaxed">
-                            حسابك مسجل حالياً في مسار القرآن الكريم والتدبر. يمكنك الانضمام فوراً لباقة كورسات الأكاديمية (البرمجة والذكاء الاصطناعي، اللغات والمحادثة، تأسيس نور البيان، والعقيدة وبناء الشخصية).
+                            حسابك مسجل حالياً في مسار القرآن الكريم والتدبر. للتسجيل في أحد الكورسات التعليمية يرجى التواصل مع إدارة الأكاديمية.
                         </p>
                     </div>
                     <div class="flex items-center justify-center gap-2 pt-1 flex-wrap">
-                        <a href="#exploreAcademyCoursesSection" class="bg-[#1F274B] hover:bg-slate-900 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
-                            <span>✨</span>
-                            <span>تصفح باقة الكورسات المتاحة أدناه</span>
-                        </a>
-                        <button onclick="switchPortalTrack('quran')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">
-                            ← العودة لمسار القرآن الكريم
+                        <button onclick="switchPortalTrack('quran')" class="bg-[#1F274B] hover:bg-slate-900 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow transition">
+                            ← عرض مسار القرآن الكريم
                         </button>
                     </div>
                 </div>
