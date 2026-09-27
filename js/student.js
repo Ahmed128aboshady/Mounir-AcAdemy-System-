@@ -481,14 +481,15 @@ async function loadStudentProfile() {
         // KPI Stats
         const statEnrolledEl = document.getElementById('statEnrolledCourses');
         if (statEnrolledEl) statEnrolledEl.innerText = enrolledCoursesList.length || 1;
-        const curRemCredits = (curCourseForBottom.remaining_credits !== undefined) ? curCourseForBottom.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0);
+        const activeCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+        const curRemCredits = (activeCourse.remaining_credits !== undefined) ? activeCourse.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0);
         const statRemEl = document.getElementById('statRemainingCredits');
         if (statRemEl) statRemEl.innerText = curRemCredits;
         const goalRemEl = document.getElementById('goalRemainingCreditsDisplay');
         if (goalRemEl) goalRemEl.innerText = curRemCredits;
         const goalBar = document.getElementById('goalProgressBar');
         if (goalBar) {
-            const totPkg = Math.max(8, curRemCredits);
+            const totPkg = Math.max(4, curRemCredits);
             const pct = Math.min(100, Math.round((curRemCredits / totPkg) * 100));
             goalBar.style.width = pct + '%';
         }
@@ -1571,6 +1572,19 @@ async function loadSelectedCourseLectures() {
             document.getElementById('renewalCountBadge').innerText = currentCourseInfo.renewal_count > 0 
                 ? currentCourseInfo.renewal_count + ' مرة' 
                 : 'المرحلة الأولى';
+
+            // Sync remaining credits KPI card and package widget in real-time
+            const remVal = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : 0;
+            const statRemEl = document.getElementById('statRemainingCredits');
+            if (statRemEl) statRemEl.innerText = remVal;
+            const goalRem = document.getElementById('goalRemainingCreditsDisplay');
+            if (goalRem) goalRem.innerText = remVal;
+            const goalBar = document.getElementById('goalProgressBar');
+            if (goalBar) {
+                const totPkg = Math.max(4, remVal);
+                const pct = Math.min(100, Math.round((remVal / totPkg) * 100));
+                goalBar.style.width = pct + '%';
+            }
         }
         
         const cBadge = document.getElementById('paymobCourseNameBadge');
