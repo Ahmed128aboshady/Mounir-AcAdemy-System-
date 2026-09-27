@@ -126,11 +126,121 @@
         "عبد الرحمن مختار": "https://meet.google.com/wwx-iqiq-afv",
         "أسماء": "https://meet.google.com/wvq-kmvm-spa",
         "رؤى": "https://meet.google.com/jjx-qoxf-dyu",
-        "امنية سعيد": "https://meet.google.com/gez-cjzc-rce"
-};
+        "امنية سعيد": "https://meet.google.com/gez-cjzc-rce",
+        "10": "https://meet.google.com/wod-mmqb-hyz",
+        "احمد خالد": "https://meet.google.com/wod-mmqb-hyz",
+        "أحمد خالد": "https://meet.google.com/wod-mmqb-hyz",
+        "11": "https://meet.google.com/eju-czuq-ank",
+        "احمد سلطان": "https://meet.google.com/eju-czuq-ank",
+        "أحمد سلطان": "https://meet.google.com/eju-czuq-ank",
+        "13": "https://meet.google.com/ivq-ykdt-fvf",
+        "احمد عصام": "https://meet.google.com/ivq-ykdt-fvf",
+        "أحمد عصام": "https://meet.google.com/ivq-ykdt-fvf",
+        "20": "https://meet.google.com/jen-djwy-hkf",
+        "بسام الاسد": "https://meet.google.com/jen-djwy-hkf",
+        "بسام الأسد": "https://meet.google.com/jen-djwy-hkf",
+        "21": "https://meet.google.com/mue-rspk-rej",
+        "بلال": "https://meet.google.com/mue-rspk-rej",
+        "22": "https://meet.google.com/ces-jwtj-hah",
+        "تسنيم": "https://meet.google.com/ces-jwtj-hah",
+        "24": "https://meet.google.com/cjv-rekb-aht",
+        "جهاد صابر": "https://meet.google.com/cjv-rekb-aht",
+        "30": "https://meet.google.com/qsd-wnjs-wxj",
+        "خالد عثمان": "https://meet.google.com/qsd-wnjs-wxj",
+        "53": "https://meet.google.com/ayx-buoy-vys",
+        "محمد عبد المنعم": "https://meet.google.com/ayx-buoy-vys",
+        "محمد عبدالمنعم": "https://meet.google.com/ayx-buoy-vys",
+        "56": "https://meet.google.com/byq-jzxd-jpo",
+        "محمد مصطفى زهران": "https://meet.google.com/byq-jzxd-jpo",
+        "محمد مصطفي زهران": "https://meet.google.com/byq-jzxd-jpo",
+        "64": "https://meet.google.com/uop-tcyk-ipm",
+        "مصطفى عيد": "https://meet.google.com/uop-tcyk-ipm",
+        "مصطفي عيد": "https://meet.google.com/uop-tcyk-ipm",
+        "66": "https://meet.google.com/vxj-euae-bpe",
+        "مصطفي مجدي": "https://meet.google.com/vxj-euae-bpe",
+        "مصطفى مجدي": "https://meet.google.com/vxj-euae-bpe",
+        "67": "https://meet.google.com/bdo-vcss-rcz",
+        "معاذ المنصوري": "https://meet.google.com/bdo-vcss-rcz",
+        "71": "https://meet.google.com/rxu-zpag-vxp",
+        "هشام وهيب": "https://meet.google.com/rxu-zpag-vxp",
+        "73": "https://meet.google.com/vod-tfha-kfj",
+        "ولاء حمدي": "https://meet.google.com/vod-tfha-kfj",
+    };
+
+    // Teachers currently on leave (الأحمر في الشيت: معلمين في إجازة حالياً)
+    window.TEACHERS_ON_LEAVE = [
+        '3', 'أحمد محمد أحمد',
+        '7', 'إسلام شريف',
+        '42', 'عبدالله محمد السعيد',
+        '44', 'علي فراج',
+        '60', 'محمود عرام',
+        '74', 'يحيى',
+        '77', 'عبدالله ممدوح'
+    ];
+
 
     // Official Group to Meet Mapping (257 Groups belonging to all configured Teachers)
     const OFFICIAL_GROUP_MEET_LINKS = {
+        // تسنيم (ID 22)
+        "G019": "https://meet.google.com/ces-jwtj-hah",
+        "G029": "https://meet.google.com/ces-jwtj-hah",
+        "G235": "https://meet.google.com/ces-jwtj-hah",
+        // احمد سلطان (ID 11)
+        "G093": "https://meet.google.com/eju-czuq-ank",
+        "G124": "https://meet.google.com/eju-czuq-ank",
+        "G126": "https://meet.google.com/eju-czuq-ank",
+        "G205": "https://meet.google.com/eju-czuq-ank",
+        "G206": "https://meet.google.com/eju-czuq-ank",
+        "G374": "https://meet.google.com/eju-czuq-ank",
+        "G376": "https://meet.google.com/eju-czuq-ank",
+        "G399": "https://meet.google.com/eju-czuq-ank",
+        // هشام وهيب (ID 71)
+        "G120": "https://meet.google.com/rxu-zpag-vxp",
+        "G216": "https://meet.google.com/rxu-zpag-vxp",
+        "G236": "https://meet.google.com/rxu-zpag-vxp",
+        // احمد خالد (ID 10)
+        "G134": "https://meet.google.com/wod-mmqb-hyz",
+        "G221": "https://meet.google.com/wod-mmqb-hyz",
+        "G241": "https://meet.google.com/wod-mmqb-hyz",
+        "G279": "https://meet.google.com/wod-mmqb-hyz",
+        "G385": "https://meet.google.com/wod-mmqb-hyz",
+        "G418": "https://meet.google.com/wod-mmqb-hyz",
+        "G432": "https://meet.google.com/wod-mmqb-hyz",
+        // بسام الاسد (ID 20)
+        "G146": "https://meet.google.com/jen-djwy-hkf",
+        "G156": "https://meet.google.com/jen-djwy-hkf",
+        "G262": "https://meet.google.com/jen-djwy-hkf",
+        // مصطفى عيد (ID 64)
+        "G175": "https://meet.google.com/uop-tcyk-ipm",
+        "G383": "https://meet.google.com/uop-tcyk-ipm",
+        "G392": "https://meet.google.com/uop-tcyk-ipm",
+        "G403": "https://meet.google.com/uop-tcyk-ipm",
+        "G414": "https://meet.google.com/uop-tcyk-ipm",
+        // مصطفي مجدي (ID 66)
+        "G181": "https://meet.google.com/vxj-euae-bpe",
+        // احمد عصام (ID 13)
+        "G202": "https://meet.google.com/ivq-ykdt-fvf",
+        "G295": "https://meet.google.com/ivq-ykdt-fvf",
+        "G313": "https://meet.google.com/ivq-ykdt-fvf",
+        "G334": "https://meet.google.com/ivq-ykdt-fvf",
+        "G380": "https://meet.google.com/ivq-ykdt-fvf",
+        // معاذ المنصوري (ID 67)
+        "G248": "https://meet.google.com/bdo-vcss-rcz",
+        // محمد مصطفى زهران (ID 56)
+        "G308": "https://meet.google.com/byq-jzxd-jpo",
+        "G317": "https://meet.google.com/byq-jzxd-jpo",
+        // خالد عثمان (ID 30)
+        "G325": "https://meet.google.com/qsd-wnjs-wxj",
+        // بلال (ID 21)
+        "G377": "https://meet.google.com/mue-rspk-rej",
+        "G404": "https://meet.google.com/mue-rspk-rej",
+        // جهاد صابر (ID 24)
+        "G411": "https://meet.google.com/cjv-rekb-aht",
+        "G433": "https://meet.google.com/cjv-rekb-aht",
+        "G434": "https://meet.google.com/cjv-rekb-aht",
+        // ولاء حمدي (ID 73)
+        "G429": "https://meet.google.com/vod-tfha-kfj",
+        "G431": "https://meet.google.com/vod-tfha-kfj",
         "G044": "https://meet.google.com/cvf-qbuj-ojn",
         "G140": "https://meet.google.com/cvf-qbuj-ojn",
         "G141": "https://meet.google.com/cvf-qbuj-ojn",
