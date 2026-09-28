@@ -4340,11 +4340,13 @@ function syncZoomLiveStatusAll() {
     const bannerLink = banner ? banner.querySelector('a') : null;
 
     if (banner) {
-        if (wednesdayStatus && wednesdayStatus.isWithinWindow) {
+        // Wednesday Tafsir: بنات >= 10 أو أولاد < 10
+        const isWednesdayTarget = (sGender === 'f' && studentAge >= 10) || (sGender === 'm' && studentAge < 10);
+        if (wednesdayStatus && wednesdayStatus.isWithinWindow && isWednesdayTarget) {
             banner.classList.remove('hidden');
             banner.classList.add('flex');
             if (bannerLink) bannerLink.href = wednesdayStatus.zoomUrl;
-            const isGirls = (wednesdayStatus.cohortKey === 'girls_10_and_up' || (sGender === 'f' && studentAge >= 10));
+            const isGirls = (sGender === 'f' && studentAge >= 10);
             if (titleEl) {
                 titleEl.innerText = isGirls 
                     ? 'جلسة التفسير والتدبر (الحلقة الثانية) متاحة الآن للبنات (10 سنوات فما فوق)!' 
