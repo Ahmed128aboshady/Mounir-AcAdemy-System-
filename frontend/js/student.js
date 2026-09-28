@@ -1026,22 +1026,91 @@ function getFilteredCoursesList() {
     if (currentPortalTrack === 'competition') {
         const student = (window.currentStudentData && window.currentStudentData.student) || {};
         const age = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(student.age) || 9);
+        const sName = student.name || '';
+        const sCode = student.student_code || student.id || currentStudentId;
+        const sExplicit = student.gender || student.parent_name;
+        const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'f';
+
         return COMPETITION_COURSES.map(c => {
+            // 1. مسار التفسير والتدبر
             if (c.course_name.includes('التفسير والتدبر')) {
-                if (age < 10) {
+                if (gender === 'f') {
+                    if (age <= 10) {
+                        return {
+                            ...c,
+                            subscription_days: 'الثلاثاء',
+                            lecture_time: 'الثلاثاء 8:30 م (بنات من 6 إلى 10 سنوات)',
+                            session_duration: 'جلسة أسبوعية تفاعلية'
+                        };
+                    } else {
+                        return {
+                            ...c,
+                            subscription_days: 'الأربعاء',
+                            lecture_time: 'الأربعاء 5:00 م (بنات 11 سنة فيما فوق)',
+                            session_duration: 'جلسة أسبوعية تفاعلية'
+                        };
+                    }
+                } else {
+                    if (age <= 10) {
+                        return {
+                            ...c,
+                            subscription_days: 'الأربعاء',
+                            lecture_time: 'الأربعاء 6:30 م (أولاد من 6 إلى 10 سنوات)',
+                            session_duration: 'جلسة أسبوعية تفاعلية'
+                        };
+                    } else {
+                        return {
+                            ...c,
+                            subscription_days: 'الأحد',
+                            lecture_time: 'الأحد 8:00 م (أولاد 11 سنة فيما فوق)',
+                            session_duration: 'جلسة أسبوعية تفاعلية'
+                        };
+                    }
+                }
+            }
+            // 2. مسار أحكام التجويد ومخارج الحروف
+            if (c.course_name.includes('التجويد')) {
+                if (age <= 10) {
                     return {
                         ...c,
-                        subscription_days: 'الثلاثاء',
-                        lecture_time: 'الثلاثاء 5:00 م (للأطفال أقل من 10 سنوات)',
+                        subscription_days: 'الجمعة',
+                        lecture_time: 'الجمعة 2:00 م (من 6 إلى 10 سنوات)',
                         session_duration: 'جلسة أسبوعية تفاعلية'
                     };
                 } else {
                     return {
                         ...c,
-                        subscription_days: 'الأربعاء',
-                        lecture_time: 'الأربعاء 5:00 م (10 سنوات فما فوق)',
+                        subscription_days: 'الجمعة',
+                        lecture_time: 'الجمعة 2:30 م (11 سنة فيما فوق)',
                         session_duration: 'جلسة أسبوعية تفاعلية'
                     };
+                }
+            }
+            // 3. مسار الحديث الشريف
+            if (c.course_name.includes('الحديث')) {
+                if (gender === 'm') {
+                    return {
+                        ...c,
+                        subscription_days: 'الإثنين',
+                        lecture_time: 'الإثنين 8:00 م (أولاد)',
+                        session_duration: 'جلسة أسبوعية تفاعلية'
+                    };
+                } else {
+                    if (age <= 10) {
+                        return {
+                            ...c,
+                            subscription_days: 'الإثنين',
+                            lecture_time: 'الإثنين 6:30 م (بنات من 6 إلى 10 سنوات)',
+                            session_duration: 'جلسة أسبوعية تفاعلية'
+                        };
+                    } else {
+                        return {
+                            ...c,
+                            subscription_days: 'الإثنين',
+                            lecture_time: 'الإثنين 7:30 م (بنات 11 سنة فيما فوق)',
+                            session_duration: 'جلسة أسبوعية تفاعلية'
+                        };
+                    }
                 }
             }
             return c;
@@ -1589,10 +1658,24 @@ async function loadSelectedCourseLectures() {
         if (COMPETITION_LECTURES_MAP && COMPETITION_LECTURES_MAP[selectedCourseName]) {
             const student = (window.currentStudentData && window.currentStudentData.student) || {};
             const stAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(student.age) || 9);
+            const sName = student.name || '';
+            const sCode = student.student_code || student.id || currentStudentId;
+            const sExplicit = student.gender || student.parent_name;
+            const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'f';
+
             const lecs = COMPETITION_LECTURES_MAP[selectedCourseName].map(l => {
                 let sTime = l.scheduled_time;
                 if (selectedCourseName.includes('التفسير')) {
-                    sTime = (stAge < 10) ? 'الثلاثاء 5:00 م (للأطفال أقل من 10 سنوات)' : 'الأربعاء 5:00 م (10 سنوات فما فوق)';
+                    if (gender === 'f') {
+                        sTime = (stAge <= 10) ? 'الثلاثاء 8:30 م (بنات من 6 إلى 10 سنوات)' : 'الأربعاء 5:00 م (بنات 11 سنة فما فوق)';
+                    } else {
+                        sTime = (stAge <= 10) ? 'الأربعاء 6:30 م (أولاد من 6 إلى 10 سنوات)' : 'الأحد 8:00 م (أولاد 11 سنة فما فوق)';
+                    }
+                } else if (selectedCourseName.includes('التجويد')) {
+                    sTime = (stAge <= 10) ? 'الجمعة 2:00 م (من 6 إلى 10 سنوات)' : 'الجمعة 2:30 م (11 سنة فما فوق)';
+                } else if (selectedCourseName.includes('الحديث')) {
+                    if (gender === 'm') sTime = 'الإثنين 8:00 م (أولاد)';
+                    else sTime = (stAge <= 10) ? 'الإثنين 6:30 م (بنات من 6 إلى 10 سنوات)' : 'الإثنين 7:30 م (بنات 11 سنة فما فوق)';
                 }
                 return { ...l, scheduled_time: sTime };
             });
@@ -4529,11 +4612,16 @@ function renderGeneralTrackView() {
             </div>
         `;
     } else if (currentGeneralTrack === 'tafsir') {
-        const isGirl10Plus = (sGender === 'f' && studentAge >= 10);
-        const isBoyUnder10 = (sGender === 'm' && studentAge < 10);
-        let wedText = isGirl10Plus 
-            ? 'كل أربعاء الساعة 5:00 م (بنات 10 سنوات فما فوق)' 
-            : (studentAge < 10 ? 'كل ثلاثاء الساعة 5:00 م (للأطفال أقل من 10 سنوات)' : 'الأربعاء (5:00 م للبنات 10+ | 6:30 م للأولاد < 10)');
+        let wedText = '';
+        if (sGender === 'f') {
+            wedText = (studentAge <= 10) 
+                ? 'كل ثلاثاء الساعة 8:30 م (بنات من 6 إلى 10 سنوات)' 
+                : 'كل أربعاء الساعة 5:00 م (بنات 11 سنة فيما فوق)';
+        } else {
+            wedText = (studentAge <= 10) 
+                ? 'كل أربعاء الساعة 6:30 م (أولاد من 6 إلى 10 سنوات)' 
+                : 'كل أحد الساعة 8:00 م (أولاد 11 سنة فيما فوق)';
+        }
         scheduleRowHtml = `
             <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
