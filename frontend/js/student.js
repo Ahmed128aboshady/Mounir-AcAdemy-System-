@@ -1024,7 +1024,28 @@ window.COMPETITION_COURSES = COMPETITION_COURSES;
 
 function getFilteredCoursesList() {
     if (currentPortalTrack === 'competition') {
-        return COMPETITION_COURSES;
+        const student = (window.currentStudentData && window.currentStudentData.student) || {};
+        const age = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(student.age) || 9);
+        return COMPETITION_COURSES.map(c => {
+            if (c.course_name.includes('التفسير والتدبر')) {
+                if (age < 10) {
+                    return {
+                        ...c,
+                        subscription_days: 'الثلاثاء',
+                        lecture_time: 'الثلاثاء 5:00 م (للأطفال أقل من 10 سنوات)',
+                        session_duration: 'جلسة أسبوعية تفاعلية'
+                    };
+                } else {
+                    return {
+                        ...c,
+                        subscription_days: 'الأربعاء',
+                        lecture_time: 'الأربعاء 5:00 م (10 سنوات فما فوق)',
+                        session_duration: 'جلسة أسبوعية تفاعلية'
+                    };
+                }
+            }
+            return c;
+        });
     }
     if (!Array.isArray(enrolledCoursesList) || enrolledCoursesList.length === 0) return [];
     if (currentPortalTrack === 'courses') {
@@ -1436,9 +1457,10 @@ function selectCourseTab(cName) {
     loadSelectedCourseLectures();
 }
 
-function calculateGroupUpcomingDates(dayName, count) {
+function calculateGroupUpcomingDates(dayName, count, startDate = null) {
     const dates = [];
-    const today = new Date(2026, 8, 11);
+    const baseDate = startDate ? new Date(startDate) : new Date();
+    baseDate.setHours(0, 0, 0, 0);
     
     if (!dayName) dayName = 'الاثنين';
     
@@ -1466,20 +1488,70 @@ function calculateGroupUpcomingDates(dayName, count) {
     const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
     const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-    let current = new Date(today);
-    current.setDate(current.getDate() + 1);
+    let current = new Date(baseDate);
 
     while (dates.length < count) {
         const d = current.getDay();
         if (targetDays.includes(d)) {
             const dFormatted = dayNames[d] + ' ' + current.getDate() + ' ' + monthNames[current.getMonth()] + ' ' + current.getFullYear();
             dates.push({
+                day: d,
                 dayName: dayNames[d],
                 dateFormatted: dFormatted,
                 shortDate: current.getDate() + '/' + (current.getMonth() + 1) + '/' + current.getFullYear()
             });
         }
         current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
+function calculateGroupPastDates(dayName, count, startDate = null) {
+    const dates = [];
+    const baseDate = startDate ? new Date(startDate) : new Date();
+    baseDate.setHours(0, 0, 0, 0);
+
+    if (!dayName) dayName = 'الاثنين';
+    
+    const dayMap = [
+        { name: 'الأحد', regex: /أحد|احد/, day: 0 },
+        { name: 'الإثنين', regex: /اثنين|إثنين|اتنين/, day: 1 },
+        { name: 'الثلاثاء', regex: /ثلاثاء|تلات/, day: 2 },
+        { name: 'الأربعاء', regex: /أربعاء|اربعاء|اربع/, day: 3 },
+        { name: 'الخميس', regex: /خميس/, day: 4 },
+        { name: 'الجمعة', regex: /جمعة|جمعه/, day: 5 },
+        { name: 'السبت', regex: /سبت/, day: 6 }
+    ];
+
+    const targetDays = [];
+    dayMap.forEach(item => {
+        if (item.regex.test(dayName)) {
+            targetDays.push(item.day);
+        }
+    });
+
+    if (targetDays.length === 0) {
+        targetDays.push(1);
+    }
+
+    const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+    let current = new Date(baseDate);
+    current.setDate(current.getDate() - 1);
+
+    while (dates.length < count) {
+        const d = current.getDay();
+        if (targetDays.includes(d)) {
+            const dFormatted = dayNames[d] + ' ' + current.getDate() + ' ' + monthNames[current.getMonth()] + ' ' + current.getFullYear();
+            dates.unshift({
+                day: d,
+                dayName: dayNames[d],
+                dateFormatted: dFormatted,
+                shortDate: current.getDate() + '/' + (current.getMonth() + 1) + '/' + current.getFullYear()
+            });
+        }
+        current.setDate(current.getDate() - 1);
     }
     return dates;
 }
@@ -1515,13 +1587,22 @@ async function loadSelectedCourseLectures() {
         const remainingCredits = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (currentCourseInfo.total_lectures_unlocked || 12);
 
         if (COMPETITION_LECTURES_MAP && COMPETITION_LECTURES_MAP[selectedCourseName]) {
+            const student = (window.currentStudentData && window.currentStudentData.student) || {};
+            const stAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(student.age) || 9);
+            const lecs = COMPETITION_LECTURES_MAP[selectedCourseName].map(l => {
+                let sTime = l.scheduled_time;
+                if (selectedCourseName.includes('التفسير')) {
+                    sTime = (stAge < 10) ? 'الثلاثاء 5:00 م (للأطفال أقل من 10 سنوات)' : 'الأربعاء 5:00 م (10 سنوات فما فوق)';
+                }
+                return { ...l, scheduled_time: sTime };
+            });
             data = {
                 course_name: selectedCourseName,
                 total_lectures_unlocked: 4,
                 unlocked_blocks: 1,
                 remaining_credits: 4,
                 renewal_count: 0,
-                lectures: COMPETITION_LECTURES_MAP[selectedCourseName]
+                lectures: lecs
             };
         } else if (window.MonirDB && window.MonirDB.isConfigured()) {
             try {
@@ -1618,7 +1699,8 @@ async function loadSelectedCourseLectures() {
         durLabel = durNum + ' دقيقة';
         
         const subDays = currentCourseInfo.subscription_days || currentCourseInfo.days || 'الاثنين';
-        const upcomingDates = calculateGroupUpcomingDates(subDays, totalToShow + 2);
+        const pastDates = calculateGroupPastDates(subDays, attendedCount);
+        const upcomingDates = calculateGroupUpcomingDates(subDays, Math.max(1, totalToShow - attendedCount) + 4);
         const timeText = currentCourseInfo.lecture_time || '8:00 مساءً';
         const curGid = currentCourseInfo.group_id || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.group_id);
         const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
@@ -1667,16 +1749,26 @@ async function loadSelectedCourseLectures() {
                 l.status = 'locked';
             }
 
-            if (idx < upcomingDates.length) {
+            let assignedDateObj = null;
+            if (num <= attendedCount) {
+                // Completed lecture -> assigned from pastDates
+                assignedDateObj = pastDates[num - 1];
+            } else {
+                // Scheduled / upcoming lecture -> assigned from upcomingDates starting from today
+                const upIdx = num - attendedCount - 1;
+                assignedDateObj = upcomingDates[upIdx];
+            }
+
+            if (assignedDateObj) {
                 let slotTime = timeText;
                 if (timeText && timeText.includes('|')) {
                     const parts = timeText.split('|').map(p => p.trim());
-                    const match = parts.find(p => p.includes(upcomingDates[idx].dayName) || (upcomingDates[idx].dayName === 'الإثنين' && p.includes('الاثنين')));
+                    const match = parts.find(p => p.includes(assignedDateObj.dayName) || (assignedDateObj.dayName === 'الإثنين' && p.includes('الاثنين')));
                     if (match) {
                         slotTime = match.replace(/^(السبت|الأحد|الاحد|الإثنين|الاثنين|الثلاثاء|الأربعاء|الاربعاء|الخميس|الجمعة)\s*/, '').trim();
                     }
                 }
-                l.scheduled_time = upcomingDates[idx].dateFormatted + ' • ' + slotTime + ' (' + durLabel + ')';
+                l.scheduled_time = assignedDateObj.dateFormatted + ' • ' + slotTime + ' (' + durLabel + ')';
             } else {
                 l.scheduled_time = timeText + ' (' + durLabel + ')';
             }
@@ -4441,7 +4533,7 @@ function renderGeneralTrackView() {
         const isBoyUnder10 = (sGender === 'm' && studentAge < 10);
         let wedText = isGirl10Plus 
             ? 'كل أربعاء الساعة 5:00 م (بنات 10 سنوات فما فوق)' 
-            : (isBoyUnder10 ? 'كل أربعاء الساعة 6:30 م (أولاد أقل من 10 سنوات)' : 'الأربعاء (5:00 م للبنات 10+ | 6:30 م للأولاد < 10)');
+            : (studentAge < 10 ? 'كل ثلاثاء الساعة 5:00 م (للأطفال أقل من 10 سنوات)' : 'الأربعاء (5:00 م للبنات 10+ | 6:30 م للأولاد < 10)');
         scheduleRowHtml = `
             <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
