@@ -670,24 +670,14 @@
         }
     };
 
-    // Copy to clipboard helper with button visual feedback
+    // Link copying disabled for security and classroom privacy
     window.copyMeetLink = function(url, btnElement) {
-        if (!url) return;
-        navigator.clipboard.writeText(url).then(() => {
-            if (btnElement) {
-                const originalHtml = btnElement.innerHTML;
-                btnElement.innerHTML = '<span>تم النسخ!</span>';
-                btnElement.classList.add('bg-emerald-100', 'text-emerald-800');
-                setTimeout(() => {
-                    btnElement.innerHTML = originalHtml;
-                    btnElement.classList.remove('bg-emerald-100', 'text-emerald-800');
-                }, 2000);
-            } else {
-                alert('تم نسخ رابط القاعة بنجاح:\n' + url);
-            }
-        }).catch(err => {
-            prompt('انسخ الرابط يدوياً:', url);
-        });
+        const msg = '🔒 عذراً، تم إيقاف ميزة نسخ الروابط لحماية خصوصية الحصص وحسابات الطلاب ومنع تداول الروابط خارج المنصة.\nيرجى الدخول مباشرة عبر زر (بدء الحصة / دخول الحصة) من داخل المنصة.';
+        if (window.MonirPopup && window.MonirPopup.alert) {
+            window.MonirPopup.alert(msg, 'ميزة نسخ الروابط متوقفة', 'warning');
+        } else {
+            alert(msg);
+        }
     };
 
     // Prompt teacher or admin to edit the group meet link

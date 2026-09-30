@@ -583,10 +583,10 @@ function renderUpcomingScheduleList() {
                     <span class="font-bold text-slate-700">${timeVal}</span>
                     ${rc <= 0
                         ? `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`
-                        : `<a href="${meetUrl}" target="_blank" rel="noopener noreferrer" class="text-emerald-700 hover:text-emerald-800 font-black hover:underline flex items-center gap-1">
+                        : `<button type="button" onclick="joinMeet(null, '${meetUrl}')" class="text-emerald-700 hover:text-emerald-800 font-black flex items-center gap-1 cursor-pointer">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>دخول القاعة الذكية ←</span>
-                           </a>`
+                           </button>`
                     }
                 </div>
             </div>
@@ -1398,10 +1398,10 @@ function renderEnrolledCoursesTabs(courses) {
 
                     <!-- Actions -->
                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
-                        <a href="${meetUrl}" target="_blank" rel="noopener noreferrer" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+                        <button type="button" onclick="joinMeet(null, '${meetUrl}')" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                             <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                             <span>دخول القاعة الذكية</span>
-                        </a>
+                        </button>
                         <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
                             <button type="button" onclick="selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
                                 <span>المنهج والمحاضرات</span>
@@ -1480,10 +1480,10 @@ function renderEnrolledCoursesTabs(courses) {
                             <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
                             <span>رصيدك منتهي (0) — تجديد الآن</span>
                            </button>`
-                        : `<a href="${meetUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center">
+                        : `<button type="button" onclick="event.stopPropagation(); joinMeet(null, '${meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                             <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                             <span>دخول القاعة الذكية</span>
-                           </a>`
+                           </button>`
                     }
                     <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
                         <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
@@ -2131,9 +2131,6 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
                 <button type="button" onclick="joinMeet(${l.id}, '${meetLink}')" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer">
                     <span>دخول الحصة المباشرة (Google Meet)</span>
                 </button>
-                <button type="button" onclick="copyMeetLink('${meetLink}')" class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition border border-slate-200 flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ رابط الحصة">
-                    <span class="hidden sm:inline">نسخ الرابط</span>
-                </button>
             </div>
             <span class="text-[10px] sm:text-[11px] text-emerald-800 font-semibold bg-emerald-100/70 px-2.5 py-1 rounded-lg text-center sm:text-right">قاعة تفاعلية مباشرة مع المعلم</span>
         </div>
@@ -2366,33 +2363,8 @@ function joinNextDueMeet() {
 }
 
 function copyNextDueMeet() {
-    const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
-    const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
-    const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
-
-    if (rc <= 0) {
-        if (window.MonirPopup && window.MonirPopup.toast) {
-            window.MonirPopup.toast('رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً للحصول على رابط القاعة', 'error');
-        } else {
-            alert('رصيدك 0 حصص - يرجى تجديد الاشتراك أولاً');
-        }
-        return;
-    }
-
-    const url = getNextDueMeetUrl();
-    const btn = document.getElementById('heroCopyMeetBtn');
-    if (window.copyMeetLink) {
-        window.copyMeetLink(url, btn);
-    } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-            if (window.MonirPopup) window.MonirPopup.toast('تم نسخ رابط الحصة بنجاح', 'success');
-            else alert('تم نسخ رابط الحصة بنجاح!');
-        }).catch(() => {
-            prompt('رابط الحصة المباشر:', url);
-        });
-    } else {
-        prompt('رابط الحصة المباشر:', url);
-    }
+    // 🔒 Direct join only — link copying is disabled for classroom privacy
+    joinMeet();
 }
 
 // ---------------- Quizzes System ----------------
