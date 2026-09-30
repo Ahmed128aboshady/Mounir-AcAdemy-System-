@@ -1355,11 +1355,18 @@
                         </button>
                     `;
                 } else {
-                    recordButtonsHtml = `
-                        <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
-                        ${excuseButtonHtml}
-                        <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
-                    `;
+                    // ⛔ رصيد صفر — أزرار مقفولة
+                    if (rc <= 0) {
+                        recordButtonsHtml = `
+                            <button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-60 inline-flex items-center gap-0.5" title="الرصيد صفر — يجب تجديد الاشتراك أولاً"><span>⛔</span><span>مقفول</span></button>
+                        `;
+                    } else {
+                        recordButtonsHtml = `
+                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
+                            ${excuseButtonHtml}
+                            <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
+                        `;
+                    }
                 }
 
                 actionsHtml = `
@@ -1494,6 +1501,18 @@
                 const curExcuses = foundStudent ? (foundStudent.excuse_count || 0) : 0;
                 const maxExcuses = foundStudent ? (foundStudent.max_allowed_excuses || 1) : 1;
 
+                // ⛔ Block: رصيد الطالب صفر — منع التسجيل كلياً
+                if (curCredits <= 0) {
+                    enableButtons();
+                    const blockMsg = `⛔ لا يمكن تسجيل حضور أو غياب\n\nالطالب: ${stName}${stCode ? ' (' + stCode + ')' : ''}\n\nرصيد الطالب منتهي (${curCredits} حصص).\nيجب على ولي الأمر تجديد الاشتراك أولاً حتى يمكن تسجيل أي حصة.`;
+                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                        await window.MonirPopup.alert(blockMsg, '⛔ رصيد الطالب صفر', 'error');
+                    } else {
+                        alert(blockMsg);
+                    }
+                    return;
+                }
+
                 const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر', 'absent': 'غياب بدون عذر' };
                 const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب' };
 
@@ -1524,9 +1543,7 @@
                 let confirmBtn = 'تأكيد';
                 let modalType = 'question';
 
-                const zeroCreditWarning = (curCredits <= 0) 
-                    ? '\n\n⚠️ تحذير: رصيد هذا الطالب منتهي حالياً (0 حصص متبقية) ويحتاج إلى تجديد الاشتراك من قبل ولي الأمر!' 
-                    : '';
+                const zeroCreditWarning = '';
 
                 if (prevRecord) {
                     const prevLabel = statusNames[prevRecord] || prevRecord;
