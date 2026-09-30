@@ -202,6 +202,10 @@
                             <span class="bg-emerald-500/15 text-emerald-800 border border-emerald-400/30 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full" id="accountStatusBadge">
                                 اشتراك ساري (نشط)
                             </span>
+                            <button type="button" onclick="openStudentLedgerModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="عرض كشف حساب الحصص وسجل الحضور والغياب والتجديدات">
+                                <span>📄</span>
+                                <span>سجل الحصص والتجديدات</span>
+                            </button>
                             <button onclick="openPaymobModal()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
                                 <span>تجديد الباقة</span>
                             </button>
@@ -278,24 +282,30 @@
             </div>
 
             <!-- Stat 2: حصص الحضور المؤكدة -->
-            <div class="kpi-stat-card">
+            <div class="kpi-stat-card cursor-pointer hover:border-emerald-300 transition" onclick="openStudentLedgerModal()" title="انقر لعرض تفاصيل سجل الحضور">
                 <div class="kpi-stat-icon" style="background:#eaf0f8;color:#2D396E">
                     <svg><use href="#clock"/></svg>
                 </div>
-                <div>
-                    <b class="text-xl sm:text-2xl font-black text-emerald-600 block leading-tight" id="presentCount">0</b>
-                    <span class="text-xs text-slate-500 font-bold">حصة حضور مؤكدة</span>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <b class="text-xl sm:text-2xl font-black text-emerald-600 block leading-tight" id="presentCount">0</b>
+                        <span class="text-[10px] text-emerald-800 bg-emerald-50 font-extrabold px-1.5 py-0.5 rounded border border-emerald-200">التفاصيل 👁️</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-bold block mt-0.5">حصة حضور مؤكدة</span>
                 </div>
             </div>
 
             <!-- Stat 3: رصيد الحصص المتاح -->
-            <div class="kpi-stat-card">
+            <div class="kpi-stat-card cursor-pointer hover:border-indigo-300 transition" onclick="openStudentLedgerModal()" title="انقر لعرض كشف حساب الحصص وسجل التجديدات">
                 <div class="kpi-stat-icon" style="background:#fff4e4;color:#b68d49">
                     <svg><use href="#award"/></svg>
                 </div>
-                <div>
-                    <b class="text-xl sm:text-2xl font-black text-blue-900 block leading-tight" id="statRemainingCredits">—</b>
-                    <span class="text-xs text-slate-500 font-bold">حصص متبقية بالرصيد</span>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <b class="text-xl sm:text-2xl font-black text-blue-900 block leading-tight" id="statRemainingCredits">—</b>
+                        <span class="text-[10px] text-indigo-700 bg-indigo-50 font-extrabold px-1.5 py-0.5 rounded border border-indigo-200">سجل الرصيد 📄</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-bold block mt-0.5">حصص متبقية بالرصيد</span>
                 </div>
             </div>
 
@@ -1422,5 +1432,6 @@
 
     <script src="js/api_mock.js?v=20260923_v1"></script>
     <script src="js/student.js?v=20260928_v14"></script>
+    <script src="js/student_ledger.js?v=20260930_v1"></script>
 </body>
 </html>

@@ -1628,14 +1628,11 @@
 
                             await client.from('enrollments').update(updates).eq('id', enrData.id);
 
-                            // Optional attendance log table
+                            // Official attendance log table
                             try {
-                                const { data: maxAtt } = await client.from('attendance').select('id').order('id', { ascending: false }).limit(1);
-                                const nextAttId = ((maxAtt && maxAtt[0]) ? maxAtt[0].id : 0) + 1;
                                 await client.from('attendance').insert([{
-                                    id: nextAttId,
                                     student_id: studentId,
-                                    lecture_id: 0,
+                                    lecture_id: null,
                                     course_name: enrData.course_name || 'مسار القرآن الكريم والتدبر',
                                     status: sessionStatus,
                                     joined_at: new Date().toISOString(),
@@ -1721,6 +1718,17 @@
                             updates.max_allowed_excuses = 1;
                         }
                         await client.from('enrollments').update(updates).eq('id', e.id);
+
+                        try {
+                            const todayStart = new Date();
+                            todayStart.setHours(0, 0, 0, 0);
+                            await client.from('attendance')
+                                .delete()
+                                .eq('student_id', studentId)
+                                .gte('joined_at', todayStart.toISOString());
+                        } catch(attDelErr) {
+                            console.warn('Attendance delete on undo notice:', attDelErr);
+                        }
                     }
                 }
                 localStorage.removeItem(todayKey);

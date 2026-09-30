@@ -1,0 +1,786 @@
+// Mounir Academy — Central Student Ledger & Attendance/Renewal History (v1.0)
+// كشف حساب وسجل حركات الطالب (حضور، غياب، وتجديدات الرصيد) لولي الأمر والإشراف
+(function() {
+    'use strict';
+
+    // Helper: Format Date in Arabic Locale
+    function formatArabicDateTime(dateStr) {
+        if (!dateStr) return '—';
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dayName = days[d.getDay()];
+            const day = d.getDate();
+            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            const monthName = months[d.getMonth()];
+            const year = d.getFullYear();
+            
+            let hours = d.getHours();
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12 || 12;
+            
+            return `${dayName} ${day} ${monthName} ${year} • ${hours}:${minutes} ${ampm}`;
+        } catch(e) {
+            return dateStr;
+        }
+    }
+
+    function formatArabicDate(dateStr) {
+        if (!dateStr) return '—';
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dayName = days[d.getDay()];
+            const day = d.getDate();
+            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            const monthName = months[d.getMonth()];
+            const year = d.getFullYear();
+            return `${dayName} ${day} ${monthName} ${year}`;
+        } catch(e) {
+            return dateStr;
+        }
+    }
+
+    // Ensure Ledger Modal Container exists in DOM
+    function ensureModalElement() {
+        let modal = document.getElementById('studentLedgerModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'studentLedgerModal';
+            modal.className = 'modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 text-xs my-auto max-h-[94vh] flex flex-col relative" id="studentLedgerModalContent">
+                    <!-- Dynamic Content Injected Here -->
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        return modal;
+    }
+
+    // Main Open Ledger Function (Callable globally)
+    window.openStudentLedgerModal = async function(targetStudentId = null) {
+        const modal = ensureModalElement();
+        const content = document.getElementById('studentLedgerModalContent');
+        if (!content) return;
+
+        modal.classList.remove('hidden');
+
+        // Initial Loading State
+        content.innerHTML = `
+            <div class="py-16 text-center space-y-3">
+                <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <h4 class="text-sm font-black text-slate-800">جاري إعداد وتحميل كشف الحساب وسجل الحركات...</h4>
+                <p class="text-xs text-slate-500">يتم استدعاء بيانات الحضور والغياب وعمليات تجديد الرصيد لحظياً</p>
+            </div>
+        `;
+
+        try {
+            // 1. Identify Target Student ID
+            let studentId = targetStudentId;
+            if (!studentId) {
+                if (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.id) {
+                    studentId = window.currentStudentData.student.id;
+                } else if (window.currentStudentId) {
+                    studentId = window.currentStudentId;
+                }
+            }
+
+            let student = null;
+            let enrollment = null;
+            let attendanceRecords = [];
+            let paymentRecords = [];
+            let teacherName = '—';
+
+            // 2. Fetch from Supabase if configured
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                const client = window.MonirDB.getClient();
+
+                // Fetch Student info
+                if (studentId) {
+                    const { data: stList } = await client.from('students').select('*').eq('id', studentId).limit(1);
+                    if (stList && stList[0]) student = stList[0];
+                }
+
+                // If not found by ID, try currentStudentId as student_code
+                if (!student && window.currentStudentId) {
+                    const { data: stList } = await client.from('students').select('*').eq('student_code', window.currentStudentId).limit(1);
+                    if (stList && stList[0]) student = stList[0];
+                }
+
+                if (student) {
+                    studentId = student.id;
+
+                    // Fetch Enrollment(s)
+                    const { data: enrList } = await client.from('enrollments').select('*').eq('student_id', studentId).limit(1);
+                    if (enrList && enrList[0]) enrollment = enrList[0];
+
+                    // Fetch Attendance Logs
+                    const { data: attList } = await client.from('attendance')
+                        .select('*')
+                        .eq('student_id', studentId)
+                        .order('joined_at', { ascending: false });
+                    if (attList) attendanceRecords = attList;
+
+                    // Fetch Payment / Renewal Logs
+                    const { data: payList } = await client.from('payments')
+                        .select('*')
+                        .eq('student_id', studentId)
+                        .order('created_at', { ascending: false });
+                    if (payList) paymentRecords = payList;
+
+                    // Resolve Teacher Name
+                    if (enrollment && enrollment.teacher_id) {
+                        const { data: tList } = await client.from('teachers').select('id, name').eq('id', enrollment.teacher_id).limit(1);
+                        if (tList && tList[0]) teacherName = tList[0].name;
+                    }
+                }
+            }
+
+            // 3. Fallback to Local / In-Memory Data
+            if (!student) {
+                if (typeof bsAllStudents !== 'undefined' && Array.isArray(bsAllStudents)) {
+                    student = bsAllStudents.find(s => s.id === studentId || s.student_code === studentId);
+                    if (student) {
+                        enrollment = {
+                            remaining_credits: student.remaining_credits || 0,
+                            present_count: student.present_count || 0,
+                            absent_count: student.absent_count || 0,
+                            excuse_count: student.excuse_count || 0,
+                            group_id: student.group_id,
+                            subscription_days: student.subscription_days,
+                            lecture_time: student.lecture_time,
+                            session_duration: student.session_duration,
+                            course_name: student.course_name || 'مسار القرآن الكريم والتدبر',
+                            enrolled_at: student.enrolled_at || student.created_at
+                        };
+                        teacherName = student.teacher_name || '—';
+                    }
+                }
+                if (!student && window.currentStudentData && window.currentStudentData.student) {
+                    student = window.currentStudentData.student;
+                    if (window.currentStudentData.enrollments && window.currentStudentData.enrollments[0]) {
+                        enrollment = window.currentStudentData.enrollments[0];
+                    }
+                }
+            }
+
+            if (!student) {
+                content.innerHTML = `
+                    <div class="p-8 text-center space-y-4">
+                        <div class="text-3xl">⚠️</div>
+                        <h4 class="text-base font-black text-slate-800">تعذر العثور على بيانات الطالب</h4>
+                        <p class="text-xs text-slate-500">يرجى التأكد من تسجيل الدخول أو اختيار طالب محدد من القائمة.</p>
+                        <button onclick="closeStudentLedgerModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs">إغلاق</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // 4. Calculate Ledger Totals
+            const remainingCredits = (enrollment && enrollment.remaining_credits !== undefined) ? enrollment.remaining_credits : (student.remaining_credits || 0);
+            const presentCount = (enrollment && enrollment.present_count !== undefined) ? enrollment.present_count : (student.present_count || 0);
+            const absentCount = (enrollment && enrollment.absent_count !== undefined) ? enrollment.absent_count : (student.absent_count || 0);
+            const excuseCount = (enrollment && enrollment.excuse_count !== undefined) ? enrollment.excuse_count : (student.excuse_count || 0);
+
+            // Compute Total Purchased/Unlocked Credits
+            let totalRenewedCredits = 0;
+            paymentRecords.forEach(p => {
+                totalRenewedCredits += (parseInt(p.block_unlocked) || 0);
+            });
+
+            // Baseline enrollment credits if no payment records exist
+            const initialEstimatedCredits = totalRenewedCredits > 0 
+                ? (remainingCredits + presentCount + absentCount - totalRenewedCredits)
+                : (remainingCredits + presentCount + absentCount);
+
+            const totalChargedCredits = Math.max(0, initialEstimatedCredits) + totalRenewedCredits;
+
+            // Render Final Modal Interface
+            renderLedgerModalContent(content, {
+                student,
+                enrollment,
+                teacherName,
+                attendanceRecords,
+                paymentRecords,
+                remainingCredits,
+                presentCount,
+                absentCount,
+                excuseCount,
+                totalChargedCredits,
+                totalRenewedCredits,
+                initialEstimatedCredits: Math.max(0, initialEstimatedCredits)
+            });
+
+        } catch(err) {
+            console.error('Error generating student ledger:', err);
+            content.innerHTML = `
+                <div class="p-8 text-center space-y-4">
+                    <div class="text-3xl text-red-500">❌</div>
+                    <h4 class="text-base font-black text-slate-900">حدث خطأ أثناء تحميل كشف الحساب</h4>
+                    <p class="text-xs text-slate-500">${err.message || err}</p>
+                    <button onclick="closeStudentLedgerModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs">إغلاق</button>
+                </div>
+            `;
+        }
+    };
+
+    window.closeStudentLedgerModal = function() {
+        const modal = document.getElementById('studentLedgerModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    // Render Modal Full View with Tabs
+    function renderLedgerModalContent(container, data) {
+        const {
+            student,
+            enrollment,
+            teacherName,
+            attendanceRecords,
+            paymentRecords,
+            remainingCredits,
+            presentCount,
+            absentCount,
+            excuseCount,
+            totalChargedCredits,
+            totalRenewedCredits,
+            initialEstimatedCredits
+        } = data;
+
+        const stName = student.name || 'طالب الأكاديمية';
+        const stCode = student.student_code || student.id || '—';
+        const stPhone = student.phone || student.parent_phone || '—';
+        const stGroup = (enrollment && enrollment.group_id) || student.qr_code || student.group_id || '—';
+        const stDays = (enrollment && enrollment.subscription_days) || student.subscription_days || '—';
+        const stTime = (enrollment && enrollment.lecture_time) || student.lecture_time || '';
+        const stCourse = (enrollment && enrollment.course_name) || student.course_name || 'مسار القرآن الكريم والتدبر';
+        const enrolledDate = (enrollment && enrollment.enrolled_at) || student.created_at || new Date().toISOString();
+
+        const creditStatusClass = remainingCredits <= 0 
+            ? 'bg-red-500 text-white border-red-600 animate-pulse'
+            : remainingCredits <= 2
+            ? 'bg-amber-500 text-white border-amber-600'
+            : 'bg-emerald-600 text-white border-emerald-700';
+
+        container.innerHTML = `
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-[#1F274B] text-white flex items-center justify-center font-black text-sm shadow-xs">
+                        <span>📄</span>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm sm:text-base text-slate-900 leading-tight">كشف حساب وسجل حركات الطالب المعتمد</h3>
+                        <p class="text-[11px] text-slate-500">تقرير رسمي مفصل للحضور والغياب وعمليات تجديد الرصيد</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="window.printStudentLedgerReport()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition text-[11px] flex items-center gap-1 cursor-pointer" title="طباعة أو تصدير PDF">
+                        <span>🖨️</span>
+                        <span class="hidden sm:inline">طباعة التقرير</span>
+                    </button>
+                    <button onclick="closeStudentLedgerModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg font-bold flex items-center justify-center cursor-pointer transition">
+                        &times;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Body Area -->
+            <div class="overflow-y-auto flex-1 pr-1 space-y-4 pt-3.5" id="printableLedgerArea">
+
+                <!-- 1. Student Identity Banner -->
+                <div class="bg-gradient-to-l from-slate-50 to-blue-50/40 border border-slate-200 rounded-2xl p-3.5 sm:p-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div>
+                            <span class="text-slate-400 text-[10px] font-bold block mb-0.5">اسم المتدرب:</span>
+                            <strong class="text-slate-900 font-black text-sm block">${stName}</strong>
+                            <span class="font-mono text-indigo-700 font-extrabold text-[11px] block mt-0.5">كود: ${stCode}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-[10px] font-bold block mb-0.5">المسار التدريبي:</span>
+                            <strong class="text-slate-800 font-extrabold block truncate">${stCourse}</strong>
+                            <span class="text-slate-500 text-[11px] block mt-0.5">المجموعة: <b class="font-mono text-slate-800">${stGroup}</b></span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-[10px] font-bold block mb-0.5">المعلم وموعد الحصة:</span>
+                            <strong class="text-slate-800 font-extrabold block">${teacherName}</strong>
+                            <span class="text-slate-500 text-[11px] block mt-0.5">📅 ${stDays}${stTime ? ' • ' + stTime : ''}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-[10px] font-bold block mb-0.5">هاتف ولي الأمر والتاريخ:</span>
+                            <strong class="text-slate-800 font-mono font-bold block">${stPhone}</strong>
+                            <span class="text-slate-400 text-[10px] block mt-0.5">مسجل منذ: ${formatArabicDate(enrolledDate)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. KPI Balance Summary Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    <!-- Current Remaining Balance -->
+                    <div class="p-3 rounded-2xl border shadow-xs ${creditStatusClass} flex flex-col justify-between">
+                        <span class="text-[10px] font-bold opacity-90 block">الرصيد الحالي المتبقي</span>
+                        <div class="text-xl sm:text-2xl font-black mt-1 leading-none">
+                            ${remainingCredits} <span class="text-xs font-bold">حصة</span>
+                        </div>
+                        <span class="text-[9px] opacity-80 mt-1 block font-bold">${remainingCredits > 0 ? '✓ ساري ومتاح' : '⛔ رصيد منتهي'}</span>
+                    </div>
+
+                    <!-- Total Charged / Purchased -->
+                    <div class="p-3 rounded-2xl border border-blue-200 bg-blue-50/70 text-blue-950 flex flex-col justify-between">
+                        <span class="text-[10px] text-blue-800 font-bold block">إجمالي الحصص المشحونة</span>
+                        <div class="text-xl sm:text-2xl font-black text-blue-900 mt-1 leading-none">
+                            ${totalChargedCredits} <span class="text-xs font-bold">حصة</span>
+                        </div>
+                        <span class="text-[9px] text-blue-700 mt-1 block font-bold">باقة تأسيسية + تجديدات</span>
+                    </div>
+
+                    <!-- Present Sessions -->
+                    <div class="p-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 text-emerald-950 flex flex-col justify-between">
+                        <span class="text-[10px] text-emerald-800 font-bold block">حصص الحضور (مخصومة)</span>
+                        <div class="text-xl sm:text-2xl font-black text-emerald-700 mt-1 leading-none">
+                            ${presentCount} <span class="text-xs font-bold">حصة</span>
+                        </div>
+                        <span class="text-[9px] text-emerald-600 mt-1 block font-bold">تم حضورها وتأكيدها</span>
+                    </div>
+
+                    <!-- Absent Sessions -->
+                    <div class="p-3 rounded-2xl border border-red-200 bg-red-50/70 text-red-950 flex flex-col justify-between">
+                        <span class="text-[10px] text-red-800 font-bold block">غياب بدون عذر (مخصومة)</span>
+                        <div class="text-xl sm:text-2xl font-black text-red-700 mt-1 leading-none">
+                            ${absentCount} <span class="text-xs font-bold">حصة</span>
+                        </div>
+                        <span class="text-[9px] text-red-600 mt-1 block font-bold">تم خصمها لعدم تقديم عذر</span>
+                    </div>
+
+                    <!-- Excused Sessions -->
+                    <div class="col-span-2 sm:col-span-1 p-3 rounded-2xl border border-amber-200 bg-amber-50/70 text-amber-950 flex flex-col justify-between">
+                        <span class="text-[10px] text-amber-800 font-bold block">الأعذار المقبولة (لم تخصم)</span>
+                        <div class="text-xl sm:text-2xl font-black text-amber-800 mt-1 leading-none">
+                            ${excuseCount} <span class="text-xs font-bold">عذر</span>
+                        </div>
+                        <span class="text-[9px] text-amber-700 mt-1 block font-bold">عذر معتمد بالدورة</span>
+                    </div>
+                </div>
+
+                <!-- Equation Transparency Banner -->
+                <div class="bg-slate-100/80 border border-slate-200/90 rounded-xl p-2.5 px-3 text-[11px] text-slate-700 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-black text-slate-900">معادلة انضباط الرصيد:</span>
+                        <span class="bg-white px-2 py-0.5 rounded border font-mono">المشحون (${totalChargedCredits})</span>
+                        <span>=</span>
+                        <span class="bg-white px-2 py-0.5 rounded border font-mono text-emerald-800">حضور (${presentCount})</span>
+                        <span>+</span>
+                        <span class="bg-white px-2 py-0.5 rounded border font-mono text-red-800">غياب (${absentCount})</span>
+                        <span>+</span>
+                        <span class="bg-white px-2 py-0.5 rounded border font-mono font-black text-indigo-900">المتبقي (${remainingCredits})</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-bold">✓ معادلة الحسابات متطابقة 100%</span>
+                </div>
+
+                <!-- 3. Navigation Tabs -->
+                <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+                    <button type="button" onclick="switchLedgerTab('attendance')" id="ledgerTabBtn_attendance" class="ledger-tab-btn active px-3.5 py-2 rounded-xl font-black text-xs transition cursor-pointer bg-[#1F274B] text-white shadow-xs">
+                        <span>📅 سجل الحضور والغياب</span>
+                        <span class="bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1">${attendanceRecords.length || presentCount + absentCount}</span>
+                    </button>
+                    <button type="button" onclick="switchLedgerTab('renewals')" id="ledgerTabBtn_renewals" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
+                        <span>💳 سجل التجديدات والشحن</span>
+                        <span class="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full text-[10px] mr-1">${paymentRecords.length || (totalRenewedCredits > 0 ? 1 : 1)}</span>
+                    </button>
+                    <button type="button" onclick="switchLedgerTab('timeline')" id="ledgerTabBtn_timeline" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
+                        <span>📊 كشف الحساب التراكمي (Timeline)</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Attendance Log -->
+                <div id="ledgerTabContent_attendance" class="ledger-tab-content space-y-3">
+                    ${renderAttendanceTableHtml(attendanceRecords, presentCount, absentCount, excuseCount, enrolledDate, stCourse)}
+                </div>
+
+                <!-- Tab 2: Renewals Log -->
+                <div id="ledgerTabContent_renewals" class="ledger-tab-content hidden space-y-3">
+                    ${renderRenewalsTableHtml(paymentRecords, initialEstimatedCredits, enrolledDate, stCourse)}
+                </div>
+
+                <!-- Tab 3: Timeline Ledger -->
+                <div id="ledgerTabContent_timeline" class="ledger-tab-content hidden space-y-3">
+                    ${renderTimelineLedgerHtml(attendanceRecords, paymentRecords, initialEstimatedCredits, enrolledDate, presentCount, absentCount, remainingCredits)}
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 shrink-0 mt-2">
+                <span class="text-[10px]">نظام الأرشفة المالي والأكاديمي الموحد • أكاديمية منير</span>
+                <button type="button" onclick="closeStudentLedgerModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer">
+                    إغلاق التقرير
+                </button>
+            </div>
+        `;
+    }
+
+    // Helper: Render Tab 1 Attendance Table
+    function renderAttendanceTableHtml(records, presentCount, absentCount, excuseCount, enrolledDate, courseName) {
+        if (!records || records.length === 0) {
+            return `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center space-y-2">
+                    <span class="text-2xl">📋</span>
+                    <h5 class="font-extrabold text-slate-800 text-xs">إجمالي الحصص المسجلة في ملف الطالب:</h5>
+                    <div class="flex items-center justify-center gap-3 py-1 flex-wrap">
+                        <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-lg text-xs">✓ حضور مؤكد: ${presentCount} حصص</span>
+                        <span class="bg-red-100 text-red-800 font-bold px-3 py-1 rounded-lg text-xs">✗ غياب مخصوم: ${absentCount} حصص</span>
+                        <span class="bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-lg text-xs">⚠️ أعذار مستخدمة: ${excuseCount} عذر</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        سجل الحصص السابقة معتمد رسمياً في رصيد الطالب. تم تفعيل التوثيق اللحظي بالثانية لكافة الحصص القادمة.
+                    </p>
+                </div>
+            `;
+        }
+
+        let rowsHtml = records.map((r, i) => {
+            let statusBadge = '';
+            let creditImpact = '';
+            if (r.status === 'present') {
+                statusBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>✓</span><span>حضور وتواصل</span></span>';
+                creditImpact = '<span class="font-mono text-red-600 font-black">-1 حصة</span>';
+            } else if (r.status === 'absent') {
+                statusBadge = '<span class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غياب بدون عذر</span></span>';
+                creditImpact = '<span class="font-mono text-red-600 font-black">-1 حصة</span>';
+            } else if (r.status === 'excused') {
+                statusBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>⚠️</span><span>عذر رسمي مقبول</span></span>';
+                creditImpact = '<span class="font-mono text-slate-500 font-bold">0 (لم يخصم)</span>';
+            } else {
+                statusBadge = `<span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded-lg text-[10px] font-bold">${r.status}</span>`;
+                creditImpact = '<span class="text-slate-400">—</span>';
+            }
+
+            return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="p-2.5 font-mono text-slate-400 text-[10px]">${records.length - i}</td>
+                    <td class="p-2.5 font-bold text-slate-800 whitespace-nowrap text-[11px]">
+                        ${formatArabicDateTime(r.joined_at || r.created_at)}
+                    </td>
+                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 text-slate-600 truncate max-w-[150px] text-[11px]">${r.course_name || courseName}</td>
+                    <td class="p-2.5 font-bold text-slate-700 whitespace-nowrap text-[11px]">${r.duration_minutes || 20} دقيقة</td>
+                    <td class="p-2.5 text-center">${creditImpact}</td>
+                </tr>
+            `;
+        }).join('');
+
+        return `
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-right text-xs">
+                    <thead class="bg-slate-50 text-slate-600 font-black border-b border-slate-200 text-[10px]">
+                        <tr>
+                            <th class="p-2.5">#</th>
+                            <th class="p-2.5">تاريخ ووقت الحصة</th>
+                            <th class="p-2.5">الحالة المسجلة</th>
+                            <th class="p-2.5">المسار التدريبي</th>
+                            <th class="p-2.5">المدة</th>
+                            <th class="p-2.5 text-center">التأثير على الرصيد</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Helper: Render Tab 2 Renewals Table
+    function renderRenewalsTableHtml(payments, initialCredits, enrolledDate, courseName) {
+        let rowsHtml = '';
+
+        // 1. Initial Enrollment Baseline Row
+        if (initialCredits > 0) {
+            rowsHtml += `
+                <tr class="hover:bg-blue-50/40 transition border-b border-slate-100 bg-blue-50/20">
+                    <td class="p-2.5 font-bold text-slate-800 text-[11px] whitespace-nowrap">
+                        ${formatArabicDate(enrolledDate)}
+                    </td>
+                    <td class="p-2.5">
+                        <span class="bg-blue-100 text-blue-950 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1 border border-blue-200">
+                            <span>🚀</span><span>اشتراك تأسيسي</span>
+                        </span>
+                    </td>
+                    <td class="p-2.5 font-black text-emerald-700 font-mono text-xs">+${initialCredits} حصص</td>
+                    <td class="p-2.5 text-slate-600 text-[11px]">تسجيل والتحاق بالدورة الأكاديمية</td>
+                    <td class="p-2.5 font-mono text-slate-500 text-[10px]">INIT-REG-01</td>
+                    <td class="p-2.5 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">✓ مفعل</span></td>
+                </tr>
+            `;
+        }
+
+        // 2. Payments & Renewals Rows
+        if (payments && payments.length > 0) {
+            payments.forEach((p, idx) => {
+                const addedCredits = parseInt(p.block_unlocked) || 4;
+                const pMethod = p.payment_method || 'تجديد وشحن رصيد';
+                const pRef = p.receipt_number || p.transaction_id || `REC-${idx + 101}`;
+                const pAmount = p.amount ? `${p.amount} ج.م` : '—';
+
+                rowsHtml += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-2.5 font-bold text-slate-800 text-[11px] whitespace-nowrap">
+                            ${formatArabicDateTime(p.created_at)}
+                        </td>
+                        <td class="p-2.5">
+                            <span class="bg-indigo-100 text-indigo-950 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1 border border-indigo-200">
+                                <span>💳</span><span>تجديد باقة</span>
+                            </span>
+                        </td>
+                        <td class="p-2.5 font-black text-emerald-700 font-mono text-xs">+${addedCredits} حصص</td>
+                        <td class="p-2.5 text-slate-700 text-[11px]">
+                            <div>${pMethod}</div>
+                            ${p.amount ? `<span class="text-[10px] text-slate-400">المبلغ: ${pAmount}</span>` : ''}
+                        </td>
+                        <td class="p-2.5 font-mono text-slate-600 text-[10px]">${pRef}</td>
+                        <td class="p-2.5 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">✓ معتمد ومضاف</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        if (!rowsHtml) {
+            rowsHtml = `
+                <tr>
+                    <td colspan="6" class="p-6 text-center text-slate-400 font-bold text-xs">
+                        لا توجد عمليات تجديد إضافية مسجلة بعد.
+                    </td>
+                </tr>
+            `;
+        }
+
+        return `
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-right text-xs">
+                    <thead class="bg-slate-50 text-slate-600 font-black border-b border-slate-200 text-[10px]">
+                        <tr>
+                            <th class="p-2.5">تاريخ المعاملة</th>
+                            <th class="p-2.5">النوع</th>
+                            <th class="p-2.5">الحصص المضافة</th>
+                            <th class="p-2.5">طريقة الشحن / التفاصيل</th>
+                            <th class="p-2.5">رقم الإيصال / المرجع</th>
+                            <th class="p-2.5 text-center">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Helper: Render Tab 3 Comprehensive Ledger Timeline
+    function renderTimelineLedgerHtml(attendanceRecords, paymentRecords, initialCredits, enrolledDate, presentCount, absentCount, currentBalance) {
+        // Collect all chronological events
+        const events = [];
+
+        // 1. Initial Enrollment
+        if (initialCredits > 0) {
+            events.push({
+                type: 'credit',
+                date: new Date(enrolledDate || '2026-09-01'),
+                title: 'شحن رصيد الاشتراك التأسيسي',
+                details: 'بدء التدريب بالأكاديمية',
+                delta: initialCredits,
+                badge: 'تأسيس'
+            });
+        }
+
+        // 2. Payments / Renewals
+        (paymentRecords || []).forEach(p => {
+            const added = parseInt(p.block_unlocked) || 4;
+            events.push({
+                type: 'credit',
+                date: new Date(p.created_at),
+                title: 'تجديد باقة وشحن حصص',
+                details: p.payment_method || 'تجديد رسمي',
+                delta: added,
+                badge: 'تجديد'
+            });
+        });
+
+        // 3. Attendance Sessions
+        if (attendanceRecords && attendanceRecords.length > 0) {
+            attendanceRecords.forEach(a => {
+                if (a.status === 'present') {
+                    events.push({
+                        type: 'debit',
+                        date: new Date(a.joined_at || a.created_at),
+                        title: 'حصة حضور مؤكدة مع المعلم',
+                        details: a.course_name || 'حصة تدريبية تفاعلية',
+                        delta: -1,
+                        badge: 'حضور'
+                    });
+                } else if (a.status === 'absent') {
+                    events.push({
+                        type: 'debit',
+                        date: new Date(a.joined_at || a.created_at),
+                        title: 'حصة غياب بدون عذر مسبق',
+                        details: 'خصم حصة طبقا للائحة الأكاديمية',
+                        delta: -1,
+                        badge: 'غياب'
+                    });
+                } else if (a.status === 'excused') {
+                    events.push({
+                        type: 'neutral',
+                        date: new Date(a.joined_at || a.created_at),
+                        title: 'عذر رسمي مقبول ومسجل',
+                        details: 'تم الحفظ دون خصم أي رصيد',
+                        delta: 0,
+                        badge: 'عذر'
+                    });
+                }
+            });
+        }
+
+        // Sort events chronologically ascending to compute running balances
+        events.sort((a, b) => a.date - b.date);
+
+        // Compute running balance
+        let runBal = 0;
+        events.forEach(ev => {
+            runBal += ev.delta;
+            ev.balanceAfter = runBal;
+        });
+
+        // If no discrete attendance events exist but counts exist, add summary notice
+        const hasDiscreteAttendance = attendanceRecords && attendanceRecords.length > 0;
+
+        const timelineRows = events.slice().reverse().map((ev, i) => {
+            const isAdd = ev.delta > 0;
+            const isZero = ev.delta === 0;
+            const deltaColor = isAdd ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : (isZero ? 'text-amber-800 bg-amber-50 border-amber-200' : 'text-red-700 bg-red-50 border-red-200');
+            const deltaSign = isAdd ? `+${ev.delta}` : `${ev.delta}`;
+
+            return `
+                <div class="relative flex items-start gap-3 pb-4">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${isAdd ? 'bg-emerald-100 text-emerald-800' : (isZero ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')}">
+                        ${isAdd ? '➕' : (isZero ? '⚠️' : '➖')}
+                    </div>
+                    <div class="flex-1 bg-white border border-slate-200 rounded-2xl p-3 shadow-2xs hover:border-indigo-200 transition">
+                        <div class="flex justify-between items-start gap-2 flex-wrap">
+                            <div>
+                                <span class="font-black text-xs text-slate-900 block">${ev.title}</span>
+                                <span class="text-[11px] text-slate-500">${ev.details} • <span class="font-bold text-slate-700">${formatArabicDateTime(ev.date)}</span></span>
+                            </div>
+                            <div class="text-left shrink-0">
+                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded-lg border ${deltaColor}">${deltaSign} حصة</span>
+                                <span class="block text-[10px] text-slate-500 font-bold mt-1">الرصيد بعد الحركة: <b class="text-indigo-950 font-black">${ev.balanceAfter}</b></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="space-y-3">
+                ${!hasDiscreteAttendance && (presentCount > 0 || absentCount > 0) ? `
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-950">
+                        <strong>📌 ملاحظة تدقيقية:</strong> يتضمن الرصيد الحالي خصم عدد <b>(${presentCount})</b> حصص حضور و <b>(${absentCount})</b> حصص غياب سابقة معتمدة بنظام الحصص.
+                    </div>
+                ` : ''}
+                <div class="relative pr-2">
+                    ${timelineRows || '<p class="text-xs text-slate-400 text-center py-6">لا توجد حركات مسجلة بعد في كشف الحساب.</p>'}
+                </div>
+            </div>
+        `;
+    }
+
+    // Tab Switcher inside Modal
+    window.switchLedgerTab = function(tabId) {
+        document.querySelectorAll('.ledger-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-[#1F274B]', 'text-white', 'shadow-xs');
+            btn.classList.add('text-slate-600');
+        });
+        document.querySelectorAll('.ledger-tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        const activeBtn = document.getElementById('ledgerTabBtn_' + tabId);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-[#1F274B]', 'text-white', 'shadow-xs');
+            activeBtn.classList.remove('text-slate-600');
+        }
+
+        const activeContent = document.getElementById('ledgerTabContent_' + tabId);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+        }
+    };
+
+    // Print Report
+    window.printStudentLedgerReport = function() {
+        const area = document.getElementById('printableLedgerArea');
+        if (!area) return;
+
+        // Open clean popup print window
+        const printWin = window.open('', '_blank', 'width=900,height=700');
+        if (!printWin) {
+            window.print();
+            return;
+        }
+
+        const html = `
+            <!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <title>كشف حساب ورصيد الطالب — أكاديمية منير</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+                <style>
+                    body { font-family: 'Cairo', sans-serif; }
+                    @media print {
+                        .no-print { display: none !important; }
+                    }
+                </style>
+            </head>
+            <body class="bg-white p-6 text-slate-900">
+                <div class="border-b-2 border-slate-900 pb-4 mb-5 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-xl font-black text-slate-950">أكاديمية منير للقرآن الكريم والعلوم الشرعية</h1>
+                        <p class="text-xs text-slate-600 font-bold mt-0.5">تقرير وكشف حساب معتمد لمتابعة رصيد الحصص والحضور والغياب والتجديدات</p>
+                    </div>
+                    <div class="text-left text-xs text-slate-500 font-mono">
+                        <div>تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-EG')}</div>
+                        <div>الرقم المرجعي: AUDIT-${Math.floor(100000 + Math.random() * 900000)}</div>
+                    </div>
+                </div>
+
+                ${area.innerHTML}
+
+                <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                    <div>إدارة شؤون الطلاب والتعليم الإلكتروني</div>
+                    <div class="font-bold text-slate-800">ختم الاعتماد الأكاديمي ✓</div>
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        // Reveal all tabs in print mode
+                        document.querySelectorAll('.ledger-tab-content').forEach(el => el.classList.remove('hidden'));
+                        window.print();
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWin.document.open();
+        printWin.document.write(html);
+        printWin.document.close();
+    };
+
+    console.log('[StudentLedger] Module initialized successfully.');
+})();

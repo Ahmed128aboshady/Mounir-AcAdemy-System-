@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
+    <script src="js/student_ledger.js?v=20260930_v1"></script>
     <script>
         // Access Guard for Admin
         (function checkAdminAuth() {
@@ -873,6 +874,12 @@
                     <p class="text-[11px] text-[#41519C] font-bold mt-0.5" id="inlineEditStudentName">—</p>
                 </div>
                 <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">✕</button>
+            </div>
+            <div class="mb-3">
+                <button type="button" onclick="if (typeof bsInlineStudentId !== 'undefined' && bsInlineStudentId) openStudentLedgerModal(bsInlineStudentId);" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                    <span>📄</span>
+                    <span>عرض كشف حساب وسجل حركات الطالب (رسمي)</span>
+                </button>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="sm:col-span-2">
@@ -4477,7 +4484,7 @@
                         <div class="truncate text-[11px]" title="${s.teacher_name}">${s.teacher_name || '—'}</div>
                     </td>
                     <td class="p-2.5">
-                        <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px]">${s.remaining_credits}</span>
+                        <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openStudentLedgerModal(${s.id})" title="انقر لفتح كشف حساب الحصص والتجديدات">${s.remaining_credits}</span>
                     </td>
                     <td class="p-2.5 text-[11px] text-slate-600">
                         <div class="font-bold">${s.subscription_days || '—'}</div>
@@ -4486,9 +4493,14 @@
                     </td>
                     <td class="p-2.5">${statusBadge}</td>
                     <td class="p-2.5 text-center">
-                        <button onclick="openInlineEdit(${s.id})" class="bg-[#41519C]/10 hover:bg-[#41519C]/20 text-[#41519C] font-black text-[10px] px-2.5 py-1.5 rounded-xl transition">
-                            ✏️ تعديل
-                        </button>
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="openStudentLedgerModal(${s.id})" title="عرض كشف حساب وسجل حركات الطالب" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-black text-[10px] px-2 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1">
+                                <span>📄</span><span class="hidden sm:inline">كشف الحساب</span>
+                            </button>
+                            <button onclick="openInlineEdit(${s.id})" class="bg-[#41519C]/10 hover:bg-[#41519C]/20 text-[#41519C] font-black text-[10px] px-2.5 py-1.5 rounded-xl transition cursor-pointer">
+                                ✏️ تعديل
+                            </button>
+                        </div>
                     </td>
                 </tr>`;
             }).join('');
@@ -5066,6 +5078,25 @@
                                 .update({ remaining_credits: newCred })
                                 .eq('student_id', s.id);
                             s.remaining_credits = newCred;
+
+                            // Audit Ledger Log in payments
+                            try {
+                                const signAmt = mode === 'add' ? amt : -amt;
+                                await client.from('payments').insert([{
+                                    student_id: s.id,
+                                    course_name: s.course_name || 'مسار القرآن الكريم والتدبر',
+                                    amount: (mode === 'add' ? amt * 100 : 0),
+                                    currency: 'EGP',
+                                    block_unlocked: signAmt,
+                                    transaction_id: 'ADM-' + Date.now(),
+                                    receipt_number: 'REC-' + Math.floor(100000 + Math.random() * 900000),
+                                    payment_method: (mode === 'add' ? `شحن جماعي (+${amt} حصص) من الإدارة` : `خصم جماعي (${amt} حصص) من الإدارة`),
+                                    status: 'completed',
+                                    created_at: new Date().toISOString()
+                                }]);
+                            } catch(auditErr) {
+                                console.warn('Bulk audit payment log error:', auditErr);
+                            }
                         }
                     } else if (Object.keys(enrollPayload).length > 0) {
                         // Get enrollment IDs for these students
@@ -5368,6 +5399,28 @@
                     const client = window.MonirDB.getClient();
                     await client.from('students').update(studentUpdate).eq('id', sid);
                     await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
+
+                    // Audit Ledger Log if credits were adjusted
+                    const oldCred = s ? (s.remaining_credits || 0) : 0;
+                    if (credits !== oldCred) {
+                        const delta = credits - oldCred;
+                        try {
+                            await client.from('payments').insert([{
+                                student_id: sid,
+                                course_name: enrollUpdate.course_name || (s && s.course_name) || 'مسار القرآن الكريم والتدبر',
+                                amount: (delta > 0 ? delta * 100 : 0),
+                                currency: 'EGP',
+                                block_unlocked: delta,
+                                transaction_id: 'ADM-' + Date.now(),
+                                receipt_number: 'REC-' + Math.floor(100000 + Math.random() * 900000),
+                                payment_method: (delta > 0 ? `شحن وتجديد (+${delta} حصص) من الإدارة` : `تسوية وتعديل رصيد (${delta} حصة) من الإدارة`),
+                                status: 'completed',
+                                created_at: new Date().toISOString()
+                            }]);
+                        } catch(auditErr) {
+                            console.warn('Audit payment log error:', auditErr);
+                        }
+                    }
 
                     // Update student user credentials safely (filter strictly by role: student)
                     const userPayload = {
