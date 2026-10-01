@@ -71,13 +71,13 @@
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <span class="text-xs text-slate-300 font-bold hidden lg:inline" id="teacherNameHeader">—</span>
                 <button type="button" onclick="openTeacherSupportModal()" class="relative bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-[11px] sm:text-xs font-black px-2 sm:px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm shrink-0" title="الدعم الفني والإشراف">
-                    <span>💬</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     <span class="hidden sm:inline">الدعم والإشراف</span>
                     <span class="sm:hidden">الدعم</span>
                     <span id="teacherNotifBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-[#1F274B]">0</span>
                 </button>
                 <a href="admin.html" class="text-[11px] sm:text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 sm:px-3 py-1.5 rounded-lg font-bold transition border border-slate-600 shrink-0 flex items-center gap-1">
-                    <span>🏠</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span class="hidden sm:inline">لوحة الإدارة</span>
                     <span class="sm:hidden">الإدارة</span>
                 </a>
@@ -96,18 +96,18 @@
             <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5">
                     <span class="bg-emerald-500 text-slate-950 font-black px-2 py-0.5 rounded-lg flex items-center gap-1 text-[11px] shadow-xs">
-                        <span>👑</span>
+                        
                         <span>إشراف الإدارة</span>
                     </span>
                     <span class="text-slate-300 font-bold hidden md:inline text-[11px]">تبديل المعلم:</span>
                 </div>
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <a href="admin.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-slate-700 flex items-center gap-1">
-                        <span>🏠</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         <span>الإدارة</span>
                     </a>
                     <a href="student.html" target="_blank" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition border border-indigo-500/40 flex items-center gap-1">
-                        <span>👤</span>
+                        
                         <span>الطلاب</span>
                     </a>
                 </div>
@@ -129,7 +129,7 @@
         <div class="privacy-shield text-white p-3 sm:p-4 rounded-2xl shadow-md border border-[#57BA9E]/30 flex items-center justify-between gap-2.5 sm:gap-3">
             <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                 <span class="bg-[#57BA9E] text-slate-950 p-1.5 sm:px-3 sm:py-1 rounded-xl font-black text-xs shrink-0 flex items-center justify-center">
-                    <span>🔒</span>
+                    
                     <span class="hidden sm:inline mr-1 font-black">درع الخصوصية</span>
                 </span>
                 <div class="min-w-0">
@@ -174,7 +174,7 @@
         <!-- Search bar & Quick Accordion Controls -->
         <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center justify-between">
             <div class="flex-1 flex gap-1.5 sm:gap-2">
-                <input type="text" id="searchInput" onkeyup="filterGroups()" placeholder="🔍 ابحث برقم الطالب أو المجموعة..." class="w-full bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
+                <input type="text" id="searchInput" onkeyup="filterGroups()" placeholder="ابحث برقم الطالب أو المجموعة..." class="w-full bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
                 <button onclick="loadTeacherGroups()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap cursor-pointer">تحديث</button>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2 justify-end">
@@ -192,7 +192,7 @@
         <!-- Groups Container -->
         <div id="groupsContainer" class="space-y-5">
             <div class="text-center py-12 text-slate-400">
-                <div class="text-4xl mb-3">📚</div>
+                
                 <p class="font-bold">جاري تحميل مجموعاتك...</p>
             </div>
         </div>
@@ -205,7 +205,7 @@
             <!-- Modal Header (Pinned at top) -->
             <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-slate-100 shrink-0">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-sm">📖</span>
+                    
                     <div>
                         <h3 class="font-black text-sm sm:text-base text-slate-900">خطة الحفظ والمراجعة القرآنية</h3>
                         <p class="text-[11px] text-slate-500">تحديد الورد والماضي القريب والبعيد مع إشعار ولي الأمر</p>
@@ -228,7 +228,7 @@
                 <div id="modalLastPlanSection" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
                     <div class="flex items-center justify-between text-[11px]">
                         <span class="font-extrabold text-slate-700 flex items-center gap-1">
-                            <span>📌</span>
+                            
                             <span>الخطة السابقة المسجلة للطالب:</span>
                         </span>
                         <span class="text-[10px] text-slate-400 font-bold" id="modalLastPlanDate">حفظ سابق</span>
@@ -238,10 +238,10 @@
                     </div>
                     <div class="flex items-center gap-2 pt-1">
                         <button type="button" onclick="shiftPreviousHifzToMadi()" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-black py-1.5 px-2 rounded-lg text-[10px] transition flex items-center justify-center gap-1 cursor-pointer" title="ينقل الحفظ السابق إلى خانة الماضي القريب ويفرغ خانة الحفظ الجديد">
-                            <span>⏩ نقل الحفظ السابق للماضي القريب</span>
+                            <span>نقل الحفظ السابق للماضي القريب</span>
                         </button>
                         <button type="button" onclick="clearPlanInputs()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-1.5 px-2.5 rounded-lg text-[10px] transition flex items-center justify-center gap-1 cursor-pointer" title="تفريغ الخانات لكتابة ورد جديد">
-                            <span>🧹 تفريغ الخانات</span>
+                            <span>تفريغ الخانات</span>
                         </button>
                     </div>
                 </div>
@@ -250,7 +250,7 @@
                 <div>
                     <label class="block font-black text-emerald-950 mb-1 flex items-center gap-1.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                        <span>🟢 الحفظ الجديد المقرر (الورد الحالي):</span>
+                        <span>الحفظ الجديد المقرر (الورد الحالي):</span>
                     </label>
                     <input type="text" id="modalHifzInput" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-600 focus:bg-white text-slate-900 transition" placeholder="مثال: سورة الطلاق من آية 1 إلى 5">
                 </div>
@@ -259,7 +259,7 @@
                 <div>
                     <label class="block font-black text-blue-950 mb-1 flex items-center gap-1.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
-                        <span>🔵 الماضي القريب (مراجعة قريبة):</span>
+                        <span>الماضي القريب (مراجعة قريبة):</span>
                     </label>
                     <input type="text" id="modalMadiQareebInput" class="w-full bg-blue-50/50 border border-blue-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-blue-600 focus:bg-white text-slate-900 transition" placeholder="مثال: سورة التغابن والمنافقون كاملة">
                 </div>
@@ -268,7 +268,7 @@
                 <div>
                     <label class="block font-black text-purple-950 mb-1 flex items-center gap-1.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
-                        <span>🟣 الماضي البعيد (تثبيت عام):</span>
+                        <span>الماضي البعيد (تثبيت عام):</span>
                     </label>
                     <input type="text" id="modalMadiBaeedInput" class="w-full bg-purple-50/50 border border-purple-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-purple-600 focus:bg-white text-slate-900 transition" placeholder="مثال: سورة الجمعة والصف أو جزء عم">
                 </div>
@@ -276,7 +276,7 @@
                 <!-- 4. ملاحظات وتوجيهات المعلم -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1">
-                        <span>📝</span>
+                        
                         <span>توجيهات وملاحظات المعلم لولي الأمر والطالب:</span>
                     </label>
                     <textarea id="modalNotesInput" rows="2" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-normal outline-none focus:border-emerald-600 focus:bg-white transition" placeholder="مثال: ممتاز جداً في الحلقة اليوم، يرجى تكرار ورد الحفظ 5 مرات والتركيز على الغنة..."></textarea>
@@ -285,16 +285,16 @@
                 <!-- Quick Assistance Chips -->
                 <div class="flex items-center gap-1.5 flex-wrap pt-0.5 pb-1">
                     <span class="text-[10px] text-slate-400 font-bold">عبارات سريعة:</span>
-                    <button type="button" onclick="setQuickNote('ممتاز جداً ومتقن ما شاء الله 🌟')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">ممتاز جداً 🌟</button>
-                    <button type="button" onclick="setQuickNote('جيد، مع التنبيه على مخارج الحروف والمدود')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تركيز على التجويد 🎯</button>
-                    <button type="button" onclick="setQuickNote('يرجى تثبيت الماضي القريب جيداً في البيت')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تثبيت الماضي 🔁</button>
+                    <button type="button" onclick="setQuickNote('ممتاز جداً ومتقن ما شاء الله')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">ممتاز جداً</button>
+                    <button type="button" onclick="setQuickNote('جيد، مع التنبيه على مخارج الحروف والمدود')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تركيز على التجويد</button>
+                    <button type="button" onclick="setQuickNote('يرجى تثبيت الماضي القريب جيداً في البيت')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer">تثبيت الماضي</button>
                 </div>
             </div>
 
             <!-- Pinned Footer Action Buttons (Always Visible at bottom of modal) -->
             <div class="pt-3 flex gap-2 border-t border-slate-100 shrink-0 mt-2 bg-white">
                 <button type="button" id="btnSaveSurahPlan" onclick="saveSurahProgress()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer text-xs sm:text-sm">
-                    <span>💾</span>
+                    
                     <span id="btnSaveSurahPlanText">حفظ الخطة وإشعار ولي الأمر</span>
                 </button>
                 <button type="button" onclick="closeModal('updateSurahModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition cursor-pointer text-xs">إلغاء</button>
@@ -312,11 +312,11 @@
             <div class="text-center space-y-4">
                 <p class="text-xs text-slate-600">الطالب: <strong id="rateStudentName" class="font-black text-slate-900 text-sm">—</strong> <span id="rateStudentCode" class="text-slate-400 font-mono text-[11px] block mt-0.5"></span></p>
                 <div class="flex justify-center gap-2" id="ratingStars">
-                    <span class="rating-star" onclick="setRating(1)">⭐</span>
-                    <span class="rating-star" onclick="setRating(2)">⭐</span>
-                    <span class="rating-star" onclick="setRating(3)">⭐</span>
-                    <span class="rating-star" onclick="setRating(4)">⭐</span>
-                    <span class="rating-star" onclick="setRating(5)">⭐</span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(1)">★</span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(2)">★</span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(3)">★</span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(4)">★</span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(5)">★</span>
                 </div>
                 <p class="text-sm font-black text-slate-700" id="ratingLabel">اختر التقييم</p>
                 <button onclick="saveRating()" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold py-2.5 rounded-xl transition">حفظ التقييم</button>
@@ -329,7 +329,7 @@
         <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <span class="text-2xl bg-amber-100 p-2 rounded-xl">💬</span>
+                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></span>
                     <div>
                         <h3 class="font-black text-base text-slate-900">قسم المشكلات والتواصل مع الإشراف</h3>
                         <p class="text-[11px] text-slate-500">أرسل استفسارك أو مشكلتك للإشراف وتابع الردود مباشرة أولاً بأول</p>
@@ -341,10 +341,10 @@
             <!-- Tabs -->
             <div class="flex border-b border-slate-200 mt-4 shrink-0">
                 <button type="button" id="tabBtnNewTicket" onclick="switchTeacherSupportTab('new')" class="py-2.5 px-4 font-black text-xs border-b-2 border-[#1F274B] text-[#1F274B] transition flex items-center gap-1.5">
-                    <span>➕</span><span>إرسال مشكلة جديدة للإشراف</span>
+                    <span>إرسال مشكلة جديدة للإشراف</span>
                 </button>
                 <button type="button" id="tabBtnMyTickets" onclick="switchTeacherSupportTab('list')" class="py-2.5 px-4 font-black text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center gap-1.5 relative">
-                    <span>📥</span><span>التذاكر والردود السابقة</span>
+                    <span>التذاكر والردود السابقة</span>
                     <span id="tabUnreadCount" class="hidden bg-red-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
                 </button>
             </div>
@@ -355,12 +355,12 @@
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">نوع المشكلة / التصنيف:</label>
                         <select id="teacherTicketCategory" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#57BA9E]">
-                            <option value="مشكلة في موعد الحصة أو جدول">📅 مشكلة في موعد الحصة أو جدول</option>
-                            <option value="مشكلة خاصة بطالب أو غياب">🎓 مشكلة خاصة بطالب أو غياب</option>
-                            <option value="مشكلة تقنية في القاعة أو الرابط">💻 مشكلة تقنية في القاعة أو الرابط</option>
-                            <option value="استفسار إداري أو مالي">💼 استفسار إداري أو مالي</option>
-                            <option value="اقتراح أو ملاحظة عامة">💡 اقتراح أو ملاحظة عامة</option>
-                            <option value="أخرى">📌 أخرى</option>
+                            <option value="مشكلة في موعد الحصة أو جدول">مشكلة في موعد الحصة أو جدول</option>
+                            <option value="مشكلة خاصة بطالب أو غياب">مشكلة خاصة بطالب أو غياب</option>
+                            <option value="مشكلة تقنية في القاعة أو الرابط">مشكلة تقنية في القاعة أو الرابط</option>
+                            <option value="استفسار إداري أو مالي">استفسار إداري أو مالي</option>
+                            <option value="اقتراح أو ملاحظة عامة">اقتراح أو ملاحظة عامة</option>
+                            <option value="أخرى">أخرى</option>
                         </select>
                     </div>
                     <div>
@@ -381,7 +381,7 @@
                 <div class="pt-2 flex justify-end gap-2">
                     <button type="button" onclick="closeModal('teacherSupportModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition">إلغاء</button>
                     <button type="button" id="btnSubmitTeacherTicket" onclick="submitTeacherTicket()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-black px-6 py-2 rounded-xl transition shadow flex items-center gap-1.5">
-                        <span>📤</span><span>إرسال للإشراف</span>
+                        <span>إرسال للإشراف</span>
                     </button>
                 </div>
             </div>
@@ -418,7 +418,7 @@
                     // Setup logout button
                     const btn = document.getElementById('teacherAuthBtn');
                     const nameHeader = document.getElementById('teacherNameHeader');
-                    if (nameHeader) nameHeader.innerText = (u.role === 'admin' ? '👑 مشرف الإدارة: ' : 'المعلم: ') + (u.full_name || u.username);
+                    if (nameHeader) nameHeader.innerText = (u.role === 'admin' ? 'مشرف الإدارة: ' : 'المعلم: ') + (u.full_name || u.username);
                     if (btn) {
                         btn.onclick = (e) => {
                             e.preventDefault();
@@ -550,7 +550,7 @@
 
         async function loadTeacherGroups() {
             const container = document.getElementById('groupsContainer');
-            container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-4xl mb-3 animate-bounce">📚</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
+            container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-xs text-slate-400 font-bold mb-2">جاري التحميل...</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
 
             try {
                 // Ensure MonirDB client is initialized
@@ -869,7 +869,7 @@
             if (!groups || groups.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="text-5xl mb-4">📭</div>
+                        
                         <h3 class="text-lg font-black text-slate-700 mb-2">لا توجد مجموعات مسندة إليك</h3>
                         <p class="text-slate-400 text-sm">تواصل مع الإدارة لإضافة مجموعاتك</p>
                     </div>
@@ -964,7 +964,7 @@
                                     ${scheduleDisplay}
                                 </h3>
                                 <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-300">
-                                    ${duration ? `<span class="bg-amber-400/20 text-amber-200 border border-amber-400/30 px-1.5 py-0.2 rounded-full font-bold shrink-0">⏱️ ${duration}</span>` : ''}
+                                    ${duration ? `<span class="bg-amber-400/20 text-amber-200 border border-amber-400/30 px-1.5 py-0.2 rounded-full font-bold shrink-0">${duration}</span>` : ''}
                                     <span class="text-[10px] text-slate-300 hidden sm:inline truncate">مسار القرآن الكريم والتدبر</span>
                                 </div>
                             </div>
@@ -973,7 +973,7 @@
                         <!-- Left Side: Live Room Button + Student Count Badge -->
                         <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                             <a href="${meetUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] sm:text-[11px] bg-emerald-500/25 hover:bg-emerald-500 text-emerald-200 hover:text-slate-950 border border-emerald-400/40 px-2 sm:px-2.5 py-1 rounded-lg font-black inline-flex items-center gap-1 transition shadow-xs shrink-0" title="بدء الحصة في القاعة المباشرة">
-                                <span>📹</span>
+                                
                                 <span class="hidden sm:inline">دخول القاعة</span>
                                 <span class="sm:hidden">القاعة</span>
                             </a>
@@ -996,32 +996,32 @@
                         <div class="bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-50 border-b border-emerald-100 p-3 sm:p-3.5 px-3 sm:px-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 sm:gap-3">
                             <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 w-full md:w-auto">
                                 <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm sm:text-base shadow-sm shrink-0">
-                                    📹
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                         <span class="font-black text-xs text-slate-900 shrink-0">قاعة الحصة (${cleanGid})</span>
                                     </div>
                                     <div class="flex items-center gap-2 mt-0.5 text-[10px] sm:text-[11px] text-slate-600 flex-wrap">
-                                        <span>📅 الموعد: <strong class="text-slate-900">${scheduleDisplay}</strong></span>
-                                        ${duration ? `<span class="text-slate-300">|</span><span>⏱️ المدة: <strong class="text-slate-900">${duration}</strong></span>` : ''}
+                                        <span>الموعد: <strong class="text-slate-900">${scheduleDisplay}</strong></span>
+                                        ${duration ? `<span class="text-slate-300">|</span><span>المدة: <strong class="text-slate-900">${duration}</strong></span>` : ''}
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto flex-wrap">
                                 <button type="button" onclick="startClassMeet('${cleanGid}', this)" id="meet-btn-${idSafe}" class="inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-3.5 sm:px-4 py-2 rounded-xl text-xs shadow-sm transition cursor-pointer">
-                                    <span>📹</span>
+                                    
                                     <span>بدء الحصة الآن</span>
                                 </button>
                                 <button type="button" onclick="handleResetGroupMeet('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2.5 py-2 rounded-xl text-[11px] shadow-sm transition cursor-pointer" title="استعادة إعدادات قاعة الأكاديمية الأصلية">
-                                    <span>🔄</span>
+                                    
                                     <span>الرابط الأصلي</span>
                                 </button>
                                 ${(() => {
                                     const inactiveCount = g.students.filter(st => st.status === 'inactive' || st.account_status === 'موقوف').length;
                                     return inactiveCount > 0 ? `
                                         <button type="button" onclick="toggleInactiveInGroup('${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-white hover:bg-red-50 border border-red-200 text-red-700 font-bold px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs shadow-xs transition" title="إخفاء أو إظهار الطلاب الموقوفين">
-                                            <span>👁️</span>
+                                            
                                             <span class="inactive-toggle-text">إخفاء الموقوفين (${inactiveCount})</span>
                                         </button>
                                     ` : '';
@@ -1096,11 +1096,11 @@
             }
             if (btn) {
                 const orig = btn.innerHTML;
-                btn.innerHTML = '<span>✅</span> <span>تمت الاستعادة!</span>';
+                btn.innerHTML = '<span>تمت الاستعادة!</span>';
                 setTimeout(() => { btn.innerHTML = orig; }, 2000);
             }
             if (window.MonirPopup) {
-                MonirPopup.toast('تمت استعادة رابط قاعة الأكاديمية بنجاح (' + defaultUrl + ') ✅', 'success');
+                MonirPopup.toast('تمت استعادة رابط قاعة الأكاديمية بنجاح (' + defaultUrl + ') ', 'success');
             } else {
                 alert('تمت استعادة رابط قاعة الأكاديمية بنجاح:\n' + defaultUrl);
             }
@@ -1288,7 +1288,7 @@
             }
 
             if (window.MonirPopup) {
-                MonirPopup.toast('تم حفظ السورة والتارجت للطالب ✅', 'success');
+                MonirPopup.toast('تم حفظ السورة والتارجت للطالب ', 'success');
             }
         }
 
@@ -1303,9 +1303,9 @@
             if (isInactive) {
                 creditBadge = `<span class="bg-red-50 text-red-700 border border-red-200 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة (موقوف)</span>`;
             } else if (rc <= 0) {
-                creditBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-md text-[11px] inline-flex items-center gap-1 shadow-2xs"><span>🔒</span><span>الرصيد 0 (يحتاج تجديد)</span></span>`;
+                creditBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-md text-[11px] inline-flex items-center gap-1 shadow-2xs"><span>الرصيد 0 (يحتاج تجديد)</span></span>`;
             } else if (rc === 1) {
-                creditBadge = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">⚠️ حصة واحدة متبقية</span>`;
+                creditBadge = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-md text-[11px] animate-pulse">حصة واحدة متبقية</span>`;
             } else {
                 creditBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-md text-[11px]">${rc} حصة</span>`;
             }
@@ -1318,7 +1318,7 @@
                 excuseBadge = `
                     <div class="inline-flex flex-col items-start gap-0.5">
                         <span class="badge-absent font-bold px-2 py-0.5 rounded-md text-[10px] inline-flex items-center gap-1" title="استُنفد عذر هذا الاشتراك">
-                            <span>🔒</span><span>مستنفد</span>
+                            <span>مستنفد</span>
                         </span>
                         <span class="text-[9px] text-slate-500 font-bold whitespace-nowrap">يتجدد بعد ${remText}</span>
                     </div>
@@ -1410,9 +1410,9 @@
             if (hifzVal || madiQareebVal || madiBaeedVal) {
                 quranProgress = `
                     <div class="space-y-1 text-[11px] min-w-[130px]">
-                        ${hifzVal ? `<div class="flex items-center gap-1"><span class="bg-emerald-100 text-emerald-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">🟢 حفظ</span><strong class="text-slate-900 truncate" title="${hifzVal}">${hifzVal}</strong></div>` : ''}
-                        ${madiQareebVal ? `<div class="flex items-center gap-1"><span class="bg-blue-100 text-blue-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">🔵 قريب</span><span class="text-slate-700 truncate" title="${madiQareebVal}">${madiQareebVal}</span></div>` : ''}
-                        ${madiBaeedVal ? `<div class="flex items-center gap-1"><span class="bg-purple-100 text-purple-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">🟣 بعيد</span><span class="text-slate-700 truncate" title="${madiBaeedVal}">${madiBaeedVal}</span></div>` : ''}
+                        ${hifzVal ? `<div class="flex items-center gap-1"><span class="bg-emerald-100 text-emerald-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">حفظ</span><strong class="text-slate-900 truncate" title="${hifzVal}">${hifzVal}</strong></div>` : ''}
+                        ${madiQareebVal ? `<div class="flex items-center gap-1"><span class="bg-blue-100 text-blue-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">قريب</span><span class="text-slate-700 truncate" title="${madiQareebVal}">${madiQareebVal}</span></div>` : ''}
+                        ${madiBaeedVal ? `<div class="flex items-center gap-1"><span class="bg-purple-100 text-purple-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">بعيد</span><span class="text-slate-700 truncate" title="${madiBaeedVal}">${madiBaeedVal}</span></div>` : ''}
                     </div>
                 `;
             } else {
@@ -1423,7 +1423,7 @@
             const absent = s.absent_count || 0;
 
             const ratingDisplay = s.rating 
-                ? `<span class="text-amber-400">${'⭐'.repeat(s.rating)}</span>` 
+                ? `<span class="text-amber-400">${'★'.repeat(s.rating)}</span>` 
                 : `<span class="text-slate-300 text-[11px]">—</span>`;
 
             const sDays = (s.subscription_days && s.subscription_days !== '—') ? s.subscription_days : '';
@@ -1441,11 +1441,10 @@
                 actionsHtml = `
                     <div class="flex items-center justify-center gap-1.5 flex-wrap" id="actions-cell-${s.id}">
                         <span class="inline-flex items-center gap-1 bg-red-100 text-red-800 border border-red-300 font-bold px-2.5 py-1 rounded-lg text-[11px] select-none" title="تم إيقاف اشتراك هذا الطالب من قبل الإدارة">
-                            <span>⛔</span>
                             <span>الاشتراك موقوف</span>
                         </span>
                         <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2 py-1 rounded-lg text-[11px] transition shadow-2xs flex items-center gap-1 cursor-pointer" title="تصفح سجل الحفظ">
-                            <span>📖</span><span>السجل</span>
+                            <span>السجل</span>
                         </button>
                     </div>
                 `;
@@ -1455,7 +1454,7 @@
                 const remText = rem === 1 ? 'حصة واحدة' : rem === 2 ? 'حصتين' : `${rem} حصص`;
                 const cycleDesc = excuseInfo.cycleSize === 8 ? '8 حصص' : '4 حصص';
                 const excuseButtonHtml = isExcuseExhausted
-                    ? `<button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-50 select-none inline-flex items-center gap-0.5" title="استُنفد عذر هذا الاشتراك (عذر واحد لكل ${cycleDesc}) - يتجدد تلقائياً بعد ${remText}"><span>🔒</span><span>عذر</span></button>`
+                    ? `<button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-50 select-none inline-flex items-center gap-0.5" title="استُنفد عذر هذا الاشتراك (عذر واحد لكل ${cycleDesc}) - يتجدد تلقائياً بعد ${remText}"><span>عذر</span></button>`
                     : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر متاح لاشتراك الحصص الحالي (عذر واحد لكل ${cycleDesc})">عذر</button>`;
 
                 let recordButtonsHtml = '';
@@ -1480,17 +1479,17 @@
                 } else if (todayRecordedStatus === 'excused') {
                     recordButtonsHtml = `
                         <button type="button" disabled class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل عذر الطالب اليوم">
-                            <span>⚠️</span><span>تم العذر</span>
+                            <span>تم العذر</span>
                         </button>
                         <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'excused')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل عذر اليوم">
                             تراجع
                         </button>
                     `;
                 } else {
-                    // ⛔ رصيد صفر — أزرار مقفولة
+                    // رصيد صفر — أزرار مقفولة
                     if (rc <= 0) {
                         recordButtonsHtml = `
-                            <button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-60 inline-flex items-center gap-0.5" title="الرصيد صفر — يجب تجديد الاشتراك أولاً"><span>⛔</span><span>مقفول</span></button>
+                            <button type="button" disabled class="bg-slate-100 text-slate-400 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[11px] cursor-not-allowed opacity-60 inline-flex items-center gap-0.5" title="الرصيد صفر — يجب تجديد الاشتراك أولاً"><span>مقفول</span></button>
                         `;
                     } else {
                         recordButtonsHtml = `
@@ -1504,7 +1503,7 @@
                 actionsHtml = `
                     <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
                         ${recordButtonsHtml}
-                        <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>📖</span><span>الحفظ والمراجعة</span></button>
+                        <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>الحفظ والمراجعة</span></button>
                         <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
                     </div>
                 `;
@@ -1516,18 +1515,18 @@
                     <td class="p-3">
                         <div class="font-black text-slate-900 text-xs sm:text-sm leading-tight flex items-center gap-1.5 flex-wrap">
                             <span>${studentName}</span>
-                            ${isInactive ? `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">⛔ موقوف من الإدارة</span>` : ''}
+                            ${isInactive ? `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">موقوف من الإدارة</span>` : ''}
                         </div>
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                             <span class="font-mono font-extrabold text-slate-600 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${studentCode}</span>
                             ${(sDays || sTime) ? `
                                 <span class="text-[10px] text-[#2D396E] font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100" title="موعد الطالب">
-                                    📅 ${sDays}${sTime ? ' • ' + sTime : ''}
+                                    ${sDays}${sTime ? ' • ' + sTime : ''}
                                 </span>
                             ` : ''}
                             ${sDur ? `
                                 <span class="text-[10px] text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200" title="مدة الحلقة">
-                                    ⏱️ ${sDur}
+                                    ${sDur}
                                 </span>
                             ` : ''}
                             <span class="text-slate-400 text-[10px]">${ratingDisplay}</span>
@@ -1600,7 +1599,7 @@
             // 1. Strict Synchronous Double-Click Lock
             window._inFlightSessionLocks = window._inFlightSessionLocks || {};
             if (window._inFlightSessionLocks[studentId]) {
-                console.warn('⚠️ عملية تسجيل الحصة جارية بالفعل لهذا الطالب لمنع التكرار!');
+                console.warn('عملية تسجيل الحصة جارية بالفعل لهذا الطالب لمنع التكرار!');
                 return;
             }
             window._inFlightSessionLocks[studentId] = true;
@@ -1639,7 +1638,7 @@
 
                 if (foundStudent && (foundStudent.status === 'inactive' || foundStudent.account_status === 'موقوف')) {
                     enableButtons();
-                    const warnMsg = '⛔ عذراً، اشتراك هذا الطالب موقوف من قبل الإدارة ولا يمكن تسجيل حضور أو غياب له.';
+                    const warnMsg = 'عذراً، اشتراك هذا الطالب موقوف من قبل الإدارة ولا يمكن تسجيل حضور أو غياب له.';
                     if (window.MonirPopup) {
                         MonirPopup.toast(warnMsg, 'error');
                     } else {
@@ -1654,12 +1653,12 @@
                 const curExcuses = foundStudent ? (foundStudent.excuse_count || 0) : 0;
                 const maxExcuses = foundStudent ? (foundStudent.max_allowed_excuses || 1) : 1;
 
-                // ⛔ Block: رصيد الطالب صفر — منع التسجيل كلياً
+                // Block: رصيد الطالب صفر — منع التسجيل كلياً
                 if (curCredits <= 0) {
                     enableButtons();
-                    const blockMsg = `⛔ لا يمكن تسجيل حضور أو غياب\n\nالطالب: ${stName}${stCode ? ' (' + stCode + ')' : ''}\n\nرصيد الطالب منتهي (${curCredits} حصص).\nيجب على ولي الأمر تجديد الاشتراك أولاً حتى يمكن تسجيل أي حصة.`;
+                    const blockMsg = `لا يمكن تسجيل حضور أو غياب\n\nالطالب: ${stName}${stCode ? ' (' + stCode + ')' : ''}\n\nرصيد الطالب منتهي (${curCredits} حصص).\nيجب على ولي الأمر تجديد الاشتراك أولاً حتى يمكن تسجيل أي حصة.`;
                     if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
-                        await window.MonirPopup.alert(blockMsg, '⛔ رصيد الطالب صفر', 'error');
+                        await window.MonirPopup.alert(blockMsg, 'رصيد الطالب صفر', 'error');
                     } else {
                         alert(blockMsg);
                     }
@@ -1681,7 +1680,7 @@
 
                 if (sessionStatus === 'excused' && excuseInfo.isLocked) {
                     enableButtons();
-                    const warnMsg = `⚠️ استنفد الطالب (${stName}) العذر المسموح به لهذا الاشتراك (عذر واحد لكل ${cycleDesc}).\n\n🔒 سيتجدد العذر تلقائياً بعد إتمام (${remText}) متبقية في دورة الاشتراك.\nيرجى تسجيل غياب بدلاً من ذلك.`;
+                    const warnMsg = `استنفد الطالب (${stName}) العذر المسموح به لهذا الاشتراك (عذر واحد لكل ${cycleDesc}).\n\n سيتجدد العذر تلقائياً بعد إتمام (${remText}) متبقية في دورة الاشتراك.\nيرجى تسجيل غياب بدلاً من ذلك.`;
                     if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
                         await window.MonirPopup.alert(warnMsg, 'العذر مستنفد في هذا الاشتراك', 'warning');
                     } else {
@@ -1700,18 +1699,18 @@
 
                 if (prevRecord) {
                     const prevLabel = statusNames[prevRecord] || prevRecord;
-                    confirmTitle = '⚠️ تنبيه: تم التسجيل اليوم مسبقاً';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\n⚠️ لقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى؟`;
+                    confirmTitle = 'تنبيه: تم التسجيل اليوم مسبقاً';
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nلقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى؟`;
                     confirmBtn = 'نعم، تأكيد التسجيل مجدداً';
                     modalType = 'warning';
                 } else if (sessionStatus === 'present') {
-                    confirmTitle = (curCredits <= 0) ? '⚠️ تنبيه: رصيد الطالب 0 حصص' : 'تأكيد تسجيل حضور الطالب';
+                    confirmTitle = (curCredits <= 0) ? 'تنبيه: رصيد الطالب 0 حصص' : 'تأكيد تسجيل حضور الطالب';
                     confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهل تود تأكيد تسجيل حضور الطالب الآن؟`;
                     confirmBtn = (curCredits <= 0) ? 'نعم، تسجيل حضور استثنائي' : '✓ تأكيد الحضور';
                     modalType = (curCredits <= 0) ? 'warning' : 'question';
                 } else if (sessionStatus === 'excused') {
                     confirmTitle = 'تأكيد تسجيل عذر للطالب';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\n🎁 هذا هو العذر المسموح به لاشتراك الطالب الحالي (عذر واحد لكل ${cycleDesc}).\n\nهل تود تأكيد تسجيل العذر للطالب؟\n(سيتم قفل خيار العذر تلقائياً حتى إتمام دورة الـ ${excuseInfo.cycleSize} حصص).`;
+                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهذا هو العذر المسموح به لاشتراك الطالب الحالي (عذر واحد لكل ${cycleDesc}).\n\nهل تود تأكيد تسجيل العذر للطالب؟\n(سيتم قفل خيار العذر تلقائياً حتى إتمام دورة الـ ${excuseInfo.cycleSize} حصص).`;
                     confirmBtn = '✓ تأكيد العذر';
                     modalType = (curCredits <= 0) ? 'warning' : 'question';
                 } else if (sessionStatus === 'absent') {
@@ -1735,7 +1734,7 @@
 
                 // Visual loading on the action button
                 if (btn) {
-                    btn.innerHTML = '<span>⏳</span> <span>جاري...</span>';
+                    btn.innerHTML = '<span>جاري...</span>';
                 }
 
                 // 2. Process Session Recording in Database
@@ -1921,7 +1920,7 @@
                     hifzIn.focus();
                 }
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast('تم نقل الحفظ السابق إلى الماضي القريب وتفريغ خانة الحفظ الجديد ⏩', 'info');
+                    window.MonirPopup.toast('تم نقل الحفظ السابق إلى الماضي القريب وتفريغ خانة الحفظ الجديد', 'info');
                 }
             }
         }
@@ -2007,9 +2006,9 @@
                 if (hifz || madiQareeb || madiBaeed) {
                     lastSec.classList.remove('hidden');
                     let summaryHtml = '';
-                    if (hifz) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-emerald-800">🟢 الورد السابق:</span> <span class="font-black text-slate-800">${hifz}</span></div>`;
-                    if (madiQareeb) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-blue-800">🔵 الماضي القريب:</span> <span class="text-slate-700">${madiQareeb}</span></div>`;
-                    if (madiBaeed) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-purple-800">🟣 الماضي البعيد:</span> <span class="text-slate-700">${madiBaeed}</span></div>`;
+                    if (hifz) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-emerald-800"> الورد السابق:</span> <span class="font-black text-slate-800">${hifz}</span></div>`;
+                    if (madiQareeb) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-blue-800">الماضي القريب:</span> <span class="text-slate-700">${madiQareeb}</span></div>`;
+                    if (madiBaeed) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-purple-800">الماضي البعيد:</span> <span class="text-slate-700">${madiBaeed}</span></div>`;
                     lastSum.innerHTML = summaryHtml;
                 } else {
                     lastSec.classList.add('hidden');
@@ -2042,7 +2041,7 @@
             }
 
             const btnText = document.getElementById('btnSaveSurahPlanText');
-            if (btnText) btnText.innerText = 'جاري الحفظ والاعتماد... ⏳';
+            if (btnText) btnText.innerText = 'جاري الحفظ والاعتماد...';
 
             let tName = (typeof currentTeacherName !== 'undefined' && currentTeacherName) ? currentTeacherName : '';
             if (!tName) {
@@ -2087,10 +2086,10 @@
 
                         // 3. Send parent notification to Supabase table
                         try {
-                            const notifMsg = `🟢 الحفظ الجديد: ${hifz || '—'}\n🔵 الماضي القريب: ${madiQareeb || '—'}\n🟣 الماضي البعيد: ${madiBaeed || '—'}${notes ? '\n📝 توجيهات: ' + notes : ''}`;
+                            const notifMsg = `الحفظ الجديد: ${hifz || '—'}\nالماضي القريب: ${madiQareeb || '—'}\nالماضي البعيد: ${madiBaeed || '—'}${notes ? '\n توجيهات: ' + notes : ''}`;
                             await client.from('notifications').insert([{
                                 student_id: activeModalStudentId,
-                                title: '📖 إشعار خطة الحفظ والمراجعة القرآنية',
+                                title: 'إشعار خطة الحفظ والمراجعة القرآنية',
                                 message: notifMsg,
                                 is_read: 0,
                                 created_at: new Date().toISOString()
@@ -2123,8 +2122,8 @@
                     id: 'qplan_' + Date.now(),
                     student_id: activeModalStudentId,
                     type: 'quran_plan',
-                    title: '📖 إشعار خطة الحفظ والمراجعة القرآنية',
-                    message: `🟢 الحفظ الجديد: ${hifz || '—'}\n🔵 الماضي القريب: ${madiQareeb || '—'}\n🟣 الماضي البعيد: ${madiBaeed || '—'}${notes ? '\n📝 توجيهات: ' + notes : ''}`,
+                    title: 'إشعار خطة الحفظ والمراجعة القرآنية',
+                    message: `الحفظ الجديد: ${hifz || '—'}\nالماضي القريب: ${madiQareeb || '—'}\nالماضي البعيد: ${madiBaeed || '—'}${notes ? '\n توجيهات: ' + notes : ''}`,
                     is_read: 0,
                     created_at: new Date().toISOString()
                 };
@@ -2273,7 +2272,7 @@
         async function loadTeacherTickets() {
             const container = document.getElementById('teacherTicketsListContainer');
             if (!container) return;
-            container.innerHTML = '<div class="text-center py-8 text-slate-400 font-bold"><span class="inline-block animate-spin mr-1">⏳</span> جاري تحميل التذاكر...</div>';
+            container.innerHTML = '<div class="text-center py-8 text-slate-400 font-bold"><span class="inline-block animate-spin mr-1"></span> جاري تحميل التذاكر...</div>';
 
             try {
                 let tickets = [];
@@ -2311,7 +2310,7 @@
             if (!tickets || tickets.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-10 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <div class="text-3xl mb-2">📬</div>
+                        
                         <p class="font-bold text-xs">لم تقم بإرسال أي تذاكر أو مشكلات للإشراف بعد.</p>
                         <button type="button" onclick="switchTeacherSupportTab('new')" class="mt-3 text-xs bg-[#1F274B] text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-[#2D396E] transition">إرسال مشكلة جديدة للإشراف</button>
                     </div>
@@ -2323,7 +2322,7 @@
                 const isResolved = (t.status === 'resolved') || (t.admin_reply && t.admin_reply.trim().length > 0);
                 const statusBadge = isResolved
                     ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1"><span>✓</span><span>تم الرد من الإشراف</span></span>`
-                    : `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 animate-pulse"><span>⏳</span><span>قيد المتابعة لدى الإشراف</span></span>`;
+                    : `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 animate-pulse"><span></span><span>قيد المتابعة لدى الإشراف</span></span>`;
 
                 let formattedDate = '—';
                 if (t.created_at) {
@@ -2362,7 +2361,7 @@
                             <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3 space-y-1 mt-2">
                                 <div class="flex items-center justify-between">
                                     <span class="font-black text-emerald-900 text-[11px] flex items-center gap-1">
-                                        <span>💬</span><span>رد وتوجيه الإشراف:</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>رد وتوجيه الإشراف:</span>
                                     </span>
                                     <span class="text-[10px] text-emerald-700 font-mono">${t.updated_at ? new Date(t.updated_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
                                 </div>
@@ -2370,7 +2369,7 @@
                             </div>
                         ` : `
                             <div class="text-[10px] text-slate-400 flex items-center gap-1 italic">
-                                <span>🕒</span><span>طلبك مسجل لدى فريق الإشراف وسيتم الرد عليك وإشعارك هنا قريباً.</span>
+                                <span>طلبك مسجل لدى فريق الإشراف وسيتم الرد عليك وإشعارك هنا قريباً.</span>
                             </div>
                         `}
                     </div>
@@ -2456,7 +2455,7 @@
             try {
                 const nextId = (Date.now() % 2147483647);
                 const tName = currentTeacherName || ('معلم ' + currentTeacherId);
-                const studentNameFormatted = `👨‍🏫 المعلم: ${tName} [معلم #${currentTeacherId}]`;
+                const studentNameFormatted = `المعلم: ${tName} [معلم #${currentTeacherId}]`;
                 const courseFormatted = group ? `مجموعة ${group}` : 'بوابة المعلمين';
 
                 let success = false;
@@ -2492,7 +2491,7 @@
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<span>📤</span><span>إرسال للإشراف</span>';
+                    btn.innerHTML = '<span>إرسال للإشراف</span>';
                 }
             }
         }
