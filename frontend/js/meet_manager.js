@@ -44,10 +44,16 @@
         "عمر أمام": "https://meet.google.com/kob-ahzi-ntd",
         "47": "https://meet.google.com/ach-kiwg-tmg",
         "عمر حسين": "https://meet.google.com/ach-kiwg-tmg",
+        "أ. عمر حسين": "https://meet.google.com/ach-kiwg-tmg",
+        "الشيخ عمر حسين": "https://meet.google.com/ach-kiwg-tmg",
         "75": "https://meet.google.com/cyf-smdb-sqo",
         "يوسف سلام": "https://meet.google.com/cyf-smdb-sqo",
         "يوسف أحمد محمد سلام": "https://meet.google.com/cyf-smdb-sqo",
         "يوسف احمد محمد سلام": "https://meet.google.com/cyf-smdb-sqo",
+        "يوسف أحمد سلام": "https://meet.google.com/cyf-smdb-sqo",
+        "يوسف احمد سلام": "https://meet.google.com/cyf-smdb-sqo",
+        "أ. يوسف سلام": "https://meet.google.com/cyf-smdb-sqo",
+        "الشيخ يوسف سلام": "https://meet.google.com/cyf-smdb-sqo",
         "55": "https://meet.google.com/cyc-juqz-mze",
         "محمد محمود المزين": "https://meet.google.com/cyc-juqz-mze",
         "35": "https://meet.google.com/bwj-vdnf-rds",
@@ -515,7 +521,12 @@
         "G441": "https://meet.google.com/sis-zeuj-pat",
         "G442": "https://meet.google.com/sis-zeuj-pat",
         "G440": "https://meet.google.com/cvf-qbuj-ojn",
-        "G424": "https://meet.google.com/iyp-swmh-erq"
+        "G424": "https://meet.google.com/iyp-swmh-erq",
+        "G063": "https://meet.google.com/ach-kiwg-tmg",
+        "G089": "https://meet.google.com/ach-kiwg-tmg",
+        "G012": "https://meet.google.com/cyf-smdb-sqo",
+        "G333": "https://meet.google.com/cyf-smdb-sqo",
+        "G384": "https://meet.google.com/cyf-smdb-sqo"
 };
 
     // Initialize global registry
