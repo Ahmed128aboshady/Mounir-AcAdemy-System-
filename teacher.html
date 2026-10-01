@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
+    <script src="js/student_ledger.js?v=20261001_v2"></script>
+
     <script>
         // Auth guard — teachers and admins only
         (function() {
@@ -475,6 +477,77 @@
             window.location.href = 'teacher.html?id=' + newTeacherId;
         }
 
+        
+        // Format last recorded attendance info for teacher view
+        function formatLastAttendanceInfo(attInfo, studentId) {
+            let resolvedInfo = attInfo;
+            if (studentId) {
+                try {
+                    const rawCached = localStorage.getItem('monir_last_att_info_' + studentId);
+                    if (rawCached) {
+                        const cached = JSON.parse(rawCached);
+                        if (cached && cached.joined_at) {
+                            if (!resolvedInfo || new Date(cached.joined_at) > new Date(resolvedInfo.joined_at)) {
+                                resolvedInfo = cached;
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            if (!resolvedInfo || !resolvedInfo.joined_at) return null;
+            try {
+                const d = new Date(resolvedInfo.joined_at);
+                if (isNaN(d.getTime())) return null;
+
+                const now = new Date();
+                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const startOfRecorded = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                const diffDays = Math.round((startOfToday - startOfRecorded) / (1000 * 60 * 60 * 24));
+
+                const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+                const dayName = dayNames[d.getDay()];
+                const dayNum = d.getDate();
+                const monthName = monthNames[d.getMonth()];
+
+                let relativeDay = '';
+                if (diffDays === 0) {
+                    relativeDay = 'اليوم ' + dayName;
+                } else if (diffDays === 1) {
+                    relativeDay = 'أمس ' + dayName;
+                } else if (diffDays === 2) {
+                    relativeDay = 'أول أمس ' + dayName;
+                } else {
+                    relativeDay = dayName + ' ' + dayNum + ' ' + monthName;
+                }
+
+                let statusText = 'حضور';
+                let statusBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-300';
+                if (resolvedInfo.status === 'absent') {
+                    statusText = 'غياب';
+                    statusBadgeClass = 'bg-red-50 text-red-800 border-red-300';
+                } else if (resolvedInfo.status === 'excused') {
+                    statusText = 'عذر';
+                    statusBadgeClass = 'bg-amber-50 text-amber-800 border-amber-300';
+                }
+
+                return {
+                    diffDays,
+                    dayName,
+                    formattedDate: `${dayName} ${dayNum} ${monthName}`,
+                    displayTitle: relativeDay,
+                    status: resolvedInfo.status,
+                    statusText,
+                    statusBadgeClass
+                };
+            } catch(e) {
+                return null;
+            }
+        }
+        window.formatLastAttendanceInfo = formatLastAttendanceInfo;
+
         async function loadTeacherGroups() {
             const container = document.getElementById('groupsContainer');
             container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-4xl mb-3 animate-bounce">📚</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
@@ -515,6 +588,49 @@
                             .from('enrollments')
                             .select('*, students(id, name, student_code, age, qr_code, status)')
                             .eq('teacher_id', currentTeacherId);
+
+                        // Preload latest attendance records for all students of this teacher
+                        const latestAttendanceMap = {};
+                        try {
+                            const sids = enrData ? enrData.map(e => e.student_id).filter(Boolean) : [];
+                            if (sids.length > 0) {
+                                const { data: attList } = await client
+                                    .from('attendance')
+                                    .select('student_id, status, joined_at')
+                                    .in('student_id', sids)
+                                    .order('joined_at', { ascending: false });
+                                if (attList && attList.length > 0) {
+                                    attList.forEach(a => {
+                                        if (!latestAttendanceMap[a.student_id]) {
+                                            latestAttendanceMap[a.student_id] = {
+                                                status: a.status,
+                                                joined_at: a.joined_at
+                                            };
+                                        }
+                                    });
+                                }
+                            }
+                        } catch(attErr) {
+                            console.warn('Attendance map fetch notice:', attErr);
+                        }
+
+                        // Fallback to current_surah updated_at for students without raw attendance rows yet
+                        if (enrData) {
+                            enrData.forEach(e => {
+                                const sid = e.student_id;
+                                if (!latestAttendanceMap[sid] && e.current_surah && ((e.present_count || 0) > 0 || (e.absent_count || 0) > 0)) {
+                                    try {
+                                        const cs = typeof e.current_surah === 'string' ? JSON.parse(e.current_surah) : e.current_surah;
+                                        if (cs && cs.updated_at) {
+                                            latestAttendanceMap[sid] = {
+                                                status: (e.present_count > 0) ? 'present' : 'absent',
+                                                joined_at: cs.updated_at
+                                            };
+                                        }
+                                    } catch(err) {}
+                                }
+                            });
+                        }
 
                         if (enrData && enrData.length > 0) {
                             // Check local overrides
@@ -610,6 +726,7 @@
                                             account_status: (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(s.status || s.account_status || e.status || '').toLowerCase().trim())) ? 'موقوف' : 'نشط',
                                             rating: e.rating || null,
                                             enrollment_id: e.id,
+                                            last_attendance: latestAttendanceMap[s.id] || null,
                                         });
                                     }
                                 });
@@ -1313,6 +1430,8 @@
             const sTime = (s.lecture_time && s.lecture_time !== '—') ? s.lecture_time : '';
             const sDur  = (s.session_duration && s.session_duration !== '—') ? s.session_duration : '';
 
+            const lastAttInfo = formatLastAttendanceInfo(s.last_attendance, s.id);
+
             const todayDateStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + s.id + '_' + todayDateStr;
             const todayRecordedStatus = localStorage.getItem(todayKey);
@@ -1413,6 +1532,22 @@
                             ` : ''}
                             <span class="text-slate-400 text-[10px]">${ratingDisplay}</span>
                         </div>
+                        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                            ${lastAttInfo ? `
+                                <span class="inline-flex items-center gap-1 text-[10px] ${lastAttInfo.statusBadgeClass} font-bold px-2 py-0.5 rounded-lg border shadow-2xs cursor-pointer hover:opacity-85 transition" onclick="openStudentLedgerModal(${s.id})" title="انقر لعرض سجل الحضور الكامل والتواريخ">
+                                    <span class="text-slate-500 font-normal">آخر تسجيل:</span>
+                                    <strong class="font-black">${lastAttInfo.displayTitle}</strong>
+                                    <span>(${lastAttInfo.statusText})</span>
+                                </span>
+                            ` : `
+                                <span class="inline-flex items-center gap-1 text-[10px] text-slate-400 bg-slate-50 border border-slate-200 font-medium px-2 py-0.5 rounded-lg">
+                                    <span>لم يُسجل حضور بعد</span>
+                                </span>
+                            `}
+                            <button type="button" onclick="openStudentLedgerModal(${s.id})" class="text-[10px] text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-extrabold px-2 py-0.5 rounded-lg border border-indigo-200 transition cursor-pointer" title="انقر لعرض تفاصيل سجل الحضور والحلقات السابقة لهذا الطالب">
+                                <span>سجل الحصص</span>
+                            </button>
+                        </div>
                     </td>
                     <td class="p-3 font-bold text-slate-700">${s.age || '—'}</td>
                     <td class="p-3">${creditBadge}</td>
@@ -1422,6 +1557,11 @@
                             <span class="badge-present px-1.5 py-0.5 rounded font-bold text-[10px]">✓ ${present}</span>
                             <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]">✗ ${absent}</span>
                         </div>
+                        ${lastAttInfo ? `
+                            <div class="text-[10px] text-slate-500 font-medium mt-1 cursor-pointer hover:underline" onclick="openStudentLedgerModal(${s.id})" title="انقر لعرض سجل الحضور">
+                                <span>آخر حصة:</span> <strong class="text-slate-800 font-bold">${lastAttInfo.displayTitle}</strong>
+                            </div>
+                        ` : ''}
                     </td>
                     <!-- السورة (دروب منيو لجميع سور القرآن 114) -->
                     <td class="p-3">
@@ -1656,6 +1796,12 @@
                             }
 
                             localStorage.setItem(todayKey, sessionStatus);
+                            try {
+                                localStorage.setItem('monir_last_att_info_' + studentId, JSON.stringify({
+                                    status: sessionStatus,
+                                    joined_at: new Date().toISOString()
+                                }));
+                            } catch(e) {}
                             success = true;
                         }
                     } catch(e) {
@@ -1745,6 +1891,9 @@
                     }
                 }
                 localStorage.removeItem(todayKey);
+                try {
+                    localStorage.removeItem('monir_last_att_info_' + studentId);
+                } catch(e) {}
                 const toastMsg = 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ✓';
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
                     window.MonirPopup.toast(toastMsg, 'success');
