@@ -270,7 +270,7 @@
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-2xl bg-[#1F274B] text-white flex items-center justify-center font-black text-sm shadow-xs">
-                        <span>📄</span>
+                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
                     <div>
                         <h3 class="font-black text-sm sm:text-base text-slate-900 leading-tight">كشف حساب وسجل حركات الطالب المعتمد</h3>
@@ -279,7 +279,7 @@
                 </div>
                 <div class="flex items-center gap-1.5">
                     <button onclick="window.printStudentLedgerReport()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl transition text-[11px] flex items-center gap-1 cursor-pointer" title="طباعة أو تصدير PDF">
-                        <span>🖨️</span>
+                        <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                         <span class="hidden sm:inline">طباعة التقرير</span>
                     </button>
                     <button onclick="closeStudentLedgerModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg font-bold flex items-center justify-center cursor-pointer transition">
@@ -307,7 +307,7 @@
                         <div>
                             <span class="text-slate-400 text-[10px] font-bold block mb-0.5">المعلم وموعد الحصة:</span>
                             <strong class="text-slate-800 font-extrabold block">${teacherName}</strong>
-                            <span class="text-slate-500 text-[11px] block mt-0.5">📅 ${stDays}${stTime ? ' • ' + stTime : ''}</span>
+                            <span class="text-slate-500 text-[11px] block mt-0.5">${stDays}${stTime ? ' • ' + stTime : ''}</span>
                         </div>
                         <div>
                             <span class="text-slate-400 text-[10px] font-bold block mb-0.5">هاتف ولي الأمر والتاريخ:</span>
@@ -325,7 +325,7 @@
                         <div class="text-xl sm:text-2xl font-black mt-1 leading-none">
                             ${remainingCredits} <span class="text-xs font-bold">حصة</span>
                         </div>
-                        <span class="text-[9px] opacity-80 mt-1 block font-bold">${remainingCredits > 0 ? '✓ ساري ومتاح' : '⛔ رصيد منتهي'}</span>
+                        <span class="text-[9px] opacity-80 mt-1 block font-bold">${remainingCredits > 0 ? 'ساري ومتاح' : 'رصيد منتهي'}</span>
                     </div>
 
                     <!-- Total Charged / Purchased -->
@@ -377,21 +377,21 @@
                         <span>+</span>
                         <span class="bg-white px-2 py-0.5 rounded border font-mono font-black text-indigo-900">المتبقي (${remainingCredits})</span>
                     </div>
-                    <span class="text-[10px] text-slate-500 font-bold">✓ معادلة الحسابات متطابقة 100%</span>
+                    <span class="text-[10px] text-slate-500 font-bold">معادلة الحسابات متطابقة 100%</span>
                 </div>
 
                 <!-- 3. Navigation Tabs -->
                 <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
                     <button type="button" onclick="switchLedgerTab('attendance')" id="ledgerTabBtn_attendance" class="ledger-tab-btn active px-3.5 py-2 rounded-xl font-black text-xs transition cursor-pointer bg-[#1F274B] text-white shadow-xs">
-                        <span>📅 سجل الحضور والغياب</span>
+                        <span>سجل الحضور والغياب</span>
                         <span class="bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1">${attendanceRecords.length || presentCount + absentCount}</span>
                     </button>
                     <button type="button" onclick="switchLedgerTab('renewals')" id="ledgerTabBtn_renewals" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
-                        <span>💳 سجل التجديدات والشحن</span>
+                        <span>سجل التجديدات والشحن</span>
                         <span class="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full text-[10px] mr-1">${paymentRecords.length || (totalRenewedCredits > 0 ? 1 : 1)}</span>
                     </button>
                     <button type="button" onclick="switchLedgerTab('timeline')" id="ledgerTabBtn_timeline" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
-                        <span>📊 كشف الحساب التراكمي (Timeline)</span>
+                        <span>كشف الحساب التراكمي (Timeline)</span>
                     </button>
                 </div>
 
@@ -449,12 +449,12 @@
         if (!records || records.length === 0) {
             return `
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center space-y-2">
-                    <span class="text-2xl">📋</span>
+                    
                     <h5 class="font-extrabold text-slate-800 text-xs">إجمالي الحصص المسجلة في ملف الطالب:</h5>
                     <div class="flex items-center justify-center gap-3 py-1 flex-wrap">
-                        <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-lg text-xs">✓ حضور مؤكد: ${presentCount} حصص</span>
-                        <span class="bg-red-100 text-red-800 font-bold px-3 py-1 rounded-lg text-xs">✗ غياب مخصوم: ${absentCount} حصص</span>
-                        <span class="bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-lg text-xs">⚠️ أعذار مستخدمة: ${excuseCount} عذر</span>
+                        <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-lg text-xs">حضور مؤكد: ${presentCount} حصص</span>
+                        <span class="bg-red-100 text-red-800 font-bold px-3 py-1 rounded-lg text-xs">غياب مخصوم: ${absentCount} حصص</span>
+                        <span class="bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-lg text-xs">أعذار مستخدمة: ${excuseCount} عذر</span>
                     </div>
                     <p class="text-[11px] text-slate-400">
                         لا توجد حصص حضور أو غياب مسجلة حتى الآن.
@@ -467,13 +467,13 @@
             let statusBadge = '';
             let creditImpact = '';
             if (r.status === 'present') {
-                statusBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>✓</span><span>حضور وتواصل</span></span>';
+                statusBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>حضور وتواصل</span></span>';
                 creditImpact = '<span class="font-mono text-red-600 font-black">-1 حصة</span>';
             } else if (r.status === 'absent') {
-                statusBadge = '<span class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غياب بدون عذر</span></span>';
+                statusBadge = '<span class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>غياب بدون عذر</span></span>';
                 creditImpact = '<span class="font-mono text-red-600 font-black">-1 حصة</span>';
             } else if (r.status === 'excused') {
-                statusBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>⚠️</span><span>عذر رسمي مقبول</span></span>';
+                statusBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>عذر رسمي مقبول</span></span>';
                 creditImpact = '<span class="font-mono text-slate-500 font-bold">0 (لم يخصم)</span>';
             } else {
                 statusBadge = `<span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded-lg text-[10px] font-bold">${r.status}</span>`;
@@ -528,7 +528,7 @@
                     </td>
                     <td class="p-2.5">
                         <span class="bg-blue-100 text-blue-950 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1 border border-blue-200">
-                            <span>🚀</span><span>اشتراك تأسيسي</span>
+                            <span>اشتراك تأسيسي</span>
                         </span>
                     </td>
                     <td class="p-2.5 font-black text-emerald-700 font-mono text-xs">+${initialCredits} حصص</td>
@@ -554,7 +554,7 @@
                         </td>
                         <td class="p-2.5">
                             <span class="bg-indigo-100 text-indigo-950 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1 border border-indigo-200">
-                                <span>💳</span><span>تجديد باقة</span>
+                                <span>تجديد باقة</span>
                             </span>
                         </td>
                         <td class="p-2.5 font-black text-emerald-700 font-mono text-xs">+${addedCredits} حصص</td>
@@ -708,7 +708,7 @@
             <div class="space-y-3">
                 ${!hasDiscreteAttendance && (presentCount > 0 || absentCount > 0) ? `
                     <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-950">
-                        <strong>📌 ملاحظة تدقيقية:</strong> يتضمن الرصيد الحالي خصم عدد <b>(${presentCount})</b> حصص حضور و <b>(${absentCount})</b> حصص غياب سابقة معتمدة بنظام الحصص.
+                        <strong>ملاحظة تدقيقية:</strong> يتضمن الرصيد الحالي خصم عدد <b>(${presentCount})</b> حصص حضور و <b>(${absentCount})</b> حصص غياب سابقة معتمدة بنظام الحصص.
                     </div>
                 ` : ''}
                 <div class="relative pr-2">
