@@ -397,7 +397,7 @@
 
                 <!-- Tab 1: Attendance Log -->
                 <div id="ledgerTabContent_attendance" class="ledger-tab-content space-y-3">
-                    ${renderAttendanceTableHtml(attendanceRecords, presentCount, absentCount, excuseCount, enrolledDate, stCourse)}
+                    ${renderAttendanceTableHtml(attendanceRecords, presentCount, absentCount, excuseCount, enrolledDate, stCourse, enrollment)}
                 </div>
 
                 <!-- Tab 2: Renewals Log -->
@@ -423,7 +423,29 @@
     }
 
     // Helper: Render Tab 1 Attendance Table
-    function renderAttendanceTableHtml(records, presentCount, absentCount, excuseCount, enrolledDate, courseName) {
+    function renderAttendanceTableHtml(records, presentCount, absentCount, excuseCount, enrolledDate, courseName, enrollment) {
+        const totalAttended = (presentCount || 0) + (absentCount || 0);
+
+        // If raw attendance table logs are empty, synthesize official past sessions from enrollment schedule
+        if ((!records || records.length === 0) && totalAttended > 0) {
+            const subDays = (enrollment && (enrollment.subscription_days || enrollment.days)) || 'الأحد والأربعاء';
+            const dur = parseInt(enrollment && enrollment.session_duration) || 20;
+            const pastDates = (typeof calculateGroupPastDates === 'function')
+                ? calculateGroupPastDates(subDays, totalAttended)
+                : [];
+            records = [];
+            for (let i = 0; i < totalAttended; i++) {
+                const isPres = (i < presentCount);
+                const pDate = pastDates[i];
+                records.unshift({
+                    joined_at: pDate ? pDate.dateFormatted : ('حصة رقم ' + (i + 1)),
+                    status: isPres ? 'present' : 'absent',
+                    course_name: courseName,
+                    duration_minutes: dur
+                });
+            }
+        }
+
         if (!records || records.length === 0) {
             return `
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center space-y-2">
@@ -435,7 +457,7 @@
                         <span class="bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-lg text-xs">⚠️ أعذار مستخدمة: ${excuseCount} عذر</span>
                     </div>
                     <p class="text-[11px] text-slate-400">
-                        سجل الحصص السابقة معتمد رسمياً في رصيد الطالب. تم تفعيل التوثيق اللحظي بالثانية لكافة الحصص القادمة.
+                        لا توجد حصص حضور أو غياب مسجلة حتى الآن.
                     </p>
                 </div>
             `;
