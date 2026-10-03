@@ -26,6 +26,7 @@
             return dateStr;
         }
     }
+    window.formatArabicDateTime = formatArabicDateTime;
 
     function formatArabicDate(dateStr) {
         if (!dateStr) return '—';
@@ -43,6 +44,7 @@
             return dateStr;
         }
     }
+    window.formatArabicDate = formatArabicDate;
 
     // Ensure Ledger Modal Container exists in DOM
     function ensureModalElement() {
@@ -325,7 +327,14 @@
                         <div class="text-xl sm:text-2xl font-black mt-1 leading-none">
                             ${remainingCredits} <span class="text-xs font-bold">حصة</span>
                         </div>
-                        <span class="text-[9px] opacity-80 mt-1 block font-bold">${remainingCredits > 0 ? 'ساري ومتاح' : 'رصيد منتهي'}</span>
+                        <div class="mt-1 flex items-center justify-between gap-1">
+                            <span class="text-[9px] opacity-80 font-bold">${remainingCredits > 0 ? 'ساري ومتاح' : 'رصيد منتهي'}</span>
+                            ${(typeof window !== 'undefined' && typeof window.openAddCreditsModal === 'function') ? `
+                                <button type="button" onclick="closeStudentLedgerModal(); openAddCreditsModal(${student.id});" class="text-[9px] font-black bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded transition cursor-pointer">
+                                    + إضافة رصيد
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
 
                     <!-- Total Charged / Purchased -->

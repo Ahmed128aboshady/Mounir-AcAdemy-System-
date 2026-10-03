@@ -863,6 +863,119 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- ADD CREDITS MODAL (Supervision Balance Top-up with Audit History) -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="addCreditsModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[92vh] flex flex-col space-y-4">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
+                <div>
+                    <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-black">+</span>
+                        <span>إضافة وشحن رصيد حصص للطالب</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">
+                        <strong id="addCreditsStudentName" class="text-slate-900">—</strong>
+                        <span class="text-slate-300 mx-1">•</span>
+                        <span id="addCreditsStudentMeta" class="font-mono text-slate-600 text-[10px]">—</span>
+                    </p>
+                </div>
+                <button type="button" onclick="closeAddCreditsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg font-bold flex items-center justify-center cursor-pointer transition">✕</button>
+            </div>
+
+            <!-- Scrollable Body -->
+            <div class="overflow-y-auto flex-1 space-y-4 pr-1">
+                <!-- Current Balance & Preview Summary -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-500 font-bold block mb-1">الرصيد الحالي</span>
+                            <span id="addCreditsCurrentBadge" class="text-xl font-black font-mono text-slate-800">0</span>
+                            <span class="text-[10px] text-slate-400 block">حصة</span>
+                        </div>
+                        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+                            <span class="text-[10px] text-emerald-800 font-bold block mb-1">المقدار المضاف</span>
+                            <span id="addCreditsDeltaBadge" class="text-xl font-black font-mono text-emerald-700">+4</span>
+                            <span class="text-[10px] text-emerald-600 block">حصة</span>
+                        </div>
+                        <div class="bg-indigo-50 p-2.5 rounded-xl border border-indigo-200">
+                            <span class="text-[10px] text-indigo-800 font-bold block mb-1">الرصيد الجديد</span>
+                            <span id="addCreditsNewBadge" class="text-xl font-black font-mono text-indigo-900">4</span>
+                            <span class="text-[10px] text-indigo-600 block">حصة بعد الإضافة</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Package Presets -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1.5">اختر باقة الحصص المراد إضافتها:</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button type="button" id="creditPresetBtn_4" onclick="setAddCreditPreset(4)" class="credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer">
+                            <span class="block text-sm leading-tight">+4 حصص</span>
+                            <span class="block text-[9px] opacity-80 mt-0.5">شهر (حصة/أسبوع)</span>
+                        </button>
+                        <button type="button" id="creditPresetBtn_8" onclick="setAddCreditPreset(8)" class="credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer">
+                            <span class="block text-sm leading-tight">+8 حصص</span>
+                            <span class="block text-[9px] text-slate-500 mt-0.5">شهر (حصتين/أسبوع)</span>
+                        </button>
+                        <button type="button" id="creditPresetBtn_12" onclick="setAddCreditPreset(12)" class="credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer">
+                            <span class="block text-sm leading-tight">+12 حصة</span>
+                            <span class="block text-[9px] text-slate-500 mt-0.5">3 شهور / مكثف</span>
+                        </button>
+                        <button type="button" id="creditPresetBtn_1" onclick="setAddCreditPreset(1)" class="credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer">
+                            <span class="block text-sm leading-tight">+1 حصة</span>
+                            <span class="block text-[9px] text-slate-500 mt-0.5">حصة تعويضية</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Amount & Reason Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">أو أدخل عدد حصص مخصص:</label>
+                        <input type="number" id="addCreditsCustomInput" min="1" max="500" value="4" oninput="onCustomCreditsInput(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono font-bold text-center text-sm outline-none focus:border-emerald-600 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">سبب أو تصنيف الإضافة:</label>
+                        <select id="addCreditsReason" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs outline-none focus:border-emerald-600 focus:bg-white">
+                            <option value="تجديد باقة شهرية">تجديد باقة شهرية</option>
+                            <option value="سداد اشتراك (فودافون كاش / إنستاباي)">سداد اشتراك (فودافون كاش / إنستاباي)</option>
+                            <option value="سداد اشتراك (تحويل بنكي)">سداد اشتراك (تحويل بنكي)</option>
+                            <option value="سداد اشتراك نقدي">سداد اشتراك نقدي</option>
+                            <option value="حصة تعويضية معتمدة">حصة تعويضية معتمدة</option>
+                            <option value="شحن رصيد من الإدارة">شحن رصيد من الإدارة</option>
+                            <option value="أخرى">أخرى (ملاحظة خاصة)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">ملاحظة / بيان المعاملة (اختياري):</label>
+                    <input type="text" id="addCreditsNote" placeholder="مثال: تم التأكيد مع ولي الأمر هاتفياً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-emerald-600 font-medium text-xs">
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-1">
+                    <button type="button" id="submitAddCreditsBtn" onclick="submitAddCredits()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm">
+                        <span>تأكيد إضافة الرصيد وحفظ العملية</span>
+                    </button>
+                </div>
+
+                <!-- History Section: Audit Log of Previous Additions -->
+                <div class="pt-3 border-t border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-black text-slate-900 text-xs">سجل عمليات شحن وإضافة الرصيد السابقة:</span>
+                        <span id="addCreditsHistoryCount" class="text-[10px] text-slate-500 font-bold">0 عملية مسجلة</span>
+                    </div>
+                    <div id="addCreditsHistoryList" class="space-y-1.5 max-h-48 overflow-y-auto border border-slate-200 rounded-2xl p-2 bg-slate-50/50">
+                        <div class="text-center py-4 text-slate-400 font-bold">جاري تحميل السجل...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Inline Edit Modal (Comprehensive student edit) -->
     <div id="inlineEditModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 text-xs max-h-[92vh] overflow-y-auto">
@@ -920,8 +1033,14 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">رصيد الحصص</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block font-bold text-slate-700">رصيد الحصص (تعديل طارئ)</label>
+                        <button type="button" onclick="closeInlineEdit(); openAddCreditsModal(bsInlineStudentId);" class="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold underline cursor-pointer">
+                            + شحن رصيد بدلاً من التعديل
+                        </button>
+                    </div>
                     <input type="number" id="inlineCredits" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center font-bold">
+                    <span class="text-[9px] text-slate-400 block mt-0.5">متاح للحالات الطارئة فقط، لتوثيق اليوم والساعة يفضل استخدام (+ إضافة رصيد).</span>
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">أيام المحاضرة</label>
@@ -2378,7 +2497,7 @@
                                             <td class="p-2.5 text-slate-600">${s.age || '—'}</td>
                                             <td class="p-2.5 text-slate-600">${s.parent_name || '—'}</td>
                                             <td class="p-2.5 font-mono text-emerald-700">${s.parent_phone || s.phone || '—'}</td>
-                                            <td class="p-2.5">${rcBadge}</td>
+                                            <td class="p-2.5"><span onclick="openAddCreditsModal(${s.id})" class="cursor-pointer hover:opacity-80 transition inline-block" title="انقر لشحن وإضافة رصيد">${rcBadge}</span></td>
                                             <td class="p-2.5">${status}</td>
                                         </tr>
                                     `;
@@ -4485,7 +4604,7 @@
                         <div class="truncate text-[11px]" title="${s.teacher_name}">${s.teacher_name || '—'}</div>
                     </td>
                     <td class="p-2.5">
-                        <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openStudentLedgerModal(${s.id})" title="انقر لفتح كشف حساب الحصص والتجديدات">${s.remaining_credits}</span>
+                        <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openAddCreditsModal(${s.id})" title="الرصيد الحالي: ${s.remaining_credits} حصص — انقر لإضافة وشحن رصيد">${s.remaining_credits}</span>
                     </td>
                     <td class="p-2.5 text-[11px] text-slate-600">
                         <div class="font-bold">${s.subscription_days || '—'}</div>
@@ -4494,12 +4613,15 @@
                     </td>
                     <td class="p-2.5">${statusBadge}</td>
                     <td class="p-2.5 text-center">
-                        <div class="flex items-center justify-center gap-1">
-                            <button onclick="openStudentLedgerModal(${s.id})" title="عرض كشف حساب وسجل حركات الطالب" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-black text-[10px] px-2 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1">
-                                <span>📄</span><span class="hidden sm:inline">كشف الحساب</span>
+                        <div class="flex items-center justify-center gap-1 flex-wrap">
+                            <button onclick="openAddCreditsModal(${s.id})" title="إضافة وشحن رصيد حصص جديد للطالب" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] px-2.5 py-1.5 rounded-xl transition cursor-pointer shadow-xs">
+                                + إضافة رصيد
                             </button>
-                            <button onclick="openInlineEdit(${s.id})" class="bg-[#41519C]/10 hover:bg-[#41519C]/20 text-[#41519C] font-black text-[10px] px-2.5 py-1.5 rounded-xl transition cursor-pointer">
-                                ✏️ تعديل
+                            <button onclick="openStudentLedgerModal(${s.id})" title="عرض كشف حساب وسجل حركات الطالب" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-bold text-[10px] px-2 py-1.5 rounded-xl transition cursor-pointer">
+                                كشف الحساب
+                            </button>
+                            <button onclick="openInlineEdit(${s.id})" title="تعديل وتحديث بيانات الطالب (للحالات الطارئة)" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[10px] px-2 py-1.5 rounded-xl transition cursor-pointer">
+                                تعديل
                             </button>
                         </div>
                     </td>
@@ -5335,6 +5457,332 @@
             }
         }
 
+        // ── Supervision Add Credits System with Audit History ─────────
+        let bsAddCreditStudentId = null;
+        let bsAddCreditCurrentAmount = 4;
+
+        function formatAuditDateTime(dateStr) {
+            if (typeof window.formatArabicDateTime === 'function') {
+                return window.formatArabicDateTime(dateStr);
+            }
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                const dayName = days[d.getDay()];
+                const day = d.getDate();
+                const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                const monthName = months[d.getMonth()];
+                const year = d.getFullYear();
+                let hours = d.getHours();
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'م' : 'ص';
+                hours = hours % 12 || 12;
+                return `${dayName} ${day} ${monthName} ${year} • ${hours}:${minutes} ${ampm}`;
+            } catch(e) {
+                return dateStr;
+            }
+        }
+
+        async function openAddCreditsModal(studentId) {
+            if (!studentId) return;
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            let s = allSts.find(st => st.id === studentId || st.student_code === studentId);
+
+            if (!s && window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const { data: stRow } = await client.from('students').select('*').eq('id', studentId).maybeSingle();
+                    if (stRow) s = stRow;
+                } catch(e) {}
+            }
+            if (!s) return;
+
+            bsAddCreditStudentId = s.id;
+            bsAddCreditCurrentAmount = 4;
+
+            const nameEl = document.getElementById('addCreditsStudentName');
+            const metaEl = document.getElementById('addCreditsStudentMeta');
+            if (nameEl) nameEl.innerText = s.name || 'طالب الأكاديمية';
+            if (metaEl) metaEl.innerText = `الكود: ${s.student_code || s.id} • المجموعة: ${s.group_id || s.qr_code || 'بدون'} • المعلم: ${s.teacher_name || '—'}`;
+
+            const curBadge = document.getElementById('addCreditsCurrentBadge');
+            const deltaBadge = document.getElementById('addCreditsDeltaBadge');
+            const newBadge = document.getElementById('addCreditsNewBadge');
+            const customInput = document.getElementById('addCreditsCustomInput');
+            const noteInput = document.getElementById('addCreditsNote');
+            const reasonSelect = document.getElementById('addCreditsReason');
+
+            const curCredits = (s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
+            if (curBadge) curBadge.innerText = curCredits;
+            if (deltaBadge) deltaBadge.innerText = '+4';
+            if (newBadge) newBadge.innerText = (curCredits + 4);
+            if (customInput) customInput.value = 4;
+            if (noteInput) noteInput.value = '';
+            if (reasonSelect) reasonSelect.value = 'تجديد باقة شهرية';
+
+            [1, 4, 8, 12].forEach(val => {
+                const btn = document.getElementById('creditPresetBtn_' + val);
+                if (btn) {
+                    if (val === 4) {
+                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
+                    } else {
+                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
+                    }
+                }
+            });
+
+            const submitBtn = document.getElementById('submitAddCreditsBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
+                submitBtn.className = 'w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm';
+            }
+
+            document.getElementById('addCreditsModal').classList.remove('hidden');
+
+            loadStudentCreditHistory(s.id);
+        }
+        window.openAddCreditsModal = openAddCreditsModal;
+
+        function closeAddCreditsModal() {
+            const m = document.getElementById('addCreditsModal');
+            if (m) m.classList.add('hidden');
+            bsAddCreditStudentId = null;
+        }
+        window.closeAddCreditsModal = closeAddCreditsModal;
+
+        function setAddCreditPreset(amount) {
+            bsAddCreditCurrentAmount = parseInt(amount) || 1;
+            const customInput = document.getElementById('addCreditsCustomInput');
+            if (customInput) customInput.value = bsAddCreditCurrentAmount;
+
+            [1, 4, 8, 12].forEach(val => {
+                const btn = document.getElementById('creditPresetBtn_' + val);
+                if (btn) {
+                    if (val === bsAddCreditCurrentAmount) {
+                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
+                    } else {
+                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
+                    }
+                }
+            });
+
+            updateAddCreditsPreview();
+        }
+        window.setAddCreditPreset = setAddCreditPreset;
+
+        function onCustomCreditsInput(val) {
+            const amt = Math.max(1, parseInt(val) || 0);
+            bsAddCreditCurrentAmount = amt;
+
+            [1, 4, 8, 12].forEach(presetVal => {
+                const btn = document.getElementById('creditPresetBtn_' + presetVal);
+                if (btn) {
+                    if (presetVal === amt) {
+                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
+                    } else {
+                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
+                    }
+                }
+            });
+
+            updateAddCreditsPreview();
+        }
+        window.onCustomCreditsInput = onCustomCreditsInput;
+
+        function updateAddCreditsPreview() {
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(st => st.id === bsAddCreditStudentId);
+            const curCredits = (s && s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
+            const delta = bsAddCreditCurrentAmount || 0;
+            const newTotal = curCredits + delta;
+
+            const deltaBadge = document.getElementById('addCreditsDeltaBadge');
+            const newBadge = document.getElementById('addCreditsNewBadge');
+            if (deltaBadge) deltaBadge.innerText = '+' + delta;
+            if (newBadge) newBadge.innerText = newTotal;
+        }
+
+        async function loadStudentCreditHistory(studentId) {
+            const container = document.getElementById('addCreditsHistoryList');
+            const countEl = document.getElementById('addCreditsHistoryCount');
+            if (!container) return;
+
+            container.innerHTML = '<div class="text-center py-4 text-slate-400 font-bold">جاري تحميل سجل الشحن والتجديدات...</div>';
+
+            let payments = [];
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const { data, error } = await client.from('payments')
+                        .select('*')
+                        .eq('student_id', studentId)
+                        .order('created_at', { ascending: false })
+                        .limit(50);
+                    if (!error && data) {
+                        payments = data;
+                    }
+                } catch(e) {
+                    console.warn('Error loading payments history:', e);
+                }
+            }
+
+            if (countEl) countEl.innerText = `${payments.length} عملية مسجلة`;
+
+            if (payments.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-slate-400">
+                        <div class="text-xs font-bold text-slate-500">لا توجد عمليات شحن سابقة مسجلة</div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">عند إضافة أي رصيد، سيتم توثيق تاريخه ويومه وساعته هنا تلقائياً لضمان دقة الحسابات.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = payments.map((p, idx) => {
+                const added = parseInt(p.block_unlocked) || 0;
+                const sign = added >= 0 ? `+${added}` : `${added}`;
+                const addedColor = added >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200';
+                const method = p.payment_method || 'شحن رصيد - إشراف';
+                const formattedDate = formatAuditDateTime(p.created_at);
+                const note = p.whatsapp_message || '';
+
+                return `
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition text-[11px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div class="space-y-0.5 min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-extrabold text-slate-900">${formattedDate}</span>
+                                <span class="text-slate-400 font-mono text-[10px]">(${p.receipt_number || p.transaction_id || ('REC-' + (idx + 1))})</span>
+                            </div>
+                            <div class="text-slate-600 flex items-center gap-1.5 flex-wrap">
+                                <span class="font-bold text-slate-800">${method}</span>
+                                ${note ? `<span class="text-slate-400">•</span><span class="text-slate-500 truncate max-w-xs" title="${note}">${note}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            <span class="font-mono font-black text-xs px-2.5 py-1 rounded-lg border ${addedColor}">
+                                ${sign} حصص
+                            </span>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">معتمد ✓</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function submitAddCredits() {
+            const sid = bsAddCreditStudentId;
+            if (!sid) return;
+
+            const added = Math.max(1, parseInt(bsAddCreditCurrentAmount) || 0);
+            if (added <= 0) {
+                alert('يرجى تحديد عدد حصص أكبر من صفر.');
+                return;
+            }
+
+            const reason = document.getElementById('addCreditsReason')?.value || 'تجديد باقة شهرية';
+            const note = (document.getElementById('addCreditsNote')?.value || '').trim();
+
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(st => st.id === sid);
+            const curCredits = (s && s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
+            const newCredits = curCredits + added;
+
+            const btn = document.getElementById('submitAddCreditsBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>جاري إضافة الرصيد وتوثيق العملية...</span>';
+            }
+
+            try {
+                const nowIso = new Date().toISOString();
+                const txId = 'TOPUP-' + sid + '-' + Date.now();
+                const recNo = 'REC-' + Math.floor(100000 + Math.random() * 900000);
+                const auditDetails = `إضافة رصيد: +${added} حصص (الرصيد من ${curCredits} إلى ${newCredits})${note ? ' • ملاحظة: ' + note : ''}`;
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+
+                    // 1. Update enrollments table
+                    await client.from('enrollments')
+                        .update({ remaining_credits: newCredits, status: 'active' })
+                        .eq('student_id', sid);
+
+                    // 2. Reactivate student if was inactive
+                    await client.from('students')
+                        .update({ status: 'active' })
+                        .eq('id', sid);
+
+                    // 3. Insert audit log into payments table
+                    await client.from('payments').insert([{
+                        student_id: sid,
+                        course_name: (s && s.course_name) || 'مسار القرآن الكريم والتدبر',
+                        amount: added * 100,
+                        currency: 'EGP',
+                        block_unlocked: added,
+                        transaction_id: txId,
+                        receipt_number: recNo,
+                        payment_method: reason,
+                        status: 'completed',
+                        whatsapp_message: auditDetails,
+                        created_at: nowIso
+                    }]);
+                }
+
+                // Update in-memory state
+                if (s) {
+                    s.remaining_credits = newCredits;
+                    s.status = 'active';
+                    s.account_status = 'نشط';
+                }
+
+                // Re-render admin tables & UI
+                if (typeof renderBulkTable === 'function') renderBulkTable();
+                if (typeof syncBulkBar === 'function') syncBulkBar();
+
+                // Update modal preview badges
+                const curBadge = document.getElementById('addCreditsCurrentBadge');
+                if (curBadge) curBadge.innerText = newCredits;
+                updateAddCreditsPreview();
+
+                // Success feedback
+                if (btn) {
+                    btn.innerHTML = `<span>تمت إضافة +${added} حصص بنجاح ✓ (الرصيد: ${newCredits})</span>`;
+                    btn.className = 'w-full bg-slate-900 text-emerald-400 font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm';
+                }
+
+                if (typeof showToast === 'function') {
+                    showToast(`تم إضافة +${added} حصص بنجاح للطالب (${s ? s.name : sid}). الرصيد الجديد: ${newCredits} حصة.`, 'success');
+                } else {
+                    alert(`تم إضافة +${added} حصص بنجاح! الرصيد الجديد: ${newCredits} حصة.`);
+                }
+
+                // Refresh history list immediately
+                await loadStudentCreditHistory(sid);
+
+                // Auto reset button after 3 seconds
+                setTimeout(() => {
+                    if (btn && bsAddCreditStudentId === sid) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
+                        btn.className = 'w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm';
+                    }
+                }, 3000);
+
+            } catch(err) {
+                console.error('Error adding credits:', err);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>فشلت العملية، أعد المحاولة</span>';
+                    btn.className = 'w-full bg-red-600 text-white font-black py-3 rounded-xl transition shadow-md text-xs sm:text-sm';
+                }
+                alert('حدث خطأ أثناء إضافة الرصيد: ' + (err.message || err));
+            }
+        }
+        window.submitAddCredits = submitAddCredits;
+
         // ── Inline Edit (Comprehensive single student edit) ─────────
         function openInlineEdit(studentId) {
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
@@ -5526,9 +5974,10 @@
                                 amount: (delta > 0 ? delta * 100 : 0),
                                 currency: 'EGP',
                                 block_unlocked: delta,
-                                transaction_id: 'ADM-' + Date.now(),
+                                transaction_id: 'EMERGENCY-' + sid + '-' + Date.now(),
                                 receipt_number: 'REC-' + Math.floor(100000 + Math.random() * 900000),
-                                payment_method: (delta > 0 ? `شحن وتجديد (+${delta} حصص) من الإدارة` : `تسوية وتعديل رصيد (${delta} حصة) من الإدارة`),
+                                payment_method: (delta > 0 ? `تعديل رصيد يدوي طارئ (+${delta} حصص)` : `تعديل رصيد يدوي طارئ (${delta} حصة)`),
+                                whatsapp_message: `تعديل رصيد طارئ: تم تعديل الرصيد يدوياً من ${oldCred} إلى ${credits} حصة بواسطة الإشراف`,
                                 status: 'completed',
                                 created_at: new Date().toISOString()
                             }]);
