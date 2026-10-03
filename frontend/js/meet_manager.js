@@ -177,6 +177,12 @@
         "هشام وهيب": "https://meet.google.com/rxu-zpag-vxp",
         "73": "https://meet.google.com/vod-tfha-kfj",
         "ولاء حمدي": "https://meet.google.com/vod-tfha-kfj",
+        "41": "https://meet.google.com/etc-xgjo-vtk",
+        "T041": "https://meet.google.com/etc-xgjo-vtk",
+        "عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "عبد الرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "أ. عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "الشيخ عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
     };
 
     // Teachers currently on leave (الأحمر في الشيت: معلمين في إجازة حالياً)
@@ -526,7 +532,12 @@
         "G089": "https://meet.google.com/ach-kiwg-tmg",
         "G012": "https://meet.google.com/cyf-smdb-sqo",
         "G333": "https://meet.google.com/cyf-smdb-sqo",
-        "G384": "https://meet.google.com/cyf-smdb-sqo"
+        "G384": "https://meet.google.com/cyf-smdb-sqo",
+        // عبدالرحمن وليد (ID 41)
+        "G114": "https://meet.google.com/etc-xgjo-vtk",
+        "G401": "https://meet.google.com/etc-xgjo-vtk",
+        "G402": "https://meet.google.com/etc-xgjo-vtk",
+        "G408": "https://meet.google.com/etc-xgjo-vtk"
 };
 
     // Initialize global registry

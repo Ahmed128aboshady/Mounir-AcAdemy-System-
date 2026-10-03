@@ -4909,13 +4909,14 @@
       "specialty": "مسار تحفيظ والقرآن والتجويد",
       "email": "teacher_41@monir-academy.edu.eg",
       "phone": "01000000000",
-      "bio": "معلم معتمد في الأكاديمية",
+      "bio": "https://meet.google.com/etc-xgjo-vtk",
       "active": 1,
       "created_at": "2026-09-10 18:32:57",
       "rate_per_session": 150.0,
       "rate_per_private_session": 80.0,
       "late_count": 0,
-      "cancellation_count": 0
+      "cancellation_count": 0,
+      "google_meet_url": "https://meet.google.com/etc-xgjo-vtk"
     },
     {
       "id": 42,
@@ -23735,7 +23736,7 @@
       "subscription_days": "الأحد و الأربعاء",
       "lecture_time": "الاحد والاربعاء 7ساءً",
       "teacher_name": "عبدالرحمن وليد",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G114"
+      "google_meet_url": "https://meet.google.com/etc-xgjo-vtk"
     },
     {
       "id": 176,
@@ -34059,7 +34060,7 @@
       "subscription_days": "الأحد و الثلاثاء",
       "lecture_time": "الاحد 7:00 والثلاثاء 5:30 برايفت نص ساعه",
       "teacher_name": "عبدالرحمن وليد",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G401"
+      "google_meet_url": "https://meet.google.com/etc-xgjo-vtk"
     },
     {
       "id": 692,
@@ -34079,7 +34080,7 @@
       "subscription_days": "السبت و الجمعة",
       "lecture_time": "الجمعه 10:30 والسبت 11 برايفت نص ساعه",
       "teacher_name": "عبدالرحمن وليد",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G402"
+      "google_meet_url": "https://meet.google.com/etc-xgjo-vtk"
     },
     {
       "id": 693,
@@ -34399,7 +34400,7 @@
       "subscription_days": "الأربعاء",
       "lecture_time": "مسار القران R9 | \"برايفت \" الاربعاء الساعه 7",
       "teacher_name": "عبدالرحمن وليد",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G408"
+      "google_meet_url": "https://meet.google.com/etc-xgjo-vtk"
     },
     {
       "id": 709,
@@ -34419,7 +34420,7 @@
       "subscription_days": "الأربعاء",
       "lecture_time": "مسار القران R9 | \"برايفت \" الاربعاء الساعه 7",
       "teacher_name": "عبدالرحمن وليد",
-      "google_meet_url": "https://meet.jit.si/MounirAcademy_Group_G408"
+      "google_meet_url": "https://meet.google.com/etc-xgjo-vtk"
     },
     {
       "id": 710,
