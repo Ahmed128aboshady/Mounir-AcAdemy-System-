@@ -15,6 +15,7 @@
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
     <script src="js/student_ledger.js?v=20261001_v2"></script>
+    <script src="js/teacher_notifications.js?v=20261003_v1"></script>
 
     <script>
         // Auth guard — teachers and admins only
@@ -70,6 +71,14 @@
             <!-- Header Actions -->
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <span class="text-xs text-slate-300 font-bold hidden lg:inline" id="teacherNameHeader">—</span>
+
+                <!-- Notification Bell Button -->
+                <button type="button" onclick="openTeacherNotificationsModal()" class="relative bg-[#2D396E] hover:bg-[#3D4C8E] active:scale-95 text-amber-300 hover:text-white px-2 sm:px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm shrink-0 border border-indigo-400/30 cursor-pointer" title="إشعارات وتحديثات الطلاب">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span class="hidden md:inline text-xs font-bold text-white">الإشعارات</span>
+                    <span id="teacherBellBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-[#1F274B] animate-pulse">0</span>
+                </button>
+
                 <button type="button" onclick="openTeacherSupportModal()" class="relative bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-[11px] sm:text-xs font-black px-2 sm:px-3 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm shrink-0" title="الدعم الفني والإشراف">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     <span class="hidden sm:inline">الدعم والإشراف</span>
@@ -391,6 +400,39 @@
                 <div id="teacherTicketsListContainer" class="space-y-3">
                     <div class="text-center py-8 text-slate-400">جاري التحميل...</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Teacher Notifications (إشعارات إضافة ونقل وتوقف الطلاب) -->
+    <div id="teacherNotificationsModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[88vh] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-2xl bg-indigo-100 text-indigo-900 flex items-center justify-center text-lg font-black shadow-xs">🔔</span>
+                    <div>
+                        <h3 class="font-black text-sm sm:text-base text-slate-900">إشعارات وتحديثات الطلاب</h3>
+                        <p class="text-[11px] text-slate-500">متابعة فورية للطلاب المضافين والمنقولين والمتوقفين في مجموعاتك</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('teacherNotificationsModal')" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">&times;</button>
+            </div>
+
+            <!-- Action Bar: Counter & Mark all as read -->
+            <div class="pt-3 pb-2 flex justify-between items-center shrink-0">
+                <span class="text-[11px] font-bold text-slate-500" id="teacherNotifCountHeader">0 إشعار</span>
+                <button type="button" onclick="markAllTeacherNotifsRead()" class="text-indigo-600 hover:text-indigo-800 font-extrabold text-[11px] hover:underline cursor-pointer flex items-center gap-1">
+                    <span>✓</span><span>تحديد الكل كمقروء</span>
+                </button>
+            </div>
+
+            <!-- Notifications List -->
+            <div id="teacherNotificationsList" class="flex-1 overflow-y-auto space-y-2.5 pr-1 py-1 min-h-[220px]">
+                <!-- Injected dynamically via JS -->
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-end shrink-0">
+                <button type="button" onclick="closeModal('teacherNotificationsModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2 rounded-xl transition cursor-pointer text-xs">إغلاق</button>
             </div>
         </div>
     </div>
@@ -784,6 +826,9 @@
                 renderGroups(teacherGroups);
                 populateTeacherTicketGroups();
                 checkTeacherNotifications();
+                if (typeof updateTeacherNotificationsBadge === 'function') {
+                    updateTeacherNotificationsBadge();
+                }
 
             } catch(err) {
                 container.innerHTML = '<div class="text-center py-12 text-red-400"><p class="font-bold">حدث خطأ أثناء تحميل البيانات. حاول مرة أخرى.</p></div>';
@@ -2495,6 +2540,118 @@
                 }
             }
         }
+
+        // ================= Teacher Notifications UI Logic =================
+        async function updateTeacherNotificationsBadge() {
+            if (!window.TeacherNotifications) return;
+            const tId = currentTeacherId || (window.currentTeacher && window.currentTeacher.id) || 1;
+            const unread = await window.TeacherNotifications.getUnreadCount(tId);
+            const badge = document.getElementById('teacherBellBadge');
+            if (badge) {
+                if (unread > 0) {
+                    badge.innerText = unread > 99 ? '99+' : unread;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        async function openTeacherNotificationsModal() {
+            if (!window.TeacherNotifications) return;
+            const tId = currentTeacherId || (window.currentTeacher && window.currentTeacher.id) || 1;
+            const list = await window.TeacherNotifications.getForTeacher(tId);
+
+            const container = document.getElementById('teacherNotificationsList');
+            const countHeader = document.getElementById('teacherNotifCountHeader');
+            if (countHeader) {
+                const unread = list.filter(n => !n.is_read).length;
+                countHeader.innerText = `${list.length} إشعار (${unread} جديد)`;
+            }
+
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <div class="text-3xl mb-2">🔕</div>
+                        <p class="font-bold text-xs text-slate-700">لا توجد إشعارات أو تحديثات حالياً.</p>
+                        <p class="text-[11px] text-slate-400 mt-1">ستصلك هنا تنبيهات فورية عند إضافة أو نقل أو إيقاف أي طالب في مجموعاتك.</p>
+                    </div>
+                `;
+            } else {
+                list.forEach(n => {
+                    const cfg = window.TeacherNotifications.getVisualConfig(n.type);
+                    const timeAgo = window.TeacherNotifications.formatTimeAgo(n.created_at);
+                    const item = document.createElement('div');
+                    item.className = `p-3 rounded-2xl border transition relative flex items-start gap-2.5 ${cfg.bgClass} ${n.is_read ? 'opacity-70 bg-white/70' : 'shadow-xs font-bold'}`;
+                    item.innerHTML = `
+                        <div class="w-8 h-8 rounded-xl ${cfg.iconBg} flex items-center justify-center text-sm shrink-0 shadow-xs">
+                            ${cfg.icon}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-[10px] font-black px-2 py-0.5 rounded-md border ${cfg.badgeClass}">${cfg.badge}</span>
+                                    ${n.group_id ? `<span class="bg-slate-200 text-slate-800 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${n.group_id}</span>` : ''}
+                                    <h4 class="font-extrabold text-xs text-slate-900">${n.title}</h4>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-normal shrink-0" dir="ltr">${timeAgo}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-700 leading-relaxed font-normal">${n.message}</p>
+                            ${!n.is_read ? `
+                                <div class="mt-1.5 flex justify-end">
+                                    <button type="button" onclick="markSingleTeacherNotifRead('${n.id}', this)" class="text-[10px] text-indigo-700 hover:text-indigo-900 font-bold bg-white/80 hover:bg-white px-2 py-0.5 rounded border border-indigo-200 transition cursor-pointer">
+                                        ✓ تحديد كمقروء
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+
+            document.getElementById('teacherNotificationsModal').classList.remove('hidden');
+        }
+
+        function markSingleTeacherNotifRead(id, btn) {
+            if (window.TeacherNotifications) {
+                window.TeacherNotifications.markAsRead(id);
+                if (btn) {
+                    const card = btn.closest('.p-3');
+                    if (card) card.classList.add('opacity-70');
+                    btn.remove();
+                }
+                updateTeacherNotificationsBadge();
+            }
+        }
+
+        function markAllTeacherNotifsRead() {
+            if (window.TeacherNotifications) {
+                const tId = currentTeacherId || (window.currentTeacher && window.currentTeacher.id) || 1;
+                window.TeacherNotifications.markAllAsRead(tId);
+                updateTeacherNotificationsBadge();
+                openTeacherNotificationsModal();
+            }
+        }
+
+        window.openTeacherNotificationsModal = openTeacherNotificationsModal;
+        window.markAllTeacherNotifsRead = markAllTeacherNotifsRead;
+        window.markSingleTeacherNotifRead = markSingleTeacherNotifRead;
+        window.updateTeacherNotificationsBadge = updateTeacherNotificationsBadge;
+
+        // Auto refresh badge on load and listen to realtime events
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateTeacherNotificationsBadge, 600);
+        });
+        window.addEventListener('teacherNotificationAdded', (e) => {
+            const notif = e.detail;
+            if (notif && notif.teacher_id === currentTeacherId) {
+                updateTeacherNotificationsBadge();
+            }
+        });
     </script>
 </body>
 </html>
