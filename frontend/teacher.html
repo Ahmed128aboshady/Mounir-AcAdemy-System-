@@ -15,7 +15,7 @@
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
     <script src="js/student_ledger.js?v=20261001_v2"></script>
-    <script src="js/teacher_notifications.js?v=20261003_v1"></script>
+    <script src="js/teacher_notifications.js?v=20261003_v2"></script>
 
     <script>
         // Auth guard — teachers and admins only
@@ -2559,28 +2559,32 @@
 
         async function openTeacherNotificationsModal() {
             if (!window.TeacherNotifications) return;
-            const tId = currentTeacherId || (window.currentTeacher && window.currentTeacher.id) || 1;
-            const list = await window.TeacherNotifications.getForTeacher(tId);
+            const modal = document.getElementById('teacherNotificationsModal');
+            if (modal) modal.classList.remove('hidden');
 
+            const tId = currentTeacherId || (window.currentTeacher && window.currentTeacher.id) || 1;
             const container = document.getElementById('teacherNotificationsList');
             const countHeader = document.getElementById('teacherNotifCountHeader');
-            if (countHeader) {
-                const unread = list.filter(n => !n.is_read).length;
-                countHeader.innerText = `${list.length} إشعار (${unread} جديد)`;
-            }
 
-            if (!container) return;
-            container.innerHTML = '';
+            const renderList = (list) => {
+                if (countHeader) {
+                    const unread = list.filter(n => !n.is_read).length;
+                    countHeader.innerText = `${list.length} إشعار (${unread} جديد)`;
+                }
+                if (!container) return;
+                container.innerHTML = '';
 
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10 text-slate-400">
-                        <div class="text-3xl mb-2">🔕</div>
-                        <p class="font-bold text-xs text-slate-700">لا توجد إشعارات أو تحديثات حالياً.</p>
-                        <p class="text-[11px] text-slate-400 mt-1">ستصلك هنا تنبيهات فورية عند إضافة أو نقل أو إيقاف أي طالب في مجموعاتك.</p>
-                    </div>
-                `;
-            } else {
+                if (list.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-10 text-slate-400">
+                            <div class="text-3xl mb-2">🔕</div>
+                            <p class="font-bold text-xs text-slate-700">لا توجد إشعارات أو تحديثات حالياً.</p>
+                            <p class="text-[11px] text-slate-400 mt-1">ستصلك هنا تنبيهات فورية عند إضافة أو نقل أو إيقاف أي طالب في مجموعاتك.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
                 list.forEach(n => {
                     const cfg = window.TeacherNotifications.getVisualConfig(n.type);
                     const timeAgo = window.TeacherNotifications.formatTimeAgo(n.created_at);
@@ -2611,9 +2615,28 @@
                     `;
                     container.appendChild(item);
                 });
+            };
+
+            // Instant render cached items first
+            const cachedList = window.TeacherNotifications.getAll().filter(n => n.teacher_id === tId);
+            if (cachedList.length > 0) {
+                renderList(cachedList);
+            } else if (container) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <div class="animate-spin text-2xl mb-2">⏳</div>
+                        <p class="text-xs font-bold text-slate-600">جاري فحص وتحديث الإشعارات...</p>
+                    </div>
+                `;
             }
 
-            document.getElementById('teacherNotificationsModal').classList.remove('hidden');
+            // Sync fresh list from Supabase cloud
+            try {
+                const freshList = await window.TeacherNotifications.getForTeacher(tId);
+                renderList(freshList);
+            } catch(e) {
+                console.warn('Error loading fresh notifications:', e);
+            }
         }
 
         function markSingleTeacherNotifRead(id, btn) {

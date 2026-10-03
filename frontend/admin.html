@@ -16,7 +16,7 @@
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
     <script src="js/student_ledger.js?v=20261001_v2"></script>
-    <script src="js/teacher_notifications.js?v=20261003_v1"></script>
+    <script src="js/teacher_notifications.js?v=20261003_v2"></script>
     <script>
         // Access Guard for Admin
         (function checkAdminAuth() {
@@ -5223,9 +5223,9 @@
                 try {
                     if (typeof TeacherNotifications !== 'undefined') {
                         if (action === 'status_inactive') {
-                            affectedStudentsSnapshot.forEach(st => {
+                            for (const st of affectedStudentsSnapshot) {
                                 if (st.teacher_id) {
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: st.teacher_id,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -5235,12 +5235,12 @@
                                         message: `تم إيقاف حساب الطالب (${st.name}) من قِبل الإدارة.`
                                     });
                                 }
-                            });
+                            }
                         } else if (action === 'teacher') {
                             const newTeacherId = enrollPayload.teacher_id;
-                            affectedStudentsSnapshot.forEach(st => {
+                            for (const st of affectedStudentsSnapshot) {
                                 if (st.teacher_id && newTeacherId && st.teacher_id !== newTeacherId) {
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: st.teacher_id,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -5251,7 +5251,7 @@
                                     });
                                 }
                                 if (newTeacherId && st.teacher_id !== newTeacherId) {
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: newTeacherId,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -5261,24 +5261,55 @@
                                         message: `تم تعيين وإضافة الطالب (${st.name}) إلى مجموعتك.`
                                     });
                                 }
-                            });
+                            }
                         } else if (action === 'group') {
                             const newGroupId = updatePayload.qr_code;
-                            const newTeacherId = enrollPayload.teacher_id;
-                            affectedStudentsSnapshot.forEach(st => {
-                                const targetTid = newTeacherId || st.teacher_id;
-                                if (targetTid) {
-                                    TeacherNotifications.create({
-                                        teacherId: targetTid,
+                            let newTeacherId = enrollPayload.teacher_id;
+                            if (!newTeacherId) {
+                                const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(newGroupId) : null;
+                                if (meta && meta.teacher_id) newTeacherId = parseInt(meta.teacher_id);
+                            }
+                            if (!newTeacherId && window.bsAllStudents) {
+                                const match = window.bsAllStudents.find(x => (x.group_id === newGroupId || (x.group_ids && x.group_ids.includes(newGroupId))) && x.teacher_id);
+                                if (match) newTeacherId = parseInt(match.teacher_id);
+                            }
+                            for (const st of affectedStudentsSnapshot) {
+                                if (st.teacher_id && newTeacherId && st.teacher_id !== newTeacherId) {
+                                    // Old teacher gets student_removed notification
+                                    await TeacherNotifications.create({
+                                        teacherId: st.teacher_id,
+                                        studentName: st.name,
+                                        studentCode: st.code,
+                                        groupId: st.group_id,
+                                        type: 'student_removed',
+                                        title: 'نقل طالب من مجموعتك 🔄',
+                                        message: `تم نقل الطالب (${st.name}) من مجموعتك إلى المجموعة (${newGroupId}).`
+                                    });
+                                    // New teacher gets student_added notification
+                                    await TeacherNotifications.create({
+                                        teacherId: newTeacherId,
                                         studentName: st.name,
                                         studentCode: st.code,
                                         groupId: newGroupId,
-                                        type: 'student_transferred',
-                                        title: 'تحويل طالب لمجموعة جديدة 🔄',
-                                        message: `تم نقل الطالب (${st.name}) إلى المجموعة (${newGroupId}).`
+                                        type: 'student_added',
+                                        title: 'طالب جديد في مجموعتك ➕',
+                                        message: `تم تحويل الطالب (${st.name}) إلى مجموعتك (${newGroupId}).`
                                     });
+                                } else {
+                                    const tid = newTeacherId || st.teacher_id;
+                                    if (tid) {
+                                        await TeacherNotifications.create({
+                                            teacherId: tid,
+                                            studentName: st.name,
+                                            studentCode: st.code,
+                                            groupId: newGroupId,
+                                            type: 'student_transferred',
+                                            title: 'تحويل طالب لمجموعة جديدة 🔄',
+                                            message: `تم نقل الطالب (${st.name}) إلى المجموعة (${newGroupId}).`
+                                        });
+                                    }
                                 }
-                            });
+                            }
                         }
                     }
                 } catch(bulkNotifErr) {
@@ -5610,15 +5641,26 @@
                 // Notify teachers about changes
                 try {
                     if (typeof TeacherNotifications !== 'undefined') {
-                        const newTeacherId = teacherId ? parseInt(teacherId) : null;
+                        let newTeacherId = teacherId ? parseInt(teacherId) : null;
                         const studentName = name || (s ? s.name : 'طالب');
                         const sCode = code || (s ? s.student_code : '');
+
+                        // Check if new group has an assigned teacher
+                        let targetGroupTeacherId = newTeacherId;
+                        if (group) {
+                            const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(group) : null;
+                            if (meta && meta.teacher_id) targetGroupTeacherId = parseInt(meta.teacher_id);
+                            if (!targetGroupTeacherId && window.bsAllStudents) {
+                                const match = window.bsAllStudents.find(x => (x.group_id === group || (x.group_ids && x.group_ids.includes(group))) && x.teacher_id);
+                                if (match) targetGroupTeacherId = parseInt(match.teacher_id);
+                            }
+                        }
 
                         // 1. If student paused (status changed to inactive)
                         if (status === 'inactive' && prevStatus !== 'inactive') {
                             const targetTid = newTeacherId || prevTeacherId;
                             if (targetTid) {
-                                TeacherNotifications.create({
+                                await TeacherNotifications.create({
                                     teacherId: targetTid,
                                     studentName: studentName,
                                     studentCode: sCode,
@@ -5630,29 +5672,30 @@
                             }
                         }
 
-                        // 2. If teacher changed
-                        if (prevTeacherId && newTeacherId && prevTeacherId !== newTeacherId) {
-                            TeacherNotifications.create({
+                        // 2. If teacher changed or group changed with different teacher
+                        const finalNewTeacherId = targetGroupTeacherId || newTeacherId;
+                        if (prevTeacherId && finalNewTeacherId && prevTeacherId !== finalNewTeacherId) {
+                            await TeacherNotifications.create({
                                 teacherId: prevTeacherId,
                                 studentName: studentName,
                                 studentCode: sCode,
                                 groupId: prevGroup,
                                 type: 'student_removed',
                                 title: 'نقل طالب من مجموعتك 🔄',
-                                message: `تم نقل الطالب (${studentName}) من مجموعتك إلى معلم آخر.`
+                                message: `تم نقل الطالب (${studentName}) من مجموعتك إلى المجموعة (${group || '—'}).`
                             });
-                            TeacherNotifications.create({
-                                teacherId: newTeacherId,
+                            await TeacherNotifications.create({
+                                teacherId: finalNewTeacherId,
                                 studentName: studentName,
                                 studentCode: sCode,
                                 groupId: group || prevGroup,
                                 type: 'student_added',
                                 title: 'طالب جديد في مجموعتك ➕',
-                                message: `تم تعيين وإضافة الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
+                                message: `تم تحويل وإضافة الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
                             });
-                        } else if (!prevTeacherId && newTeacherId) {
-                            TeacherNotifications.create({
-                                teacherId: newTeacherId,
+                        } else if (!prevTeacherId && finalNewTeacherId) {
+                            await TeacherNotifications.create({
+                                teacherId: finalNewTeacherId,
                                 studentName: studentName,
                                 studentCode: sCode,
                                 groupId: group || prevGroup,
@@ -5660,8 +5703,8 @@
                                 title: 'طالب جديد في مجموعتك ➕',
                                 message: `تم تعيين الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
                             });
-                        } else if (prevTeacherId && !newTeacherId) {
-                            TeacherNotifications.create({
+                        } else if (prevTeacherId && !finalNewTeacherId) {
+                            await TeacherNotifications.create({
                                 teacherId: prevTeacherId,
                                 studentName: studentName,
                                 studentCode: sCode,
@@ -5671,7 +5714,7 @@
                                 message: `تم إلغاء تعيين الطالب (${studentName}) من مجموعتك.`
                             });
                         } else if (prevTeacherId && group && prevGroup && group !== prevGroup) {
-                            TeacherNotifications.create({
+                            await TeacherNotifications.create({
                                 teacherId: prevTeacherId,
                                 studentName: studentName,
                                 studentCode: sCode,
@@ -6261,12 +6304,16 @@
                             const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(targetGroup) : null;
                             if (meta && meta.teacher_id) targetGroupTeacherId = parseInt(meta.teacher_id);
                         }
+                        if (!targetGroupTeacherId && window.bsAllStudents) {
+                            const match = window.bsAllStudents.find(x => (x.group_id === targetGroup || (x.group_ids && x.group_ids.includes(targetGroup))) && x.teacher_id);
+                            if (match) targetGroupTeacherId = parseInt(match.teacher_id);
+                        }
 
-                        affectedStudentsSnapshot.forEach(st => {
+                        for (const st of affectedStudentsSnapshot) {
                             if (keepExisting) {
                                 const tid = targetGroupTeacherId || st.teacher_id;
                                 if (tid) {
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: tid,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -6279,7 +6326,7 @@
                             } else {
                                 const newTid = targetGroupTeacherId || st.teacher_id;
                                 if (st.teacher_id && newTid && st.teacher_id !== newTid) {
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: st.teacher_id,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -6288,7 +6335,7 @@
                                         title: 'نقل طالب من مجموعتك 🔄',
                                         message: `تم نقل الطالب (${st.name}) من مجموعتك إلى (${targetGroup}).`
                                     });
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: newTid,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -6298,7 +6345,7 @@
                                         message: `تم تحويل الطالب (${st.name}) إلى مجموعتك (${targetGroup}).`
                                     });
                                 } else if (newTid) {
-                                    TeacherNotifications.create({
+                                    await TeacherNotifications.create({
                                         teacherId: newTid,
                                         studentName: st.name,
                                         studentCode: st.code,
@@ -6309,7 +6356,7 @@
                                     });
                                 }
                             }
-                        });
+                        }
                     }
                 } catch(notifErr) {
                     console.warn('[AddExistingStudents] Teacher notification error:', notifErr);
@@ -6553,7 +6600,7 @@
                 // Notify assigned teacher
                 if (typeof TeacherNotifications !== 'undefined' && teacherId) {
                     try {
-                        TeacherNotifications.create({
+                        await TeacherNotifications.create({
                             teacherId: teacherId,
                             studentName: name,
                             studentCode: code,

@@ -57,7 +57,7 @@
                 try {
                     const client = window.MonirDB.getClient();
                     if (client) {
-                        await client.from('notifications').insert([{
+                        const { error: insErr } = await client.from('notifications').insert([{
                             student_id: null,
                             course_name: groupId || 'إشعار المعلم',
                             title: title,
@@ -67,6 +67,9 @@
                             is_read: 0,
                             created_at: notif.created_at
                         }]);
+                        if (insErr) {
+                            console.warn('[TeacherNotifications] Supabase insert error:', insErr);
+                        }
                     }
                 } catch(err) {
                     console.warn('[TeacherNotifications] Supabase sync notice:', err);
@@ -115,6 +118,9 @@
                                         type: notifType,
                                         title: row.title,
                                         message: row.message,
+                                        student_name: row.student_name || '',
+                                        student_code: row.student_code || '',
+                                        group_id: row.course_name || '',
                                         created_at: row.created_at || new Date().toISOString(),
                                         is_read: Boolean(row.is_read)
                                     });
