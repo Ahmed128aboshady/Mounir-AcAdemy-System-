@@ -567,7 +567,7 @@
                         </div>
                         <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
                             <span class="text-slate-400 font-bold block mb-1">رصيد الحصص المتاح</span>
-                            <strong class="text-sm font-bold text-emerald-700 block" id="detailsRemainingCredits">8 حصص متبقية</strong>
+                            <strong class="text-sm font-bold text-emerald-700 block" id="detailsRemainingCredits">4 حصص متبقية</strong>
                         </div>
                     </div>
                 </section>
@@ -977,30 +977,30 @@
             <!-- Packages Selection -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs" id="paymobPackageOptions">
                 <!-- Group Package Option (400 EGP) -->
-                <label id="pkgCard_group" class="border-2 border-indigo-600 bg-indigo-50/70 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition shadow-2xs relative">
-                    <input type="radio" name="paymobPkg" value="group" checked class="hidden" onchange="selectPaymobPackage('group', 400, 'باقة 8 محاضرات شهرياً (مجموعة)')">
+                <label id="pkgCard_group" class="border-2 border-indigo-600 bg-indigo-50/70 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition shadow-2xs relative" onclick="selectPaymobPackage('group', 400, 'باقة 4 محاضرات شهرياً (مجموعة)')">
+                    <input type="radio" name="paymobPkg" value="group" checked class="hidden" onchange="selectPaymobPackage('group', 400, 'باقة 4 محاضرات شهرياً (مجموعة)')">
                     <span class="absolute top-2.5 left-2.5 bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full">الأكثر طلباً</span>
                     <div>
                         <strong class="block text-slate-900 font-black text-sm">باقة المجموعات</strong>
-                        <span class="text-slate-500 text-[11px] block mt-0.5">8 محاضرات شهرياً مع المجموعة</span>
+                        <span class="text-slate-500 text-[11px] block mt-0.5">4 محاضرات شهرياً مع المجموعة</span>
                     </div>
                     <div class="mt-3 pt-2 border-t border-indigo-100 flex justify-between items-baseline">
                         <span class="text-indigo-950 font-black text-base">400.00 <small class="text-xs font-bold text-slate-600">ج.م</small></span>
-                        <span class="text-[10px] text-emerald-700 font-bold">50 ج.م / حصة</span>
+                        <span class="text-[10px] text-emerald-700 font-bold">100 ج.م / حصة</span>
                     </div>
                 </label>
 
                 <!-- Private Package Option (1000 EGP) -->
-                <label id="pkgCard_private" class="border-2 border-slate-200 hover:border-slate-300 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition relative">
-                    <input type="radio" name="paymobPkg" value="private" class="hidden" onchange="selectPaymobPackage('private', 1000, 'باقة 8 محاضرات شهرياً (برايفت)')">
+                <label id="pkgCard_private" class="border-2 border-slate-200 hover:border-slate-300 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition relative" onclick="selectPaymobPackage('private', 1000, 'باقة 4 محاضرات شهرياً (برايفت)')">
+                    <input type="radio" name="paymobPkg" value="private" class="hidden" onchange="selectPaymobPackage('private', 1000, 'باقة 4 محاضرات شهرياً (برايفت)')">
                     <span class="absolute top-2.5 left-2.5 bg-amber-500 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded-full">VIP فردي</span>
                     <div>
                         <strong class="block text-slate-900 font-black text-sm">باقة برايفت VIP</strong>
-                        <span class="text-slate-500 text-[11px] block mt-0.5">8 محاضرات فردية خاصة (واحد لواحد)</span>
+                        <span class="text-slate-500 text-[11px] block mt-0.5">4 محاضرات فردية خاصة (واحد لواحد)</span>
                     </div>
                     <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between items-baseline">
                         <span class="text-slate-900 font-black text-base">1000.00 <small class="text-xs font-bold text-slate-600">ج.م</small></span>
-                        <span class="text-[10px] text-purple-700 font-bold">125 ج.م / حصة</span>
+                        <span class="text-[10px] text-purple-700 font-bold">250 ج.م / حصة</span>
                     </div>
                 </label>
             </div>
@@ -1161,11 +1161,11 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">باقة التجديد:</span>
-                    <strong class="text-blue-900 font-bold font-sans" id="receiptPackageName">باقة الـ 8 محاضرات شهرياً (جروب)</strong>
+                    <strong class="text-blue-900 font-bold font-sans" id="receiptPackageName">باقة الـ 4 محاضرات شهرياً (جروب)</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">الحصص المطلوب شحنها:</span>
-                    <strong class="text-emerald-700 font-bold font-sans" id="receiptCreditsAdded">+8 حصص جديدة</strong>
+                    <strong class="text-emerald-700 font-bold font-sans" id="receiptCreditsAdded">+4 حصص جديدة</strong>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-sans text-slate-500">المبلغ المطلوب:</span>

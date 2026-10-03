@@ -2910,10 +2910,45 @@ function updateWhatsAppTransferLink() {
     }
 }
 
+function selectPaymobPackage(pkgType, price, name) {
+    const pkgId = (pkgType === 'private') ? 'private_4_60' : 'group_4';
+    selectRenewalPackage(pkgId);
+}
+window.selectPaymobPackage = selectPaymobPackage;
+
 function selectRenewalPackage(pkgId) {
-    const pkg = RENEWAL_PACKAGES.find(p => p.id === pkgId);
-    if (!pkg) return;
-    selectedRenewalPackageId = pkgId;
+    if (pkgId === 'group') pkgId = 'group_4';
+    if (pkgId === 'private') pkgId = 'private_4_60';
+    const pkg = RENEWAL_PACKAGES.find(p => p.id === pkgId) || RENEWAL_PACKAGES[0];
+    selectedRenewalPackageId = pkg.id;
+
+    // Update Visual State on Cards
+    const groupCard = document.getElementById('pkgCard_group') || document.getElementById('pkgCard_group_4');
+    const privCard = document.getElementById('pkgCard_private') || document.getElementById('pkgCard_private_4_60');
+
+    if (pkg.type === 'group') {
+        if (groupCard) {
+            groupCard.className = 'border-2 border-indigo-600 bg-indigo-50/70 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition shadow-2xs relative';
+            const rad = groupCard.querySelector('input[type="radio"]');
+            if (rad) rad.checked = true;
+        }
+        if (privCard) {
+            privCard.className = 'border-2 border-slate-200 hover:border-slate-300 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition relative';
+            const rad = privCard.querySelector('input[type="radio"]');
+            if (rad) rad.checked = false;
+        }
+    } else {
+        if (privCard) {
+            privCard.className = 'border-2 border-indigo-600 bg-indigo-50/70 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition shadow-2xs relative';
+            const rad = privCard.querySelector('input[type="radio"]');
+            if (rad) rad.checked = true;
+        }
+        if (groupCard) {
+            groupCard.className = 'border-2 border-slate-200 hover:border-slate-300 p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between transition relative';
+            const rad = groupCard.querySelector('input[type="radio"]');
+            if (rad) rad.checked = false;
+        }
+    }
 
     // Update Visual State on Cards
     RENEWAL_PACKAGES.forEach(p => {
