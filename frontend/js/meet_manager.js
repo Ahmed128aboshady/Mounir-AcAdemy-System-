@@ -182,7 +182,12 @@
         "عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
         "عبد الرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
         "أ. عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "أ. عبد الرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
         "الشيخ عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "الشيخ عبد الرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "استاذ عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "أستاذ عبدالرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
+        "أستاذ عبد الرحمن وليد": "https://meet.google.com/etc-xgjo-vtk",
     };
 
     // Teachers currently on leave (الأحمر في الشيت: معلمين في إجازة حالياً)
@@ -535,13 +540,30 @@
         "G384": "https://meet.google.com/cyf-smdb-sqo",
         // عبدالرحمن وليد (ID 41)
         "G114": "https://meet.google.com/etc-xgjo-vtk",
+        "G367": "https://meet.google.com/etc-xgjo-vtk",
         "G401": "https://meet.google.com/etc-xgjo-vtk",
         "G402": "https://meet.google.com/etc-xgjo-vtk",
-        "G408": "https://meet.google.com/etc-xgjo-vtk"
+        "G408": "https://meet.google.com/etc-xgjo-vtk",
+        "G457": "https://meet.google.com/etc-xgjo-vtk"
 };
 
     // Initialize global registry
     window.GROUP_MEET_LINKS = Object.assign(OFFICIAL_GROUP_MEET_LINKS, window.GROUP_MEET_LINKS || {});
+
+    // Auto-clean any stale cache for teacher 41 groups
+    try {
+        const stored = getStoredLinks();
+        let changed = false;
+        ['G114', 'G367', 'G401', 'G402', 'G408', 'G457'].forEach(gid => {
+            if (stored[gid] && stored[gid] !== 'https://meet.google.com/etc-xgjo-vtk') {
+                delete stored[gid];
+                changed = true;
+            }
+        });
+        if (changed) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+        }
+    } catch(e) {}
 
     // Get all custom overrides from localStorage
     function getStoredLinks() {
@@ -572,22 +594,8 @@
     // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
     window.getGroupMeetUrl = function(groupId, teacherIdOrName) {
         const cleanGid = groupId ? String(groupId).trim() : '';
-        const stored = getStoredLinks();
 
-        // 1. User/Teacher/Admin override in localStorage (ignore invalid or stale Jitsi fallback)
-        if (cleanGid && stored[cleanGid]) {
-            const stVal = stored[cleanGid].trim();
-            if (stVal.startsWith('http') && !stVal.includes('meet.jit.si/MounirAcademy_Group_')) {
-                return stVal;
-            }
-        }
-
-        // 2. Pre-configured official Google Meet rooms by Group ID
-        if (cleanGid && window.GROUP_MEET_LINKS && window.GROUP_MEET_LINKS[cleanGid]) {
-            return window.GROUP_MEET_LINKS[cleanGid];
-        }
-
-        // 3. Match via Teacher ID or Teacher Name if provided
+        // 1. Direct Teacher ID or Teacher Name match (Priority to assigned Teacher's Google Meet Room)
         if (teacherIdOrName) {
             const cleanT = String(teacherIdOrName).trim();
             // Direct match
@@ -618,6 +626,20 @@
                         }
                     }
                 }
+            }
+        }
+
+        // 2. Pre-configured official Google Meet rooms by Group ID
+        if (cleanGid && window.GROUP_MEET_LINKS && window.GROUP_MEET_LINKS[cleanGid]) {
+            return window.GROUP_MEET_LINKS[cleanGid];
+        }
+
+        // 3. User/Teacher custom override in localStorage
+        const stored = getStoredLinks();
+        if (cleanGid && stored[cleanGid]) {
+            const stVal = stored[cleanGid].trim();
+            if (stVal.startsWith('http') && !stVal.includes('meet.jit.si/MounirAcademy_Group_')) {
+                return stVal;
             }
         }
 

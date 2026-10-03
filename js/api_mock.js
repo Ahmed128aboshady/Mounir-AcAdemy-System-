@@ -763,7 +763,7 @@
 
                 if (!groupsMap[gid]) {
                     const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                        ? window.getGroupMeetUrl(gid)
+                        ? window.getGroupMeetUrl(gid, tid || teacher.name)
                         : ((DB.group_meet_links && DB.group_meet_links[gid]) || ('https://meet.google.com/mnr-' + gid.toLowerCase().replace(/[^a-z0-9]/g, '')));
                     groupsMap[gid] = {
                         group_id: gid,
