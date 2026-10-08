@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بودكاست «من يدلني؟» - مكتبة الحلقات والتفسير للأطفال</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Tajawal', sans-serif;
+    }
+    .quran-text {
+      font-family: 'Amiri', serif;
+      line-height: 2.2;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen py-8 px-4 md:px-8">
+
+  <div class="max-w-5xl mx-auto space-y-8">
+
+    <div class="flex items-center justify-between gap-4 pb-2">
+      <a href="student.html" class="inline-flex items-center gap-2 bg-white text-slate-800 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold shadow-xs transition">
+        <span>←</span>
+        <span>العودة إلى لوحة تحكم الطالب</span>
+      </a>
+      <span class="text-xs text-slate-500 font-bold hidden sm:inline">أكاديمية منير • مسار التفسير والتدبر للأطفال</span>
+    </div>
+
+    
+    <!-- Hero Header -->
+    <header class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white rounded-3xl p-6 md:p-10 shadow-xl relative overflow-hidden text-center">
+      <div class="relative z-10 space-y-3">
+        <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide">
+          <span>🎙️</span>
+          <span>سلسلة بودكاست اليافعين والأطفال</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-black tracking-tight">بودكاست «مَن يَدُلُّنِي؟»</h1>
+        <p class="text-emerald-100 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          رحلة ممتعة مع <strong class="text-amber-300">آدم</strong> و<strong class="text-amber-300">المعلم منير</strong> لنتعلم كيف يوجّه القرآن قراراتنا اليومية في عالم الشاشات والأصدقاء.
+        </p>
+      </div>
+      <!-- Decorative circles -->
+      <div class="absolute -top-16 -left-16 w-56 h-56 bg-white/10 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-16 -right-16 w-56 h-56 bg-emerald-400/20 rounded-full blur-2xl"></div>
+    </header>
+
+    <!-- Episodes Navigation Tabs -->
+    <nav class="flex flex-wrap items-center justify-center gap-2 md:gap-3 p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
+      <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 bg-emerald-600 text-white shadow-md">
+        <span>📖</span>
+        <span>الحلقة 1: كتاب حكيم</span>
+      </button>
+      <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+        <span>📱</span>
+        <span>الحلقة 2: أذنك وقلبك</span>
+      </button>
+      <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+        <span>🔍</span>
+        <span>الحلقة 3: مين قالك؟</span>
+      </button>
+      <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+        <span>💡</span>
+        <span>الحلقة 4: إيه اللي يخليك حكيم؟</span>
+      </button>
+    </nav>
+
+    <!-- ==================== EPISODE 1 ==================== -->
+    <section id="episode-1" class="episode-content space-y-6">
+      <!-- Player Card -->
+      <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-emerald-100 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <span class="text-xs font-extrabold uppercase px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full">الحلقة الأولى</span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 mt-2">كتاب حكيم… يغيّر اختياراتي</h2>
+            <p class="text-slate-500 text-sm mt-1">هل القرآن مجرد حفظ معلومات؟ أم نور يوجه اختياراتنا اليومية؟</p>
+          </div>
+          <div class="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-4 py-2 rounded-2xl text-sm font-semibold">
+            <span>⏱️</span>
+            <span>استمع للملف الصوتي</span>
+          </div>
+        </div>
+
+        <!-- Custom Audio Player -->
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 md:p-6 border border-emerald-200">
+          <div class="flex items-center gap-4">
+            <button onclick="toggleAudio('audio-1', this)" class="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shadow-lg hover:bg-emerald-700 hover:scale-105 active:scale-95 transition-all">
+              ▶
+            </button>
+            <div class="flex-1 space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-600">
+                <span id="time-current-1">00:00</span>
+                <span class="text-emerald-700">الحلقة 1 • استماع</span>
+                <span id="time-duration-1">--:--</span>
+              </div>
+              <input type="range" id="seek-1" value="0" class="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" onchange="seekAudio('audio-1', this.value)">
+            </div>
+            <audio id="audio-1" src="audio/podcast_ep1.mp3" ontimeupdate="updateProgress('audio-1', 1)" onloadedmetadata="initAudio('audio-1', 1)"></audio>
+          </div>
+        </div>
+
+        <!-- Quran Verse Card -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 md:p-6 space-y-3">
+          <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+            <span>✨</span>
+            <span>آيات الحلقة (سورة لقمان):</span>
+          </div>
+          <p class="quran-text text-xl md:text-2xl text-amber-950 font-bold text-center py-2 px-3 bg-white/70 rounded-xl border border-amber-100 shadow-inner">
+            ﴿تِلْكَ آيَاتُ الْكِتَابِ الْحَكِيمِ * هُدًى وَرَحْمَةً لِّلْمُحْسِنِينَ * الَّذِينَ يُقِيمُونَ الصَّلَاةَ وَيُؤْتُونَ الزَّكَاةَ وَهُم بِالْآخِرَةِ هُمْ يُوقِنُونَ * أُولَٰئِكَ عَلَىٰ هُدًى مِّن رَّبِّهِمْ ۖ وَأُولَٰئِكَ هُمُ الْمُفْلِحُونَ﴾
+          </p>
+          <div class="text-sm text-amber-900 leading-relaxed space-y-1.5 pt-2">
+            <p><strong>💡 التفسير المبسط للأطفال:</strong></p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 pr-2">
+              <li><strong>الكتاب الحكيم:</strong> القرآن ليس كتاب قصص ومعلومات نقرؤها فقط، بل كتاب يرشدنا للقرار الحكيم في كل لحظة.</li>
+              <li><strong>هدى ورحمة للمحسنين:</strong> المحسنون ليسوا ملائكة لا يخطئون، بل هم أولاد وبنات يجتهدون في الصلاة وعمل الخير، وإذا غلطوا يعودون سريعاً إلى الصح.</li>
+              <li><strong>اليقين:</strong> أن تكون متأكداً أن الله يراك ويحب لك الخير، فتستطيع أن تقول "لأ" لأي شيء يغضب الله حتى لو أصحابك كلهم قالوا لك "كمل لعب وسيب الصلاة".</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Takeaways & Highlights -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+              <span>🎯</span>
+              <span>رسالة الحلقة للبطل الصغير:</span>
+            </h4>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              السؤال الحقيقي ليس فقط: <em>"أنا حافظ كام آية؟"</em> بل: <em>"الآيات اللي أنا حافظها… بتخليني أختار إيه لما أكون محتار؟"</em>
+            </p>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-emerald-900 flex items-center gap-2 text-base">
+              <span>🌿</span>
+              <span>جملة نحفظها في قلوبنا:</span>
+            </h4>
+            <p class="text-sm text-emerald-800 font-bold leading-relaxed">
+              "القرآن لا يعلّمني فقط ما هو الحق… بل يهديني كيف أختار على أساسه."
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== EPISODE 2 ==================== -->
+    <section id="episode-2" class="episode-content hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-cyan-100 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <span class="text-xs font-extrabold uppercase px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full">الحلقة الثانية</span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 mt-2">أذنك… وقلبك… وطريقك</h2>
+            <p class="text-slate-500 text-sm mt-1">ليه الهاتف بيسرق وقتنا؟ ومين اللي بيختار طريقك… أنت ولا الشاشة؟</p>
+          </div>
+          <div class="flex items-center gap-2 text-cyan-700 bg-cyan-50 px-4 py-2 rounded-2xl text-sm font-semibold">
+            <span>⏱️</span>
+            <span>استمع للملف الصوتي</span>
+          </div>
+        </div>
+
+        <!-- Custom Audio Player -->
+        <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-2xl p-4 md:p-6 border border-cyan-200">
+          <div class="flex items-center gap-4">
+            <button onclick="toggleAudio('audio-2', this)" class="w-14 h-14 rounded-full bg-cyan-600 text-white flex items-center justify-center text-xl shadow-lg hover:bg-cyan-700 hover:scale-105 active:scale-95 transition-all">
+              ▶
+            </button>
+            <div class="flex-1 space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-600">
+                <span id="time-current-2">00:00</span>
+                <span class="text-cyan-700">الحلقة 2 • استماع</span>
+                <span id="time-duration-2">--:--</span>
+              </div>
+              <input type="range" id="seek-2" value="0" class="w-full h-2 bg-cyan-200 rounded-lg appearance-none cursor-pointer accent-cyan-600" onchange="seekAudio('audio-2', this.value)">
+            </div>
+            <audio id="audio-2" src="audio/podcast_ep2.mp3" ontimeupdate="updateProgress('audio-2', 2)" onloadedmetadata="initAudio('audio-2', 2)"></audio>
+          </div>
+        </div>
+
+        <!-- Quran Verse Card -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 md:p-6 space-y-3">
+          <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+            <span>✨</span>
+            <span>آيات الحلقة والتفسير:</span>
+          </div>
+          <div class="space-y-3">
+            <p class="quran-text text-xl md:text-2xl text-amber-950 font-bold text-center py-2 px-3 bg-white/70 rounded-xl border border-amber-100 shadow-inner">
+              ﴿وَمِنَ النَّاسِ مَن يَشْتَرِي لَهْوَ الْحَدِيثِ لِيُضِلَّ عَن سَبِيلِ اللَّهِ بِغَيْرِ عِلْمٍ﴾
+            </p>
+            <p class="quran-text text-xl md:text-2xl text-amber-950 font-bold text-center py-2 px-3 bg-white/70 rounded-xl border border-amber-100 shadow-inner">
+              ﴿وَمَن يُسْلِمْ وَجْهَهُ إِلَى اللَّهِ وَهُوَ مُحْسِنٌ فَقَدِ اسْتَمْسَكَ بِالْعُرْوَةِ الْوُثْقَىٰ﴾
+            </p>
+          </div>
+          <div class="text-sm text-amber-900 leading-relaxed space-y-1.5 pt-2">
+            <p><strong>💡 التفسير المبسط للأطفال:</strong></p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 pr-2">
+              <li><strong>يشتري لهو الحديث:</strong> الثمن مش شرط يكون فلوس! لما تضيع ساعتين من وقتك على فيديوهات تافهة وتفوّت الصلاة، أنت بتدفع من أغلى عملة عندك: وقتك وانتباهك.</li>
+              <li><strong>التقليد الأعمى:</strong> مش معنى إن كل أصحابك في المدرسة أو الجيم بيعملوا حاجة غلط إنها بقت صح!</li>
+              <li><strong>العروة الوثقى:</strong> الحبل المتين الثابت الذي لا ينقطع أبداً هو طاعة الله؛ لأن كلام ربنا ثابت لا يتغير، بينما تريندات الشاشات تتغير كل ثانية.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+              <span>🎯</span>
+              <span>سؤال تسأله لنفسك قبل ما تسرح:</span>
+            </h4>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              "أنا بختار الفيديو ده بوعي؟ ولا بتسحب من خوارزميات الهاتف؟ وبمشي ورا الصح ولا لمجرد إن الكل ماشي كده؟"
+            </p>
+          </div>
+          <div class="bg-cyan-50 border border-cyan-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-cyan-900 flex items-center gap-2 text-base">
+              <span>🌿</span>
+              <span>جملة نتذكرها دائماً:</span>
+            </h4>
+            <p class="text-sm text-cyan-800 font-bold leading-relaxed">
+              "مش كل حاجة بتشدني تستحقني… ومش كل الناس ماشية في طريق يبقى لازم أمشي معاهم."
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== EPISODE 3 ==================== -->
+    <section id="episode-3" class="episode-content hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-purple-100 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <span class="text-xs font-extrabold uppercase px-3 py-1 bg-purple-100 text-purple-800 rounded-full">الحلقة الثالثة</span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 mt-2">مين قالك؟</h2>
+            <p class="text-slate-500 text-sm mt-1">هل كثرة المشاهدات والثقة في الكلام تعني أن صاحبه على حق؟</p>
+          </div>
+          <div class="flex items-center gap-2 text-purple-700 bg-purple-50 px-4 py-2 rounded-2xl text-sm font-semibold">
+            <span>⏱️</span>
+            <span>استمع للملف الصوتي</span>
+          </div>
+        </div>
+
+        <!-- Custom Audio Player -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 md:p-6 border border-purple-200">
+          <div class="flex items-center gap-4">
+            <button onclick="toggleAudio('audio-3', this)" class="w-14 h-14 rounded-full bg-purple-600 text-white flex items-center justify-center text-xl shadow-lg hover:bg-purple-700 hover:scale-105 active:scale-95 transition-all">
+              ▶
+            </button>
+            <div class="flex-1 space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-600">
+                <span id="time-current-3">00:00</span>
+                <span class="text-purple-700">الحلقة 3 • استماع</span>
+                <span id="time-duration-3">--:--</span>
+              </div>
+              <input type="range" id="seek-3" value="0" class="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600" onchange="seekAudio('audio-3', this.value)">
+            </div>
+            <audio id="audio-3" src="audio/podcast_ep3.mp3" ontimeupdate="updateProgress('audio-3', 3)" onloadedmetadata="initAudio('audio-3', 3)"></audio>
+          </div>
+        </div>
+
+        <!-- Quran Verse Card -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 md:p-6 space-y-3">
+          <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+            <span>✨</span>
+            <span>آيات التفكر وطلب الحجة:</span>
+          </div>
+          <p class="quran-text text-xl md:text-2xl text-amber-950 font-bold text-center py-2 px-3 bg-white/70 rounded-xl border border-amber-100 shadow-inner">
+            ﴿خَلَقَ السَّمَاوَاتِ بِغَيْرِ عَمَدٍ تَرَوْنَهَا ۖ وَأَلْقَىٰ فِي الْأَرْضِ رَوَاسِيَ أَن تَمِيدَ بِكُمْ﴾<br>
+            ﴿هَٰذَا خَلْقُ اللَّهِ فَأَرُونِي مَاذَا خَلَقَ الَّذِينَ مِن دُونِهِ﴾
+          </p>
+          <div class="text-sm text-amber-900 leading-relaxed space-y-1.5 pt-2">
+            <p><strong>💡 التفسير وقصة الصحابي للأطفال:</strong></p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 pr-2">
+              <li><strong>قصة الطفيل بن عمرو:</strong> لما جاء مكة قالت له قريش: "لا تسمع لمحمد فإنه ساحر!" في الأول حط قطن في ودانه، بعدين فكر وقال: أنا رجل عاقل، ليه أسمع كلام الناس وما أحكمش بنفسي؟ فلما سمع القرآن أسلم فوراً!</li>
+              <li><strong>القرآن يدعونا للتفكير:</strong> ربنا في الآيات بيطلب مننا نبص في السماء والأرض ونفكر بالدليل، ولا نتبع أي كلام دون برهان.</li>
+              <li><strong>لو قابلتك شبهة:</strong> لا تخف، ولا تدخل في جدال فارغ.. اكتب سؤالك وروح اسأل معلمك أو شيخاً تثق فيه.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+              <span>🎯</span>
+              <span>قاعدة الأذكياء:</span>
+            </h4>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              مش كل فيديو جاب ملايين المشاهدات وصاحبه واثق من نفسه يبقى كلامه صح.. الحق يحتاج إلى دليل مش كاريزما وشهرة.
+            </p>
+          </div>
+          <div class="bg-purple-50 border border-purple-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-purple-900 flex items-center gap-2 text-base">
+              <span>🌿</span>
+              <span>السؤال السحري:</span>
+            </h4>
+            <p class="text-sm text-purple-800 font-bold leading-relaxed">
+              "قبل ما أخاف أو أصدق أو أنقل… أتوقف وأسأل: مين قالك؟ وإيه الدليل؟"
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== EPISODE 4 ==================== -->
+    <section id="episode-4" class="episode-content hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-amber-200 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <span class="text-xs font-extrabold uppercase px-3 py-1 bg-amber-100 text-amber-800 rounded-full">الحلقة الرابعة</span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-800 mt-2">إيه اللي يخليك حكيم؟</h2>
+            <p class="text-slate-500 text-sm mt-1">الفرق بين أن تعرف المعلومة… وبين أن تطبقها وقت الاختبار الحقيقي!</p>
+          </div>
+          <div class="flex items-center gap-2 text-amber-800 bg-amber-50 px-4 py-2 rounded-2xl text-sm font-semibold">
+            <span>⏱️</span>
+            <span>استمع للملف الصوتي</span>
+          </div>
+        </div>
+
+        <!-- Custom Audio Player -->
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 md:p-6 border border-amber-200">
+          <div class="flex items-center gap-4">
+            <button onclick="toggleAudio('audio-4', this)" class="w-14 h-14 rounded-full bg-amber-600 text-white flex items-center justify-center text-xl shadow-lg hover:bg-amber-700 hover:scale-105 active:scale-95 transition-all">
+              ▶
+            </button>
+            <div class="flex-1 space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-600">
+                <span id="time-current-4">00:00</span>
+                <span class="text-amber-800">الحلقة 4 • استماع</span>
+                <span id="time-duration-4">--:--</span>
+              </div>
+              <input type="range" id="seek-4" value="0" class="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer accent-amber-600" onchange="seekAudio('audio-4', this.value)">
+            </div>
+            <audio id="audio-4" src="audio/podcast_ep4.mp3" ontimeupdate="updateProgress('audio-4', 4)" onloadedmetadata="initAudio('audio-4', 4)"></audio>
+          </div>
+        </div>
+
+        <!-- Quran Verse Card -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 md:p-6 space-y-3">
+          <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+            <span>✨</span>
+            <span>حكمة لقمان وبر الوالدين:</span>
+          </div>
+          <p class="quran-text text-xl md:text-2xl text-amber-950 font-bold text-center py-2 px-3 bg-white/70 rounded-xl border border-amber-100 shadow-inner">
+            ﴿وَلَقَدْ آتَيْنَا لُقْمَانَ الْحِكْمَةَ أَنِ اشْكُرْ لِلَّهِ﴾<br>
+            ﴿وَوَصَّيْنَا الْإِنسَانَ بِوَالِدَيْهِ حَمَلَتْهُ أُمُّهُ وَهْنًا عَلَىٰ وَهْنٍ﴾
+          </p>
+          <div class="text-sm text-amber-900 leading-relaxed space-y-1.5 pt-2">
+            <p><strong>💡 التفسير المبسط للأطفال:</strong></p>
+            <ul class="list-disc list-inside space-y-1 text-slate-700 pr-2">
+              <li><strong>الحكمة شكر لله:</strong> الحكمة تبدأ بأن تعرف نعم الله عليك وتشكر عليها، ومن شكر النعمة أن تعرف فضل والديك اللذين تعبا من أجلك.</li>
+              <li><strong>وقت الامتحان الحقيقي:</strong> كلنا عارفين إن بر الوالدين فرض وصح، لكن الحكمة الحقيقية تظهر لما مامتك تنادي عليك وأنت في نص الماتش أو اللعبة.. وتوقف اللعبة وتبتسم وتروح تساعدها فوراً!</li>
+              <li><strong>الاعتراف بعدم المعرفة:</strong> لما حد يسألك عن حاجة ومتعرفهاش، من الحكمة أن تقول: "مش عارف.. هسأل وأتعلم" بدل أن تؤلف من رأسك.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+              <span>🎯</span>
+              <span>السؤال اللي تسأله لنفسك لما تغضب:</span>
+            </h4>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              "لو أنا ولد حكيم… هعمل إيه في الموقف ده دلوقتي؟ هرد بصوت عالي ولا هتصرف بهدوء وأكسب رضا ربنا وأهلي؟"
+            </p>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl space-y-2">
+            <h4 class="font-extrabold text-amber-900 flex items-center gap-2 text-base">
+              <span>🌿</span>
+              <span>تعريف الحكيم الصغير:</span>
+            </h4>
+            <p class="text-sm text-amber-800 font-bold leading-relaxed">
+              "الحكيم مش اللي يعرف كل حاجة… الحكيم اللي يعرف الحق، ويحاول يعمل بيه لما ييجي وقت الاختيار."
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-slate-400 text-xs py-6 space-y-2">
+      <p>بودكاست «من يدلني؟» • مخصص لتربية الأبناء واليافعين على هداية القرآن الكريم</p>
+      <p>الملفات الصوتية محفوظة ومرفقة بصيغة WAV نقية ومضبوطة.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    function switchTab(num) {
+      document.querySelectorAll('.episode-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('episode-' + num).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 text-slate-600 hover:bg-slate-100';
+      });
+
+      const activeBtn = document.getElementById('tab-btn-' + num);
+      if (num === 1) activeBtn.className = 'tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 bg-emerald-600 text-white shadow-md';
+      if (num === 2) activeBtn.className = 'tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 bg-cyan-600 text-white shadow-md';
+      if (num === 3) activeBtn.className = 'tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 bg-purple-600 text-white shadow-md';
+      if (num === 4) activeBtn.className = 'tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2 bg-amber-600 text-white shadow-md';
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+    }
+
+    function initAudio(audioId, num) {
+      const audio = document.getElementById(audioId);
+      const dur = document.getElementById('time-duration-' + num);
+      dur.innerText = formatTime(audio.duration);
+    }
+
+    function toggleAudio(audioId, btn) {
+      const audio = document.getElementById(audioId);
+      
+      // Pause all other audios
+      document.querySelectorAll('audio').forEach(a => {
+        if (a.id !== audioId && !a.paused) {
+          a.pause();
+          const otherBtn = a.parentElement.querySelector('button');
+          if (otherBtn) otherBtn.innerText = '▶';
+        }
+      });
+
+      if (audio.paused) {
+        audio.play().then(() => {
+          btn.innerText = '⏸';
+        }).catch(err => {
+          console.log("Audio play error:", err);
+        });
+      } else {
+        audio.pause();
+        btn.innerText = '▶';
+      }
+    }
+
+    function updateProgress(audioId, num) {
+      const audio = document.getElementById(audioId);
+      const seek = document.getElementById('seek-' + num);
+      const curSpan = document.getElementById('time-current-' + num);
+      const durSpan = document.getElementById('time-duration-' + num);
+
+      curSpan.innerText = formatTime(audio.currentTime);
+      if (audio.duration) {
+        durSpan.innerText = formatTime(audio.duration);
+        seek.value = (audio.currentTime / audio.duration) * 100;
+      }
+    }
+
+    function seekAudio(audioId, val) {
+      const audio = document.getElementById(audioId);
+      if (audio.duration) {
+        audio.currentTime = (val / 100) * audio.duration;
+      }
+    }
+  </script>
+</body>
+</html>

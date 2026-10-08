@@ -1640,10 +1640,78 @@ const COMPETITION_LECTURES_MAP = {
         { id: 914, block_number: 1, lecture_number: 4, title: 'أحكام الميم الساكنة وأقسام المدود', scheduled_time: 'الجمعة 1:50 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
     ],
     'مسار التفسير والتدبر': [
-        { id: 921, block_number: 1, lecture_number: 1, title: 'مقدمة في علوم التفسير وقواعد تدبر آيات القرآن', scheduled_time: 'الأربعاء 5:00 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 922, block_number: 1, lecture_number: 2, title: 'جلسة التفسير: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»', scheduled_time: 'الأربعاء 5:00 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 923, block_number: 1, lecture_number: 3, title: 'هدايات سورة الفاتحة وتزكية النفس بالإيمان', scheduled_time: 'الأربعاء 5:00 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 924, block_number: 1, lecture_number: 4, title: 'تدبر قصار السور وأثرها في الصلاة والخشوع', scheduled_time: 'الأربعاء 5:00 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
+        {
+            id: 921,
+            block_number: 1,
+            lecture_number: 1,
+            title: 'الحلقة الأولى: «كتاب حكيم… يغيّر اختياراتي»',
+            subtitle: 'سورة لقمان • بودكاست «من يدلني؟»',
+            quran_verse: '﴿تِلْكَ آيَاتُ الْكِتَابِ الْحَكِيمِ * هُدًى وَرَحْمَةً لِّلْمُحْسِنِينَ﴾',
+            summary_text: 'القرآن ليس مجرد معلومات نقرؤها، بل كتاب حكيم يرشدنا للقرار الصائب في كل لحظة، وهدى ورحمة للمحسنين الذين يجتهدون في الخير ويعودون سريعاً إلى الحق.',
+            key_message: 'السؤال الحقيقي ليس فقط: "أنا حافظ كام آية؟" بل: "الآيات اللي أنا حافظها بتخليني أختار إيه لما أكون محتار؟"',
+            audio_url: 'audio/podcast_ep1.mp3',
+            audio_wav_url: 'audio/podcast_ep1.wav',
+            duration: '2:51 دقيقة',
+            scheduled_time: 'الأربعاء 5:00 م',
+            status: 'completed',
+            is_unlocked: true,
+            meet_url: 'https://zoom.us/j/98264506630',
+            quiz_id: 102
+        },
+        {
+            id: 922,
+            block_number: 1,
+            lecture_number: 2,
+            title: 'الحلقة الثانية: «أذنك… وقلبك… وطريقك»',
+            subtitle: 'سورة لقمان • بودكاست «من يدلني؟»',
+            quran_verse: '﴿وَمِنَ النَّاسِ مَن يَشْتَرِي لَهْوَ الْحَدِيثِ لِيُضِلَّ عَن سَبِيلِ اللَّهِ﴾ • ﴿فَقَدِ اسْتَمْسَكَ بِالْعُرْوَةِ الْوُثْقَىٰ﴾',
+            summary_text: 'حماية السمع والقلب من تريندات الشاشات ولهو الحديث، والاستمساك بالعروة الوثقى وهي طاعة الله الثابتة بدل التقليد الأعمى.',
+            key_message: 'مش كل حاجة بتشدني تستحقني… ومش كل الناس ماشية في طريق يبقى لازم أمشي معاهم.',
+            audio_url: 'audio/podcast_ep2.mp3',
+            audio_wav_url: 'audio/podcast_ep2.wav',
+            duration: '3:14 دقيقة',
+            scheduled_time: 'الأربعاء 5:00 م',
+            status: 'completed',
+            is_unlocked: true,
+            meet_url: 'https://zoom.us/j/98264506630',
+            quiz_id: 105
+        },
+        {
+            id: 923,
+            block_number: 1,
+            lecture_number: 3,
+            title: 'الحلقة الثالثة: «مين قالك؟»',
+            subtitle: 'سورة لقمان • بودكاست «من يدلني؟»',
+            quran_verse: '﴿خَلَقَ السَّمَاوَاتِ بِغَيْرِ عَمَدٍ تَرَوْنَهَا﴾ • ﴿هَٰذَا خَلْقُ اللَّهِ فَأَرُونِي مَاذَا خَلَقَ الَّذِينَ مِن دُونِهِ﴾',
+            summary_text: 'قاعدة الأذكياء وطلب البرهان والحجة قبل التصديق، وقصة الطفيل بن عمرو وتدبر آيات خلق السماوات والأرض دون خوف من الشبهات.',
+            key_message: 'مش كل فيديو جاب ملايين المشاهدات يبقى كلامه صح.. الحق يحتاج دليل وبرهان. قبل ما أصدق أسأل: مين قالك؟ وإيه الدليل؟',
+            audio_url: 'audio/podcast_ep3.mp3',
+            audio_wav_url: 'audio/podcast_ep3.wav',
+            duration: '3:05 دقيقة',
+            scheduled_time: 'الأربعاء 5:00 م',
+            status: 'completed',
+            is_unlocked: true,
+            meet_url: 'https://zoom.us/j/98264506630',
+            quiz_id: 106
+        },
+        {
+            id: 924,
+            block_number: 1,
+            lecture_number: 4,
+            title: 'الحلقة الرابعة: «إيه اللي يخليك حكيم؟»',
+            subtitle: 'سورة لقمان • بودكاست «من يدلني؟»',
+            quran_verse: '﴿وَلَقَدْ آتَيْنَا لُقْمَانَ الْحِكْمَةَ أَنِ اشْكُرْ لِلَّهِ﴾ • ﴿وَوَصَّيْنَا الْإِنسَانَ بِوَالِدَيْهِ﴾',
+            summary_text: 'الحكمة الحقيقية في التطبيق والعمل وشكر نعم الله وبر الوالدين، والتصرف بحكمة وهدوء وقت الغضب والاختبار الحقيقي.',
+            key_message: 'الحكيم مش اللي يعرف كل حاجة.. الحكيم اللي يعرف الحق ويحاول يعمل بيه لما ييجي وقت الاختيار الصعب.',
+            audio_url: 'audio/podcast_ep4.mp3',
+            audio_wav_url: 'audio/podcast_ep4.wav',
+            duration: '2:52 دقيقة',
+            scheduled_time: 'الأربعاء 5:00 م',
+            status: 'completed',
+            is_unlocked: true,
+            meet_url: 'https://zoom.us/j/98264506630',
+            quiz_id: 107
+        }
     ]
 };
 window.COMPETITION_LECTURES_MAP = COMPETITION_LECTURES_MAP;
@@ -2252,6 +2320,50 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
         }
     }
     
+    const audioSummaryBox = l.audio_url ? `
+        <div class="my-2.5 bg-gradient-to-r from-emerald-50 via-teal-50/80 to-cyan-50 border border-emerald-200/90 p-3.5 sm:p-4 rounded-2xl space-y-2.5 text-right shadow-2xs">
+            <div class="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-emerald-200/50">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <strong class="text-xs sm:text-sm font-black text-emerald-950">ملخص الحلقة والريكورد الصوتي</strong>
+                    <span class="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-200 px-2 py-0.5 rounded-md">بودكاست «من يدلني؟»</span>
+                </div>
+                <span class="text-[10px] font-mono font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">${l.duration || 'استماع'}</span>
+            </div>
+            ${l.quran_verse ? `
+                <div class="text-xs sm:text-sm font-serif font-bold text-amber-950 bg-amber-50/90 border border-amber-200 p-2.5 rounded-xl text-center leading-relaxed">
+                    ${l.quran_verse}
+                </div>
+            ` : ''}
+            <p class="text-[11px] sm:text-xs text-slate-700 leading-relaxed font-medium">
+                ${l.summary_text || ''}
+            </p>
+            ${l.key_message ? `
+                <div class="text-[10px] sm:text-[11px] text-emerald-950 bg-white/90 border border-emerald-200/70 p-2.5 rounded-xl font-bold flex items-start gap-1.5">
+                    <span class="text-emerald-700 shrink-0 font-black">🎯 رسالة الحلقة:</span>
+                    <span>${l.key_message}</span>
+                </div>
+            ` : ''}
+            <div class="pt-1">
+                <audio controls class="w-full h-10 rounded-xl" style="accent-color: #059669;" preload="none">
+                    <source src="${l.audio_url}" type="audio/mpeg">
+                    ${l.audio_wav_url ? `<source src="${l.audio_wav_url}" type="audio/wav">` : ''}
+                    متصفحك لا يدعم مشغل الصوت المدمج.
+                </audio>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                <a href="podcast.html" class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-800 hover:text-emerald-900 bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition shadow-2xs">
+                    <span>مكتبة البودكاست الكاملة ↗</span>
+                </a>
+                ${l.quiz_id ? `
+                    <button type="button" onclick="openQuizModalForId(${l.quiz_id})" class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer active:scale-95">
+                        <span>حل أسئلة وتدريب الحلقة</span>
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    ` : '';
+
     div.className = cardClass;
     div.innerHTML = `
         <div class="flex justify-between items-start mb-2 gap-2">
@@ -2264,6 +2376,7 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             </div>
             <div>${statusBadge}</div>
         </div>
+        ${audioSummaryBox}
         <div class="mt-2">
             ${actionBtn}
         </div>
@@ -4481,9 +4594,17 @@ function renderGeneralTrackView() {
 
     // High quality built-in fallback so the card is never blank or stuck on loading
     let quiz;
-    if (matchingQuizzes.length > 0) {
+    if (currentGeneralTrack === 'tafsir') {
+        const targetQid = window.__selectedTafsirQuizId || 102;
+        quiz = matchingQuizzes.find(q => q.id === targetQid);
+        if (!quiz && matchingQuizzes.length > 0) {
+            quiz = matchingQuizzes[0];
+        }
+    } else if (matchingQuizzes.length > 0) {
         quiz = matchingQuizzes[0];
-    } else {
+    }
+
+    if (!quiz) {
         if (currentGeneralTrack === 'hadith') {
             quiz = {
                 id: 104,
@@ -4499,17 +4620,46 @@ function renderGeneralTrackView() {
                 })
             };
         } else if (currentGeneralTrack === 'tafsir') {
+            const epFallbacks = {
+                102: {
+                    id: 102,
+                    title: "مسار التفسير والتدبر — الحلقة الأولى: «كتاب حكيم… يغيّر اختياراتي»",
+                    audio_url: "audio/podcast_ep1.mp3",
+                    summary_text: "الحلقة الأولى من بودكاست «من يدلني؟» بعنوان «كتاب حكيم… يغيّر اختياراتي». تتناول كيف يجعلنا القرآن نميز بين الخير والشر ونختار الأفضل دائماً."
+                },
+                105: {
+                    id: 105,
+                    title: "مسار التفسير والتدبر — الحلقة الثانية: «أذنك… وقلبك… وطريقك»",
+                    audio_url: "audio/podcast_ep2.mp3",
+                    summary_text: "الحلقة الثانية من بودكاست «من يدلني؟» بعنوان «أذنك… وقلبك… وطريقك». تتناول حماية الأذن مما نسمعه لأن ما يدخل الأذن يستقر في القلب ويحدد طريقنا."
+                },
+                106: {
+                    id: 106,
+                    title: "مسار التفسير والتدبر — الحلقة الثالثة: «مين قالك؟»",
+                    audio_url: "audio/podcast_ep3.mp3",
+                    summary_text: "الحلقة الثالثة من بودكاست «من يدلني؟» بعنوان «مين قالك؟». تتناول التثبت من الكلام وعدم تصديق الشائعات أو نشرها دون بينة عملاً بهدي القرآن."
+                },
+                107: {
+                    id: 107,
+                    title: "مسار التفسير والتدبر — الحلقة الرابعة: «إيه اللي يخليك حكيم؟»",
+                    audio_url: "audio/podcast_ep4.mp3",
+                    summary_text: "الحلقة الرابعة من بودكاست «من يدلني؟» بعنوان «إيه اللي يخليك حكيم؟». تتناول معنى الحكمة القرآنية ووضع كل شيء في موضعه الصحيح بحسن الفهم والتصرف."
+                }
+            };
+            const targetQid = window.__selectedTafsirQuizId || 102;
+            const chosen = epFallbacks[targetQid] || epFallbacks[102];
             quiz = {
-                id: 102,
-                title: "مسار التفسير والتدبر — الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
+                id: chosen.id,
+                title: chosen.title,
                 course: "التفسير والتدبر",
-                block: 2,
+                block: 1,
                 total_points: 15,
                 description: JSON.stringify({
                     track: "tafsir",
-                    week_number: 2,
-                    summary_text: "مسار التفسير والتدبر — الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟» في تدبر آيات القرآن وتزكية السمع والقلب.",
-                    records_unlocked: false
+                    week_number: 1,
+                    summary_text: chosen.summary_text,
+                    records_unlocked: true,
+                    audio_url: chosen.audio_url
                 })
             };
         } else {
@@ -4530,6 +4680,18 @@ function renderGeneralTrackView() {
     }
 
     const meta = parseQuizMeta(quiz);
+    if (currentGeneralTrack === 'tafsir') {
+        meta.records_unlocked = true;
+        if (!meta.audio_url) {
+            const audioMap = {
+                102: 'audio/podcast_ep1.mp3',
+                105: 'audio/podcast_ep2.mp3',
+                106: 'audio/podcast_ep3.mp3',
+                107: 'audio/podcast_ep4.mp3'
+            };
+            meta.audio_url = audioMap[quiz.id] || 'audio/podcast_ep1.mp3';
+        }
+    }
     const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === quiz.id);
 
     const studentAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : 
@@ -4665,8 +4827,26 @@ function renderGeneralTrackView() {
         voiceNoteLockText = 'موعد المحاضرة كل أحد.. التسجيلات الصوتية (الريكوردات) مقفولة وتفتح فور انتهاء المحاضرة وإضافتها.';
     }
 
+    const tafsirEpisodesBar = (currentGeneralTrack === 'tafsir') ? `
+        <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-indigo-950">حلقات بودكاست التفسير («من يدلني؟»):</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="selectTafsirEpisode(102)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 102 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 1</button>
+                <button type="button" onclick="selectTafsirEpisode(105)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 105 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 2</button>
+                <button type="button" onclick="selectTafsirEpisode(106)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 106 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 3</button>
+                <button type="button" onclick="selectTafsirEpisode(107)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 107 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 4</button>
+                <a href="podcast.html" class="px-3 py-1.5 text-xs font-black rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition flex items-center gap-1 shadow-xs ml-1">
+                    <span>المكتبة الصوتية كاملة ↗</span>
+                </a>
+            </div>
+        </div>
+    ` : '';
+
     container.innerHTML = `
         <div class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-white border border-indigo-100 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
+            ${tafsirEpisodesBar}
             <!-- Header Row -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-indigo-100/60 pb-3">
                 <div>
@@ -4751,6 +4931,13 @@ function renderGeneralTrackView() {
         </div>
     `;
 }
+
+window.selectTafsirEpisode = function(quizId) {
+    window.__selectedTafsirQuizId = quizId;
+    if (typeof renderGeneralTrackView === 'function') {
+        renderGeneralTrackView();
+    }
+};
 
 // ==========================================
 // INTERACTIVE QUIZ MODAL CONTROLLER

@@ -27,21 +27,89 @@
         {
             id: 102,
             course_name: "مسار القرآن الكريم والتدبر",
-            title: "التفسير وتدبر القرآن - رحلة في تفسير سورة لقمان (من يدلني؟)",
+            title: "بودكاست من يدلني؟ — الحلقة 1: كتاب حكيم… يغيّر اختياراتي",
             description: JSON.stringify({
                 track: "tafsir",
                 week_number: 1,
-                summary_text: "رحلة إيمانية وتربوية في تدبر وتفسير سورة لقمان (من يدلني؟)، وفهم معنى القرآن الحكيم واليقين بالآخرة وتنظيم الأولويات والترفيه.",
-                audio_url: "https://ia800301.us.archive.org/15/items/quran-tajweed-sample/tafsir_w1.mp3",
+                episode_title: "الحلقة الأولى: كتاب حكيم… يغيّر اختياراتي",
+                summary_text: "القرآن ليس مجرد معلومات نقرؤها، بل كتاب حكيم يرشدنا للقرار الصائب في كل لحظة، وهدى ورحمة للمحسنين الذين يجتهدون في الخير ويعودون للحق.",
+                audio_url: "audio/podcast_ep1.mp3",
+                audio_wav_url: "audio/podcast_ep1.wav",
                 pdf_url: "docs/tafsir_surah_luqman.pdf",
-                live_url: "https://zoom.us/j/99924246069",
-                live_url_kids: "https://zoom.us/j/98264506630",
-                live_url_adults: "https://zoom.us/j/99924246069",
+                live_url: "https://zoom.us/j/98264506630",
                 records_unlocked: true,
-                schedule_kids: "الجمعة 1:50 م إلى 2:25 م (للأطفال أقل من 10 سنوات)",
-                schedule_adults: "الجمعة 2:20 م إلى 2:50 م (للطلاب 10 سنوات فما فوق)"
+                schedule_kids: "الأربعاء 5:00 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الأربعاء 5:00 م (للطلاب 10 سنوات فما فوق)",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/98264506630"
             }),
             total_questions: 5,
+            passing_score: 70
+        },
+        {
+            id: 105,
+            course_name: "مسار القرآن الكريم والتدبر",
+            title: "بودكاست من يدلني؟ — الحلقة 2: أذنك… وقلبك… وطريقك",
+            description: JSON.stringify({
+                track: "tafsir",
+                week_number: 2,
+                episode_title: "الحلقة الثانية: أذنك… وقلبك… وطريقك",
+                summary_text: "حماية السمع والقلب من تريندات الشاشات ولهو الحديث، والاستمساك بالعروة الوثقى وهي طاعة الله الثابتة بدل التقليد الأعمى.",
+                audio_url: "audio/podcast_ep2.mp3",
+                audio_wav_url: "audio/podcast_ep2.wav",
+                pdf_url: "docs/tafsir_surah_luqman.pdf",
+                live_url: "https://zoom.us/j/98264506630",
+                records_unlocked: true,
+                schedule_kids: "الأربعاء 5:00 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الأربعاء 5:00 م (للطلاب 10 سنوات فما فوق)",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/98264506630"
+            }),
+            total_questions: 3,
+            passing_score: 70
+        },
+        {
+            id: 106,
+            course_name: "مسار القرآن الكريم والتدبر",
+            title: "بودكاست من يدلني؟ — الحلقة 3: مين قالك؟",
+            description: JSON.stringify({
+                track: "tafsir",
+                week_number: 3,
+                episode_title: "الحلقة الثالثة: مين قالك؟",
+                summary_text: "قاعدة الأذكياء وطلب البرهان والحجة قبل التصديق، وقصة الطفيل بن عمرو وتدبر آيات خلق السماوات والأرض دون خوف من الشبهات.",
+                audio_url: "audio/podcast_ep3.mp3",
+                audio_wav_url: "audio/podcast_ep3.wav",
+                pdf_url: "docs/tafsir_surah_luqman.pdf",
+                live_url: "https://zoom.us/j/98264506630",
+                records_unlocked: true,
+                schedule_kids: "الأربعاء 5:00 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الأربعاء 5:00 م (للطلاب 10 سنوات فما فوق)",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/98264506630"
+            }),
+            total_questions: 3,
+            passing_score: 70
+        },
+        {
+            id: 107,
+            course_name: "مسار القرآن الكريم والتدبر",
+            title: "بودكاست من يدلني؟ — الحلقة 4: إيه اللي يخليك حكيم؟",
+            description: JSON.stringify({
+                track: "tafsir",
+                week_number: 4,
+                episode_title: "الحلقة الرابعة: إيه اللي يخليك حكيم؟",
+                summary_text: "الحكمة الحقيقية في التطبيق والعمل وشكر نعم الله وبر الوالدين، والتصرف بحكمة وهدوء وقت الغضب والاختبار الحقيقي.",
+                audio_url: "audio/podcast_ep4.mp3",
+                audio_wav_url: "audio/podcast_ep4.wav",
+                pdf_url: "docs/tafsir_surah_luqman.pdf",
+                live_url: "https://zoom.us/j/98264506630",
+                records_unlocked: true,
+                schedule_kids: "الأربعاء 5:00 م (للأطفال أقل من 10 سنوات)",
+                schedule_adults: "الأربعاء 5:00 م (للطلاب 10 سنوات فما فوق)",
+                live_url_kids: "https://zoom.us/j/98264506630",
+                live_url_adults: "https://zoom.us/j/98264506630"
+            }),
+            total_questions: 3,
             passing_score: 70
         },
         {
@@ -149,6 +217,117 @@
                 "طالما أنا مستمتع فلا توجد مشكلة"
             ],
             correct_option_index: 2
+        },
+        // Quiz 105 (Episode 2)
+        {
+            id: 501, quiz_id: 105,
+            question_text: "ما هو المعنى الحقيقي لشراء «لهو الحديث» في واقعنا اليومي مع الهواتف؟",
+            points: 5,
+            options: [
+                "دفع المال فقط لشراء هاتف جديد",
+                "دفع الوقت والانتباه في مشاهدة ما لا ينفع وتضييع الصلوات والواجبات",
+                "الاستماع لأي تسجيل مفيد",
+                "الاشتراك في باقة الإنترنت"
+            ],
+            correct_option_index: 1
+        },
+        {
+            id: 502, quiz_id: 105,
+            question_text: "ماذا تعني «العروة الوثقى» التي ذكرتها الآيات الكريمة؟",
+            points: 5,
+            options: [
+                "الحبل المتين الثابت وهو طاعة الله والتمسك بأوامره",
+                "اتباع كل ما يفعله الأصدقاء في المدرسة",
+                "كثرة المتابعين على وسائل التواصل",
+                "الفوز في الألعاب الإلكترونية"
+            ],
+            correct_option_index: 0
+        },
+        {
+            id: 503, quiz_id: 105,
+            question_text: "إذا رأيت أصحابك يفعلون أمراً خاطئاً، ما هو التصرف الحكيم للبطل المسلم؟",
+            points: 5,
+            options: [
+                "أقلدهم حتى لا أكون غريباً بينهم",
+                "أتمسك بما يرضي الله ولا أتبعهم تقليداً أعمى",
+                "أترك الصلاة مثلهم",
+                "أغضب وأتشاجر مع الجميع"
+            ],
+            correct_option_index: 1
+        },
+        // Quiz 106 (Episode 3)
+        {
+            id: 601, quiz_id: 106,
+            question_text: "ماذا فعل الصحابي الجليل الطفيل بن عمرو عندما قالت له قريش لا تسمع لمحمد؟",
+            points: 5,
+            options: [
+                "ظل واضعاً القطن في أذنيه ولم يسمع",
+                "استمع لعقله وحكّم نفسه فلما سمع القرآن أسلم فوراً",
+                "صدق كلامهم وعاد لقومه دون تفكير",
+                "حارب قريش فوراً"
+            ],
+            correct_option_index: 1
+        },
+        {
+            id: 602, quiz_id: 106,
+            question_text: "هل كثرة المشاهدات والشهرة تعني بالضرورة أن صاحب الفيديو على حق؟",
+            points: 5,
+            options: [
+                "نعم، الشهرة دائماً دليل الحق",
+                "لا، الحق يحتاج دليلاً وبرهاناً وليس مجرد كثرة مشاهدات",
+                "كل ما ينتشر على الإنترنت صحيح",
+                "لا نهتم بأي دليل"
+            ],
+            correct_option_index: 1
+        },
+        {
+            id: 603, quiz_id: 106,
+            question_text: "ما هو «السؤال السحري» الذي تسأله لنفسك قبل أن تصدق أو تنشر خبراً أو شبهة؟",
+            points: 5,
+            options: [
+                "كم إعجاباً نال هذا الفيديو؟",
+                "مين قالك؟ وإيه الدليل؟",
+                "هل صاحب الفيديو مشهور؟",
+                "هل الفيديو مضحك؟"
+            ],
+            correct_option_index: 1
+        },
+        // Quiz 107 (Episode 4)
+        {
+            id: 701, quiz_id: 107,
+            question_text: "من هو «الحكيم الصغير» الحقيقي كما تدبرنا في سورة لقمان؟",
+            points: 5,
+            options: [
+                "الذي يعرف كل شيء ولا يخطئ أبداً",
+                "الذي يعرف الحق ويطبقه وقت الاختيار والامتحان الحقيقي",
+                "الذي يتحدث كثيراً دون عمل",
+                "الذي يفوز دائماً في الألعاب"
+            ],
+            correct_option_index: 1
+        },
+        {
+            id: 702, quiz_id: 107,
+            question_text: "متى تظهر الحكمة الحقيقية في بر الوالدين؟",
+            points: 5,
+            options: [
+                "عندما تناديك والدتك فتترك اللعب فوراً وتبتسم وتساعدها",
+                "عندما تؤجل المساعدة حتى تنتهي من كل ألعابك",
+                "في الكلام والتمني فقط دون تنفيذ",
+                "عندما تنفذ بعد إلحاح شديد"
+            ],
+            correct_option_index: 0
+        },
+        {
+            id: 703, quiz_id: 107,
+            question_text: "إذا سُئلت عن أمر ديني أو علمي لا تعرفه، ما هو التصرف الحكيم؟",
+            points: 5,
+            options: [
+                "أؤلف إجابة من رأسي حتى لا أحرج نفسي",
+                "أقول بهدوء: لا أعلم.. سأسأل المعلم وأتعلم",
+                "أغضب وأرفض السؤال",
+                "أصمت تماماً دون اهتمام"
+            ],
+            correct_option_index: 1
         },
         {
             id: 107, quiz_id: 103,
