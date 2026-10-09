@@ -1227,6 +1227,111 @@ function scrollToLectures() {
 }
 window.scrollToLectures = scrollToLectures;
 
+function renderInlineCourseLecturesHtml(cName) {
+    if (!COMPETITION_LECTURES_MAP) return '';
+    let lectures = COMPETITION_LECTURES_MAP[cName];
+    if (!lectures && cName.includes('التفسير')) {
+        lectures = COMPETITION_LECTURES_MAP['مسار التفسير والتدبر'];
+    }
+    if (!lectures || lectures.length === 0) return '';
+
+    const student = (window.currentStudentData && window.currentStudentData.student) || {};
+    const stAge = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(student.age) || 9);
+    const sName = student.name || '';
+    const sCode = student.student_code || student.id || currentStudentId;
+    const sExplicit = student.gender || student.parent_name;
+    const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'f';
+
+    const isTafsir = cName.includes('التفسير');
+
+    const cardsHtml = lectures.map((l) => {
+        let sTime = l.scheduled_time || '';
+        if (isTafsir) {
+            if (gender === 'f') {
+                sTime = (stAge <= 10) ? 'الثلاثاء 8:30 م (بنات من 6 إلى 10 سنوات)' : 'الأربعاء 5:00 م (بنات 11 سنة فما فوق)';
+            } else {
+                sTime = (stAge <= 10) ? 'الأربعاء 6:30 م (أولاد من 6 إلى 10 سنوات)' : 'الأحد 8:00 م (أولاد 11 سنة فما فوق)';
+            }
+        }
+
+        const audioPlayerHtml = l.audio_url ? `
+            <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+                <div class="flex items-center justify-between text-xs font-black text-slate-800">
+                    <span class="flex items-center gap-1.5 text-emerald-800">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>تسجيل ريكورد الحلقة (استماع مباشر):</span>
+                    </span>
+                    <span class="text-[10px] font-mono text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">${l.duration || 'استماع'}</span>
+                </div>
+                <audio controls class="w-full h-10 rounded-xl" style="accent-color: #059669;" preload="none">
+                    <source src="${l.audio_url}" type="audio/mpeg">
+                    ${l.audio_wav_url ? `<source src="${l.audio_wav_url}" type="audio/wav">` : ''}
+                    متصفحك لا يدعم مشغل الصوت المدمج.
+                </audio>
+            </div>
+        ` : '';
+
+        const quizBtnHtml = l.quiz_id ? `
+            <button type="button" onclick="event.stopPropagation(); openQuizModalForId(${l.quiz_id});" class="bg-indigo-900 hover:bg-indigo-800 text-white font-black text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer shrink-0">
+                <span>حل اختبار الحلقة</span>
+                <span class="bg-indigo-700 text-amber-300 text-[10px] font-mono px-1.5 py-0.5 rounded-md">15 درجة</span>
+            </button>
+        ` : '';
+
+        return `
+            <div class="bg-gradient-to-br from-slate-50 via-white to-indigo-50/20 border border-slate-200/90 hover:border-indigo-300 rounded-2xl p-3.5 sm:p-4 space-y-2.5 transition shadow-2xs text-right">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="bg-[#1F274B] text-white text-[10px] font-mono font-black px-2 py-0.5 rounded-md">المحاضرة ${l.lecture_number}</span>
+                            <span class="bg-emerald-100 text-emerald-900 text-[10px] font-black px-2 py-0.5 rounded-full">مكتملة ومتاحة</span>
+                            <span class="text-[10px] text-slate-500 font-bold bg-white border border-slate-200 px-2 py-0.5 rounded-md">${sTime}</span>
+                        </div>
+                        <h6 class="text-xs sm:text-sm font-black text-slate-900 mt-1">${l.title}</h6>
+                    </div>
+                    ${quizBtnHtml}
+                </div>
+
+                ${l.quran_verse ? `
+                    <div class="text-xs sm:text-sm font-serif font-bold text-amber-950 bg-amber-50/90 border border-amber-200/80 p-2.5 rounded-xl text-center leading-relaxed">
+                        ${l.quran_verse}
+                    </div>
+                ` : ''}
+
+                ${l.summary_text ? `
+                    <p class="text-[11px] sm:text-xs text-slate-600 leading-relaxed font-medium">
+                        ${l.summary_text}
+                    </p>
+                ` : ''}
+
+                ${l.key_message ? `
+                    <div class="text-[10px] sm:text-[11px] text-emerald-950 bg-emerald-50/80 border border-emerald-200/80 p-2.5 rounded-xl font-bold flex items-start gap-1.5">
+                        <span class="text-emerald-800 shrink-0 font-black">🎯 رسالة الحلقة:</span>
+                        <span>${l.key_message}</span>
+                    </div>
+                ` : ''}
+
+                ${audioPlayerHtml}
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="mt-4 pt-3.5 border-t border-slate-200 space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h5 class="text-xs sm:text-sm font-black text-slate-900">محاضرات وتسجيلات ${cName} (${lectures.length} محاضرات)</h5>
+                </div>
+                ${isTafsir ? '<span class="text-[10px] sm:text-[11px] font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">بودكاست «من يدلني؟»</span>' : ''}
+            </div>
+            <div class="space-y-3">
+                ${cardsHtml}
+            </div>
+        </div>
+    `;
+}
+
 function renderEnrolledCoursesTabs(courses) {
     const container = document.getElementById('enrolledCoursesTabs');
     if (!container) return;
@@ -1411,6 +1516,7 @@ function renderEnrolledCoursesTabs(courses) {
                             </button>
                         </div>
                     </div>
+                    ${renderInlineCourseLecturesHtml(cName)}
                 </div>
             `;
         } else {
@@ -1494,6 +1600,7 @@ function renderEnrolledCoursesTabs(courses) {
                         </button>
                     </div>
                 </div>
+                ${renderInlineCourseLecturesHtml(cName)}
             `;
         }
         container.appendChild(card);
@@ -1877,19 +1984,25 @@ async function loadSelectedCourseLectures() {
             });
         }
 
+        const isCompTrack = (COMPETITION_LECTURES_MAP && !!COMPETITION_LECTURES_MAP[selectedCourseName]);
+
         // Assign dates, attendance status, and properties
         data.lectures.forEach((l, idx) => {
             const num = idx + 1;
             l.lecture_number = num;
             l.block_number = Math.ceil(num / 4);
-            l.title = 'المحاضرة ' + num;
+            if (!isCompTrack || !l.title) {
+                l.title = 'المحاضرة ' + num;
+            }
             l.google_meet_url = meetUrl; // Always sync with official teacher/group Google Meet URL
 
             const isAttended = (num <= attendedCount);
-            const isUnlocked = (rc > 0) && (num <= attendedCount + rc);
+            const isUnlocked = isCompTrack ? true : ((rc > 0) && (num <= attendedCount + rc));
             l.is_unlocked = isUnlocked;
 
-            if (isAttended) {
+            if (isCompTrack) {
+                l.status = l.status || 'completed';
+            } else if (isAttended) {
                 l.status = 'completed';
                 l.attendance = {
                     status: (num <= presentCount ? 'present' : 'absent'),
@@ -1901,28 +2014,30 @@ async function loadSelectedCourseLectures() {
                 l.status = 'locked';
             }
 
-            let assignedDateObj = null;
-            if (num <= attendedCount) {
-                // Completed lecture -> assigned from pastDates
-                assignedDateObj = pastDates[num - 1];
-            } else {
-                // Scheduled / upcoming lecture -> assigned from upcomingDates starting from today
-                const upIdx = num - attendedCount - 1;
-                assignedDateObj = upcomingDates[upIdx];
-            }
-
-            if (assignedDateObj) {
-                let slotTime = timeText;
-                if (timeText && timeText.includes('|')) {
-                    const parts = timeText.split('|').map(p => p.trim());
-                    const match = parts.find(p => p.includes(assignedDateObj.dayName) || (assignedDateObj.dayName === 'الإثنين' && p.includes('الاثنين')));
-                    if (match) {
-                        slotTime = match.replace(/^(السبت|الأحد|الاحد|الإثنين|الاثنين|الثلاثاء|الأربعاء|الاربعاء|الخميس|الجمعة)\s*/, '').trim();
-                    }
+            if (!isCompTrack) {
+                let assignedDateObj = null;
+                if (num <= attendedCount) {
+                    // Completed lecture -> assigned from pastDates
+                    assignedDateObj = pastDates[num - 1];
+                } else {
+                    // Scheduled / upcoming lecture -> assigned from upcomingDates starting from today
+                    const upIdx = num - attendedCount - 1;
+                    assignedDateObj = upcomingDates[upIdx];
                 }
-                l.scheduled_time = assignedDateObj.dateFormatted + ' • ' + slotTime + ' (' + durLabel + ')';
-            } else {
-                l.scheduled_time = timeText + ' (' + durLabel + ')';
+
+                if (assignedDateObj) {
+                    let slotTime = timeText;
+                    if (timeText && timeText.includes('|')) {
+                        const parts = timeText.split('|').map(p => p.trim());
+                        const match = parts.find(p => p.includes(assignedDateObj.dayName) || (assignedDateObj.dayName === 'الإثنين' && p.includes('الاثنين')));
+                        if (match) {
+                            slotTime = match.replace(/^(السبت|الأحد|الاحد|الإثنين|الاثنين|الثلاثاء|الأربعاء|الاربعاء|الخميس|الجمعة)\s*/, '').trim();
+                        }
+                    }
+                    l.scheduled_time = assignedDateObj.dateFormatted + ' • ' + slotTime + ' (' + durLabel + ')';
+                } else {
+                    l.scheduled_time = timeText + ' (' + durLabel + ')';
+                }
             }
         });
 
