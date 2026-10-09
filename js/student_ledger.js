@@ -163,6 +163,7 @@
             let student = null;
             let enrollment = null;
             let attendanceRecords = [];
+            let sessionNotifs = [];
             let paymentRecords = [];
             let teacherName = '—';
 
@@ -197,7 +198,6 @@
                     if (attList) attendanceRecords = attList;
 
                     // Fetch Evaluation Notifications to recover real timestamps and session details
-                    let sessionNotifs = [];
                     try {
                         const { data: nList } = await client.from('notifications')
                             .select('*')
@@ -725,7 +725,7 @@
     }
 
     // Helper: Render Tab 3 Comprehensive Ledger Timeline
-    function renderTimelineLedgerHtml(attendanceRecords, paymentRecords, initialCredits, enrolledDate, presentCount, absentCount, currentBalance) {
+    function renderTimelineLedgerHtml(attendanceRecords, paymentRecords, initialCredits, enrolledDate, presentCount, absentCount, currentBalance, enrollment = null, sessionNotifs = []) {
         // Collect all chronological events
         const events = [];
 
