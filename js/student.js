@@ -1909,6 +1909,23 @@ async function loadSelectedCourseLectures() {
         if (currentCourseInfo) {
             document.getElementById('presentCount').innerText = (currentCourseInfo.present_count !== undefined) ? currentCourseInfo.present_count : 0;
             document.getElementById('absentCount').innerText = currentCourseInfo.absent_count || 0;
+
+            // Trigger 3rd Absence Warning Banner if absent_count >= 3
+            const curAbsCount = (currentCourseInfo.absent_count !== undefined) ? Number(currentCourseInfo.absent_count) : 0;
+            const absBanner = document.getElementById('absenceWarningBanner');
+            if (absBanner) {
+                if (curAbsCount >= 3) {
+                    absBanner.classList.remove('hidden');
+                    absBanner.classList.add('flex');
+                    const subEl = document.getElementById('absenceWarningSubtitle');
+                    if (subEl) {
+                        subEl.innerText = `تم تسجيل ${curAbsCount} حصص غياب بدون عذر مسبق. يُرجى مراجعة إدارة الأكاديمية فوراً لتسوية الموقف وترتيب تعويض الحصص لضمان عدم إيقاف الاشتراك.`;
+                    }
+                } else {
+                    absBanner.classList.add('hidden');
+                    absBanner.classList.remove('flex');
+                }
+            }
             document.getElementById('renewalCountBadge').innerText = currentCourseInfo.renewal_count > 0 
                 ? currentCourseInfo.renewal_count + ' مرة' 
                 : 'المرحلة الأولى';

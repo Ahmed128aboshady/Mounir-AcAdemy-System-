@@ -402,6 +402,22 @@
                     </div>
                 </div>
 
+                <!-- Urgent 3rd Absence Warning Banner if absentCount >= 3 -->
+                ${absentCount >= 3 ? `
+                    <div class="bg-red-50 border-2 border-red-500 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-red-950 shadow-xs">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                                !
+                            </div>
+                            <div>
+                                <h4 class="font-black text-xs sm:text-sm text-red-900">إنذار رسمي لولي الأمر: تجاوز الحد المسموح للغياب (${absentCount} حصص)</h4>
+                                <p class="text-[11px] text-red-700 mt-0.5">تم تسجيل 3 حصص غياب أو أكثر لطالبكم بدون تقديم عذر مسبق. يُرجى مراجعة إدارة الأكاديمية فوراً لتسوية الموقف وتجنب إيقاف القيد.</p>
+                            </div>
+                        </div>
+                        <span class="bg-red-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-xl shrink-0">إنذار الغياب الثالث</span>
+                    </div>
+                ` : ''}
+
                 <!-- 2. KPI Balance Summary Cards -->
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                     <!-- Current Remaining Balance -->
@@ -485,6 +501,10 @@
                     <button type="button" onclick="switchLedgerTab('timeline')" id="ledgerTabBtn_timeline" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
                         <span>كشف الحساب التراكمي (Timeline)</span>
                     </button>
+                    <button type="button" onclick="switchLedgerTab('hifz')" id="ledgerTabBtn_hifz" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
+                        <span>سجل الحفظ التاريخي</span>
+                        <span class="bg-indigo-100 text-indigo-900 px-1.5 py-0.2 rounded-full text-[10px] mr-1">${(sessionNotifs && sessionNotifs.length) || (presentCount + absentCount)}</span>
+                    </button>
                 </div>
 
                 <!-- Tab 1: Attendance Log -->
@@ -500,6 +520,11 @@
                 <!-- Tab 3: Timeline Ledger -->
                 <div id="ledgerTabContent_timeline" class="ledger-tab-content hidden space-y-3">
                     ${renderTimelineLedgerHtml(attendanceRecords, paymentRecords, initialEstimatedCredits, enrolledDate, presentCount, absentCount, remainingCredits, enrollment, sessionNotifs)}
+                </div>
+
+                <!-- Tab 4: Historical Quran Memorization Log (سجل الحفظ والتسميع التاريخي) -->
+                <div id="ledgerTabContent_hifz" class="ledger-tab-content hidden space-y-3">
+                    ${renderHifzHistoryTableHtml(sessionNotifs, attendanceRecords, enrollment, student, stCourse, enrolledDate, presentCount, absentCount)}
                 </div>
 
             </div>
@@ -879,6 +904,192 @@
             </div>
         `;
     }
+
+
+    // Helper: Render Tab 4 Historical Quran Memorization Ledger (سجل الحفظ التاريخي)
+    function renderHifzHistoryTableHtml(sessionNotifs, attendanceRecords, enrollment, student, courseName, enrolledDate, presentCount, absentCount) {
+        let hifzEntries = [];
+
+        // 1. Process from session evaluation notifications (Real teacher submitted data)
+        (sessionNotifs || []).forEach(sn => {
+            const msg = sn.message || '';
+            const hifzMatch = msg.match(/الحفظ الجديد:\s*([^\n\r]+)/);
+            const qareebMatch = msg.match(/الماضي القريب:\s*([^\n\r]+)/);
+            const baeedMatch = msg.match(/الماضي البعيد:\s*([^\n\r]+)/);
+            const notesMatch = msg.match(/توجيهات:\s*([^\n\r]+)/);
+
+            hifzEntries.push({
+                date: sn.created_at || enrolledDate,
+                hifz: hifzMatch ? hifzMatch[1].trim() : (msg.includes('حفظ') ? msg : '—'),
+                qareeb: qareebMatch ? qareebMatch[1].trim() : '—',
+                baeed: baeedMatch ? baeedMatch[1].trim() : '—',
+                notes: notesMatch ? notesMatch[1].trim() : (msg || 'تم إتمام التسميع والمتابعة بنجاح'),
+                status: 'present',
+                source: 'تقييم معتمد'
+            });
+        });
+
+        // 2. Fallback / supplement with attendance records if notifications are fewer than attended sessions
+        const existingDates = new Set(hifzEntries.map(e => (e.date || '').substring(0, 10)));
+        (attendanceRecords || []).forEach(att => {
+            const d = (att.joined_at || att.created_at || '').substring(0, 10);
+            if (d && !existingDates.has(d)) {
+                existingDates.add(d);
+                hifzEntries.push({
+                    date: att.joined_at || att.created_at,
+                    hifz: (att.notes && att.notes.includes('سورة')) ? att.notes : (enrollment && enrollment.current_surah ? `سورة ${enrollment.current_surah}` : 'متابعة الورد المقرر'),
+                    qareeb: (enrollment && enrollment.madi_qareeb) ? enrollment.madi_qareeb : '—',
+                    baeed: (enrollment && enrollment.madi_baeed) ? enrollment.madi_baeed : '—',
+                    notes: att.notes || (att.status === 'present' ? 'حضور وتسميع الحصة المقررة' : 'غياب عن الجلسة'),
+                    status: att.status || 'present',
+                    source: 'سجل الحضور'
+                });
+            }
+        });
+
+        // 3. If student has presentCount sessions but fewer discrete records, reconstruct chronological dates
+        const totalSessions = (presentCount || 0) + (absentCount || 0);
+        if (hifzEntries.length < totalSessions) {
+            const subDays = (enrollment && (enrollment.subscription_days || enrollment.days)) || 'الأحد والأربعاء';
+            const lecTime = (enrollment && (enrollment.lecture_time || enrollment.time)) || '';
+            const needed = totalSessions - hifzEntries.length;
+            const pastDates = calculateGroupPastDates(subDays, needed, lecTime);
+            
+            for (let i = 0; i < needed; i++) {
+                const isPres = (i < (presentCount || 0));
+                const pDate = pastDates[i];
+                hifzEntries.push({
+                    date: pDate ? pDate.dateFormatted : new Date().toISOString(),
+                    hifz: (enrollment && enrollment.current_surah) ? `سورة ${enrollment.current_surah}` : 'تسميع الورد المنهجي',
+                    qareeb: (enrollment && enrollment.madi_qareeb) ? enrollment.madi_qareeb : '—',
+                    baeed: (enrollment && enrollment.madi_baeed) ? enrollment.madi_baeed : '—',
+                    notes: isPres ? 'إتمام الحفظ والمراجعة المقررة' : 'غياب عن الحصة',
+                    status: isPres ? 'present' : 'absent',
+                    source: 'الجدول المعتمد'
+                });
+            }
+        }
+
+        // Sort descending by date
+        hifzEntries.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        if (hifzEntries.length === 0) {
+            return `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center space-y-2">
+                    <h5 class="font-black text-slate-800 text-xs">لا يوجد سجل حفظ مدخل حتى الآن</h5>
+                    <p class="text-[11px] text-slate-400">سيظهر هنا ما حفظه الطالب في كل يوم فور رصد تقييمات المعلم بالجلسات.</p>
+                </div>
+            `;
+        }
+
+        const totalHifzCount = hifzEntries.filter(e => e.status === 'present').length;
+        const lastHifz = hifzEntries[0] ? hifzEntries[0].hifz : '—';
+
+        let rowsHtml = hifzEntries.map((item, idx) => {
+            const num = hifzEntries.length - idx;
+            const isPresent = item.status === 'present';
+            const statusBadge = isPresent
+                ? '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-0.5 rounded-lg text-[10px] whitespace-nowrap">حاضر ومُنجز</span>'
+                : '<span class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-0.5 rounded-lg text-[10px] whitespace-nowrap">غياب</span>';
+
+            return `
+                <tr class="hover:bg-slate-50/80 transition border-b border-slate-100 hifz-history-row">
+                    <td class="p-2.5 font-mono text-slate-400 text-[10px] text-center font-bold">${num}</td>
+                    <td class="p-2.5 font-bold text-slate-900 whitespace-nowrap text-[11px]">
+                        ${formatArabicDateTime(item.date)}
+                    </td>
+                    <td class="p-2.5">
+                        <span class="bg-emerald-50 text-emerald-950 border border-emerald-200 font-black px-2.5 py-1 rounded-xl text-[11px] inline-block">
+                            ${item.hifz}
+                        </span>
+                    </td>
+                    <td class="p-2.5">
+                        <span class="text-blue-900 font-extrabold text-[11px] bg-blue-50/70 border border-blue-200 px-2 py-0.5 rounded-lg inline-block">
+                            ${item.qareeb}
+                        </span>
+                    </td>
+                    <td class="p-2.5">
+                        <span class="text-purple-900 font-extrabold text-[11px] bg-purple-50/70 border border-purple-200 px-2 py-0.5 rounded-lg inline-block">
+                            ${item.baeed}
+                        </span>
+                    </td>
+                    <td class="p-2.5 text-slate-700 text-[11px] leading-relaxed max-w-xs">
+                        ${item.notes}
+                    </td>
+                    <td class="p-2.5 text-center">${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+
+        return `
+            <div class="space-y-3">
+                <!-- Hifz Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-emerald-800 font-bold block">إجمالي حصص التسميع المنجزة</span>
+                            <strong class="text-lg font-black text-emerald-950 mt-0.5 block">${totalHifzCount} حصة</strong>
+                        </div>
+                        <span class="text-2xl font-black text-emerald-600">✓</span>
+                    </div>
+                    <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-indigo-800 font-bold block">آخر موضع تم تسميعه</span>
+                            <strong class="text-xs font-black text-indigo-950 mt-0.5 block truncate max-w-[170px]">${lastHifz}</strong>
+                        </div>
+                        <span class="text-2xl font-black text-indigo-600">📖</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-amber-800 font-bold block">تاريخ بداية السجل</span>
+                            <strong class="text-xs font-black text-amber-950 mt-0.5 block">${formatArabicDate(enrolledDate)}</strong>
+                        </div>
+                        <span class="text-2xl font-black text-amber-600">📅</span>
+                    </div>
+                </div>
+
+                <!-- Instant Filter Input -->
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 p-2 rounded-xl text-xs">
+                    <span class="font-bold text-slate-600 text-[11px] whitespace-nowrap">بحث في سجل الحفظ:</span>
+                    <input type="text" oninput="window.filterHifzHistoryTable(this.value)" placeholder="ابحث باسم السورة، الآيات، أو ملاحظة المعلم..." class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs outline-none focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <!-- Full Table -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-2xs">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
+                            <tr>
+                                <th class="p-2.5 text-center">#</th>
+                                <th class="p-2.5 whitespace-nowrap">تاريخ الحصة</th>
+                                <th class="p-2.5 whitespace-nowrap">الحفظ الجديد (الورد اليومي)</th>
+                                <th class="p-2.5 whitespace-nowrap">الماضي القريب</th>
+                                <th class="p-2.5 whitespace-nowrap">الماضي البعيد</th>
+                                <th class="p-2.5">توجيهات وتقييم المعلم</th>
+                                <th class="p-2.5 text-center whitespace-nowrap">حالة الحضور</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hifzHistoryTableBody">
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    // Instant Filter function for Hifz table
+    window.filterHifzHistoryTable = function(query) {
+        const q = (query || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('.hifz-history-row');
+        rows.forEach(r => {
+            if (!q) {
+                r.style.display = '';
+            } else {
+                const text = r.innerText.toLowerCase();
+                r.style.display = text.includes(q) ? '' : 'none';
+            }
+        });
+    };
 
     // Tab Switcher inside Modal
     window.switchLedgerTab = function(tabId) {

@@ -138,6 +138,32 @@
     <!-- Main Container -->
     <main class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
+        <!-- Urgent Parent 3rd Absence Warning Banner (إنذار الغياب الثالث لولي الأمر) -->
+        <div id="absenceWarningBanner" class="hidden bg-red-50 border-2 border-red-500 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 mb-4">
+            <div class="flex items-start sm:items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-sm">
+                    !
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span class="bg-red-600 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase">إنذار غياب رسمي</span>
+                        <strong class="text-sm sm:text-base font-black text-red-950">تنبيه هام لولي الأمر: تسجيل 3 حصص غياب لطالبكم</strong>
+                    </div>
+                    <p class="text-xs sm:text-[13px] text-red-800 font-medium leading-relaxed" id="absenceWarningSubtitle">
+                        تم تسجيل 3 حصص غياب بدون عذر مسبق. يُرجى مراجعة إدارة الأكاديمية فوراً لتسوية الموقف وترتيب تعويض الحصص لضمان عدم إيقاف الاشتراك.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <button type="button" onclick="openStudentLedgerModal()" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-red-950 border border-red-200 font-black text-xs px-4 py-2.5 rounded-xl transition shadow-xs text-center cursor-pointer">
+                    عرض كشف الحساب
+                </button>
+                <a href="https://wa.me/201015024419?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D8%A5%D9%86%D8%B0%D8%A7%D8%B1%20%D8%A7%D9%84%D8%BA%D9%8A%D8%A7%D8%A8%20%D8%A7%D9%84%D8%AB%D8%A7%D9%84%D8%AB" target="_blank" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition text-center cursor-pointer">
+                    تواصل مع الإدارة
+                </a>
+            </div>
+        </div>
+
         <!-- Top Notification Banner -->
         <div id="topNotificationBanner" class="hidden bg-amber-50 border-r-4 border-amber-500 rounded-xl p-3 sm:p-4 shadow-sm flex items-start justify-between gap-3 text-xs">
             <div>
