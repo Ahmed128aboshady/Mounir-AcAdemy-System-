@@ -2285,8 +2285,9 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
-    const rc = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
-    const isStopped = (curStudent.account_status === 'موقوف' || curStudent.account_status === 'inactive' || currentCourseInfo.status === 'inactive');
+    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isCourseStopped = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(currentCourseInfo.status || '').toLowerCase().trim()));
+    const isStopped = isStudentAdminPaused || (rc <= 0 && isCourseStopped);
 
     const meetLink = (typeof window !== 'undefined' && window.getGroupMeetUrl) 
         ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
@@ -2538,9 +2539,19 @@ function joinMeet(lectureId, meetUrl) {
     const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
-    const isStopped = (curStudent.account_status === 'موقوف' || curStudent.account_status === 'inactive' || curCourse.status === 'inactive');
+    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStopped = isStudentAdminPaused || (rc <= 0);
 
     if (rc <= 0 || isStopped) {
+        if (isStudentAdminPaused) {
+            const pausedMsg = 'عفواً، حساب الطالب موقوف حالياً من قبل الإدارة. يرجى التواصل مع إدارة الأكاديمية لإعادة تفعيل الحساب.';
+            if (window.MonirPopup && window.MonirPopup.alert) {
+                window.MonirPopup.alert(pausedMsg, 'الحساب موقوف');
+            } else {
+                alert(pausedMsg);
+            }
+            return;
+        }
         if (window.MonirPopup && window.MonirPopup.alert) {
             window.MonirPopup.alert(
                 'عفواً، لا يمكن الدخول لقاعة الحصة المباشرة لأن رصيد الحصص المتاح لديك حالياً هو (0) حصص. يرجى تجديد الاشتراك وشحن باقتك لمتابعة الحضور مع المعلم.',
@@ -2587,9 +2598,19 @@ function joinNextDueMeet() {
     const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
-    const isStopped = (curStudent.account_status === 'موقوف' || curStudent.account_status === 'inactive' || curCourse.status === 'inactive');
+    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStopped = isStudentAdminPaused || (rc <= 0);
 
     if (rc <= 0 || isStopped) {
+        if (isStudentAdminPaused) {
+            const pausedMsg = 'عفواً، حساب الطالب موقوف حالياً من قبل الإدارة. يرجى التواصل مع إدارة الأكاديمية لإعادة تفعيل الحساب.';
+            if (window.MonirPopup && window.MonirPopup.alert) {
+                window.MonirPopup.alert(pausedMsg, 'الحساب موقوف');
+            } else {
+                alert(pausedMsg);
+            }
+            return;
+        }
         if (window.MonirPopup && window.MonirPopup.alert) {
             window.MonirPopup.alert(
                 'عفواً، لا يمكن دخول الحصة المباشرة لأن رصيدك الحالي هو (0) حصص. اضغط على تجديد الاشتراك لشحن باقتك الآن.',

@@ -349,7 +349,7 @@
                             excuse_count: e.excuse_count || 0,
                             present_count: e.present_count || 0,
                             absent_count: e.absent_count || 0,
-                            status: e.status || 'active',
+                            status: (rc > 0 && stData.status === 'active') ? 'active' : (e.status || 'active'),
                         };
                     });
                     const enrWithSurah = enrData.find(e => e.current_surah) || enrData[0];
