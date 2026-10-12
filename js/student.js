@@ -2285,6 +2285,7 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
+    const rc = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
     const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
     const isCourseStopped = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(currentCourseInfo.status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0 && isCourseStopped);
