@@ -1187,6 +1187,10 @@
         function getStudentExcuseCycleInfo(s) {
             if (!s) return { cycleSize: 4, daysPerWeek: 1, currentCycle: 1, sessionsRemainingInCycle: 4, isLocked: false };
 
+            const isInactive = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(s.status || s.account_status || '').toLowerCase().trim()));
+            const rc = parseInt(s.remaining_credits ?? 0, 10);
+            const isZeroBalance = (rc <= 0);
+
             const daysStr = String(s.subscription_days || '').trim();
             const clean = daysStr.replace(/أ|إ/g, 'ا').replace(/ة/g, 'ه');
             const dayKeywords = ['سبت', 'احد', 'اثنين', 'اتنين', 'ثلاثاء', 'تلاتاء', 'اربعاء', 'خميس', 'جمعه'];
@@ -1218,11 +1222,13 @@
             // 1. excuse_count > 0 AND dbMaxExcuses matches currentCycle or stored cycle matches currentCycle
             // OR
             // 2. excuseCount >= currentCycle
-            const isLocked = excuseCount > 0 && (
+            // OR
+            // 3. Student is inactive or has zero balance (no active excuses apply)
+            const isLocked = isInactive || isZeroBalance || (excuseCount > 0 && (
                 storedLastCycle === currentCycle ||
                 dbMaxExcuses === currentCycle ||
                 excuseCount >= currentCycle
-            );
+            ));
 
             return {
                 cycleSize,
@@ -1232,6 +1238,8 @@
                 sessionInCycle,
                 sessionsRemainingInCycle,
                 excuseCount,
+                isInactive,
+                isZeroBalance,
                 isLocked
             };
         }
@@ -1357,7 +1365,16 @@
 
             const excuseInfo = getStudentExcuseCycleInfo(s);
             let excuseBadge;
-            if (excuseInfo.isLocked) {
+            if (isInactive || rc <= 0) {
+                excuseBadge = `
+                    <div class="inline-flex flex-col items-start gap-0.5">
+                        <span class="bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-md text-[10px] inline-flex items-center gap-1" title="الطالب موقوف أو رصيده منتهي (0) — لا تنطبق عليه الأعذار">
+                            <span>غير متاح</span>
+                        </span>
+                        <span class="text-[9px] text-slate-400 font-bold whitespace-nowrap">${isInactive ? 'موقوف' : 'رصيد 0'}</span>
+                    </div>
+                `;
+            } else if (excuseInfo.isLocked) {
                 const rem = excuseInfo.sessionsRemainingInCycle;
                 const remText = rem === 1 ? 'حصة واحدة' : rem === 2 ? 'حصتين' : `${rem} حصص`;
                 excuseBadge = `

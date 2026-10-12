@@ -3133,6 +3133,9 @@
                         studentsList = sData.map(s => {
                             const enr = eMap[s.id] || {};
                             const assignedTeacherName = enr.teacher_id ? (tMap[enr.teacher_id] || s.teacher_name || 'غير محدد') : (s.teacher_name || 'غير محدد');
+                            const rawStatus = String(s.status || s.account_status || enr.status || '').toLowerCase().trim();
+                            const isInactive = ['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(rawStatus);
+                            const remCredits = (enr.remaining_credits !== undefined) ? parseInt(enr.remaining_credits || 0, 10) : parseInt(s.remaining_credits || 0, 10);
                             return {
                                 id: s.id,
                                 name: s.name || '',
@@ -3144,7 +3147,10 @@
                                 lecture_time: enr.lecture_time || '',
                                 teacher_name: assignedTeacherName,
                                 teacher_id: enr.teacher_id || s.teacher_id,
-                                current_surah: enr.current_surah || s.current_surah || '—'
+                                current_surah: enr.current_surah || s.current_surah || '—',
+                                status: s.status,
+                                is_inactive: isInactive,
+                                remaining_credits: remCredits
                             };
                         });
                         window._monirDailyStudentsCache = studentsList;
@@ -3208,7 +3214,9 @@
                 const localStatus = localStorage.getItem(localKey);
                 const supaRec = supabaseAttMap[sid];
 
-                if (isScheduledToday || localStatus || supaRec) {
+                // Do not schedule inactive students with 0 balance unless they have actual attendance/logs today
+                const isInactiveAndZero = s.is_inactive && (s.remaining_credits <= 0);
+                if (((isScheduledToday && !isInactiveAndZero) || localStatus || supaRec)) {
                     seenStudentIds.add(sid);
 
                     let status = 'not_recorded';
@@ -3254,6 +3262,8 @@
                         subscription_days: s.subscription_days || curDay.name,
                         lecture_time: lectureTime,
                         status: status,
+                        is_inactive: s.is_inactive || false,
+                        remaining_credits: s.remaining_credits || 0,
                         recorded_at: recordedAt,
                         surah: s.current_surah || '—',
                         manual_match: manualMatch,
@@ -3384,6 +3394,8 @@
                     statusBadge = '<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غائب</span></span>';
                 } else if (r.status === 'excused') {
                     statusBadge = '<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span></span>';
+                } else if (r.is_inactive || r.remaining_credits <= 0) {
+                    statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
                 } else {
                     statusBadge = '<span class="bg-slate-100 text-slate-600 border border-slate-200 font-bold px-2 py-0.5 rounded-full text-[10px]">لم يُرصد بعد</span>';
                 }
@@ -3494,6 +3506,7 @@
                         if (r.status === 'present') statusLabel = 'حاضر';
                         else if (r.status === 'absent') statusLabel = 'غائب';
                         else if (r.status === 'excused') statusLabel = 'بعذر';
+                        else if (r.is_inactive || r.remaining_credits <= 0) statusLabel = 'موقوف / رصيد 0';
 
                         let matchLabel = 'لم تطابق بعد';
                         if (r.manual_match === 'matched') matchLabel = 'مطابق فعلياً';
@@ -3540,6 +3553,10 @@
                             statusLabel = 'بعذر';
                             statusBg = '#fef3c7';
                             statusColor = '#92400e';
+                        } else if (r.is_inactive || r.remaining_credits <= 0) {
+                            statusLabel = 'موقوف / رصيد 0';
+                            statusBg = '#f1f5f9';
+                            statusColor = '#64748b';
                         }
 
                         let matchLabel = 'لم تطابق بعد';
@@ -3681,6 +3698,7 @@
                 if (r.status === 'present') statusLabel = 'حاضر';
                 else if (r.status === 'absent') statusLabel = 'غائب';
                 else if (r.status === 'excused') statusLabel = 'بعذر';
+                else if (r.is_inactive || r.remaining_credits <= 0) statusLabel = 'موقوف / رصيد 0';
 
                 return `
                     <tr style="border-bottom: 1px solid #cbd5e1; font-size: 11px; text-align: right;">
