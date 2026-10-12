@@ -395,6 +395,7 @@
                                 <input type="date" id="dailyMatchingDatePicker" onchange="loadDailyAttendanceMatchingData()" class="flex-1 bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
                                 <button type="button" onclick="setDailyMatchingDateToToday()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2.5 py-1.5 rounded-xl text-[11px] cursor-pointer whitespace-nowrap">اليوم</button>
                                 <button type="button" onclick="setDailyMatchingDateToYesterday()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2.5 py-1.5 rounded-xl text-[11px] cursor-pointer whitespace-nowrap">أمس</button>
+                                <button type="button" onclick="setDailyMatchingDateToSunday()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 font-extrabold px-2.5 py-1.5 rounded-xl text-[11px] cursor-pointer whitespace-nowrap" title="كشف حضور يوم الأحد">حضور الأحد</button>
                             </div>
                         </div>
 
@@ -410,10 +411,11 @@
                         <div>
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الحضور:</label>
                             <select id="dailyMatchingStatusFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="">الكل (حاضر + غائب + بعذر)</option>
+                                <option value="">الكل (حاضر + غائب + بعذر + لم يُرصد)</option>
                                 <option value="present">حاضر فقط</option>
                                 <option value="absent">غائب فقط</option>
                                 <option value="excused">بعذر فقط</option>
+                                <option value="not_recorded">لم يُرصد بعد</option>
                             </select>
                         </div>
 
@@ -1711,6 +1713,7 @@
             loadTeachersData();
             loadAdminTickets();
             loadSupervisorSchedule();
+            initDailyAttendanceMatching();
         });
 
         // ═══════════════════════════════════════════════════════════
@@ -8293,6 +8296,519 @@
                                 <th>الدرجة</th>
                                 <th>النسبة</th>
                                 <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        // 📊 DAILY ATTENDANCE MATCHING & EXCEL EXPORT ENGINE
+        // ══════════════════════════════════════════════════════════════════
+        let dailyMatchingRawRecords = [];
+        let dailyMatchingFilteredRecords = [];
+        let dailyMatchingSelectedDate = '';
+
+        function openDailyAttendanceMatchingSection() {
+            const sec = document.getElementById('sectionDailyAttendanceMatching');
+            const content = document.getElementById('dailyMatchingContent');
+            if (content && content.classList.contains('hidden')) {
+                toggleDashboardSection('dailyMatchingContent', 'dailyMatchingToggleBtn', 'dailyMatchingStateBadge');
+            }
+            if (sec) {
+                sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function setDailyMatchingDateToToday() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const picker = document.getElementById('dailyMatchingDatePicker');
+            if (picker) picker.value = todayStr;
+            loadDailyAttendanceMatchingData();
+        }
+
+        function setDailyMatchingDateToYesterday() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            const yestStr = d.toISOString().split('T')[0];
+            const picker = document.getElementById('dailyMatchingDatePicker');
+            if (picker) picker.value = yestStr;
+            loadDailyAttendanceMatchingData();
+        }
+
+        function setDailyMatchingDateToSunday() {
+            const d = new Date();
+            const dayOfWeek = d.getDay(); // 0 is Sunday
+            const diff = dayOfWeek === 0 ? 0 : dayOfWeek;
+            d.setDate(d.getDate() - diff);
+            const sunStr = d.toISOString().split('T')[0];
+            const picker = document.getElementById('dailyMatchingDatePicker');
+            if (picker) picker.value = sunStr;
+            loadDailyAttendanceMatchingData();
+        }
+
+        function initDailyAttendanceMatching() {
+            const picker = document.getElementById('dailyMatchingDatePicker');
+            if (!picker) return;
+            const now = new Date();
+            let defaultDate = now;
+            // If Monday, default to Sunday (yesterday) to immediately review Sunday's attendance
+            if (now.getDay() === 1) {
+                defaultDate = new Date();
+                defaultDate.setDate(defaultDate.getDate() - 1);
+            }
+            const dateStr = defaultDate.toISOString().split('T')[0];
+            picker.value = dateStr;
+
+            setTimeout(() => {
+                loadDailyAttendanceMatchingData();
+            }, 500);
+        }
+
+        async function loadDailyAttendanceMatchingData() {
+            const picker = document.getElementById('dailyMatchingDatePicker');
+            if (!picker || !picker.value) return;
+            dailyMatchingSelectedDate = picker.value;
+
+            const tbody = document.getElementById('dailyMatchingTableBody');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center py-8 text-emerald-700 font-bold animate-pulse">
+                            جاري جلب كشوفات ومطابقة حضور يوم ${dailyMatchingSelectedDate}... ⏳
+                        </td>
+                    </tr>
+                `;
+            }
+
+            const dateObj = new Date(dailyMatchingSelectedDate + 'T12:00:00');
+            const dayIndex = dateObj.getDay();
+            const AR_DAYS = [
+                { name: 'الأحد', aliases: ['احد', 'أحد'] },
+                { name: 'الاثنين', aliases: ['اثنين', 'إثنين', 'اتنين'] },
+                { name: 'الثلاثاء', aliases: ['ثلاثاء', 'تلات'] },
+                { name: 'الأربعاء', aliases: ['اربعاء', 'أربعاء', 'اربع', 'أربع'] },
+                { name: 'الخميس', aliases: ['خميس'] },
+                { name: 'الجمعة', aliases: ['جمعة', 'جمعه'] },
+                { name: 'السبت', aliases: ['سبت'] }
+            ];
+            const curDay = AR_DAYS[dayIndex] || { name: 'اليوم المحدد', aliases: [] };
+
+            const dateBadge = document.getElementById('dailyMatchingDateBadge');
+            if (dateBadge) {
+                dateBadge.innerText = `يوم ${curDay.name}: ${dailyMatchingSelectedDate}`;
+            }
+
+            // Ensure students are loaded
+            let studentsList = (window.bsAllStudents && window.bsAllStudents.length > 0)
+                ? window.bsAllStudents
+                : [];
+
+            if (studentsList.length === 0) {
+                try {
+                    const res = await fetch('/api/students');
+                    if (res.ok) {
+                        studentsList = await res.json();
+                        window.bsAllStudents = studentsList;
+                    }
+                } catch(e) {}
+            }
+
+            // 1. Fetch Supabase attendance logs if configured
+            let supabaseAttMap = {};
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const startIso = dailyMatchingSelectedDate + 'T00:00:00.000Z';
+                    const endIso = dailyMatchingSelectedDate + 'T23:59:59.999Z';
+                    const { data: attData, error } = await client
+                        .from('attendance')
+                        .select('*')
+                        .gte('joined_at', startIso)
+                        .lte('joined_at', endIso);
+
+                    if (!error && Array.isArray(attData)) {
+                        attData.forEach(a => {
+                            if (a.student_id) {
+                                supabaseAttMap[a.student_id] = a;
+                            }
+                        });
+                    }
+                } catch(err) {
+                    console.warn('Daily matching Supabase fetch notice:', err);
+                }
+            }
+
+            // 2. Build matching records
+            const matchedRecords = [];
+            const seenStudentIds = new Set();
+
+            studentsList.forEach(s => {
+                const sid = s.id;
+                const daysStr = (s.subscription_days || s.qr_code || '').toLowerCase();
+                const isScheduledToday = curDay.aliases.some(alias => daysStr.includes(alias));
+
+                // Check localStorage
+                const localKey = 'monir_att_' + sid + '_' + dailyMatchingSelectedDate;
+                const localStatus = localStorage.getItem(localKey);
+
+                // Check Supabase
+                const supaRec = supabaseAttMap[sid];
+
+                if (isScheduledToday || localStatus || supaRec) {
+                    seenStudentIds.add(sid);
+
+                    let status = 'not_recorded';
+                    let recordedAt = '—';
+
+                    if (supaRec) {
+                        status = supaRec.status || 'present';
+                        if (supaRec.joined_at) {
+                            try {
+                                const dt = new Date(supaRec.joined_at);
+                                recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                            } catch(e) {}
+                        }
+                    } else if (localStatus) {
+                        status = localStatus;
+                        recordedAt = 'رصد محلي';
+                    }
+
+                    const manualMatchKey = 'monir_sup_match_' + sid + '_' + dailyMatchingSelectedDate;
+                    const manualMatch = localStorage.getItem(manualMatchKey) || '';
+
+                    let teacherName = s.teacher_name || 'غير محدد';
+                    let groupId = s.group_id || (Array.isArray(s.group_ids) ? s.group_ids[0] : '—') || '—';
+                    let lectureTime = s.lecture_time || '—';
+
+                    if (groupId && groupId !== '—' && typeof window.getGroupMetadata === 'function') {
+                        const meta = window.getGroupMetadata(groupId);
+                        if (meta) {
+                            if (!teacherName || teacherName === 'غير محدد') teacherName = meta.teacher_name || teacherName;
+                            if (!lectureTime || lectureTime === '—') lectureTime = meta.lecture_time || lectureTime;
+                        }
+                    }
+
+                    matchedRecords.push({
+                        student_id: sid,
+                        student_code: s.student_code || ('ST' + sid),
+                        name: s.name || 'طالب الأكاديمية',
+                        phone: s.phone || s.parent_phone || '—',
+                        parent_phone: s.parent_phone || s.phone || '—',
+                        teacher_name: teacherName,
+                        teacher_id: s.teacher_id || null,
+                        group_id: groupId,
+                        subscription_days: s.subscription_days || curDay.name,
+                        lecture_time: lectureTime,
+                        status: status,
+                        recorded_at: recordedAt,
+                        surah: s.current_surah || '—',
+                        manual_match: manualMatch,
+                        is_scheduled: isScheduledToday
+                    });
+                }
+            });
+
+            // Add any extra attendances from Supabase not in scheduled list
+            Object.keys(supabaseAttMap).forEach(sidStr => {
+                const sid = parseInt(sidStr);
+                if (!seenStudentIds.has(sid)) {
+                    const supaRec = supabaseAttMap[sid];
+                    const s = studentsList.find(st => st.id === sid) || {};
+                    let recordedAt = '—';
+                    if (supaRec.joined_at) {
+                        try {
+                            const dt = new Date(supaRec.joined_at);
+                            recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                        } catch(e) {}
+                    }
+                    const manualMatchKey = 'monir_sup_match_' + sid + '_' + dailyMatchingSelectedDate;
+                    matchedRecords.push({
+                        student_id: sid,
+                        student_code: s.student_code || ('ST' + sid),
+                        name: s.name || supaRec.student_name || 'طالب إضافي',
+                        phone: s.phone || s.parent_phone || '—',
+                        parent_phone: s.parent_phone || s.phone || '—',
+                        teacher_name: s.teacher_name || 'غير محدد',
+                        teacher_id: s.teacher_id || null,
+                        group_id: s.group_id || '—',
+                        subscription_days: s.subscription_days || 'حصة إضافية/تعويض',
+                        lecture_time: s.lecture_time || '—',
+                        status: supaRec.status || 'present',
+                        recorded_at: recordedAt,
+                        surah: s.current_surah || '—',
+                        manual_match: localStorage.getItem(manualMatchKey) || '',
+                        is_scheduled: false
+                    });
+                }
+            });
+
+            dailyMatchingRawRecords = matchedRecords;
+
+            // Populate Teachers Filter
+            const teacherSelect = document.getElementById('dailyMatchingTeacherFilter');
+            if (teacherSelect) {
+                const uniqueTeachers = [...new Set(matchedRecords.map(r => r.teacher_name).filter(t => t && t !== 'غير محدد'))].sort();
+                const curTeacherVal = teacherSelect.value;
+                teacherSelect.innerHTML = '<option value="">جميع المعلمين (الكل)</option>' +
+                    uniqueTeachers.map(t => `<option value="${t}" ${t === curTeacherVal ? 'selected' : ''}>${t}</option>`).join('');
+            }
+
+            renderDailyAttendanceMatchingTable();
+        }
+
+        function renderDailyAttendanceMatchingTable() {
+            const teacherFilter = document.getElementById('dailyMatchingTeacherFilter')?.value || '';
+            const statusFilter = document.getElementById('dailyMatchingStatusFilter')?.value || '';
+            const searchInput = (document.getElementById('dailyMatchingSearchInput')?.value || '').trim().toLowerCase();
+
+            dailyMatchingFilteredRecords = dailyMatchingRawRecords.filter(r => {
+                if (teacherFilter && r.teacher_name !== teacherFilter) return false;
+                if (statusFilter && r.status !== statusFilter) return false;
+                if (searchInput) {
+                    const matchName = (r.name || '').toLowerCase().includes(searchInput);
+                    const matchCode = (r.student_code || '').toLowerCase().includes(searchInput);
+                    const matchPhone = (r.phone || '').includes(searchInput);
+                    const matchTeacher = (r.teacher_name || '').toLowerCase().includes(searchInput);
+                    const matchGroup = (r.group_id || '').toLowerCase().includes(searchInput);
+                    if (!matchName && !matchCode && !matchPhone && !matchTeacher && !matchGroup) return false;
+                }
+                return true;
+            });
+
+            let presentCount = 0;
+            let absentCount = 0;
+            let excusedCount = 0;
+            dailyMatchingRawRecords.forEach(r => {
+                if (r.status === 'present') presentCount++;
+                else if (r.status === 'absent') absentCount++;
+                else if (r.status === 'excused') excusedCount++;
+            });
+
+            const statPres = document.getElementById('dailyMatchingStatPresent');
+            const statAbs = document.getElementById('dailyMatchingStatAbsent');
+            const statExc = document.getElementById('dailyMatchingStatExcused');
+            const statTot = document.getElementById('dailyMatchingStatTotal');
+
+            if (statPres) statPres.innerText = presentCount;
+            if (statAbs) statAbs.innerText = absentCount;
+            if (statExc) statExc.innerText = excusedCount;
+            if (statTot) statTot.innerText = dailyMatchingRawRecords.length;
+
+            const tbody = document.getElementById('dailyMatchingTableBody');
+            if (!tbody) return;
+
+            if (dailyMatchingFilteredRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center py-10 text-slate-400 font-bold">
+                            لا توجد سجلات مطابقة أو مجموعات مجدولة لهذا التاريخ حسب الفلاتر المحددة.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = dailyMatchingFilteredRecords.map((r, idx) => {
+                let statusBadge = '';
+                if (r.status === 'present') {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✓</span><span>حاضر</span></span>';
+                } else if (r.status === 'absent') {
+                    statusBadge = '<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غائب</span></span>';
+                } else if (r.status === 'excused') {
+                    statusBadge = '<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span></span>';
+                } else {
+                    statusBadge = '<span class="bg-slate-100 text-slate-600 border border-slate-200 font-bold px-2 py-0.5 rounded-full text-[10px]">لم يُرصد بعد</span>';
+                }
+
+                const cleanPhone = (r.phone || '').replace(/[^0-9]/g, '');
+                const waLink = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('0') ? '20' + cleanPhone.substring(1) : cleanPhone}` : null;
+                const matchSelected = r.manual_match || '';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
+                        <td class="p-2.5 text-center text-slate-400 font-bold font-mono text-[11px]">${idx + 1}</td>
+                        <td class="p-2.5 font-mono font-bold text-slate-800 text-[11px]">${r.student_code}</td>
+                        <td class="p-2.5 font-bold text-slate-900">${r.name}</td>
+                        <td class="p-2.5 text-slate-600 font-mono text-[11px]">
+                            ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-700 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1" title="فتح محادثة واتساب"><span>💬</span><span>${r.phone}</span></a>` : r.phone}
+                        </td>
+                        <td class="p-2.5 font-bold text-slate-800">${r.teacher_name}</td>
+                        <td class="p-2.5">
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <span class="bg-slate-100 text-slate-700 font-mono font-bold px-1.5 py-0.5 rounded text-[10px]">${r.group_id}</span>
+                                <span class="text-slate-500 text-[10px]">${r.lecture_time}</span>
+                            </div>
+                        </td>
+                        <td class="p-2.5 text-center">${statusBadge}</td>
+                        <td class="p-2.5 text-slate-500 text-[10px] font-mono">${r.recorded_at}</td>
+                        <td class="p-2.5 text-slate-600 text-[11px] max-w-[140px] truncate" title="${r.surah}">${r.surah}</td>
+                        <td class="p-2.5 text-center">
+                            <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                                <option value="" ${matchSelected === '' ? 'selected' : ''}>— غير محدد —</option>
+                                <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}>✓ مطابق فعلياً</option>
+                                <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}>⚠ به اختلاف</option>
+                                <option value="manual_excused" ${matchSelected === 'manual_excused' ? 'selected' : ''}>عذر معتمد</option>
+                            </select>
+                        </td>
+                        <td class="p-2.5 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                ${waLink ? `<a href="${waLink}" target="_blank" class="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition" title="واتساب"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg></a>` : ''}
+                                <button type="button" onclick="showStudentFullLedgerModal(${r.student_id})" class="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="سجل الطالب"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateSupervisorManualMatch(studentId, dateStr, val) {
+            const key = 'monir_sup_match_' + studentId + '_' + dateStr;
+            if (val) {
+                localStorage.setItem(key, val);
+            } else {
+                localStorage.removeItem(key);
+            }
+            const item = dailyMatchingRawRecords.find(r => r.student_id === studentId);
+            if (item) item.manual_match = val;
+        }
+
+        function exportDailyAttendanceMatchingExcel() {
+            const recordsToExport = (dailyMatchingFilteredRecords && dailyMatchingFilteredRecords.length > 0)
+                ? dailyMatchingFilteredRecords
+                : dailyMatchingRawRecords;
+
+            if (!recordsToExport || recordsToExport.length === 0) {
+                alert('لا توجد بيانات حضور في الكشف الحالي لتصديرها. يرجى اختيار تاريخ يحتوي على مجموعات أو حضور.');
+                return;
+            }
+
+            const dateStr = dailyMatchingSelectedDate || new Date().toISOString().split('T')[0];
+            const dateObj = new Date(dateStr + 'T12:00:00');
+            const AR_DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dayName = AR_DAY_NAMES[dateObj.getDay()] || 'يومي';
+
+            let csv = '\uFEFF'; // UTF-8 BOM for Arabic support in Excel
+            csv += 'م,كود الطالب,اسم الطالب,رقم ولي الأمر,المعلم,المجموعة,أيام الحصة,موعد الحصة,تاريخ الكشف,اليوم,حالة المنصة,وقت التسجيل,الورد القرآني والتقييم,مطابقة الإشراف الفعلية,ملاحظات\n';
+
+            recordsToExport.forEach((r, idx) => {
+                let statusLabel = 'لم يُرصد بعد';
+                if (r.status === 'present') statusLabel = 'حاضر';
+                else if (r.status === 'absent') statusLabel = 'غائب';
+                else if (r.status === 'excused') statusLabel = 'بعذر';
+
+                let matchLabel = 'لم تطابق بعد';
+                if (r.manual_match === 'matched') matchLabel = 'مطابق فعلياً';
+                else if (r.manual_match === 'discrepant') matchLabel = 'به اختلاف';
+                else if (r.manual_match === 'manual_excused') matchLabel = 'عذر معتمد';
+
+                const num = idx + 1;
+                const code = '"' + (r.student_code || '').replace(/"/g, '""') + '"';
+                const name = '"' + (r.name || '').replace(/"/g, '""') + '"';
+                const phone = '"\'' + (r.phone || '').replace(/"/g, '""') + '"';
+                const teacher = '"' + (r.teacher_name || '').replace(/"/g, '""') + '"';
+                const group = '"' + (r.group_id || '').replace(/"/g, '""') + '"';
+                const days = '"' + (r.subscription_days || '').replace(/"/g, '""') + '"';
+                const time = '"' + (r.lecture_time || '').replace(/"/g, '""') + '"';
+                const dt = '"' + dateStr + '"';
+                const dName = '"' + dayName + '"';
+                const stat = '"' + statusLabel + '"';
+                const recTime = '"' + (r.recorded_at || '—') + '"';
+                const surah = '"' + (r.surah || '—').replace(/"/g, '""') + '"';
+                const match = '"' + matchLabel + '"';
+                const notes = '""';
+
+                csv += `${num},${code},${name},${phone},${teacher},${group},${days},${time},${dt},${dName},${stat},${recTime},${surah},${match},${notes}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `كشف_حضور_المنصة_${dayName}_${dateStr}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert(`✅ تم بنجاح تصدير كشف الحضور ليوم (${dayName} ${dateStr}) بإجمالي (${recordsToExport.length}) طالب.\nالملف تم تنزيله في جهازك ويفتح مباشرة ومضبوط باللغة العربية على Excel.`);
+        }
+
+        function printDailyAttendanceMatchingReport() {
+            const recordsToPrint = (dailyMatchingFilteredRecords && dailyMatchingFilteredRecords.length > 0)
+                ? dailyMatchingFilteredRecords
+                : dailyMatchingRawRecords;
+
+            if (!recordsToPrint || recordsToPrint.length === 0) {
+                alert('لا توجد بيانات للطباعة.');
+                return;
+            }
+
+            const dateStr = dailyMatchingSelectedDate || new Date().toISOString().split('T')[0];
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('يرجى السماح بفتح النوافذ المنبثقة للطباعة.');
+                return;
+            }
+
+            const rowsHtml = recordsToPrint.map((r, idx) => {
+                let statusLabel = 'لم يُرصد';
+                if (r.status === 'present') statusLabel = 'حاضر';
+                else if (r.status === 'absent') statusLabel = 'غائب';
+                else if (r.status === 'excused') statusLabel = 'بعذر';
+
+                return `
+                    <tr style="border-bottom: 1px solid #cbd5e1; font-size: 11px; text-align: right;">
+                        <td style="padding: 6px; text-align: center;">${idx + 1}</td>
+                        <td style="padding: 6px; font-weight: bold;">${r.student_code}</td>
+                        <td style="padding: 6px; font-weight: bold;">${r.name}</td>
+                        <td style="padding: 6px;">${r.phone}</td>
+                        <td style="padding: 6px;">${r.teacher_name}</td>
+                        <td style="padding: 6px;">${r.group_id} - ${r.lecture_time}</td>
+                        <td style="padding: 6px; text-align: center; font-weight: bold;">${statusLabel}</td>
+                        <td style="padding: 6px;">${r.recorded_at}</td>
+                        <td style="padding: 6px; border: 1px dashed #94a3b8; width: 80px;"></td>
+                    </tr>
+                `;
+            }).join('');
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>كشف مطابقة حضور المنصة - ${dateStr}</title>
+                    <style>
+                        body { font-family: 'Cairo', Arial, sans-serif; padding: 20px; direction: rtl; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                        th { background: #f1f5f9; padding: 8px; border-bottom: 2px solid #0f172a; font-size: 11px; }
+                        h2, p { margin: 0 0 5px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h2>أكاديمية منير - كشف مطابقة حضور المنصة اليومي</h2>
+                    <p style="font-size: 12px; color: #475569;">تاريخ الكشف: <strong>${dateStr}</strong> • إجمالي الطلاب: <strong>${recordsToPrint.length}</strong></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>كود الطالب</th>
+                                <th>اسم الطالب</th>
+                                <th>رقم الهاتف</th>
+                                <th>المعلم</th>
+                                <th>المجموعة والموعد</th>
+                                <th>حالة المنصة</th>
+                                <th>وقت التسجيل</th>
+                                <th>المطابقة الفعلية (يدوي)</th>
                             </tr>
                         </thead>
                         <tbody>
