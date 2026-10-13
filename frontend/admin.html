@@ -6151,8 +6151,11 @@
                                 ? Math.max(0, s.remaining_credits + amt)
                                 : Math.max(0, s.remaining_credits - amt);
                             await client.from('enrollments')
-                                .update({ remaining_credits: newCred })
+                                .update({ remaining_credits: newCred, status: newCred > 0 ? 'active' : 'inactive' })
                                 .eq('student_id', s.id);
+                            if (newCred > 0) {
+                                await client.from('students').update({ status: 'active' }).eq('id', s.id);
+                            }
                             s.remaining_credits = newCred;
 
                             // Audit Ledger Log in payments
@@ -6175,6 +6178,10 @@
                             }
                         }
                     } else if (Object.keys(enrollPayload).length > 0) {
+                        if (enrollPayload.remaining_credits !== undefined && enrollPayload.remaining_credits > 0) {
+                            enrollPayload.status = 'active';
+                            await client.from('students').update({ status: 'active' }).in('id', ids);
+                        }
                         // Get enrollment IDs for these students
                         const { data: enrRows } = await client
                             .from('enrollments').select('id').in('student_id', ids);

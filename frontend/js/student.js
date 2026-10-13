@@ -1517,7 +1517,10 @@ function renderEnrolledCoursesTabs(courses) {
         const meta = getCourseCategoryMeta(c);
         const teacherName = c.teacher_name || 'معلم معتمد';
         const groupId = c.group_id || curStudent.group_id || 'G000';
-        const remCredits = (c.remaining_credits !== undefined) ? c.remaining_credits : 0;
+        const remCredits = Math.max(
+            (c.remaining_credits !== undefined && c.remaining_credits !== null) ? Number(c.remaining_credits) : 0,
+            (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
+        );
         const presentCount = (c.present_count !== undefined) ? c.present_count : 0;
         const totalUnlocked = (c.total_lectures_unlocked !== undefined && c.total_lectures_unlocked >= remCredits) ? c.total_lectures_unlocked : (remCredits + presentCount);
         const totalToShow = Math.max(1, totalUnlocked);
@@ -1527,7 +1530,15 @@ function renderEnrolledCoursesTabs(courses) {
         let rawTimeVal = c.lecture_time || '';
         let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
 
-        const statusText = c.account_status || curStudent.account_status || 'نشط';
+        const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+        let statusText = 'نشط';
+        if (isStudentAdminPaused) {
+            statusText = 'موقوف';
+        } else if (remCredits <= 0) {
+            statusText = 'منتهي الرصيد';
+        } else {
+            statusText = 'نشط';
+        }
         const statusColor = (statusText === 'نشط' || statusText.includes('ساري')) ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
 
         let durationText = c.session_duration || c.duration;
@@ -1710,10 +1721,10 @@ function renderEnrolledCoursesTabs(courses) {
 
                 <!-- Action Toolbar Buttons -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
-                    ${(remCredits <= 0 || statusText === 'موقوف' || statusText === 'inactive')
+                    ${(remCredits <= 0 || isStudentAdminPaused)
                         ? `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                             <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
-                            <span>رصيدك منتهي (0) — تجديد الآن</span>
+                            <span>${isStudentAdminPaused ? 'الحساب موقوف إدارياً' : 'رصيدك منتهي (0) — تجديد الآن'}</span>
                            </button>`
                         : `<button type="button" onclick="event.stopPropagation(); joinMeet(null, '${meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                             <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
