@@ -2996,6 +2996,12 @@
             if (sec) {
                 sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+            const picker = document.getElementById('dailyMatchingDatePicker');
+            const now = new Date();
+            if (picker && (!picker.value || (now.getDay() === 2 && picker.value === getFormatDateLocal(now)))) {
+                setDailyMatchingDay('mon');
+                return;
+            }
             loadDailyAttendanceMatchingData();
         }
 
@@ -3047,16 +3053,17 @@
         function initDailyAttendanceMatching() {
             const picker = document.getElementById('dailyMatchingDatePicker');
             if (!picker) return;
+            const now = new Date();
+            // Default to previous session day for daily reconciliation (Sunday if Mon, Monday if Tue)
+            if (now.getDay() === 1) {
+                setDailyMatchingDay('sun');
+                return;
+            } else if (now.getDay() === 2) {
+                setDailyMatchingDay('mon');
+                return;
+            }
             if (!picker.value) {
-                const now = new Date();
-                let defaultDate = now;
-                // If today is Monday morning, default to Sunday as requested by supervisors
-                if (now.getDay() === 1) {
-                    defaultDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-                    setDailyMatchingDay('sun');
-                    return;
-                }
-                picker.value = getFormatDateLocal(defaultDate);
+                picker.value = getFormatDateLocal(now);
             }
             loadDailyAttendanceMatchingData();
         }
