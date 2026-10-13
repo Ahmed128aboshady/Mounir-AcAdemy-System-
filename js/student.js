@@ -976,6 +976,116 @@ function getCourseCategoryMeta(c) {
 }
 window.getCourseCategoryMeta = getCourseCategoryMeta;
 
+// ═════════════════════════════════════════════════════════════════════
+// Central General Live Broadcast & Competition Tracks Config
+// ═════════════════════════════════════════════════════════════════════
+const ZOOM_CONFIG = {
+    kids: {
+        url: "https://zoom.us/j/98264506630",
+        label: "فئة الأطفال (أقل من 10 سنوات)",
+        timeLabel: "الجمعة 1:50 م - 2:25 م",
+        startMins: 830, // 13:50
+        endMins: 865    // 14:25
+    },
+    adults: {
+        url: "https://zoom.us/j/99924246069",
+        label: "فئة الطلاب (10 سنوات فما فوق)",
+        timeLabel: "الجمعة 2:20 م - 2:50 م",
+        startMins: 860, // 14:20
+        endMins: 890    // 14:50
+    }
+};
+window.ZOOM_CONFIG = ZOOM_CONFIG;
+
+const SUNDAY_TAFSIR_CONFIG = {
+    url: "https://zoom.us/j/98264506630",
+    label: "محاضرة التفسير والتدبر (مجانية)",
+    timeLabel: "الأحد 8:00 م - 9:00 م (تفتح 7:50 م)",
+    minAge: 10,
+    openMins: 1190,  // 19:50 (7:50 PM)
+    startMins: 1200, // 20:00 (8:00 PM)
+    endMins: 1260    // 21:00 (9:00 PM)
+};
+window.SUNDAY_TAFSIR_CONFIG = SUNDAY_TAFSIR_CONFIG;
+
+const TUESDAY_GIRLS_TAFSIR_CONFIG = {
+    url: "https://zoom.us/j/98264506630",
+    label: "جلسة التفسير والتدبر — الحلقة 2: ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
+    episodeTitle: "الحلقة الثانية: ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
+    timeLabel: "الثلاثاء 8:30 م - 9:30 م (تفتح 8:20 م)",
+    maxAge: 9, // strictly < 10
+    openMins: 1220, // 20:20 (8:20 PM)
+    startMins: 1230, // 20:30 (8:30 PM)
+    endMins: 1295   // 21:35 (9:35 PM)
+};
+window.TUESDAY_GIRLS_TAFSIR_CONFIG = TUESDAY_GIRLS_TAFSIR_CONFIG;
+
+const WEDNESDAY_TAFSIR_CONFIG = {
+    girls_10_and_up: {
+        url: "https://zoom.us/j/98264506630",
+        label: "فئة البنات (10 سنوات فيما فوق)",
+        episodeTitle: "الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
+        timeLabel: "كل أربعاء الساعة 5:00 م (الرابط مفتوح ومتاح)",
+        minAge: 10,
+        gender: "f",
+        openMins: 0,
+        startMins: 1020, // 17:00 (5:00 PM)
+        endMins: 1440
+    },
+    boys_under_10: {
+        url: "https://zoom.us/j/98264506630",
+        label: "فئة الأولاد (أقل من 10 سنوات)",
+        episodeTitle: "الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
+        timeLabel: "كل أربعاء الساعة 6:30 م (الرابط مفتوح ومتاح)",
+        maxAge: 9,
+        gender: "m",
+        openMins: 0,
+        startMins: 1110, // 18:30 (6:30 PM)
+        endMins: 1440
+    }
+};
+window.WEDNESDAY_TAFSIR_CONFIG = WEDNESDAY_TAFSIR_CONFIG;
+
+const MONDAY_HADITH_CONFIG = {
+    girls_under_10: {
+        url: "https://zoom.us/j/98264506630",
+        label: "بنات أقل من 10 سنوات",
+        timeLabel: "الإثنين 6:30 م - 7:25 م (تفتح 6:20 م)",
+        openMins: 1100,  // 18:20 (6:20 PM)
+        startMins: 1110, // 18:30 (6:30 PM)
+        endMins: 1165,   // 19:25 (7:25 PM)
+        platform: "Zoom"
+    },
+    girls_10_and_up: {
+        url: "https://zoom.us/j/99924246069",
+        label: "بنات 10 سنوات وأكبر",
+        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
+        openMins: 1160,  // 19:20 (7:20 PM)
+        startMins: 1170, // 19:30 (7:30 PM)
+        endMins: 1230,   // 20:30 (8:30 PM)
+        platform: "Zoom"
+    },
+    boys_under_10: {
+        url: "https://meet.google.com/che-nnub-mxf",
+        label: "أولاد أقل من 10 سنوات",
+        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
+        openMins: 1160,  // 19:20 (7:20 PM)
+        startMins: 1170, // 19:30 (7:30 PM)
+        endMins: 1230,   // 20:30 (8:30 PM)
+        platform: "Google Meet"
+    },
+    boys_10_and_up: {
+        url: "https://zoom.us/j/98264506630",
+        label: "أولاد 10 سنوات وأكبر",
+        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
+        openMins: 1160,  // 19:20 (7:20 PM)
+        startMins: 1170, // 19:30 (7:30 PM)
+        endMins: 1230,   // 20:30 (8:30 PM)
+        platform: "Zoom"
+    }
+};
+window.MONDAY_HADITH_CONFIG = MONDAY_HADITH_CONFIG;
+
 const COMPETITION_COURSES = [
     {
         course_name: 'مسار الحديث الشريف',
@@ -1034,81 +1144,100 @@ function getFilteredCoursesList() {
         return COMPETITION_COURSES.map(c => {
             // 1. مسار التفسير والتدبر
             if (c.course_name.includes('التفسير والتدبر')) {
+                let tafsirMeetUrl = 'https://zoom.us/j/98264506630';
                 if (gender === 'f') {
-                    if (age <= 10) {
+                    if (age < 10) {
+                        tafsirMeetUrl = TUESDAY_GIRLS_TAFSIR_CONFIG.url;
                         return {
                             ...c,
                             subscription_days: 'الثلاثاء',
                             lecture_time: 'الثلاثاء 8:30 م (بنات من 6 إلى 10 سنوات)',
-                            session_duration: 'جلسة أسبوعية تفاعلية'
+                            session_duration: 'جلسة أسبوعية تفاعلية',
+                            google_meet_url: tafsirMeetUrl
                         };
                     } else {
+                        tafsirMeetUrl = WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up.url;
                         return {
                             ...c,
                             subscription_days: 'الأربعاء',
                             lecture_time: 'الأربعاء 5:00 م (بنات 11 سنة فيما فوق)',
-                            session_duration: 'جلسة أسبوعية تفاعلية'
+                            session_duration: 'جلسة أسبوعية تفاعلية',
+                            google_meet_url: tafsirMeetUrl
                         };
                     }
                 } else {
-                    if (age <= 10) {
+                    if (age < 10) {
+                        tafsirMeetUrl = WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url;
                         return {
                             ...c,
                             subscription_days: 'الأربعاء',
                             lecture_time: 'الأربعاء 6:30 م (أولاد من 6 إلى 10 سنوات)',
-                            session_duration: 'جلسة أسبوعية تفاعلية'
+                            session_duration: 'جلسة أسبوعية تفاعلية',
+                            google_meet_url: tafsirMeetUrl
                         };
                     } else {
+                        tafsirMeetUrl = SUNDAY_TAFSIR_CONFIG.url;
                         return {
                             ...c,
                             subscription_days: 'الأحد',
                             lecture_time: 'الأحد 8:00 م (أولاد 11 سنة فيما فوق)',
-                            session_duration: 'جلسة أسبوعية تفاعلية'
+                            session_duration: 'جلسة أسبوعية تفاعلية',
+                            google_meet_url: tafsirMeetUrl
                         };
                     }
                 }
             }
             // 2. مسار أحكام التجويد ومخارج الحروف
             if (c.course_name.includes('التجويد')) {
-                if (age <= 10) {
+                const tajweedMeetUrl = (age < 10) ? ZOOM_CONFIG.kids.url : ZOOM_CONFIG.adults.url;
+                if (age < 10) {
                     return {
                         ...c,
                         subscription_days: 'الجمعة',
                         lecture_time: 'الجمعة 2:00 م (من 6 إلى 10 سنوات)',
-                        session_duration: 'جلسة أسبوعية تفاعلية'
+                        session_duration: 'جلسة أسبوعية تفاعلية',
+                        google_meet_url: tajweedMeetUrl
                     };
                 } else {
                     return {
                         ...c,
                         subscription_days: 'الجمعة',
                         lecture_time: 'الجمعة 2:30 م (11 سنة فيما فوق)',
-                        session_duration: 'جلسة أسبوعية تفاعلية'
+                        session_duration: 'جلسة أسبوعية تفاعلية',
+                        google_meet_url: tajweedMeetUrl
                     };
                 }
             }
             // 3. مسار الحديث الشريف
             if (c.course_name.includes('الحديث')) {
+                let hadithMeetUrl = 'https://zoom.us/j/98264506630';
                 if (gender === 'm') {
+                    hadithMeetUrl = (age < 10) ? MONDAY_HADITH_CONFIG.boys_under_10.url : MONDAY_HADITH_CONFIG.boys_10_and_up.url;
                     return {
                         ...c,
                         subscription_days: 'الإثنين',
                         lecture_time: 'الإثنين 8:00 م (أولاد)',
-                        session_duration: 'جلسة أسبوعية تفاعلية'
+                        session_duration: 'جلسة أسبوعية تفاعلية',
+                        google_meet_url: hadithMeetUrl
                     };
                 } else {
-                    if (age <= 10) {
+                    if (age < 10) {
+                        hadithMeetUrl = MONDAY_HADITH_CONFIG.girls_under_10.url;
                         return {
                             ...c,
                             subscription_days: 'الإثنين',
                             lecture_time: 'الإثنين 6:30 م (بنات من 6 إلى 10 سنوات)',
-                            session_duration: 'جلسة أسبوعية تفاعلية'
+                            session_duration: 'جلسة أسبوعية تفاعلية',
+                            google_meet_url: hadithMeetUrl
                         };
                     } else {
+                        hadithMeetUrl = MONDAY_HADITH_CONFIG.girls_10_and_up.url;
                         return {
                             ...c,
                             subscription_days: 'الإثنين',
                             lecture_time: 'الإثنين 7:30 م (بنات 11 سنة فيما فوق)',
-                            session_duration: 'جلسة أسبوعية تفاعلية'
+                            session_duration: 'جلسة أسبوعية تفاعلية',
+                            google_meet_url: hadithMeetUrl
                         };
                     }
                 }
@@ -1841,19 +1970,28 @@ async function loadSelectedCourseLectures() {
 
             const lecs = COMPETITION_LECTURES_MAP[selectedCourseName].map(l => {
                 let sTime = l.scheduled_time;
+                let meetUrl = l.meet_url;
                 if (selectedCourseName.includes('التفسير')) {
                     if (gender === 'f') {
                         sTime = (stAge <= 10) ? 'الثلاثاء 8:30 م (بنات من 6 إلى 10 سنوات)' : 'الأربعاء 5:00 م (بنات 11 سنة فما فوق)';
+                        meetUrl = (stAge <= 10) ? TUESDAY_GIRLS_TAFSIR_CONFIG.url : WEDNESDAY_TAFSIR_CONFIG.girls_10_and_up.url;
                     } else {
                         sTime = (stAge <= 10) ? 'الأربعاء 6:30 م (أولاد من 6 إلى 10 سنوات)' : 'الأحد 8:00 م (أولاد 11 سنة فما فوق)';
+                        meetUrl = (stAge <= 10) ? WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url : SUNDAY_TAFSIR_CONFIG.url;
                     }
                 } else if (selectedCourseName.includes('التجويد')) {
                     sTime = (stAge <= 10) ? 'الجمعة 2:00 م (من 6 إلى 10 سنوات)' : 'الجمعة 2:30 م (11 سنة فما فوق)';
+                    meetUrl = (stAge < 10) ? ZOOM_CONFIG.kids.url : ZOOM_CONFIG.adults.url;
                 } else if (selectedCourseName.includes('الحديث')) {
-                    if (gender === 'm') sTime = 'الإثنين 8:00 م (أولاد)';
-                    else sTime = (stAge <= 10) ? 'الإثنين 6:30 م (بنات من 6 إلى 10 سنوات)' : 'الإثنين 7:30 م (بنات 11 سنة فما فوق)';
+                    if (gender === 'm') {
+                        sTime = 'الإثنين 8:00 م (أولاد)';
+                        meetUrl = (stAge < 10) ? MONDAY_HADITH_CONFIG.boys_under_10.url : MONDAY_HADITH_CONFIG.boys_10_and_up.url;
+                    } else {
+                        sTime = (stAge <= 10) ? 'الإثنين 6:30 م (بنات من 6 إلى 10 سنوات)' : 'الإثنين 7:30 م (بنات 11 سنة فما فوق)';
+                        meetUrl = (stAge < 10) ? MONDAY_HADITH_CONFIG.girls_under_10.url : MONDAY_HADITH_CONFIG.girls_10_and_up.url;
+                    }
                 }
-                return { ...l, scheduled_time: sTime };
+                return { ...l, scheduled_time: sTime, meet_url: meetUrl };
             });
             data = {
                 course_name: selectedCourseName,
@@ -2285,14 +2423,21 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
-    const rc = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+    const rc = Math.max(
+        (currentCourseInfo.remaining_credits !== undefined && currentCourseInfo.remaining_credits !== null) ? Number(currentCourseInfo.remaining_credits) : 0,
+        (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
+    );
     const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
     const isCourseStopped = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(currentCourseInfo.status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0 && isCourseStopped);
 
-    const meetLink = (typeof window !== 'undefined' && window.getGroupMeetUrl) 
-        ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
-        : (currentCourseInfo.google_meet_url || 'https://meet.google.com');
+    const meetLink = (l && l.meet_url)
+        ? l.meet_url
+        : ((currentCourseInfo && currentCourseInfo.google_meet_url && (currentCourseInfo.google_meet_url.includes('zoom.us') || (currentCourseInfo.group_id && String(currentCourseInfo.group_id).startsWith('CMP-'))))
+            ? currentCourseInfo.google_meet_url
+            : ((typeof window !== 'undefined' && window.getGroupMeetUrl) 
+                ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
+                : (currentCourseInfo.google_meet_url || 'https://meet.google.com')));
 
     // Extract Quran Progress (الورد وموضع التلاوة والحفظ والماضي)
     let rawLectureSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
@@ -2539,7 +2684,10 @@ function updateBottomMeetButtonState(rc) {
 function joinMeet(lectureId, meetUrl) {
     const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
-    const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+    const rc = Math.max(
+        (curCourse.remaining_credits !== undefined && curCourse.remaining_credits !== null) ? Number(curCourse.remaining_credits) : 0,
+        (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
+    );
     const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0);
 
@@ -2566,12 +2714,18 @@ function joinMeet(lectureId, meetUrl) {
         return;
     }
 
-    const curGid = curCourse.group_id || curStudent.group_id;
-    const resolvedMeetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-        ? window.getGroupMeetUrl(curGid, curCourse.teacher_id || curCourse.teacher_name)
-        : (meetUrl || curCourse.google_meet_url || 'https://meet.google.com');
-
-    const targetUrl = resolvedMeetUrl || meetUrl || 'https://meet.google.com';
+    let targetUrl = meetUrl;
+    if (!targetUrl || targetUrl.trim() === '' || targetUrl === 'https://meet.google.com') {
+        if (curCourse && curCourse.google_meet_url && (curCourse.google_meet_url.includes('zoom.us') || (curCourse.group_id && String(curCourse.group_id).startsWith('CMP-')))) {
+            targetUrl = curCourse.google_meet_url;
+        } else {
+            const curGid = curCourse.group_id || curStudent.group_id;
+            targetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
+                ? window.getGroupMeetUrl(curGid, curCourse.teacher_id || curCourse.teacher_name)
+                : (curCourse.google_meet_url || 'https://meet.google.com');
+        }
+    }
+    if (!targetUrl || targetUrl.trim() === '') targetUrl = 'https://meet.google.com';
     window.open(targetUrl, '_blank');
     try {
         if (lectureId) {
@@ -2588,6 +2742,9 @@ function joinMeet(lectureId, meetUrl) {
 
 function getNextDueMeetUrl() {
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    if (currentCourseInfo.google_meet_url && (currentCourseInfo.google_meet_url.includes('zoom.us') || (currentCourseInfo.group_id && String(currentCourseInfo.group_id).startsWith('CMP-')))) {
+        return currentCourseInfo.google_meet_url;
+    }
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const curGid = currentCourseInfo.group_id || curStudent.group_id;
     return (typeof window !== 'undefined' && window.getGroupMeetUrl) 
@@ -2598,7 +2755,10 @@ function getNextDueMeetUrl() {
 function joinNextDueMeet() {
     const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
-    const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
+    const rc = Math.max(
+        (curCourse.remaining_credits !== undefined && curCourse.remaining_credits !== null) ? Number(curCourse.remaining_credits) : 0,
+        (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
+    );
     const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0);
 
@@ -3594,33 +3754,6 @@ function getCairoTimeInfo() {
     }
 }
 
-const ZOOM_CONFIG = {
-    kids: {
-        url: "https://zoom.us/j/98264506630",
-        label: "فئة الأطفال (أقل من 10 سنوات)",
-        timeLabel: "الجمعة 1:50 م - 2:25 م",
-        startMins: 830, // 13:50
-        endMins: 865    // 14:25
-    },
-    adults: {
-        url: "https://zoom.us/j/99924246069",
-        label: "فئة الطلاب (10 سنوات فما فوق)",
-        timeLabel: "الجمعة 2:20 م - 2:50 م",
-        startMins: 860, // 14:20
-        endMins: 890    // 14:50
-    }
-};
-
-const SUNDAY_TAFSIR_CONFIG = {
-    url: "https://zoom.us/j/98264506630",
-    label: "محاضرة التفسير والتدبر (مجانية)",
-    timeLabel: "الأحد 8:00 م - 9:00 م (تفتح 7:50 م)",
-    minAge: 10,
-    openMins: 1190,  // 19:50 (7:50 PM)
-    startMins: 1200, // 20:00 (8:00 PM)
-    endMins: 1260    // 21:00 (9:00 PM)
-};
-
 function getSundayTafsirStatus(studentAge) {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('sim_age')) {
@@ -3673,19 +3806,6 @@ function getSundayTafsirStatus(studentAge) {
     };
 }
 
-// ═════════════════════════════════════════════════════════════════════
-// Tuesday Girls Tafsir Live Config (جلسة التفسير والتدبر للبنات أقل من 10 سنوات)
-// ═════════════════════════════════════════════════════════════════════
-const TUESDAY_GIRLS_TAFSIR_CONFIG = {
-    url: "https://zoom.us/j/98264506630",
-    label: "جلسة التفسير والتدبر — الحلقة 2: ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
-    episodeTitle: "الحلقة الثانية: ماذا يدخل أذني… وإلى أين يأخذ قلبي؟",
-    timeLabel: "الثلاثاء 8:30 م - 9:30 م (تفتح 8:20 م)",
-    maxAge: 9, // strictly < 10
-    openMins: 1220, // 20:20 (8:20 PM)
-    startMins: 1230, // 20:30 (8:30 PM)
-    endMins: 1295   // 21:35 (9:35 PM)
-};
 
 function getTuesdayGirlsTafsirStatus(studentAge, studentGender) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -3758,33 +3878,6 @@ function getTuesdayGirlsTafsirStatus(studentAge, studentGender) {
     };
 }
 
-// ═════════════════════════════════════════════════════════════════════
-// Wednesday Tafsir & Tadabbur Live Config (جلسات الأربعاء - مسار التفسير والتدبر)
-// ═════════════════════════════════════════════════════════════════════
-const WEDNESDAY_TAFSIR_CONFIG = {
-    girls_10_and_up: {
-        url: "https://zoom.us/j/98264506630",
-        label: "فئة البنات (10 سنوات فيما فوق)",
-        episodeTitle: "الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
-        timeLabel: "كل أربعاء الساعة 5:00 م (الرابط مفتوح ومتاح)",
-        minAge: 10,
-        gender: "f",
-        openMins: 0,
-        startMins: 1020, // 17:00 (5:00 PM)
-        endMins: 1440
-    },
-    boys_under_10: {
-        url: "https://zoom.us/j/98264506630",
-        label: "فئة الأولاد (أقل من 10 سنوات)",
-        episodeTitle: "الحلقة الثانية: «ماذا يدخل أذني… وإلى أين يأخذ قلبي؟»",
-        timeLabel: "كل أربعاء الساعة 6:30 م (الرابط مفتوح ومتاح)",
-        maxAge: 9,
-        gender: "m",
-        openMins: 0,
-        startMins: 1110, // 18:30 (6:30 PM)
-        endMins: 1440
-    }
-};
 
 function getWednesdayTafsirStatus(studentAge, studentGender) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -3834,51 +3927,14 @@ function getWednesdayTafsirStatus(studentAge, studentGender) {
     };
 }
 
-// ═════════════════════════════════════════════════════════════════════
-// Monday Hadith Council Live Config (مجلس الحديث الشريف - الإثنين)
-// ═════════════════════════════════════════════════════════════════════
-const MONDAY_HADITH_CONFIG = {
-    girls_under_10: {
-        url: "https://zoom.us/j/98264506630",
-        label: "بنات أقل من 10 سنوات",
-        timeLabel: "الإثنين 6:30 م - 7:25 م (تفتح 6:20 م)",
-        openMins: 1100,  // 18:20 (6:20 PM)
-        startMins: 1110, // 18:30 (6:30 PM)
-        endMins: 1165,   // 19:25 (7:25 PM)
-        platform: "Zoom"
-    },
-    girls_10_and_up: {
-        url: "https://zoom.us/j/99924246069",
-        label: "بنات 10 سنوات وأكبر",
-        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
-        openMins: 1160,  // 19:20 (7:20 PM)
-        startMins: 1170, // 19:30 (7:30 PM)
-        endMins: 1230,   // 20:30 (8:30 PM)
-        platform: "Zoom"
-    },
-    boys_under_10: {
-        url: "https://meet.google.com/che-nnub-mxf",
-        label: "أولاد أقل من 10 سنوات",
-        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
-        openMins: 1160,  // 19:20 (7:20 PM)
-        startMins: 1170, // 19:30 (7:30 PM)
-        endMins: 1230,   // 20:30 (8:30 PM)
-        platform: "Google Meet"
-    },
-    boys_10_and_up: {
-        url: "https://zoom.us/j/98264506630",
-        label: "أولاد 10 سنوات وأكبر",
-        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
-        openMins: 1160,  // 19:20 (7:20 PM)
-        startMins: 1170, // 19:30 (7:30 PM)
-        endMins: 1230,   // 20:30 (8:30 PM)
-        platform: "Zoom"
-    }
-};
 
 const STUDENT_GENDER_OVERRIDES = {
     'ST1088': 'f',
-    '1088': 'f'
+    '1088': 'f',
+    'ST0893': 'f',
+    '0893': 'f',
+    '893': 'f',
+    '585': 'f'
 };
 
 function guessStudentGender(name, explicitGender, studentCode) {
@@ -3887,10 +3943,11 @@ function guessStudentGender(name, explicitGender, studentCode) {
     const effectiveName = name || sObj.name || '';
     const effectiveExplicit = explicitGender || sObj.gender || sObj.parent_name || '';
 
-    // 1. Check central verified registry first (master: العمر.xlsx)
-    if (typeof window.getStudentGender === 'function') {
-        const resolved = window.getStudentGender(effectiveCode, effectiveName, effectiveExplicit);
-        if (resolved) return resolved;
+    // 1. Check explicit gender or parent_name keyword first
+    if (effectiveExplicit) {
+        const g = String(effectiveExplicit).toLowerCase().trim();
+        if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g === 'انثى' || g.includes('female') || g.includes('أنثى') || g.includes('بنت')) return 'f';
+        if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر' || g.includes('male') || g.includes('ذكر') || g.includes('ولد')) return 'm';
     }
 
     // 2. Check student code override
@@ -3906,11 +3963,10 @@ function guessStudentGender(name, explicitGender, studentCode) {
         } catch(e) {}
     }
 
-    // 3. Check explicit gender or parent_name keyword
-    if (effectiveExplicit) {
-        const g = String(effectiveExplicit).toLowerCase().trim();
-        if (g === 'f' || g === 'female' || g === 'بنت' || g === 'أنثى' || g === 'انثى' || g.includes('female') || g.includes('أنثى') || g.includes('بنت')) return 'f';
-        if (g === 'm' || g === 'male' || g === 'ولد' || g === 'ذكر' || g.includes('male') || g.includes('ذكر') || g.includes('ولد')) return 'm';
+    // 3. Check central verified registry (master: العمر.xlsx)
+    if (typeof window.getStudentGender === 'function') {
+        const resolved = window.getStudentGender(effectiveCode, effectiveName, effectiveExplicit);
+        if (resolved) return resolved;
     }
 
     if (!effectiveName) return 'm';
