@@ -828,12 +828,15 @@ function checkAndRenderQuranWidget(courses) {
 
     if (hifzEl) {
         hifzEl.innerText = plan.hifz || 'يُحدد بالحلقة القادمة مع المعلم';
+        hifzEl.title = plan.hifz || '';
     }
     if (qareebEl) {
         qareebEl.innerText = plan.madi_qareeb || 'لا يوجد ماضي قريب مسجل';
+        qareebEl.title = plan.madi_qareeb || '';
     }
     if (baeedEl) {
         baeedEl.innerText = plan.madi_baeed || 'لا يوجد ماضي بعيد مسجل';
+        baeedEl.title = plan.madi_baeed || '';
     }
     if (notesEl && notesContainer) {
         if (plan.notes) {
@@ -2568,11 +2571,11 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
                         </div>
                         <div class="bg-white/95 p-2 rounded-xl border border-blue-200 shadow-2xs">
                             <span class="text-[10px] text-blue-800 font-black block mb-0.5">الماضي القريب:</span>
-                            <strong class="text-xs text-slate-800 block">${plan.madi_qareeb || '—'}</strong>
+                            <div class="text-xs text-slate-800 font-bold break-words leading-snug" title="${plan.madi_qareeb || ''}">${plan.madi_qareeb || '—'}</div>
                         </div>
                         <div class="bg-white/95 p-2 rounded-xl border border-purple-200 shadow-2xs">
                             <span class="text-[10px] text-purple-800 font-black block mb-0.5">الماضي البعيد:</span>
-                            <strong class="text-xs text-slate-800 block">${plan.madi_baeed || '—'}</strong>
+                            <div class="text-xs text-slate-800 font-bold break-words leading-snug" title="${plan.madi_baeed || ''}">${plan.madi_baeed || '—'}</div>
                         </div>
                     </div>
                     ${plan.notes ? `
