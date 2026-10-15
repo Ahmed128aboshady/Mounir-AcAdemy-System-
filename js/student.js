@@ -2603,9 +2603,10 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
                     <div class="mb-1 font-bold text-slate-800">موعد المحاضرة: <strong class="text-indigo-800">${l.scheduled_time || 'حسب جدول المجموعة'}</strong></div>
                     <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-1 font-medium">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        <span>يُتاح رابط الدخول المباشر عند حلول موعد الحصة</span>
+                        <span>موعد الحصة القادمة حسب جدولك</span>
                     </div>
                 </div>
+                ${meetBtn}
             `;
         }
     }
