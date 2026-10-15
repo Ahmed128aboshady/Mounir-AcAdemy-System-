@@ -4787,6 +4787,11 @@ function syncZoomLiveStatusAll() {
         const c = document.getElementById('generalTrackCardContainer');
         if (c) renderGeneralTrackView();
     }
+
+    // 6. Update Tafsir Video Summary Card UI
+    if (typeof updateTafsirVideoCardUI === 'function') {
+        updateTafsirVideoCardUI();
+    }
 }
 
 if (!window.__zoomLiveTimerStarted) {
@@ -5062,8 +5067,11 @@ function renderGeneralTrackView() {
                 <button type="button" onclick="selectTafsirEpisode(105)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 105 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 2</button>
                 <button type="button" onclick="selectTafsirEpisode(106)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 106 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 3</button>
                 <button type="button" onclick="selectTafsirEpisode(107)" class="px-3 py-1.5 text-xs font-black rounded-xl transition cursor-pointer ${quiz.id === 107 ? 'bg-indigo-900 text-white shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'}">الحلقة 4</button>
+                <button type="button" onclick="openTafsirVideoModal()" class="px-3 py-1.5 text-xs font-black rounded-xl bg-[#1F274B] hover:bg-[#2D396E] text-white transition flex items-center gap-1 shadow-xs ml-1 cursor-pointer">
+                    <span>مشاهدة المرئي ملخص الشهر الأول</span>
+                </button>
                 <a href="podcast.html" class="px-3 py-1.5 text-xs font-black rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition flex items-center gap-1 shadow-xs ml-1">
-                    <span>المكتبة الصوتية كاملة ↗</span>
+                    <span>المكتبة الصوتية كاملة</span>
                 </a>
             </div>
         </div>
@@ -5162,6 +5170,88 @@ window.selectTafsirEpisode = function(quizId) {
     if (typeof renderGeneralTrackView === 'function') {
         renderGeneralTrackView();
     }
+};
+
+// ==========================================
+// TAFSIR MONTHLY VIDEO SUMMARY & PROTECTED MODAL
+// ==========================================
+
+const TAFSIR_SUMMARY_VIDEOS = {
+    boys_under_10: {
+        title: 'فئة الأولاد (9 سنوات فأصغر)',
+        id: '1Y7VU-4ZQSBjxAIdsVoaYLN2ZUyvBpSNs',
+        url: 'https://drive.google.com/file/d/1Y7VU-4ZQSBjxAIdsVoaYLN2ZUyvBpSNs/preview'
+    },
+    boys_10_and_up: {
+        title: 'فئة الأولاد (10 سنوات فأكبر)',
+        id: '1IpMLGuZNGAMGXpZ58xcgPWRk7asWXbLh',
+        url: 'https://drive.google.com/file/d/1IpMLGuZNGAMGXpZ58xcgPWRk7asWXbLh/preview'
+    },
+    girls_under_10: {
+        title: 'فئة البنات (9 سنوات فأصغر)',
+        id: '1yPklfFXxN8l1yZ6BP_Z4NDPkZX_B1vjF',
+        url: 'https://drive.google.com/file/d/1yPklfFXxN8l1yZ6BP_Z4NDPkZX_B1vjF/preview'
+    },
+    girls_10_and_up: {
+        title: 'فئة البنات (10 سنوات فأكبر)',
+        id: '1Hr_g5X4RDRFFs1gbMWRve6X_SOAR-iu0',
+        url: 'https://drive.google.com/file/d/1Hr_g5X4RDRFFs1gbMWRve6X_SOAR-iu0/preview'
+    }
+};
+
+window.getStudentTafsirVideoInfo = function() {
+    const sName = window.currentStudentName || (window.curStudent ? window.curStudent.name : '');
+    const sExplicitGender = window.currentStudentGender || (window.curStudent ? (window.curStudent.gender || window.curStudent.student_gender) : '');
+    const sCode = window.currentStudentCode || (window.curStudent ? window.curStudent.code : '');
+    const sGender = (typeof guessStudentGender === 'function') 
+        ? guessStudentGender(sName, sExplicitGender, sCode) 
+        : (sExplicitGender === 'f' || sExplicitGender === 'أنثى' ? 'f' : 'm');
+    const studentAge = window.currentStudentAge || (window.curStudent ? window.curStudent.age : null) || 8;
+
+    if (sGender === 'f') {
+        return (studentAge >= 10) ? TAFSIR_SUMMARY_VIDEOS.girls_10_and_up : TAFSIR_SUMMARY_VIDEOS.girls_under_10;
+    } else {
+        return (studentAge >= 10) ? TAFSIR_SUMMARY_VIDEOS.boys_10_and_up : TAFSIR_SUMMARY_VIDEOS.boys_under_10;
+    }
+};
+
+window.updateTafsirVideoCardUI = function() {
+    const card = document.getElementById('tafsirVideoSummaryCard');
+    const badge = document.getElementById('tafsirVideoCohortBadge');
+    if (!card) return;
+
+    const videoInfo = window.getStudentTafsirVideoInfo();
+    if (badge && videoInfo) {
+        badge.textContent = videoInfo.title;
+    }
+};
+
+window.openTafsirVideoModal = function() {
+    const modal = document.getElementById('tafsirVideoModal');
+    const iframe = document.getElementById('tafsirVideoIframe');
+    const titleEl = document.getElementById('tafsirModalCohortTitle');
+    const videoInfo = window.getStudentTafsirVideoInfo();
+
+    if (!modal || !iframe || !videoInfo) return;
+
+    if (titleEl) {
+        titleEl.textContent = videoInfo.title;
+    }
+    iframe.src = videoInfo.url;
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+};
+
+window.closeTafsirVideoModal = function() {
+    const modal = document.getElementById('tafsirVideoModal');
+    const iframe = document.getElementById('tafsirVideoIframe');
+    if (iframe) {
+        iframe.src = 'about:blank';
+    }
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    document.body.classList.remove('overflow-hidden');
 };
 
 // ==========================================
