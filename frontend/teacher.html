@@ -631,14 +631,16 @@
                             .select('*, students(id, name, student_code, age, qr_code, status)')
                             .eq('teacher_id', currentTeacherId);
 
-                        // Preload latest attendance records for all students of this teacher
+                        // Preload latest attendance records and today's attendance for all students of this teacher
                         const latestAttendanceMap = {};
+                        window.todaySupabaseAttMap = window.todaySupabaseAttMap || {};
+                        const todayDateStr = new Date().toISOString().split('T')[0];
                         try {
                             const sids = enrData ? enrData.map(e => e.student_id).filter(Boolean) : [];
                             if (sids.length > 0) {
                                 const { data: attList } = await client
                                     .from('attendance')
-                                    .select('student_id, status, joined_at')
+                                    .select('id, student_id, status, joined_at')
                                     .in('student_id', sids)
                                     .order('joined_at', { ascending: false });
                                 if (attList && attList.length > 0) {
@@ -648,6 +650,17 @@
                                                 status: a.status,
                                                 joined_at: a.joined_at
                                             };
+                                        }
+                                        // Real-time Cloud Detection for Today's Attendance
+                                        if (a.joined_at && a.joined_at.startsWith(todayDateStr)) {
+                                            window.todaySupabaseAttMap[a.student_id] = {
+                                                id: a.id,
+                                                status: a.status,
+                                                joined_at: a.joined_at
+                                            };
+                                            try {
+                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayDateStr, a.status);
+                                            } catch(e) {}
                                         }
                                     });
                                 }
@@ -1496,7 +1509,8 @@
 
             const todayDateStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + s.id + '_' + todayDateStr;
-            const todayRecordedStatus = localStorage.getItem(todayKey);
+            const supaToday = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[s.id]);
+            const todayRecordedStatus = supaToday ? supaToday.status : localStorage.getItem(todayKey);
 
             let actionsHtml = '';
             if (isInactive) {
@@ -1732,7 +1746,21 @@
 
                 const todayDateStr = new Date().toISOString().split('T')[0];
                 const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
-                const prevRecord = localStorage.getItem(todayKey);
+                const prevRecord = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId])
+                    ? window.todaySupabaseAttMap[studentId].status
+                    : localStorage.getItem(todayKey);
+
+                if (prevRecord) {
+                    enableButtons();
+                    const prevLabel = statusNames[prevRecord] || prevRecord;
+                    const blockMsg = `تم بالفعل تسجيل (${prevLabel}) للطالب (${stName}) اليوم!\n\nلحماية رصيد الطالب من الخصم المكرر، لا يمكن تسجيل الحضور أكثر من مرة لنفس اليوم.\nإذا أردت تعديل التسجيل، يمكنك الضغط على "تراجع" لاستعادة الحصة أولاً.`;
+                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                        await window.MonirPopup.alert(blockMsg, 'تم الرصد اليوم مسبقاً', 'warning');
+                    } else {
+                        alert(blockMsg);
+                    }
+                    return;
+                }
 
                 // Strict check: Block excused if student already used their excuse for this cycle
                 const excuseInfo = getStudentExcuseCycleInfo(foundStudent);
@@ -1759,13 +1787,7 @@
 
                 const zeroCreditWarning = '';
 
-                if (prevRecord) {
-                    const prevLabel = statusNames[prevRecord] || prevRecord;
-                    confirmTitle = 'تنبيه: تم التسجيل اليوم مسبقاً';
-                    confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nلقد تم بالفعل تسجيل (${prevLabel}) لهذا الطالب اليوم!\n\nهل أنت متأكد من رغبتك في تسجيل (${labels[sessionStatus]}) مرة أخرى؟`;
-                    confirmBtn = 'نعم، تأكيد التسجيل مجدداً';
-                    modalType = 'warning';
-                } else if (sessionStatus === 'present') {
+                if (sessionStatus === 'present') {
                     confirmTitle = (curCredits <= 0) ? 'تنبيه: رصيد الطالب 0 حصص' : 'تأكيد تسجيل حضور الطالب';
                     confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهل تود تأكيد تسجيل حضور الطالب الآن؟`;
                     confirmBtn = (curCredits <= 0) ? 'نعم، تسجيل حضور استثنائي' : '✓ تأكيد الحضور';
@@ -1806,6 +1828,35 @@
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const client = window.MonirDB.getClient();
+
+                        // Strict Real-Time Cloud Idempotency Check: Verify in Supabase before any balance change
+                        const startOfToday = todayDateStr + 'T00:00:00.000Z';
+                        const endOfToday = todayDateStr + 'T23:59:59.999Z';
+                        const { data: cloudAtt } = await client
+                            .from('attendance')
+                            .select('id, status, joined_at')
+                            .eq('student_id', studentId)
+                            .gte('joined_at', startOfToday)
+                            .lte('joined_at', endOfToday)
+                            .limit(1);
+
+                        if (cloudAtt && cloudAtt.length > 0) {
+                            enableButtons();
+                            const existing = cloudAtt[0];
+                            const statusLabel = existing.status === 'present' ? 'حضور' : existing.status === 'absent' ? 'غياب' : 'عذر';
+                            const alertMsg = `تنبيه أمان: تم رصد (${statusLabel}) لهذا الطالب اليوم (${todayDateStr}) مسبقاً في السحابة!\n\nتم إيقاف العملية تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`;
+                            if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                                await window.MonirPopup.alert(alertMsg, 'تم الرصد مسبقاً', 'info');
+                            } else {
+                                alert(alertMsg);
+                            }
+                            if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
+                            window.todaySupabaseAttMap[studentId] = existing;
+                            try { localStorage.setItem(todayKey, existing.status); } catch(e) {}
+                            await loadTeacherGroups();
+                            return;
+                        }
+
                         let enrQuery = client.from('enrollments').select('*');
                         if (enrollmentId) {
                             enrQuery = enrQuery.eq('id', enrollmentId);
@@ -1856,7 +1907,20 @@
                                 console.warn('Attendance insert log notice:', attErr);
                             }
 
+                            // Payment audit trail log
+                            try {
+                                await client.from('payments').insert([{
+                                    student_id: studentId,
+                                    amount: 0,
+                                    payment_method: 'معلم',
+                                    status: 'completed',
+                                    notes: `رصد ${statusNames[sessionStatus]} بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
+                                }]);
+                            } catch(pErr) {}
+
                             localStorage.setItem(todayKey, sessionStatus);
+                            if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
+                            window.todaySupabaseAttMap[studentId] = { status: sessionStatus, joined_at: new Date().toISOString() };
                             try {
                                 localStorage.setItem('monir_last_att_info_' + studentId, JSON.stringify({
                                     status: sessionStatus,
@@ -1949,9 +2013,23 @@
                         } catch(attDelErr) {
                             console.warn('Attendance delete on undo notice:', attDelErr);
                         }
+
+                        // Payment audit trail log for undo
+                        try {
+                            await client.from('payments').insert([{
+                                student_id: studentId,
+                                amount: 0,
+                                payment_method: 'معلم',
+                                status: 'completed',
+                                notes: `تراجع عن تسجيل ${status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : 'عذر'} واستعادة حصة بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
+                            }]);
+                        } catch(pErr) {}
                     }
                 }
                 localStorage.removeItem(todayKey);
+                if (window.todaySupabaseAttMap) {
+                    delete window.todaySupabaseAttMap[studentId];
+                }
                 try {
                     localStorage.removeItem('monir_last_att_info_' + studentId);
                 } catch(e) {}
