@@ -991,7 +991,7 @@ const ZOOM_CONFIG = {
         endMins: 865    // 14:25
     },
     adults: {
-        url: "https://zoom.us/j/99924246069",
+        url: "https://zoom.us/j/98264506630",
         label: "فئة الطلاب (10 سنوات فما فوق)",
         timeLabel: "الجمعة 2:20 م - 2:50 م",
         startMins: 860, // 14:20
@@ -1191,25 +1191,15 @@ function getFilteredCoursesList() {
                 }
             }
             // 2. مسار أحكام التجويد ومخارج الحروف
-            if (c.course_name.includes('التجويد')) {
-                const tajweedMeetUrl = (age < 10) ? ZOOM_CONFIG.kids.url : ZOOM_CONFIG.adults.url;
-                if (age < 10) {
-                    return {
-                        ...c,
-                        subscription_days: 'الجمعة',
-                        lecture_time: 'الجمعة 2:00 م (من 6 إلى 10 سنوات)',
-                        session_duration: 'جلسة أسبوعية تفاعلية',
-                        google_meet_url: tajweedMeetUrl
-                    };
-                } else {
-                    return {
-                        ...c,
-                        subscription_days: 'الجمعة',
-                        lecture_time: 'الجمعة 2:30 م (11 سنة فيما فوق)',
-                        session_duration: 'جلسة أسبوعية تفاعلية',
-                        google_meet_url: tajweedMeetUrl
-                    };
-                }
+            if (c.course_name.includes('التجويد') || c.course_name.includes('تجويد')) {
+                const tajweedMeetUrl = 'https://zoom.us/j/98264506630';
+                return {
+                    ...c,
+                    subscription_days: 'الجمعة',
+                    lecture_time: (age < 10) ? 'الجمعة 2:00 م (من 6 إلى 10 سنوات)' : 'الجمعة 2:30 م (11 سنة فيما فوق)',
+                    session_duration: 'جلسة أسبوعية تفاعلية',
+                    google_meet_url: tajweedMeetUrl
+                };
             }
             // 3. مسار الحديث الشريف
             if (c.course_name.includes('الحديث')) {
@@ -2008,9 +1998,9 @@ async function loadSelectedCourseLectures() {
                         sTime = (stAge <= 10) ? 'الأربعاء 6:30 م (أولاد من 6 إلى 10 سنوات)' : 'الأحد 8:00 م (أولاد 11 سنة فما فوق)';
                         meetUrl = (stAge <= 10) ? WEDNESDAY_TAFSIR_CONFIG.boys_under_10.url : SUNDAY_TAFSIR_CONFIG.url;
                     }
-                } else if (selectedCourseName.includes('التجويد')) {
+                } else if (selectedCourseName.includes('التجويد') || selectedCourseName.includes('تجويد')) {
                     sTime = (stAge <= 10) ? 'الجمعة 2:00 م (من 6 إلى 10 سنوات)' : 'الجمعة 2:30 م (11 سنة فما فوق)';
-                    meetUrl = (stAge < 10) ? ZOOM_CONFIG.kids.url : ZOOM_CONFIG.adults.url;
+                    meetUrl = 'https://zoom.us/j/98264506630';
                 } else if (selectedCourseName.includes('الحديث')) {
                     if (gender === 'm') {
                         sTime = 'الإثنين 8:00 م (أولاد)';
@@ -2178,7 +2168,12 @@ async function loadSelectedCourseLectures() {
             if (!isCompTrack || !l.title) {
                 l.title = 'المحاضرة ' + num;
             }
-            l.google_meet_url = meetUrl; // Always sync with official teacher/group Google Meet URL
+            if (selectedCourseName && (selectedCourseName.includes('التجويد') || selectedCourseName.includes('تجويد'))) {
+                l.google_meet_url = 'https://zoom.us/j/98264506630';
+                l.meet_url = 'https://zoom.us/j/98264506630';
+            } else {
+                l.google_meet_url = meetUrl; // Always sync with official teacher/group Google Meet URL
+            }
 
             const isAttended = (num <= attendedCount);
             const isUnlocked = isCompTrack ? true : ((rc > 0) && (num <= attendedCount + rc));
@@ -2460,13 +2455,16 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     const isCourseStopped = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(currentCourseInfo.status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0 && isCourseStopped);
 
-    const meetLink = (l && l.meet_url)
+    let meetLink = (l && l.meet_url)
         ? l.meet_url
         : ((currentCourseInfo && currentCourseInfo.google_meet_url && (currentCourseInfo.google_meet_url.includes('zoom.us') || (currentCourseInfo.group_id && String(currentCourseInfo.group_id).startsWith('CMP-'))))
             ? currentCourseInfo.google_meet_url
             : ((typeof window !== 'undefined' && window.getGroupMeetUrl) 
                 ? window.getGroupMeetUrl(curGid, currentCourseInfo.teacher_id || currentCourseInfo.teacher_name) 
                 : (currentCourseInfo.google_meet_url || 'https://meet.google.com')));
+    if (selectedCourseName && (selectedCourseName.includes('التجويد') || selectedCourseName.includes('تجويد'))) {
+        meetLink = 'https://zoom.us/j/98264506630';
+    }
 
     // Extract Quran Progress (الورد وموضع التلاوة والحفظ والماضي)
     let rawLectureSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
@@ -2712,6 +2710,10 @@ function updateBottomMeetButtonState(rc) {
 }
 
 function joinMeet(lectureId, meetUrl) {
+    if (selectedCourseName && (selectedCourseName.includes('التجويد') || selectedCourseName.includes('تجويد'))) {
+        window.open('https://zoom.us/j/98264506630', '_blank');
+        return;
+    }
     const curCourse = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     const curStudent = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const rc = Math.max(
@@ -2771,6 +2773,9 @@ function joinMeet(lectureId, meetUrl) {
 }
 
 function getNextDueMeetUrl() {
+    if (selectedCourseName && (selectedCourseName.includes('التجويد') || selectedCourseName.includes('تجويد'))) {
+        return 'https://zoom.us/j/98264506630';
+    }
     const currentCourseInfo = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
     if (currentCourseInfo.google_meet_url && (currentCourseInfo.google_meet_url.includes('zoom.us') || (currentCourseInfo.group_id && String(currentCourseInfo.group_id).startsWith('CMP-')))) {
         return currentCourseInfo.google_meet_url;

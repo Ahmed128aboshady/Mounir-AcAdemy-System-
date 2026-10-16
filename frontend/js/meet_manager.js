@@ -370,6 +370,13 @@
 
     // Official Group to Meet Mapping (257 Groups belonging to all configured Teachers)
     const OFFICIAL_GROUP_MEET_LINKS = {
+        // Tajweed Official Zoom Meeting
+        "CMP-T01": "https://zoom.us/j/98264506630",
+        "CMP-TAJWEED": "https://zoom.us/j/98264506630",
+        "TAJWEED": "https://zoom.us/j/98264506630",
+        "مسار أحكام التجويد ومخارج الحروف": "https://zoom.us/j/98264506630",
+        "أحكام التجويد ومخارج الحروف": "https://zoom.us/j/98264506630",
+        "التجويد": "https://zoom.us/j/98264506630",
         // تسنيم (ID 22)
         "G019": "https://meet.google.com/xbb-mkzs-zzi",
         "G029": "https://meet.google.com/xbb-mkzs-zzi",
@@ -760,6 +767,14 @@
     // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
     window.getGroupMeetUrl = function(groupId, teacherIdOrName) {
         const cleanGid = groupId ? String(groupId).trim() : '';
+
+        // Tajweed Zoom Meeting Override (Direct link instead of Jitsi)
+        if (cleanGid && (cleanGid.toUpperCase().includes('TAJWEED') || cleanGid.includes('تجويد') || cleanGid === 'CMP-T01')) {
+            return 'https://zoom.us/j/98264506630';
+        }
+        if (teacherIdOrName && (String(teacherIdOrName).includes('تجويد') || String(teacherIdOrName).toUpperCase().includes('TAJWEED'))) {
+            return 'https://zoom.us/j/98264506630';
+        }
 
         // 1. Direct Teacher ID or Teacher Name match (Priority to assigned Teacher's Google Meet Room)
         if (teacherIdOrName) {
