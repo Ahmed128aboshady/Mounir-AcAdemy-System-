@@ -7057,10 +7057,39 @@ window.MONTHLY_EXAMS_QUESTIONS = {
 };
 
 
+function openQuizzesModal() {
+    const modal = document.getElementById('quizzesModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    // If currently browsing a specific track, directly open that track's 20-question exam!
+    const trackMonthlyMap = { 'tafsir': 1001, 'hadith': 1002, 'tajweed': 1003 };
+    if (typeof currentGeneralTrack !== 'undefined' && trackMonthlyMap[currentGeneralTrack]) {
+        openQuizModalForId(trackMonthlyMap[currentGeneralTrack]);
+        return;
+    }
+
+    loadQuizzesList();
+}
+
 function openQuizModalForId(quizId) {
     const modal = document.getElementById('quizzesModal');
     if (!modal) return;
     modal.classList.remove('hidden');
+
+    // Automatically map any weekly or old ID directly to its 20-question monthly exam:
+    const trackWeeklyToMonthly = {
+        101: 1003, // Tajweed
+        102: 1001, // Tafsir
+        103: 1002, // Hadith
+        104: 1002, // Hadith
+        105: 1001, // Tafsir
+        106: 1001, // Tafsir
+        107: 1001  // Tafsir
+    };
+    if (trackWeeklyToMonthly[quizId]) {
+        quizId = trackWeeklyToMonthly[quizId];
+    }
 
     const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === quizId);
     if (sub) {
@@ -7086,50 +7115,52 @@ function loadQuizzesList() {
     const container = document.getElementById('quizzesListContainer');
     if (!container) return;
 
-    let allQuizzes = [...(cachedGeneralQuizzes || [])];
-    if (window.MONTHLY_EXAMS_DATA && window.MONTHLY_EXAMS_DATA.quizzes) {
-        window.MONTHLY_EXAMS_DATA.quizzes.forEach(mq => {
-            if (!allQuizzes.some(q => q.id === mq.id)) {
-                allQuizzes.push(mq);
-            }
-        });
-    }
+    // Strictly the 3 Monthly Exams (Tafsir, Hadith, Tajweed) - Zero weekly division!
+    const monthlyQuizzes = [
+        { id: 1001, title: 'امتحان مسار التفسير والتدبر — ملخص الشهر الأول', track: 'tafsir', total_questions: 20, total_points: 40 },
+        { id: 1002, title: 'امتحان مسار الحديث الشريف والسنة — ملخص الشهر الأول', track: 'hadith', total_questions: 20, total_points: 40 },
+        { id: 1003, title: 'امتحان مسار أحكام التجويد ومخارج الحروف — ملخص الشهر الأول', track: 'tajweed', total_questions: 20, total_points: 40 }
+    ];
 
-    if (allQuizzes.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-slate-400 font-bold text-xs">جاري تحميل الاختبارات المتاحة...</div>`;
-        return;
-    }
-
-    container.innerHTML = allQuizzes.map(q => {
-        const meta = parseQuizMeta(q);
-        const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === q.id);
-        const isMonthly = q.id === 1001 || q.id === 1002 || q.id === 1003 || (q.title && q.title.includes('الشهري'));
-        const totalPts = q.total_points || (isMonthly ? 40 : 15);
-        const qCount = q.total_questions || (isMonthly ? 20 : 3);
+    container.innerHTML = monthlyQuizzes.map(q => {
+        const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === q.id || (s.quiz_title || '').includes(q.title));
 
         return `
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-indigo-300 transition">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        ${isMonthly ? `
-                            <span class="text-[10px] font-black text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">الامتحان الشهري الشامل</span>
-                            <span class="text-[10px] font-bold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-md">مفتوح 16 - 19 أكتوبر</span>
+            <div class="bg-white hover:bg-slate-50 border-2 ${sub ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200'} rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition shadow-2xs">
+                <div class="space-y-2 flex-1 w-full min-w-0">
+                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        <span class="text-[10px] sm:text-[11px] font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
+                            الامتحان الشهري الشامل
+                        </span>
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                            مفتوح 16 - 19 أكتوبر
+                        </span>
+                        ${sub ? `
+                            <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
+                                تم الحل بنجاح (${sub.score} / ${sub.total_points || 40})
+                            </span>
                         ` : `
-                            <span class="text-[10px] font-black text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded-full">الأسبوع ${meta.week_number || 1}</span>
+                            <span class="text-[10px] sm:text-[11px] font-black text-blue-800 bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                                متاح للحل الآن
+                            </span>
                         `}
-                        ${sub ? `<span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">مكتمل (${sub.score} / ${sub.total_points || totalPts})</span>` : '<span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">متاح للحل الآن</span>'}
                     </div>
-                    <strong class="text-xs font-black text-slate-900 block">${q.title}</strong>
-                    <span class="text-[11px] text-slate-500 font-medium">${qCount} سؤالاً تفاعلياً • ${totalPts} درجة إجمالية</span>
+                    <strong class="text-sm sm:text-base font-black text-slate-900 block leading-snug">
+                        ${q.title}
+                    </strong>
+                    <div class="text-[11px] sm:text-xs text-slate-500 font-medium">
+                        20 سؤالاً تفاعلياً • 40 درجة إجمالية (درجتان لكل سؤال)
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
+
+                <div class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
                     ${sub ? `
-                        <button onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs font-black px-4 py-2 rounded-xl transition shrink-0 cursor-pointer">
+                        <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
                             مراجعة الإجابات والنتيجة
                         </button>
                     ` : `
-                        <button onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-4 py-2 rounded-xl transition shrink-0 cursor-pointer">
-                            ${isMonthly ? 'بدء الامتحان الشهري' : 'بدء الاختبار'}
+                        <button type="button" onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs sm:text-sm font-black px-7 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
+                            بدء الامتحان (20 سؤالاً)
                         </button>
                     `}
                 </div>
@@ -7154,7 +7185,7 @@ async function startQuiz(quizId) {
         quiz = window.MONTHLY_EXAMS_DATA.quizzes.find(q => q.id === quizId);
     }
     if (!quiz) {
-        quiz = { id: quizId, title: 'الاختبار الأكاديمي' };
+        quiz = { id: quizId, title: 'الامتحان الشهري الشامل' };
     }
 
     const isMonthly = quizId === 1001 || quizId === 1002 || quizId === 1003 || (quiz.title && quiz.title.includes('الشهري'));
@@ -7186,16 +7217,12 @@ async function startQuiz(quizId) {
     const qMetaEl = document.getElementById('activeQuizMeta');
     if (qTitleEl) qTitleEl.textContent = quiz.title;
     if (qMetaEl) {
-        if (isMonthly) {
-            qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال) • متاح حتى 19 أكتوبر';
-        } else {
-            qMetaEl.textContent = '3 أسئلة • 15 درجة إجمالية (5 درجات لكل سؤال)';
-        }
+        qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال) • ينتهي 19 أكتوبر';
     }
 
     const container = document.getElementById('quizQuestionsContainer');
     if (container) {
-        container.innerHTML = `<div class="text-center py-8 text-slate-400 font-bold text-xs"><div class="animate-spin text-2xl mb-2">⏳</div>جاري تحميل أسئلة الاختبار...</div>`;
+        container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold text-xs sm:text-sm"><div class="animate-spin text-2xl mb-2">⏳</div>جاري تحميل أسئلة الاختبار الـ 20...</div>`;
     }
 
     try {
@@ -7227,7 +7254,7 @@ function renderActiveQuestions() {
     if (!container) return;
 
     if (activeQuizQuestions.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-slate-500 font-bold text-xs">لا توجد أسئلة مضافة لهذا الاختبار حالياً.</div>`;
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 font-bold text-xs sm:text-sm">لا توجد أسئلة مضافة لهذا الاختبار حالياً.</div>`;
         return;
     }
 
@@ -7239,23 +7266,23 @@ function renderActiveQuestions() {
         const optionsHtml = options.map((opt, optIdx) => {
             const isSelected = (selectedIdx === optIdx);
             return `
-                <label onclick="selectQuizOption(${q.id}, ${optIdx})" class="flex items-center gap-3 p-3 rounded-xl border transition cursor-pointer select-none ${isSelected ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-950 font-bold' : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70 text-slate-700'}">
+                <label onclick="selectQuizOption(${q.id}, ${optIdx})" class="flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border-2 transition cursor-pointer select-none ${isSelected ? 'bg-indigo-50/90 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-950 font-black' : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 font-medium'}">
                     <input type="radio" name="question_${q.id}" value="${optIdx}" ${isSelected ? 'checked' : ''} class="hidden">
-                    <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white font-black text-xs' : 'border-slate-300 bg-white'}">
+                    <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white font-black text-xs' : 'border-slate-300 bg-white'}">
                         ${isSelected ? '•' : ''}
                     </span>
-                    <span class="text-xs leading-relaxed">${opt}</span>
+                    <span class="text-xs sm:text-[13px] leading-relaxed flex-1">${opt}</span>
                 </label>
             `;
         }).join('');
 
         return `
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5 shadow-xs">
-                <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                    <span class="text-[11px] font-black text-[#1F274B] bg-slate-100 px-2.5 py-0.5 rounded-lg">السؤال ${qIdx + 1} من ${activeQuizQuestions.length}</span>
-                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">${pts} ${pts === 2 ? 'درجتان' : 'درجات'}</span>
+            <div class="bg-slate-50/70 p-3.5 sm:p-4 rounded-2xl border border-slate-200 space-y-2.5 shadow-2xs">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-200/70 pb-2">
+                    <span class="text-[11px] font-black text-[#1F274B] bg-slate-200/80 px-2.5 py-0.5 rounded-lg">السؤال ${qIdx + 1} من ${activeQuizQuestions.length}</span>
+                    <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">${pts} ${pts === 2 ? 'درجتان' : 'درجات'}</span>
                 </div>
-                <h5 class="text-xs sm:text-sm font-black text-slate-900 leading-relaxed">${q.question_text}</h5>
+                <h5 class="text-xs sm:text-sm font-black text-slate-900 leading-relaxed pt-0.5">${q.question_text}</h5>
                 <div class="space-y-2 pt-1">
                     ${optionsHtml}
                 </div>
@@ -7292,7 +7319,7 @@ async function submitActiveQuiz() {
         if (!quiz && window.MONTHLY_EXAMS_DATA && window.MONTHLY_EXAMS_DATA.quizzes) {
             quiz = window.MONTHLY_EXAMS_DATA.quizzes.find(q => q.id === activeQuizId);
         }
-        if (!quiz) quiz = { id: activeQuizId, title: 'الاختبار الأكاديمي' };
+        if (!quiz) quiz = { id: activeQuizId, title: 'الامتحان الشهري الشامل' };
         const meta = parseQuizMeta(quiz);
 
         let earnedScore = 0;
@@ -7322,7 +7349,7 @@ async function submitActiveQuiz() {
             student_code: stCode,
             student_name: stName,
             track_name: meta.track || currentGeneralTrack,
-            quiz_title: quiz.title || 'الاختبار الشهري',
+            quiz_title: quiz.title || 'الامتحان الشهري',
             score: earnedScore,
             total_points: totalScore,
             percentage: percentage,
@@ -7390,7 +7417,7 @@ function renderQuizResultReview(sub, questions) {
 
     if (resIcon) {
         resIcon.innerHTML = `${percentage}%`;
-        resIcon.className = `w-16 h-16 ${isSuccess ? 'bg-emerald-100 text-emerald-900 border-2 border-emerald-300' : 'bg-amber-100 text-amber-900 border-2 border-amber-300'} rounded-full flex items-center justify-center mx-auto text-xl font-black shadow-inner`;
+        resIcon.className = `w-16 h-16 sm:w-20 sm:h-20 ${isSuccess ? 'bg-emerald-100 text-emerald-900 border-2 border-emerald-300' : 'bg-amber-100 text-amber-900 border-2 border-amber-300'} rounded-full flex items-center justify-center mx-auto text-xl sm:text-2xl font-black shadow-inner`;
     }
 
     if (resTitle) {
@@ -7398,7 +7425,7 @@ function renderQuizResultReview(sub, questions) {
     }
 
     if (resScore) {
-        resScore.innerHTML = `حصلت على <strong class="text-emerald-700 font-black text-sm">${sub.score} من ${sub.total_points || 40} درجة</strong> (${percentage}%) وتم تسجيل نتيجتك في سجل الدرجات فوراً.`;
+        resScore.innerHTML = `حصلت على <strong class="text-emerald-700 font-black text-xs sm:text-sm">${sub.score} من ${sub.total_points || 40} درجة</strong> (${percentage}%) وتم تسجيل نتيجتك في سجل الدرجات فوراً.`;
     }
 
     if (!revContainer || !revList) return;
@@ -7421,29 +7448,29 @@ function renderQuizResultReview(sub, questions) {
         const correctAnsText = options[q.correct_option_index] || '';
 
         return `
-            <div class="p-3.5 rounded-2xl border transition ${isCorrect ? 'bg-emerald-50/40 border-emerald-200' : 'bg-rose-50/40 border-rose-200'}">
-                <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="p-3 sm:p-4 rounded-2xl border-2 transition text-right ${isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'}">
+                <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
                     <span class="text-[11px] font-black ${isCorrect ? 'text-emerald-900 bg-emerald-100' : 'text-rose-900 bg-rose-100'} px-2.5 py-0.5 rounded-lg">
                         السؤال ${idx + 1}
                     </span>
-                    <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${isCorrect ? 'text-emerald-800 bg-emerald-100/90 border border-emerald-300' : 'text-rose-800 bg-rose-100/90 border border-rose-300'}">
-                        ${isCorrect ? `إجابة صحيحة (+${q.points || 2} درجات)` : `إجابة غير صحيحة (0 من ${q.points || 2})`}
+                    <span class="text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-md ${isCorrect ? 'text-emerald-800 bg-emerald-100/90 border border-emerald-300' : 'text-rose-800 bg-rose-100/90 border border-rose-300'}">
+                        ${isCorrect ? `إجابة صحيحة (+${q.points || 2} درجات)` : `إجابة خاطئة (0 من ${q.points || 2})`}
                     </span>
                 </div>
                 <h6 class="text-xs sm:text-sm font-black text-slate-900 leading-relaxed mb-2.5">${q.question_text}</h6>
 
                 ${isCorrect ? `
-                    <div class="p-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-950 text-xs flex items-start gap-2 shadow-2xs">
+                    <div class="p-2.5 sm:p-3 rounded-xl bg-white border border-emerald-200 text-emerald-950 text-xs sm:text-[13px] flex items-start gap-2 shadow-2xs">
                         <span class="text-emerald-700 font-bold shrink-0">إجابتك الصحيحة:</span>
                         <span class="font-bold">${userAnsText}</span>
                     </div>
                 ` : `
-                    <div class="space-y-1.5 text-xs">
-                        <div class="p-2.5 rounded-xl bg-white border border-rose-200 text-rose-950 flex items-start gap-2 shadow-2xs">
+                    <div class="space-y-1.5 text-xs sm:text-[13px]">
+                        <div class="p-2.5 sm:p-3 rounded-xl bg-white border border-rose-200 text-rose-950 flex items-start gap-2 shadow-2xs">
                             <span class="text-rose-700 font-bold shrink-0">إجابتك التي اخترتها:</span>
                             <span class="font-medium line-through decoration-rose-500 text-rose-800">${userAnsText}</span>
                         </div>
-                        <div class="p-2.5 rounded-xl bg-emerald-50/90 border border-emerald-300 text-emerald-950 flex items-start gap-2 shadow-2xs">
+                        <div class="p-2.5 sm:p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 flex items-start gap-2 shadow-2xs">
                             <span class="text-emerald-800 font-black shrink-0">الإجابة الصحيحة النموذجية:</span>
                             <span class="font-black text-emerald-900">${correctAnsText}</span>
                         </div>
@@ -7451,7 +7478,7 @@ function renderQuizResultReview(sub, questions) {
                 `}
 
                 ${q.explanation ? `
-                    <div class="mt-2.5 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 flex items-start gap-1.5 leading-relaxed">
+                    <div class="mt-2.5 pt-2 border-t border-slate-200/60 text-[11px] sm:text-xs text-slate-600 flex items-start gap-1.5 leading-relaxed">
                         <strong class="text-slate-700 shrink-0 font-bold">التوضيح والهدف:</strong>
                         <span class="font-medium">${q.explanation}</span>
                     </div>
