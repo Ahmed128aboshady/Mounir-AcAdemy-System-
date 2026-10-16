@@ -481,8 +481,8 @@
                     </div>
                 </section>
 
-                <!-- Monthly Video Summary Cards (Tafsir & Hadith) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Monthly Video Summary Cards (Tafsir, Tajweed & Hadith) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Tafsir Video Summary Card (المرئي للتفسير والتدبر - ملخص الشهر الأول) -->
                     <div id="tafsirVideoSummaryCard" class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border-2 border-indigo-400/30 flex flex-col justify-between gap-4 transition hover:border-indigo-400/60">
                         <div class="space-y-1">
@@ -491,10 +491,25 @@
                                 <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">عرض محمي</span>
                             </div>
                             <h4 class="text-sm sm:text-base font-black text-white">المرئي للتفسير والتدبر - ملخص الشهر الأول</h4>
-                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك العمرية لمراجعة وتثبيت ما تم شرحه خلال الشهر الأول.</p>
+                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك لمراجعة ما تم شرحه خلال الشهر الأول.</p>
                         </div>
                         <button type="button" onclick="openTafsirVideoModal()" class="w-full bg-[#57BA9E] hover:bg-[#4ea88e] text-slate-950 font-black text-xs px-5 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0">
                             <span>مشاهدة المرئي للتفسير</span>
+                        </button>
+                    </div>
+
+                    <!-- Tajweed Video Summary Card (المرئي لأحكام التجويد - ملخص الشهر الأول) -->
+                    <div id="tajweedVideoSummaryCard" class="bg-gradient-to-r from-[#2A1B4E] to-[#4C1D95] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border-2 border-purple-400/30 flex flex-col justify-between gap-4 transition hover:border-purple-400/60">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-purple-500/30 text-purple-200 border border-purple-400/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full" id="tajweedVideoCohortBadge">مسار أحكام التجويد</span>
+                                <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">فيديو موحد للجميع</span>
+                            </div>
+                            <h4 class="text-sm sm:text-base font-black text-white">المرئي لأحكام التجويد - ملخص الشهر الأول</h4>
+                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الشامل لمخارج الحروف وأحكام النون الساكنة والتنوين.</p>
+                        </div>
+                        <button type="button" onclick="openTajweedVideoModal()" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-5 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                            <span>مشاهدة المرئي للتجويد</span>
                         </button>
                     </div>
 
@@ -506,7 +521,7 @@
                                 <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">عرض محمي</span>
                             </div>
                             <h4 class="text-sm sm:text-base font-black text-white">المرئي للحديث الشريف - ملخص الشهر الأول</h4>
-                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك العمرية لمراجعة وتثبيت أحاديث الشهر الأول.</p>
+                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك لمراجعة وتثبيت أحاديث الشهر الأول.</p>
                         </div>
                         <button type="button" onclick="openHadithVideoModal()" class="w-full bg-[#57BA9E] hover:bg-[#4ea88e] text-slate-950 font-black text-xs px-5 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0">
                             <span>مشاهدة المرئي للحديث</span>
@@ -1386,6 +1401,42 @@
             <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
                 <!-- Iframe embed -->
                 <iframe id="hadithVideoIframe" 
+                        src="about:blank" 
+                        class="w-full h-full border-0" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen>
+                </iframe>
+
+                <!-- Anti-Popout Transparent Overlay: Blocks clicking the Google Drive "Open in new tab" icon on top-right -->
+                <div class="absolute top-0 right-0 w-24 h-16 pointer-events-auto bg-transparent z-10" title=""></div>
+            </div>
+
+            <!-- Bottom Protection Bar -->
+            <div class="px-4 py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                <span class="font-bold text-slate-300">أكاديمية منير — مشغل العرض المحمي</span>
+                <span class="text-slate-500">المحتوى مخصص للمشاهدة المباشرة فقط داخل المنصة</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Protected Cinema Tajweed Video Player -->
+    <div id="tajweedVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
+        <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <!-- Top Bar -->
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي لأحكام التجويد ومخارج الحروف - ملخص الشهر الأول</h3>
+                    <span id="tajweedModalCohortTitle" class="text-[11px] font-bold text-amber-300 block mt-0.5">فيديو موحد لجميع الطلاب والطالبات</span>
+                </div>
+                <button type="button" onclick="closeTajweedVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                    إغلاق
+                </button>
+            </div>
+
+            <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
+            <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
+                <!-- Iframe embed -->
+                <iframe id="tajweedVideoIframe" 
                         src="about:blank" 
                         class="w-full h-full border-0" 
                         allow="autoplay; encrypted-media" 

@@ -4854,6 +4854,9 @@ function syncZoomLiveStatusAll() {
     if (typeof updateHadithVideoCardUI === 'function') {
         updateHadithVideoCardUI();
     }
+    if (typeof updateTajweedVideoCardUI === 'function') {
+        updateTajweedVideoCardUI();
+    }
 }
 
 if (!window.__zoomLiveTimerStarted) {
@@ -5152,10 +5155,24 @@ function renderGeneralTrackView() {
         </div>
     ` : '';
 
+    const tajweedEpisodesBar = (currentGeneralTrack === 'tajweed') ? `
+        <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-purple-950">مسار أحكام التجويد ومخارج الحروف:</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="openTajweedVideoModal()" class="px-3 py-1.5 text-xs font-black rounded-xl bg-[#4C1D95] hover:bg-[#3B0764] text-white transition flex items-center gap-1 shadow-xs cursor-pointer">
+                    <span>مشاهدة المرئي ملخص الشهر الأول</span>
+                </button>
+            </div>
+        </div>
+    ` : '';
+
     container.innerHTML = `
         <div class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-white border border-indigo-100 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
             ${tafsirEpisodesBar}
             ${hadithEpisodesBar}
+            ${tajweedEpisodesBar}
             <!-- Header Row -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-indigo-100/60 pb-3">
                 <div>
@@ -5455,6 +5472,56 @@ window.openHadithVideoModal = function() {
 window.closeHadithVideoModal = function() {
     const modal = document.getElementById('hadithVideoModal');
     const iframe = document.getElementById('hadithVideoIframe');
+    if (iframe) {
+        iframe.src = 'about:blank';
+    }
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    document.body.classList.remove('overflow-hidden');
+};
+
+// ==========================================
+// TAJWEED MONTHLY VIDEO SUMMARY & PROTECTED MODAL
+// ==========================================
+
+const TAJWEED_SUMMARY_VIDEO = {
+    title: 'فيديو موحد لجميع الفئات (بنين وبنات - صغار وكبار)',
+    id: '1_8McctJtMxwIX3UrsGBSvom7r0GsQjGv',
+    url: 'https://drive.google.com/file/d/1_8McctJtMxwIX3UrsGBSvom7r0GsQjGv/preview'
+};
+
+window.getStudentTajweedVideoInfo = function() {
+    return { ...TAJWEED_SUMMARY_VIDEO };
+};
+
+window.updateTajweedVideoCardUI = function() {
+    const card = document.getElementById('tajweedVideoSummaryCard');
+    const badge = document.getElementById('tajweedVideoCohortBadge');
+    if (!card) return;
+    if (badge) {
+        badge.textContent = 'مسار أحكام التجويد';
+    }
+};
+
+window.openTajweedVideoModal = function() {
+    const modal = document.getElementById('tajweedVideoModal');
+    const iframe = document.getElementById('tajweedVideoIframe');
+    const titleEl = document.getElementById('tajweedModalCohortTitle');
+    const videoInfo = window.getStudentTajweedVideoInfo();
+    if (!modal || !iframe || !videoInfo) return;
+
+    if (titleEl) {
+        titleEl.textContent = videoInfo.title;
+    }
+    iframe.src = videoInfo.url;
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+};
+
+window.closeTajweedVideoModal = function() {
+    const modal = document.getElementById('tajweedVideoModal');
+    const iframe = document.getElementById('tajweedVideoIframe');
     if (iframe) {
         iframe.src = 'about:blank';
     }
@@ -7222,7 +7289,13 @@ function loadQuizzesList() {
                     </div>
                 </div>
 
-                <div class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+                <div class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    ${(() => {
+                        const videoBtnFn = q.track === 'tafsir' ? 'openTafsirVideoModal()' : (q.track === 'hadith' ? 'openHadithVideoModal()' : 'openTajweedVideoModal()');
+                        return `<button type="button" onclick="${videoBtnFn}" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold px-3.5 py-3 rounded-xl sm:rounded-2xl border border-slate-300 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span>فيديو ملخص الشهر</span>
+                        </button>`;
+                    })()}
                     ${sub ? `
                         <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
                             مراجعة الإجابات والنتيجة
