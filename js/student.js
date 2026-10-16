@@ -5283,8 +5283,8 @@ const HADITH_SUMMARY_VIDEOS = {
     },
     boys_10_and_up: {
         title: 'فئة الأولاد (10 سنوات فأكبر)',
-        id: '1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG',
-        url: 'https://drive.google.com/file/d/1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG/preview'
+        id: '1lQxh0dHDEp3W6eR3rlHaBGRgMKZ3wekG',
+        url: 'https://drive.google.com/file/d/1lQxh0dHDEp3W6eR3rlHaBGRgMKZ3wekG/preview'
     },
     girls_under_10: {
         title: 'فئة البنات (9 سنوات فأصغر)',
@@ -5293,8 +5293,8 @@ const HADITH_SUMMARY_VIDEOS = {
     },
     girls_10_and_up: {
         title: 'فئة البنات (10 سنوات فأكبر)',
-        id: '1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG',
-        url: 'https://drive.google.com/file/d/1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG/preview'
+        id: '1lQxh0dHDEp3W6eR3rlHaBGRgMKZ3wekG',
+        url: 'https://drive.google.com/file/d/1lQxh0dHDEp3W6eR3rlHaBGRgMKZ3wekG/preview'
     }
 };
 
