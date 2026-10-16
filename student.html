@@ -462,19 +462,37 @@
                     </div>
                 </section>
 
-                <!-- Tafsir Video Summary Card (المرئي للتفسير والتدبر - ملخص الشهر الأول) -->
-                <div id="tafsirVideoSummaryCard" class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border-2 border-indigo-400/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition hover:border-indigo-400/60">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-indigo-500/30 text-indigo-200 border border-indigo-400/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full" id="tafsirVideoCohortBadge">مسار التفسير والتدبر</span>
-                            <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">عرض محمي</span>
+                <!-- Monthly Video Summary Cards (Tafsir & Hadith) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Tafsir Video Summary Card (المرئي للتفسير والتدبر - ملخص الشهر الأول) -->
+                    <div id="tafsirVideoSummaryCard" class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border-2 border-indigo-400/30 flex flex-col justify-between gap-4 transition hover:border-indigo-400/60">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-indigo-500/30 text-indigo-200 border border-indigo-400/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full" id="tafsirVideoCohortBadge">مسار التفسير والتدبر</span>
+                                <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">عرض محمي</span>
+                            </div>
+                            <h4 class="text-sm sm:text-base font-black text-white">المرئي للتفسير والتدبر - ملخص الشهر الأول</h4>
+                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك العمرية لمراجعة وتثبيت ما تم شرحه خلال الشهر الأول.</p>
                         </div>
-                        <h4 class="text-sm sm:text-base font-black text-white">المرئي للتفسير والتدبر - ملخص الشهر الأول</h4>
-                        <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك العمرية لمراجعة وتثبيت ما تم شرحه خلال الشهر الأول.</p>
+                        <button type="button" onclick="openTafsirVideoModal()" class="w-full bg-[#57BA9E] hover:bg-[#4ea88e] text-slate-950 font-black text-xs px-5 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                            <span>مشاهدة المرئي للتفسير</span>
+                        </button>
                     </div>
-                    <button type="button" onclick="openTafsirVideoModal()" class="w-full sm:w-auto bg-[#57BA9E] hover:bg-[#4ea88e] text-slate-950 font-black text-xs px-5 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0">
-                        <span>مشاهدة الفيديو المرئي</span>
-                    </button>
+
+                    <!-- Hadith Video Summary Card (المرئي للحديث الشريف - ملخص الشهر الأول) -->
+                    <div id="hadithVideoSummaryCard" class="bg-gradient-to-r from-[#134E4A] to-[#115E59] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-md border-2 border-teal-400/30 flex flex-col justify-between gap-4 transition hover:border-teal-400/60">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-teal-500/30 text-teal-200 border border-teal-400/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full" id="hadithVideoCohortBadge">مسار الحديث الشريف</span>
+                                <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full">عرض محمي</span>
+                            </div>
+                            <h4 class="text-sm sm:text-base font-black text-white">المرئي للحديث الشريف - ملخص الشهر الأول</h4>
+                            <p class="text-xs text-slate-300">شاهد الشرح المرئي المصور الخاص بفئتك العمرية لمراجعة وتثبيت أحاديث الشهر الأول.</p>
+                        </div>
+                        <button type="button" onclick="openHadithVideoModal()" class="w-full bg-[#57BA9E] hover:bg-[#4ea88e] text-slate-950 font-black text-xs px-5 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                            <span>مشاهدة المرئي للحديث</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Course Lectures & Detailed Syllabus System (#lecturesSection) -->
@@ -1299,6 +1317,42 @@
             <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
                 <!-- Iframe embed -->
                 <iframe id="tafsirVideoIframe" 
+                        src="about:blank" 
+                        class="w-full h-full border-0" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen>
+                </iframe>
+
+                <!-- Anti-Popout Transparent Overlay: Blocks clicking the Google Drive "Open in new tab" icon on top-right -->
+                <div class="absolute top-0 right-0 w-24 h-16 pointer-events-auto bg-transparent z-10" title=""></div>
+            </div>
+
+            <!-- Bottom Protection Bar -->
+            <div class="px-4 py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                <span class="font-bold text-slate-300">أكاديمية منير — مشغل العرض المحمي</span>
+                <span class="text-slate-500">المحتوى مخصص للمشاهدة المباشرة فقط داخل المنصة</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Protected Cinema Hadith Video Player -->
+    <div id="hadithVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
+        <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <!-- Top Bar -->
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي للحديث الشريف - ملخص الشهر الأول</h3>
+                    <span id="hadithModalCohortTitle" class="text-[11px] font-bold text-teal-300 block mt-0.5">فئة الطالب</span>
+                </div>
+                <button type="button" onclick="closeHadithVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                    إغلاق
+                </button>
+            </div>
+
+            <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
+            <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
+                <!-- Iframe embed -->
+                <iframe id="hadithVideoIframe" 
                         src="about:blank" 
                         class="w-full h-full border-0" 
                         allow="autoplay; encrypted-media" 

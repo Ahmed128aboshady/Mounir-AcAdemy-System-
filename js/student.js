@@ -4788,9 +4788,12 @@ function syncZoomLiveStatusAll() {
         if (c) renderGeneralTrackView();
     }
 
-    // 6. Update Tafsir Video Summary Card UI
+    // 6. Update Tafsir & Hadith Video Summary Card UI
     if (typeof updateTafsirVideoCardUI === 'function') {
         updateTafsirVideoCardUI();
+    }
+    if (typeof updateHadithVideoCardUI === 'function') {
+        updateHadithVideoCardUI();
     }
 }
 
@@ -5077,9 +5080,23 @@ function renderGeneralTrackView() {
         </div>
     ` : '';
 
+    const hadithEpisodesBar = (currentGeneralTrack === 'hadith') ? `
+        <div class="bg-teal-50/70 border border-teal-100 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-teal-950">مجلس الحديث الشريف:</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="openHadithVideoModal()" class="px-3 py-1.5 text-xs font-black rounded-xl bg-[#134E4A] hover:bg-[#115E59] text-white transition flex items-center gap-1 shadow-xs cursor-pointer">
+                    <span>مشاهدة المرئي ملخص الشهر الأول</span>
+                </button>
+            </div>
+        </div>
+    ` : '';
+
     container.innerHTML = `
         <div class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-white border border-indigo-100 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
             ${tafsirEpisodesBar}
+            ${hadithEpisodesBar}
             <!-- Header Row -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-indigo-100/60 pb-3">
                 <div>
@@ -5245,6 +5262,88 @@ window.openTafsirVideoModal = function() {
 window.closeTafsirVideoModal = function() {
     const modal = document.getElementById('tafsirVideoModal');
     const iframe = document.getElementById('tafsirVideoIframe');
+    if (iframe) {
+        iframe.src = 'about:blank';
+    }
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    document.body.classList.remove('overflow-hidden');
+};
+
+// ==========================================
+// HADITH MONTHLY VIDEO SUMMARY & PROTECTED MODAL
+// ==========================================
+
+const HADITH_SUMMARY_VIDEOS = {
+    boys_under_10: {
+        title: 'فئة الأولاد (9 سنوات فأصغر)',
+        id: '1h8o0X2tC1ba45yTKF2Uzie42ZeP2wvFF',
+        url: 'https://drive.google.com/file/d/1h8o0X2tC1ba45yTKF2Uzie42ZeP2wvFF/preview'
+    },
+    boys_10_and_up: {
+        title: 'فئة الأولاد (10 سنوات فأكبر)',
+        id: '1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG',
+        url: 'https://drive.google.com/file/d/1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG/preview'
+    },
+    girls_under_10: {
+        title: 'فئة البنات (9 سنوات فأصغر)',
+        id: '1EVYeNVsn4lEVgnhcK9J9gGyZ5Xv7wTfd',
+        url: 'https://drive.google.com/file/d/1EVYeNVsn4lEVgnhcK9J9gGyZ5Xv7wTfd/preview'
+    },
+    girls_10_and_up: {
+        title: 'فئة البنات (10 سنوات فأكبر)',
+        id: '1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG',
+        url: 'https://drive.google.com/file/d/1lQxh0dHDEp3W6eR3rIHaBGRgMKZ3wekG/preview'
+    }
+};
+
+window.getStudentHadithVideoInfo = function() {
+    const sName = window.currentStudentName || (window.curStudent ? window.curStudent.name : '');
+    const sExplicitGender = window.currentStudentGender || (window.curStudent ? (window.curStudent.gender || window.curStudent.student_gender) : '');
+    const sCode = window.currentStudentCode || (window.curStudent ? window.curStudent.code : '');
+    const sGender = (typeof guessStudentGender === 'function') 
+        ? guessStudentGender(sName, sExplicitGender, sCode) 
+        : (sExplicitGender === 'f' || sExplicitGender === 'أنثى' ? 'f' : 'm');
+    const studentAge = window.currentStudentAge || (window.curStudent ? window.curStudent.age : null) || 8;
+
+    if (sGender === 'f') {
+        return (studentAge >= 10) ? HADITH_SUMMARY_VIDEOS.girls_10_and_up : HADITH_SUMMARY_VIDEOS.girls_under_10;
+    } else {
+        return (studentAge >= 10) ? HADITH_SUMMARY_VIDEOS.boys_10_and_up : HADITH_SUMMARY_VIDEOS.boys_under_10;
+    }
+};
+
+window.updateHadithVideoCardUI = function() {
+    const card = document.getElementById('hadithVideoSummaryCard');
+    const badge = document.getElementById('hadithVideoCohortBadge');
+    if (!card) return;
+
+    const videoInfo = window.getStudentHadithVideoInfo();
+    if (badge && videoInfo) {
+        badge.textContent = videoInfo.title;
+    }
+};
+
+window.openHadithVideoModal = function() {
+    const modal = document.getElementById('hadithVideoModal');
+    const iframe = document.getElementById('hadithVideoIframe');
+    const titleEl = document.getElementById('hadithModalCohortTitle');
+    const videoInfo = window.getStudentHadithVideoInfo();
+
+    if (!modal || !iframe || !videoInfo) return;
+
+    if (titleEl) {
+        titleEl.textContent = videoInfo.title;
+    }
+    iframe.src = videoInfo.url;
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+};
+
+window.closeHadithVideoModal = function() {
+    const modal = document.getElementById('hadithVideoModal');
+    const iframe = document.getElementById('hadithVideoIframe');
     if (iframe) {
         iframe.src = 'about:blank';
     }
