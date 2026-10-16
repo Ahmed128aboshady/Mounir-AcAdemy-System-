@@ -815,7 +815,7 @@
                     <span class="text-slate-500 text-[11px]" id="activeQuizMeta">عدد الأسئلة: 2 • درجة النجاح: 70%</span>
                 </div>
 
-                <div id="quizQuestionsContainer" class="space-y-4 max-h-96 overflow-y-auto pr-1">
+                <div id="quizQuestionsContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
                     <!-- Injected questions -->
                 </div>
 
@@ -829,16 +829,28 @@
                 </div>
             </div>
 
-            <div id="quizResultView" class="hidden text-center py-6 space-y-4 text-xs">
+            <div id="quizResultView" class="hidden text-center py-5 space-y-4 text-xs">
                 <div class="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-xl font-black" id="quizResultIcon">
                     100%
                 </div>
                 <div>
-                    <h4 class="text-lg font-black text-slate-900" id="quizResultTitle">أحسنت! تم اجتياز الاختبار بنجاح</h4>
-                    <p class="text-slate-500 mt-1" id="quizResultScore">حصلت على 2 من 2 درجات (100%)</p>
+                    <h4 class="text-base sm:text-lg font-black text-slate-900" id="quizResultTitle">أحسنت! تم اجتياز الاختبار بنجاح</h4>
+                    <p class="text-slate-500 mt-1" id="quizResultScore">حصلت على 40 من 40 درجات (100%)</p>
                 </div>
-                <div class="pt-2">
-                    <button onclick="backToQuizList()" class="bg-blue-900 text-white font-bold px-6 py-2.5 rounded-xl transition">
+
+                <!-- Detailed Question-by-Question Review with Answers & Explanations -->
+                <div id="quizResultReviewContainer" class="hidden text-right space-y-3 mt-4 pt-3 border-t border-slate-200 text-xs">
+                    <div class="flex items-center justify-between gap-2 px-1">
+                        <strong class="text-xs font-black text-slate-900">مراجعة تفصيلية للإجابات والأخطاء</strong>
+                        <span id="quizResultReviewSummary" class="text-[11px] font-bold text-slate-500"></span>
+                    </div>
+                    <div id="quizResultReviewList" class="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+                        <!-- Injected review cards -->
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-center gap-2">
+                    <button onclick="backToQuizList()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-black px-6 py-2.5 rounded-xl transition cursor-pointer">
                         العودة لقائمة الاختبارات
                     </button>
                 </div>
