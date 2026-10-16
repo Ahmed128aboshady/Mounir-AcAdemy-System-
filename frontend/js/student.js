@@ -5196,8 +5196,8 @@ window.selectTafsirEpisode = function(quizId) {
 const TAFSIR_SUMMARY_VIDEOS = {
     boys_under_10: {
         title: 'فئة الأولاد (9 سنوات فأصغر)',
-        id: '1Y7VU-4ZQSBjxAIdsVoaYLN2ZUyvBpSNs',
-        url: 'https://drive.google.com/file/d/1Y7VU-4ZQSBjxAIdsVoaYLN2ZUyvBpSNs/preview'
+        id: '1Y7VU-4ZQSBjxAlDsVoaYLN2ZUyvBpSNs',
+        url: 'https://drive.google.com/file/d/1Y7VU-4ZQSBjxAlDsVoaYLN2ZUyvBpSNs/preview'
     },
     boys_10_and_up: {
         title: 'فئة الأولاد (10 سنوات فأكبر)',
