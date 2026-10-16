@@ -5245,30 +5245,17 @@ window.updateTafsirVideoCardUI = function() {
     }
 };
 
-window.switchTafsirModalCohort = function(cohortKey) {
-    const video = TAFSIR_SUMMARY_VIDEOS[cohortKey];
-    if (!video) return;
+window.openTafsirVideoModal = function() {
+    const modal = document.getElementById('tafsirVideoModal');
     const iframe = document.getElementById('tafsirVideoIframe');
     const titleEl = document.getElementById('tafsirModalCohortTitle');
-    if (iframe) iframe.src = video.url;
-    if (titleEl) titleEl.textContent = video.title;
-    
-    document.querySelectorAll('.tafsir-cohort-tab').forEach(btn => {
-        const isActive = (btn.dataset.cohort === cohortKey);
-        btn.className = isActive 
-            ? 'tafsir-cohort-tab px-2.5 py-1 text-[11px] font-black rounded-lg bg-indigo-600 text-white transition' 
-            : 'tafsir-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer';
-    });
-};
-
-window.openTafsirVideoModal = function(specificCohort) {
-    const modal = document.getElementById('tafsirVideoModal');
     const videoInfo = window.getStudentTafsirVideoInfo();
-    if (!modal || !videoInfo) return;
+    if (!modal || !iframe || !videoInfo) return;
 
-    const targetCohort = specificCohort || videoInfo.cohortKey || 'boys_under_10';
-    window.switchTafsirModalCohort(targetCohort);
-
+    if (titleEl) {
+        titleEl.textContent = videoInfo.title;
+    }
+    iframe.src = videoInfo.url;
     modal.classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
 };
@@ -5341,30 +5328,17 @@ window.updateHadithVideoCardUI = function() {
     }
 };
 
-window.switchHadithModalCohort = function(cohortKey) {
-    const video = HADITH_SUMMARY_VIDEOS[cohortKey];
-    if (!video) return;
+window.openHadithVideoModal = function() {
+    const modal = document.getElementById('hadithVideoModal');
     const iframe = document.getElementById('hadithVideoIframe');
     const titleEl = document.getElementById('hadithModalCohortTitle');
-    if (iframe) iframe.src = video.url;
-    if (titleEl) titleEl.textContent = video.title;
-    
-    document.querySelectorAll('.hadith-cohort-tab').forEach(btn => {
-        const isActive = (btn.dataset.cohort === cohortKey);
-        btn.className = isActive 
-            ? 'hadith-cohort-tab px-2.5 py-1 text-[11px] font-black rounded-lg bg-teal-600 text-white transition' 
-            : 'hadith-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer';
-    });
-};
-
-window.openHadithVideoModal = function(specificCohort) {
-    const modal = document.getElementById('hadithVideoModal');
     const videoInfo = window.getStudentHadithVideoInfo();
-    if (!modal || !videoInfo) return;
+    if (!modal || !iframe || !videoInfo) return;
 
-    const targetCohort = specificCohort || videoInfo.cohortKey || 'boys_under_10';
-    window.switchHadithModalCohort(targetCohort);
-
+    if (titleEl) {
+        titleEl.textContent = videoInfo.title;
+    }
+    iframe.src = videoInfo.url;
     modal.classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
 };

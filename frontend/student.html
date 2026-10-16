@@ -1303,24 +1303,14 @@
     <div id="tafsirVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
         <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
             <!-- Top Bar -->
-            <div class="px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0 space-y-2">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xs sm:text-sm font-black text-white">المرئي للتفسير والتدبر - ملخص الشهر الأول</h3>
-                        <span id="tafsirModalCohortTitle" class="text-[11px] font-bold text-indigo-300 block mt-0.5">فئة الطالب</span>
-                    </div>
-                    <button type="button" onclick="closeTafsirVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
-                        إغلاق
-                    </button>
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي للتفسير والتدبر - ملخص الشهر الأول</h3>
+                    <span id="tafsirModalCohortTitle" class="text-[11px] font-bold text-indigo-300 block mt-0.5">فئة الطالب</span>
                 </div>
-                <!-- Cohort Selection Tabs -->
-                <div class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-800/60">
-                    <span class="text-[10px] text-slate-400 font-bold ml-1">تغيير الفئة:</span>
-                    <button type="button" onclick="switchTafsirModalCohort('boys_under_10')" data-cohort="boys_under_10" class="tafsir-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">أولاد (9 سنوات فأصغر)</button>
-                    <button type="button" onclick="switchTafsirModalCohort('boys_10_and_up')" data-cohort="boys_10_and_up" class="tafsir-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">أولاد (10 سنوات فأكبر)</button>
-                    <button type="button" onclick="switchTafsirModalCohort('girls_under_10')" data-cohort="girls_under_10" class="tafsir-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">بنات (9 سنوات فأصغر)</button>
-                    <button type="button" onclick="switchTafsirModalCohort('girls_10_and_up')" data-cohort="girls_10_and_up" class="tafsir-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">بنات (10 سنوات فأكبر)</button>
-                </div>
+                <button type="button" onclick="closeTafsirVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                    إغلاق
+                </button>
             </div>
 
             <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
@@ -1349,24 +1339,14 @@
     <div id="hadithVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
         <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
             <!-- Top Bar -->
-            <div class="px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0 space-y-2">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xs sm:text-sm font-black text-white">المرئي للحديث الشريف - ملخص الشهر الأول</h3>
-                        <span id="hadithModalCohortTitle" class="text-[11px] font-bold text-teal-300 block mt-0.5">فئة الطالب</span>
-                    </div>
-                    <button type="button" onclick="closeHadithVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
-                        إغلاق
-                    </button>
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي للحديث الشريف - ملخص الشهر الأول</h3>
+                    <span id="hadithModalCohortTitle" class="text-[11px] font-bold text-teal-300 block mt-0.5">فئة الطالب</span>
                 </div>
-                <!-- Cohort Selection Tabs -->
-                <div class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-800/60">
-                    <span class="text-[10px] text-slate-400 font-bold ml-1">تغيير الفئة:</span>
-                    <button type="button" onclick="switchHadithModalCohort('boys_under_10')" data-cohort="boys_under_10" class="hadith-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">أولاد (9 سنوات فأصغر)</button>
-                    <button type="button" onclick="switchHadithModalCohort('boys_10_and_up')" data-cohort="boys_10_and_up" class="hadith-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">أولاد (10 سنوات فأكبر)</button>
-                    <button type="button" onclick="switchHadithModalCohort('girls_under_10')" data-cohort="girls_under_10" class="hadith-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">بنات (9 سنوات فأصغر)</button>
-                    <button type="button" onclick="switchHadithModalCohort('girls_10_and_up')" data-cohort="girls_10_and_up" class="hadith-cohort-tab px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">بنات (10 سنوات فأكبر)</button>
-                </div>
+                <button type="button" onclick="closeHadithVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                    إغلاق
+                </button>
             </div>
 
             <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
@@ -1581,7 +1561,7 @@
     </script>
 
     <script src="js/api_mock.js?v=20261008_podcast1"></script>
-    <script src="js/student.js?v=20261016_v5"></script>
+    <script src="js/student.js?v=20261016_v6"></script>
     <script src="js/student_ledger.js?v=20261009_v2"></script>
 </body>
 </html>
