@@ -360,6 +360,21 @@
             <!-- ───────────────────────────────────────────────────────────── -->
             <div class="lg:col-span-8 space-y-5 sm:space-y-6" id="portalMainArea">
 
+                <!-- Monthly Exam Active Callout Banner -->
+                <div class="bg-gradient-to-r from-[#171D3B] via-[#1F274B] to-[#2B3564] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg border-2 border-amber-400/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase">مفتوح الآن</span>
+                            <span class="text-xs text-amber-200 font-bold">من الجمعة 16 أكتوبر حتى الاثنين 19 أكتوبر 2026</span>
+                        </div>
+                        <h4 class="text-sm sm:text-base font-black text-white">الامتحانات الشهرية الشاملة (التفسير • الحديث • التجويد)</h4>
+                        <p class="text-xs text-indigo-100 max-w-xl">20 سؤالاً لكل مسار (40 درجة إجمالية). يتم تصحيح الإجابات فورياً وعرض أخطائك والإجابات النموذجية وتثبيت النتيجة في سجلك التراكمي.</p>
+                    </div>
+                    <button type="button" onclick="openQuizzesModal()" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-6 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0 whitespace-nowrap">
+                        <span>بدء الامتحانات الشهرية</span>
+                    </button>
+                </div>
+
                 <!-- Track Switcher: Dual-Track Segmented Controller -->
                 <section id="dualTrackSwitcherSection" class="bg-white border-2 border-indigo-100 rounded-2xl p-2 sm:p-2.5 shadow-2xs">
                     <div class="flex flex-col gap-1.5">
@@ -383,6 +398,10 @@
                             <button type="button" id="tabBtnCompetitionTrack" onclick="switchPortalTrack('competition')" class="shrink-0 py-2 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100 cursor-pointer select-none whitespace-nowrap">
                                 <span>محاضرات المسابقة</span>
                                 <span id="badgeCountCompetitionTrack" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">3</span>
+                            </button>
+                            <button type="button" id="tabBtnMonthlyExams" onclick="openQuizzesModal()" class="shrink-0 py-2 px-4 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-xs cursor-pointer select-none whitespace-nowrap">
+                                <span>الامتحانات الشهرية (40د)</span>
+                                <span class="bg-slate-950 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold">16 - 19 أكتوبر</span>
                             </button>
                         </div>
                     </div>

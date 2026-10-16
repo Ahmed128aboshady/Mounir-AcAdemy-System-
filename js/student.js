@@ -1654,9 +1654,13 @@ function renderEnrolledCoursesTabs(courses) {
                             <button type="button" onclick="selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
                                 <span>المنهج والمحاضرات</span>
                             </button>
-                            <button type="button" onclick="openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
-                                <span>اختبارات</span>
-                            </button>
+                            ${(() => {
+                                const qId = (cName.includes('تفسير') || cName.includes('تدبر')) ? 1001 :
+                                            ((cName.includes('حديث') || cName.includes('سنة')) ? 1002 :
+                                            ((cName.includes('تجويد') || cName.includes('مخارج')) ? 1003 : null));
+                                const act = qId ? `openQuizModalForId(${qId})` : `openQuizzesModal()`;
+                                return `<button type="button" onclick="${act};" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات المسار"><span>اختبارات</span></button>`;
+                            })()}
                         </div>
                     </div>
                     ${renderInlineCourseLecturesHtml(cName)}
@@ -1738,9 +1742,13 @@ function renderEnrolledCoursesTabs(courses) {
                         <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
                             <span>المنهج والمحاضرات</span>
                         </button>
-                        <button type="button" onclick="event.stopPropagation(); openQuizzesModal();" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات وتدريبات">
-                            <span>اختبارات</span>
-                        </button>
+                        ${(() => {
+                            const qId = (cName.includes('تفسير') || cName.includes('تدبر')) ? 1001 :
+                                        ((cName.includes('حديث') || cName.includes('سنة')) ? 1002 :
+                                        ((cName.includes('تجويد') || cName.includes('مخارج')) ? 1003 : null));
+                            const act = qId ? `openQuizModalForId(${qId})` : `openQuizzesModal()`;
+                            return `<button type="button" onclick="event.stopPropagation(); ${act};" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 shrink-0" title="اختبارات المسار"><span>اختبارات</span></button>`;
+                        })()}
                     </div>
                 </div>
                 ${renderInlineCourseLecturesHtml(cName)}
@@ -1772,6 +1780,13 @@ window.toggleCourseAccordion = toggleCourseAccordion;
 
 function selectCourseTab(cName) {
     selectedCourseName = cName;
+    if (cName.includes('تفسير') || cName.includes('تدبر')) {
+        currentGeneralTrack = 'tafsir';
+    } else if (cName.includes('حديث') || cName.includes('سنة')) {
+        currentGeneralTrack = 'hadith';
+    } else if (cName.includes('تجويد') || cName.includes('مخارج')) {
+        currentGeneralTrack = 'tajweed';
+    }
     renderEnrolledCoursesTabs(getFilteredCoursesList());
     loadSelectedCourseLectures();
 }
@@ -1878,16 +1893,16 @@ function calculateGroupPastDates(dayName, count, startDate = null) {
 
 const COMPETITION_LECTURES_MAP = {
     'مسار الحديث الشريف': [
-        { id: 901, block_number: 1, lecture_number: 1, title: 'مدخل إلى الأربعين النووية ومكانة السنة', scheduled_time: 'الإثنين 6:30 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 902, block_number: 1, lecture_number: 2, title: 'حديث «إنما الأعمال بالنيات» وقواعد الإخلاص', scheduled_time: 'الإثنين 6:30 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 903, block_number: 1, lecture_number: 3, title: 'مجلس الحديث: «لو محدش شايفك… من ستكون؟»', scheduled_time: 'الإثنين 6:30 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 904, block_number: 1, lecture_number: 4, title: 'آداب طالب العلم وتطبيق السنة في الحياة اليومية', scheduled_time: 'الإثنين 6:30 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
+        { id: 901, block_number: 1, lecture_number: 1, title: 'مدخل إلى الأربعين النووية ومكانة السنة', scheduled_time: 'الإثنين 6:30 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1002 },
+        { id: 902, block_number: 1, lecture_number: 2, title: 'حديث «إنما الأعمال بالنيات» وقواعد الإخلاص', scheduled_time: 'الإثنين 6:30 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1002 },
+        { id: 903, block_number: 1, lecture_number: 3, title: 'مجلس الحديث: «لو محدش شايفك… من ستكون؟»', scheduled_time: 'الإثنين 6:30 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1002 },
+        { id: 904, block_number: 1, lecture_number: 4, title: 'آداب طالب العلم وتطبيق السنة في الحياة اليومية', scheduled_time: 'الإثنين 6:30 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1002 }
     ],
     'مسار أحكام التجويد ومخارج الحروف': [
-        { id: 911, block_number: 1, lecture_number: 1, title: 'مخارج الحروف العامة والخاصة (الحلق واللسان)', scheduled_time: 'الجمعة 1:50 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 912, block_number: 1, lecture_number: 2, title: 'أحكام النون الساكنة والتنوين (الإظهار الحلقي والإدغام)', scheduled_time: 'الجمعة 1:50 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 913, block_number: 1, lecture_number: 3, title: 'أحكام الإقلاب والإخفاء الحقيقي وتطبيقات عملية', scheduled_time: 'الجمعة 1:50 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' },
-        { id: 914, block_number: 1, lecture_number: 4, title: 'أحكام الميم الساكنة وأقسام المدود', scheduled_time: 'الجمعة 1:50 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630' }
+        { id: 911, block_number: 1, lecture_number: 1, title: 'مخارج الحروف العامة والخاصة (الحلق واللسان)', scheduled_time: 'الجمعة 1:50 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1003 },
+        { id: 912, block_number: 1, lecture_number: 2, title: 'أحكام النون الساكنة والتنوين (الإظهار الحلقي والإدغام)', scheduled_time: 'الجمعة 1:50 م', status: 'completed', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1003 },
+        { id: 913, block_number: 1, lecture_number: 3, title: 'أحكام الإقلاب والإخفاء الحقيقي وتطبيقات عملية', scheduled_time: 'الجمعة 1:50 م', status: 'active', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1003 },
+        { id: 914, block_number: 1, lecture_number: 4, title: 'أحكام الميم الساكنة وأقسام المدود', scheduled_time: 'الجمعة 1:50 م', status: 'pending', is_unlocked: true, meet_url: 'https://zoom.us/j/98264506630', quiz_id: 1003 }
     ],
     'مسار التفسير والتدبر': [
         {
@@ -1906,7 +1921,7 @@ const COMPETITION_LECTURES_MAP = {
             status: 'completed',
             is_unlocked: true,
             meet_url: 'https://zoom.us/j/98264506630',
-            quiz_id: 102
+            quiz_id: 1001
         },
         {
             id: 922,
@@ -1924,7 +1939,7 @@ const COMPETITION_LECTURES_MAP = {
             status: 'completed',
             is_unlocked: true,
             meet_url: 'https://zoom.us/j/98264506630',
-            quiz_id: 105
+            quiz_id: 1001
         },
         {
             id: 923,
@@ -1942,7 +1957,7 @@ const COMPETITION_LECTURES_MAP = {
             status: 'completed',
             is_unlocked: true,
             meet_url: 'https://zoom.us/j/98264506630',
-            quiz_id: 106
+            quiz_id: 1001
         },
         {
             id: 924,
@@ -1960,7 +1975,7 @@ const COMPETITION_LECTURES_MAP = {
             status: 'completed',
             is_unlocked: true,
             meet_url: 'https://zoom.us/j/98264506630',
-            quiz_id: 107
+            quiz_id: 1001
         }
     ]
 };
@@ -7057,18 +7072,25 @@ window.MONTHLY_EXAMS_QUESTIONS = {
 };
 
 
-function openQuizzesModal() {
+function openQuizzesModal(targetTrackOrId) {
     const modal = document.getElementById('quizzesModal');
     if (!modal) return;
     modal.classList.remove('hidden');
 
-    // If currently browsing a specific track, directly open that track's 20-question exam!
-    const trackMonthlyMap = { 'tafsir': 1001, 'hadith': 1002, 'tajweed': 1003 };
-    if (typeof currentGeneralTrack !== 'undefined' && trackMonthlyMap[currentGeneralTrack]) {
-        openQuizModalForId(trackMonthlyMap[currentGeneralTrack]);
-        return;
+    // If an explicit quizId or track was passed, open it directly:
+    if (targetTrackOrId) {
+        if (typeof targetTrackOrId === 'number' || (!isNaN(Number(targetTrackOrId)) && Number(targetTrackOrId) > 0)) {
+            openQuizModalForId(Number(targetTrackOrId));
+            return;
+        }
+        const trackMonthlyMap = { 'tafsir': 1001, 'hadith': 1002, 'tajweed': 1003 };
+        if (trackMonthlyMap[targetTrackOrId]) {
+            openQuizModalForId(trackMonthlyMap[targetTrackOrId]);
+            return;
+        }
     }
 
+    // Default: Always show the 3 monthly exams so student selects their track!
     loadQuizzesList();
 }
 
@@ -7077,6 +7099,7 @@ function openQuizModalForId(quizId) {
     if (!modal) return;
     modal.classList.remove('hidden');
 
+    const numId = Number(quizId);
     // Automatically map any weekly or old ID directly to its 20-question monthly exam:
     const trackWeeklyToMonthly = {
         101: 1003, // Tajweed
@@ -7087,11 +7110,13 @@ function openQuizModalForId(quizId) {
         106: 1001, // Tafsir
         107: 1001  // Tafsir
     };
-    if (trackWeeklyToMonthly[quizId]) {
-        quizId = trackWeeklyToMonthly[quizId];
+    if (trackWeeklyToMonthly[numId]) {
+        quizId = trackWeeklyToMonthly[numId];
+    } else {
+        quizId = numId || quizId;
     }
 
-    const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === quizId);
+    const sub = (cachedStudentSubmissions || []).find(s => Number(s.quiz_id) === Number(quizId));
     if (sub) {
         viewQuizReview(quizId);
     } else {
@@ -7228,19 +7253,27 @@ async function startQuiz(quizId) {
     try {
         let questions = [];
         // 1. Direct local fallback for monthly exams for instant zero-latency loading
-        if (window.MONTHLY_EXAMS_QUESTIONS && window.MONTHLY_EXAMS_QUESTIONS[quizId]) {
-            questions = window.MONTHLY_EXAMS_QUESTIONS[quizId];
+        const qKey = String(quizId);
+        if (window.MONTHLY_EXAMS_QUESTIONS && (window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId])) {
+            questions = window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId];
+        }
+        if (questions.length === 0 && window.MONTHLY_EXAMS_DATA && window.MONTHLY_EXAMS_DATA.questions) {
+            questions = window.MONTHLY_EXAMS_DATA.questions.filter(q => Number(q.quiz_id) === Number(quizId));
         }
         // 2. MonirDB
         if (questions.length === 0 && window.MonirDB && window.MonirDB.isConfigured()) {
-            const qRes = await window.MonirDB.getQuizQuestions(quizId);
-            if (qRes.data && qRes.data.length > 0) questions = qRes.data;
+            try {
+                const qRes = await window.MonirDB.getQuizQuestions(quizId);
+                if (qRes.data && qRes.data.length > 0) questions = qRes.data;
+            } catch(e) {}
         }
         // 3. API
         if (questions.length === 0) {
-            const qRes = await fetch('/api/quizzes/' + quizId);
-            const d = await qRes.json();
-            questions = d.questions || [];
+            try {
+                const qRes = await fetch('/api/quizzes/' + quizId);
+                const d = await qRes.json();
+                questions = d.questions || [];
+            } catch(e) {}
         }
         activeQuizQuestions = questions;
         renderActiveQuestions();
@@ -7505,9 +7538,13 @@ async function viewQuizReview(quizId) {
         return;
     }
 
+    const qKey = String(quizId);
     let questions = [];
-    if (window.MONTHLY_EXAMS_QUESTIONS && window.MONTHLY_EXAMS_QUESTIONS[quizId]) {
-        questions = window.MONTHLY_EXAMS_QUESTIONS[quizId];
+    if (window.MONTHLY_EXAMS_QUESTIONS && (window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId])) {
+        questions = window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId];
+    }
+    if (questions.length === 0 && window.MONTHLY_EXAMS_DATA && window.MONTHLY_EXAMS_DATA.questions) {
+        questions = window.MONTHLY_EXAMS_DATA.questions.filter(q => Number(q.quiz_id) === Number(quizId));
     }
     if (questions.length === 0) {
         try {
