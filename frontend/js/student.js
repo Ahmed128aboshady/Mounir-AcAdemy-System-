@@ -5211,8 +5211,8 @@ const TAFSIR_SUMMARY_VIDEOS = {
     },
     girls_10_and_up: {
         title: 'فئة البنات (10 سنوات فأكبر)',
-        id: '1Hr_g5X4RDRFFs1gbMWRve6X_SOAR-iu0',
-        url: 'https://drive.google.com/file/d/1Hr_g5X4RDRFFs1gbMWRve6X_SOAR-iu0/preview'
+        id: '1Hr_g5X4RDRFFs1gbMWRve6X_SOAR-iuO',
+        url: 'https://drive.google.com/file/d/1Hr_g5X4RDRFFs1gbMWRve6X_SOAR-iuO/preview'
     }
 };
 
