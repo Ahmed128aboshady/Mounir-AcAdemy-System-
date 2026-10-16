@@ -733,6 +733,13 @@
                 changed = true;
             }
         });
+        // Clear any stale jit.si links for Tajweed and force Zoom
+        ['CMP-T01', 'CMP-TAJWEED', 'TAJWEED', 'تجويد'].forEach(gid => {
+            if (stored[gid] && (stored[gid].includes('meet.jit.si') || stored[gid] !== 'https://zoom.us/j/98264506630')) {
+                stored[gid] = 'https://zoom.us/j/98264506630';
+                changed = true;
+            }
+        });
         if (changed) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
         }
@@ -765,14 +772,18 @@
     window.normalizeTeacherName = normalizeTeacherName;
 
     // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
-    window.getGroupMeetUrl = function(groupId, teacherIdOrName) {
+    window.getGroupMeetUrl = function(groupId, teacherIdOrName, courseName) {
         const cleanGid = groupId ? String(groupId).trim() : '';
+        const cName = courseName ? String(courseName).trim() : (typeof selectedCourseName !== 'undefined' ? String(selectedCourseName || '') : '');
+        const tName = teacherIdOrName ? String(teacherIdOrName).trim() : '';
 
-        // Tajweed Zoom Meeting Override (Direct link instead of Jitsi)
-        if (cleanGid && (cleanGid.toUpperCase().includes('TAJWEED') || cleanGid.includes('تجويد') || cleanGid === 'CMP-T01')) {
-            return 'https://zoom.us/j/98264506630';
-        }
-        if (teacherIdOrName && (String(teacherIdOrName).includes('تجويد') || String(teacherIdOrName).toUpperCase().includes('TAJWEED'))) {
+        // Universal Tajweed Override -> STRICTLY Zoom Meeting (Never Jitsi)
+        if (
+            cName.includes('تجويد') || cName.includes('التجويد') || cName.toUpperCase().includes('TAJWEED') ||
+            cleanGid.includes('تجويد') || cleanGid.toUpperCase().includes('TAJWEED') || cleanGid.startsWith('CMP-T') ||
+            tName.includes('تجويد') || tName.toUpperCase().includes('TAJWEED') ||
+            (typeof currentGeneralTrack !== 'undefined' && currentGeneralTrack === 'tajweed')
+        ) {
             return 'https://zoom.us/j/98264506630';
         }
 
@@ -822,6 +833,11 @@
             if (stVal.startsWith('http') && !stVal.includes('meet.jit.si/MounirAcademy_Group_')) {
                 return stVal;
             }
+        }
+
+        // Strict safety net: Never return Jitsi for any Tajweed room
+        if (cleanGid && (cleanGid.startsWith('CMP-T') || cleanGid.toUpperCase().includes('TAJWEED') || cleanGid.includes('تجويد'))) {
+            return 'https://zoom.us/j/98264506630';
         }
 
         if (!cleanGid || cleanGid === '—' || cleanGid === 'G000' || cleanGid === 'G') {
