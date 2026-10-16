@@ -733,9 +733,9 @@
                 changed = true;
             }
         });
-        // Clear any stale jit.si links for Tajweed and force Zoom
-        ['CMP-T01', 'CMP-TAJWEED', 'TAJWEED', 'تجويد'].forEach(gid => {
-            if (stored[gid] && (stored[gid].includes('meet.jit.si') || stored[gid] !== 'https://zoom.us/j/98264506630')) {
+        // Clear any stale jit.si links for Tajweed and force Zoom for competition track CMP-T01
+        ['CMP-T01', 'CMP-TAJWEED'].forEach(gid => {
+            if (stored[gid] && stored[gid].includes('meet.jit.si')) {
                 stored[gid] = 'https://zoom.us/j/98264506630';
                 changed = true;
             }
@@ -774,20 +774,20 @@
     // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
     window.getGroupMeetUrl = function(groupId, teacherIdOrName, courseName) {
         const cleanGid = groupId ? String(groupId).trim() : '';
-        const cName = courseName ? String(courseName).trim() : (typeof selectedCourseName !== 'undefined' ? String(selectedCourseName || '') : '');
-        const tName = teacherIdOrName ? String(teacherIdOrName).trim() : '';
+        const cName = courseName ? String(courseName).trim() : '';
 
-        // Universal Tajweed Override -> STRICTLY Zoom Meeting (Never Jitsi)
-        if (
-            cName.includes('تجويد') || cName.includes('التجويد') || cName.toUpperCase().includes('TAJWEED') ||
-            cleanGid.includes('تجويد') || cleanGid.toUpperCase().includes('TAJWEED') || cleanGid.startsWith('CMP-T') ||
-            tName.includes('تجويد') || tName.toUpperCase().includes('TAJWEED') ||
-            (typeof currentGeneralTrack !== 'undefined' && currentGeneralTrack === 'tajweed')
-        ) {
+        // Strict Tajweed Competition Course Check (ONLY for the specific competition track, NEVER Quran memorization!)
+        const isStrictTajweedCompetition = (
+            cleanGid === 'CMP-T01' || cleanGid === 'CMP-TAJWEED' ||
+            cName === 'مسار أحكام التجويد ومخارج الحروف' || cName === 'أحكام التجويد ومخارج الحروف' || cName === 'مسار أحكام التجويد'
+        );
+
+        if (isStrictTajweedCompetition) {
             return 'https://zoom.us/j/98264506630';
         }
 
         // 1. Direct Teacher ID or Teacher Name match (Priority to assigned Teacher's Google Meet Room)
+        // All Quran memorization circles (حلقات الحفظ) use their assigned Teacher's Google Meet room!
         if (teacherIdOrName) {
             const cleanT = String(teacherIdOrName).trim();
             // Direct match
@@ -833,11 +833,6 @@
             if (stVal.startsWith('http') && !stVal.includes('meet.jit.si/MounirAcademy_Group_')) {
                 return stVal;
             }
-        }
-
-        // Strict safety net: Never return Jitsi for any Tajweed room
-        if (cleanGid && (cleanGid.startsWith('CMP-T') || cleanGid.toUpperCase().includes('TAJWEED') || cleanGid.includes('تجويد'))) {
-            return 'https://zoom.us/j/98264506630';
         }
 
         if (!cleanGid || cleanGid === '—' || cleanGid === 'G000' || cleanGid === 'G') {
