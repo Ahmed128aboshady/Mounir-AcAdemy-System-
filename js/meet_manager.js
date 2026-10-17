@@ -733,6 +733,13 @@
                 changed = true;
             }
         });
+        // Auto-clean any stale cache for teacher 9 (Ahmed Hameed) groups
+        ['G053', 'G068', 'G270', 'G364', 'G398'].forEach(gid => {
+            if (stored[gid] && (stored[gid] !== 'https://meet.google.com/ryf-qber-qui' || stored[gid].includes('dee-yvud-mdz') || stored[gid].includes('meet.jit.si'))) {
+                delete stored[gid];
+                changed = true;
+            }
+        });
         // Clear any stale jit.si links for Tajweed and force Zoom for competition track CMP-T01
         ['CMP-T01', 'CMP-TAJWEED'].forEach(gid => {
             if (stored[gid] && stored[gid].includes('meet.jit.si')) {

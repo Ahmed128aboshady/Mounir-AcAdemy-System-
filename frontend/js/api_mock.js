@@ -1207,7 +1207,7 @@
                             if (data && data.students && data.students.length > 0) {
                                 DB = data;
                                 if (data.group_meet_links && typeof window !== 'undefined') {
-                                    window.GROUP_MEET_LINKS = Object.assign(window.GROUP_MEET_LINKS || {}, data.group_meet_links);
+                                    window.GROUP_MEET_LINKS = Object.assign({}, data.group_meet_links, window.GROUP_MEET_LINKS || {});
                                 }
                                 console.log('[Mock DB] Loaded ' + DB.students.length + ' students into memory from ' + p);
                                 return DB;
@@ -2004,7 +2004,7 @@
             enrs = enrs.map(e => {
                 const gId = e.group_id || (student && student.group_id) || 'G182';
                 const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                    ? window.getGroupMeetUrl(gId)
+                    ? window.getGroupMeetUrl(gId, e.teacher_name || e.teacher_id)
                     : ((DB.group_meet_links && DB.group_meet_links[gId]) || ('https://meet.google.com/mnr-' + gId.toLowerCase().replace(/[^a-z0-9]/g, '')));
                 return {
                     ...e,
@@ -2013,7 +2013,8 @@
             });
 
             const stGroup = (student && student.group_id) || (enrs[0] && enrs[0].group_id) || 'G182';
-            const stMeet = (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(stGroup) : 'https://meet.google.com';
+            const teacherIdOrName = (enrs[0] && (enrs[0].teacher_name || enrs[0].teacher_id)) || (student && (student.teacher_name || student.teacher_id));
+            const stMeet = (typeof window !== 'undefined' && window.getGroupMeetUrl) ? window.getGroupMeetUrl(stGroup, teacherIdOrName) : 'https://meet.google.com';
             if (student) student.google_meet_url = stMeet;
 
             return jsonResponse({
