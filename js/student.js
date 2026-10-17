@@ -5391,11 +5391,18 @@ window.openTafsirVideoModal = function() {
 window.closeTafsirVideoModal = function() {
     const modal = document.getElementById('tafsirVideoModal');
     const iframe = document.getElementById('tafsirVideoIframe');
-    if (iframe) {
-        iframe.src = 'about:blank';
-    }
+    if (iframe) iframe.src = 'about:blank';
     if (modal) {
+        modal.classList.remove('video-rotate-landscape');
         modal.classList.add('hidden');
+        const indicator = modal.querySelector('.btn-rotate-indicator');
+        if (indicator) indicator.textContent = 'تدوير';
+    }
+    if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch(e) {}
+    }
+    if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch(e) {}
     }
     document.body.classList.remove('overflow-hidden');
 };
@@ -5474,11 +5481,18 @@ window.openHadithVideoModal = function() {
 window.closeHadithVideoModal = function() {
     const modal = document.getElementById('hadithVideoModal');
     const iframe = document.getElementById('hadithVideoIframe');
-    if (iframe) {
-        iframe.src = 'about:blank';
-    }
+    if (iframe) iframe.src = 'about:blank';
     if (modal) {
+        modal.classList.remove('video-rotate-landscape');
         modal.classList.add('hidden');
+        const indicator = modal.querySelector('.btn-rotate-indicator');
+        if (indicator) indicator.textContent = 'تدوير';
+    }
+    if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch(e) {}
+    }
+    if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch(e) {}
     }
     document.body.classList.remove('overflow-hidden');
 };
@@ -5524,14 +5538,121 @@ window.openTajweedVideoModal = function() {
 window.closeTajweedVideoModal = function() {
     const modal = document.getElementById('tajweedVideoModal');
     const iframe = document.getElementById('tajweedVideoIframe');
-    if (iframe) {
-        iframe.src = 'about:blank';
-    }
+    if (iframe) iframe.src = 'about:blank';
     if (modal) {
+        modal.classList.remove('video-rotate-landscape');
         modal.classList.add('hidden');
+        const indicator = modal.querySelector('.btn-rotate-indicator');
+        if (indicator) indicator.textContent = 'تدوير';
+    }
+    if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch(e) {}
+    }
+    if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        try { screen.orientation.unlock(); } catch(e) {}
     }
     document.body.classList.remove('overflow-hidden');
 };
+
+// ==========================================
+// CINEMA VIDEO FULLSCREEN & LANDSCAPE CONTROLLERS
+// ==========================================
+
+window.requestVideoLandscape = async function(track) {
+    const modalId = track + 'VideoModal';
+    const iframeId = track + 'VideoIframe';
+    const modal = document.getElementById(modalId);
+    const iframe = document.getElementById(iframeId);
+    if (!modal || !iframe) return;
+
+    const wrapper = iframe.closest('.video-player-box') || iframe.parentElement || iframe;
+    
+    // 1. Try native Element Fullscreen
+    let fsSuccess = false;
+    const requestFs = wrapper.requestFullscreen || 
+                      wrapper.webkitRequestFullscreen || 
+                      wrapper.mozRequestFullScreen || 
+                      wrapper.msRequestFullscreen ||
+                      iframe.requestFullscreen || 
+                      iframe.webkitRequestFullscreen;
+
+    if (requestFs) {
+        try {
+            await requestFs.call(wrapper);
+            fsSuccess = true;
+        } catch(e) {
+            try {
+                if (iframe.requestFullscreen) {
+                    await iframe.requestFullscreen();
+                    fsSuccess = true;
+                }
+            } catch(e2) {}
+        }
+    }
+
+    // 2. Try locking orientation to landscape
+    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        try {
+            await screen.orientation.lock('landscape');
+            return;
+        } catch(e) {
+            console.log('Orientation lock to landscape notice:', e);
+        }
+    }
+
+    // 3. Fallback: toggle CSS rotated landscape for instant wide viewing
+    if (!fsSuccess || (window.innerWidth < window.innerHeight)) {
+        window.toggleRotateVideo(track);
+    }
+};
+
+window.toggleRotateVideo = function(track) {
+    const modalId = track + 'VideoModal';
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const isRotated = modal.classList.toggle('video-rotate-landscape');
+    const indicator = modal.querySelector('.btn-rotate-indicator');
+    if (indicator) {
+        indicator.textContent = isRotated ? 'إلغاء التدوير' : 'تدوير';
+    }
+};
+
+// Global Fullscreen Change Listener for Automatic Landscape Orientation Lock
+(function() {
+    async function handleVideoFullscreenChange() {
+        const isFs = !!(document.fullscreenElement || 
+                        document.webkitFullscreenElement || 
+                        document.mozFullScreenElement || 
+                        document.msFullscreenElement);
+        if (isFs) {
+            if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                try {
+                    await screen.orientation.lock('landscape');
+                } catch(e) {}
+            }
+        } else {
+            if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+                try {
+                    screen.orientation.unlock();
+                } catch(e) {}
+            }
+            ['tafsirVideoModal', 'hadithVideoModal', 'tajweedVideoModal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.remove('video-rotate-landscape');
+                    const indicator = el.querySelector('.btn-rotate-indicator');
+                    if (indicator) indicator.textContent = 'تدوير';
+                }
+            });
+        }
+    }
+
+    document.addEventListener('fullscreenchange', handleVideoFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleVideoFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleVideoFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleVideoFullscreenChange);
+})();
+
 
 // ==========================================
 // INTERACTIVE QUIZ MODAL CONTROLLER

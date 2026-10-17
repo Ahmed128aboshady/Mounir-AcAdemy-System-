@@ -1347,28 +1347,44 @@
         </div>
     </div>
 
-    <!-- Modal: Protected Cinema Tafsir Video Player -->
-    <div id="tafsirVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
-        <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+        <!-- Modal: Protected Cinema Tafsir Video Player -->
+    <div id="tafsirVideoModal" class="modal-overlay video-modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/95 backdrop-blur-md" oncontextmenu="return false;">
+        <div class="video-modal-container relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh]">
             <!-- Top Bar -->
-            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
-                <div>
-                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي للتفسير والتدبر - ملخص الشهر الأول</h3>
-                    <span id="tafsirModalCohortTitle" class="text-[11px] font-bold text-indigo-300 block mt-0.5">فئة الطالب</span>
+            <div class="video-top-bar flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0 gap-2">
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-xs sm:text-sm font-black text-white truncate">المرئي للتفسير والتدبر - ملخص الشهر الأول</h3>
+                    <span id="tafsirModalCohortTitle" class="text-[10px] sm:text-[11px] font-bold text-indigo-300 block mt-0.5 truncate">فئة الطالب</span>
                 </div>
-                <button type="button" onclick="closeTafsirVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
-                    إغلاق
-                </button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="requestVideoLandscape('tafsir')" class="text-[11px] sm:text-xs text-amber-300 hover:text-white bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 px-2.5 sm:px-3 py-1.5 rounded-xl border border-amber-400/40 font-black transition flex items-center gap-1 cursor-pointer shadow-xs" title="مشاهدة بملء الشاشة بالعرض">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                        </svg>
+                        <span>تكبير بالعرض</span>
+                    </button>
+                    <button type="button" onclick="toggleRotateVideo('tafsir')" class="text-[11px] sm:text-xs text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 active:scale-95 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition flex items-center gap-1 cursor-pointer" title="تدوير الفيديو للشاشة العريضة">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="btn-rotate-indicator">تدوير</span>
+                    </button>
+                    <button type="button" onclick="closeTafsirVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 active:scale-95 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                        إغلاق
+                    </button>
+                </div>
             </div>
 
             <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
-            <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
+            <div class="video-player-box relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
                 <!-- Iframe embed -->
                 <iframe id="tafsirVideoIframe" 
                         src="about:blank" 
                         class="w-full h-full border-0" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen>
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock" 
+                        allowfullscreen="true" 
+                        webkitallowfullscreen="true" 
+                        mozallowfullscreen="true">
                 </iframe>
 
                 <!-- Anti-Popout Transparent Overlay: Blocks clicking the Google Drive "Open in new tab" icon on top-right -->
@@ -1376,35 +1392,51 @@
             </div>
 
             <!-- Bottom Protection Bar -->
-            <div class="px-4 py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-                <span class="font-bold text-slate-300">أكاديمية منير — مشغل العرض المحمي</span>
-                <span class="text-slate-500">المحتوى مخصص للمشاهدة المباشرة فقط داخل المنصة</span>
+            <div class="video-bottom-bar px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 shrink-0 gap-2">
+                <span class="font-bold text-slate-300">💡 اضغط على (تكبير بالعرض) لمشاهدة الفيديو بالعرض ملء الشاشة</span>
+                <span class="text-slate-500 hidden sm:inline">أكاديمية منير — مشغل العرض المحمي</span>
             </div>
         </div>
     </div>
 
     <!-- Modal: Protected Cinema Hadith Video Player -->
-    <div id="hadithVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
-        <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+    <div id="hadithVideoModal" class="modal-overlay video-modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/95 backdrop-blur-md" oncontextmenu="return false;">
+        <div class="video-modal-container relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh]">
             <!-- Top Bar -->
-            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
-                <div>
-                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي للحديث الشريف - ملخص الشهر الأول</h3>
-                    <span id="hadithModalCohortTitle" class="text-[11px] font-bold text-teal-300 block mt-0.5">فئة الطالب</span>
+            <div class="video-top-bar flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0 gap-2">
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-xs sm:text-sm font-black text-white truncate">المرئي للحديث الشريف - ملخص الشهر الأول</h3>
+                    <span id="hadithModalCohortTitle" class="text-[10px] sm:text-[11px] font-bold text-teal-300 block mt-0.5 truncate">فئة الطالب</span>
                 </div>
-                <button type="button" onclick="closeHadithVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
-                    إغلاق
-                </button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="requestVideoLandscape('hadith')" class="text-[11px] sm:text-xs text-amber-300 hover:text-white bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 px-2.5 sm:px-3 py-1.5 rounded-xl border border-amber-400/40 font-black transition flex items-center gap-1 cursor-pointer shadow-xs" title="مشاهدة بملء الشاشة بالعرض">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                        </svg>
+                        <span>تكبير بالعرض</span>
+                    </button>
+                    <button type="button" onclick="toggleRotateVideo('hadith')" class="text-[11px] sm:text-xs text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 active:scale-95 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition flex items-center gap-1 cursor-pointer" title="تدوير الفيديو للشاشة العريضة">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="btn-rotate-indicator">تدوير</span>
+                    </button>
+                    <button type="button" onclick="closeHadithVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 active:scale-95 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                        إغلاق
+                    </button>
+                </div>
             </div>
 
             <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
-            <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
+            <div class="video-player-box relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
                 <!-- Iframe embed -->
                 <iframe id="hadithVideoIframe" 
                         src="about:blank" 
                         class="w-full h-full border-0" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen>
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock" 
+                        allowfullscreen="true" 
+                        webkitallowfullscreen="true" 
+                        mozallowfullscreen="true">
                 </iframe>
 
                 <!-- Anti-Popout Transparent Overlay: Blocks clicking the Google Drive "Open in new tab" icon on top-right -->
@@ -1412,35 +1444,51 @@
             </div>
 
             <!-- Bottom Protection Bar -->
-            <div class="px-4 py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-                <span class="font-bold text-slate-300">أكاديمية منير — مشغل العرض المحمي</span>
-                <span class="text-slate-500">المحتوى مخصص للمشاهدة المباشرة فقط داخل المنصة</span>
+            <div class="video-bottom-bar px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 shrink-0 gap-2">
+                <span class="font-bold text-slate-300">💡 اضغط على (تكبير بالعرض) لمشاهدة الفيديو بالعرض ملء الشاشة</span>
+                <span class="text-slate-500 hidden sm:inline">أكاديمية منير — مشغل العرض المحمي</span>
             </div>
         </div>
     </div>
 
     <!-- Modal: Protected Cinema Tajweed Video Player -->
-    <div id="tajweedVideoModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md" oncontextmenu="return false;">
-        <div class="relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+    <div id="tajweedVideoModal" class="modal-overlay video-modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/95 backdrop-blur-md" oncontextmenu="return false;">
+        <div class="video-modal-container relative w-full max-w-4xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh]">
             <!-- Top Bar -->
-            <div class="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
-                <div>
-                    <h3 class="text-xs sm:text-sm font-black text-white">المرئي لأحكام التجويد ومخارج الحروف - ملخص الشهر الأول</h3>
-                    <span id="tajweedModalCohortTitle" class="text-[11px] font-bold text-amber-300 block mt-0.5">فيديو موحد لجميع الطلاب والطالبات</span>
+            <div class="video-top-bar flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-slate-900 border-b border-slate-800 text-white shrink-0 gap-2">
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-xs sm:text-sm font-black text-white truncate">المرئي لأحكام التجويد ومخارج الحروف - ملخص الشهر الأول</h3>
+                    <span id="tajweedModalCohortTitle" class="text-[10px] sm:text-[11px] font-bold text-amber-300 block mt-0.5 truncate">فيديو موحد لجميع الطلاب والطالبات</span>
                 </div>
-                <button type="button" onclick="closeTajweedVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
-                    إغلاق
-                </button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="requestVideoLandscape('tajweed')" class="text-[11px] sm:text-xs text-amber-300 hover:text-white bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 px-2.5 sm:px-3 py-1.5 rounded-xl border border-amber-400/40 font-black transition flex items-center gap-1 cursor-pointer shadow-xs" title="مشاهدة بملء الشاشة بالعرض">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                        </svg>
+                        <span>تكبير بالعرض</span>
+                    </button>
+                    <button type="button" onclick="toggleRotateVideo('tajweed')" class="text-[11px] sm:text-xs text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 active:scale-95 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition flex items-center gap-1 cursor-pointer" title="تدوير الفيديو للشاشة العريضة">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span class="btn-rotate-indicator">تدوير</span>
+                    </button>
+                    <button type="button" onclick="closeTajweedVideoModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 active:scale-95 px-3 py-1.5 rounded-xl border border-slate-700 font-bold transition cursor-pointer">
+                        إغلاق
+                    </button>
+                </div>
             </div>
 
             <!-- Video Player Wrapper with Anti-Download & Anti-Popout Protection -->
-            <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
+            <div class="video-player-box relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden select-none">
                 <!-- Iframe embed -->
                 <iframe id="tajweedVideoIframe" 
                         src="about:blank" 
                         class="w-full h-full border-0" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen>
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock" 
+                        allowfullscreen="true" 
+                        webkitallowfullscreen="true" 
+                        mozallowfullscreen="true">
                 </iframe>
 
                 <!-- Anti-Popout Transparent Overlay: Blocks clicking the Google Drive "Open in new tab" icon on top-right -->
@@ -1448,9 +1496,9 @@
             </div>
 
             <!-- Bottom Protection Bar -->
-            <div class="px-4 py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-                <span class="font-bold text-slate-300">أكاديمية منير — مشغل العرض المحمي</span>
-                <span class="text-slate-500">المحتوى مخصص للمشاهدة المباشرة فقط داخل المنصة</span>
+            <div class="video-bottom-bar px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 shrink-0 gap-2">
+                <span class="font-bold text-slate-300">💡 اضغط على (تكبير بالعرض) لمشاهدة الفيديو بالعرض ملء الشاشة</span>
+                <span class="text-slate-500 hidden sm:inline">أكاديمية منير — مشغل العرض المحمي</span>
             </div>
         </div>
     </div>
