@@ -834,7 +834,7 @@
     </div>
 
     <!-- Modal: Quizzes & Assessment System -->
-    <div id="quizzesModal" class="modal-overlay hidden p-2 sm:p-4 z-50">
+    <div id="quizzesModal" class="modal-overlay hidden p-2 sm:p-4 z-[9999]">
         <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto overflow-hidden">
             <div class="flex justify-between items-center mb-3 sm:mb-4 pb-2.5 border-b border-slate-100 shrink-0">
                 <div>
@@ -1307,7 +1307,7 @@
     </div>
 
     <!-- Mobile Fixed Bottom Navigation Bar (App-like Quick Actions for Parents) -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-between sm:hidden shadow-2xl safe-bottom">
+    <nav id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-between sm:hidden shadow-2xl safe-bottom">
         <button type="button" onclick="setPortalView('overview'); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:text-[#1F274B] active:text-[#1F274B] py-1 px-1 rounded-xl transition cursor-pointer">
             <svg class="w-4 h-4"><use href="#user"/></svg>
             <span class="text-[10px] font-bold">حسابي</span>

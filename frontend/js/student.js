@@ -2872,7 +2872,10 @@ function copyNextDueMeet() {
 
 // ---------------- Quizzes System ----------------
 function closeQuizzesModal() {
-    document.getElementById('quizzesModal').classList.add('hidden');
+    const m = document.getElementById('quizzesModal');
+    if (m) m.classList.add('hidden');
+    const bNav = document.getElementById('mobileBottomNav');
+    if (bNav) bNav.classList.remove('hidden');
 }
 
 // Note: startQuiz and openQuizzesModal are unified below for monthly & track exams
@@ -7288,6 +7291,8 @@ function openQuizzesModal(targetTrackOrId) {
     const modal = document.getElementById('quizzesModal');
     if (!modal) return;
     modal.classList.remove('hidden');
+    const bNav = document.getElementById('mobileBottomNav');
+    if (bNav) bNav.classList.add('hidden');
 
     // If an explicit quizId or track was passed, open it directly:
     if (targetTrackOrId) {
@@ -7540,6 +7545,36 @@ function renderActiveQuestions() {
             </div>
         `;
     }).join('');
+
+    // End-of-Questions Prominent Submit Card directly underneath the 20th question
+    const answeredCount = activeQuizQuestions.filter(q => activeQuizAnswers[q.id] !== undefined).length;
+    const totalCount = activeQuizQuestions.length;
+    const isCompleted = (answeredCount === totalCount && totalCount > 0);
+
+    const submitFooterHtml = `
+        <div class="mt-4 pt-4 pb-12 text-center space-y-3">
+            <div class="bg-gradient-to-b from-emerald-50/90 to-white border-2 border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-sm text-right space-y-3">
+                <div class="flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
+                    <span class="text-xs font-black text-emerald-950">
+                        نهاية أسئلة الامتحان (${answeredCount} من ${totalCount} مُجاب)
+                    </span>
+                    <span class="text-[11px] font-bold ${isCompleted ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-amber-800 bg-amber-100 border border-amber-300'} px-2.5 py-0.5 rounded-md">
+                        ${isCompleted ? 'اكتملت جميع الإجابات ✓' : `متبقي ${totalCount - answeredCount} أسئلة`}
+                    </span>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-relaxed font-medium">
+                    اضغط على الزر الأخضر بالأسفل لتسليم إجاباتك واعتماد نتيجتك رسمياً في سجل درجات الأكاديمية ومراجعة التصحيح النموذجي فوراً:
+                </p>
+                <button type="button" onclick="submitActiveQuiz()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black text-xs sm:text-sm py-3.5 px-6 rounded-xl shadow-lg transition cursor-pointer text-center block">
+                    إرسال الإجابات واعتماد النتيجة (40 درجة)
+                </button>
+            </div>
+            <button type="button" onclick="backToQuizList()" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold py-1">
+                العودة لقائمة الامتحانات
+            </button>
+        </div>
+    `;
+    container.innerHTML += submitFooterHtml;
 }
 
 function selectQuizOption(questionId, optionIndex) {
