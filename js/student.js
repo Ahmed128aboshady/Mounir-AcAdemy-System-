@@ -7588,15 +7588,27 @@ async function submitActiveQuiz() {
         // Get student info
         let stName = 'طالب الأكاديمية';
         let stCode = String(currentStudentId);
+        let numericStudentId = null;
+
+        const curSt = (window.currentStudentData && window.currentStudentData.student) || {};
+        if (curSt.id && !isNaN(Number(curSt.id))) numericStudentId = Number(curSt.id);
+        if (curSt.student_code) stCode = curSt.student_code;
+        if (curSt.name) stName = curSt.name;
+
         const u = activeUser;
         if (u) {
             stName = u.full_name || u.name || u.username || stName;
             stCode = u.student_code || u.username || stCode;
+            if (u.student_id && !isNaN(Number(u.student_id))) numericStudentId = Number(u.student_id);
+            else if (u.id && !isNaN(Number(u.id))) numericStudentId = Number(u.id);
+        }
+        if (!numericStudentId && !isNaN(Number(currentStudentId))) {
+            numericStudentId = Number(currentStudentId);
         }
 
         const submissionData = {
             quiz_id: activeQuizId,
-            student_id: currentStudentId,
+            student_id: numericStudentId || currentStudentId,
             student_code: stCode,
             student_name: stName,
             track_name: meta.track || currentGeneralTrack,

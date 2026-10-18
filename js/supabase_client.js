@@ -607,8 +607,28 @@
             const client = this.getClient();
             if (!client) return { data: null, error: 'Supabase client not initialized' };
             try {
-                const sId = Number(submission.student_id);
-                const validStudentId = (!isNaN(sId) && sId > 0) ? sId : 1;
+                let validStudentId = Number(submission.student_id);
+                if (isNaN(validStudentId) || validStudentId <= 0) {
+                    if (submission.student_code) {
+                        try {
+                            const { data: stData } = await client
+                                .from('students')
+                                .select('id')
+                                .eq('student_code', submission.student_code)
+                                .limit(1);
+                            if (stData && stData.length > 0) {
+                                validStudentId = Number(stData[0].id);
+                            }
+                        } catch(e) {}
+                    }
+                }
+                if (isNaN(validStudentId) || validStudentId <= 0) {
+                    try {
+                        const { data: stFirst } = await client.from('students').select('id').limit(1);
+                        if (stFirst && stFirst.length > 0) validStudentId = Number(stFirst[0].id);
+                    } catch(e) {}
+                }
+                if (!validStudentId || isNaN(validStudentId)) validStudentId = 10;
                 const qId = Number(submission.quiz_id) || 1001;
 
                 // 1. Primary insert attempt with all rich fields
