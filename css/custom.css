@@ -627,3 +627,95 @@ html, body {
         padding: 6px 12px !important;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* Quizzes Modal - Pinned Sticky Footer and Smooth Questions Scroll  */
+/* ══════════════════════════════════════════════════════════════════ */
+#quizzesModal .quiz-modal-card {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 92vh !important;
+    max-height: 94vh !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+#quizzesModal #quizActiveView {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+#quizzesModal #quizActiveView.hidden {
+    display: none !important;
+}
+
+#quizzesModal #quizSelectionView {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+#quizzesModal #quizSelectionView.hidden {
+    display: none !important;
+}
+
+#quizzesModal #quizResultView {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+#quizzesModal #quizResultView.hidden {
+    display: none !important;
+}
+
+#quizzesModal #quizQuestionsContainer {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 1.25rem !important;
+}
+
+#quizzesModal .quiz-sticky-footer {
+    flex-shrink: 0 !important;
+    background: #ffffff !important;
+    border-top: 2px solid #e2e8f0 !important;
+    padding: 0.65rem 0.25rem !important;
+    z-index: 50 !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
+    position: relative !important;
+}
+
+@media (max-width: 768px) {
+    #quizzesModal.modal-overlay > div,
+    #quizzesModal .quiz-modal-card {
+        height: 94vh !important;
+        max-height: 94vh !important;
+        padding-top: 0.75rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        border-radius: 1.5rem 1.5rem 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    #quizzesModal .quiz-sticky-footer {
+        padding-top: 0.5rem !important;
+        padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    #quizzesModal #btnSubmitQuiz {
+        min-height: 48px !important;
+        font-size: 13px !important;
+    }
+}
+

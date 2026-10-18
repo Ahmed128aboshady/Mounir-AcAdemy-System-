@@ -7351,7 +7351,10 @@ function loadQuizzesList() {
     const actView = document.getElementById('quizActiveView');
     const resView = document.getElementById('quizResultView');
     if (selView) selView.classList.remove('hidden');
-    if (actView) actView.classList.add('hidden');
+    if (actView) {
+        actView.classList.add('hidden');
+        actView.classList.remove('flex');
+    }
     if (resView) resView.classList.add('hidden');
 
     const container = document.getElementById('quizzesListContainer');
@@ -7426,7 +7429,10 @@ async function startQuiz(quizId) {
     const resView = document.getElementById('quizResultView');
     if (selView) selView.classList.add('hidden');
     if (resView) resView.classList.add('hidden');
-    if (actView) actView.classList.remove('hidden');
+    if (actView) {
+        actView.classList.remove('hidden');
+        actView.classList.add('flex');
+    }
 
     let quiz = (cachedGeneralQuizzes || []).find(q => q.id === quizId);
     if (!quiz && window.MONTHLY_EXAMS_DATA && window.MONTHLY_EXAMS_DATA.quizzes) {
@@ -7470,7 +7476,7 @@ async function startQuiz(quizId) {
 
     const container = document.getElementById('quizQuestionsContainer');
     if (container) {
-        container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold text-xs sm:text-sm"><div class="animate-spin text-2xl mb-2">⏳</div>جاري تحميل أسئلة الاختبار الـ 20...</div>`;
+        container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold text-xs sm:text-sm">جاري تحميل أسئلة الاختبار الـ 20...</div>`;
     }
 
     try {
@@ -7498,6 +7504,7 @@ async function startQuiz(quizId) {
                 questions = d.questions || [];
             } catch(e) {}
         }
+
         activeQuizQuestions = questions;
         renderActiveQuestions();
     } catch(err) {
@@ -7559,7 +7566,7 @@ function renderActiveQuestions() {
                         نهاية أسئلة الامتحان (${answeredCount} من ${totalCount} مُجاب)
                     </span>
                     <span class="text-[11px] font-bold ${isCompleted ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-amber-800 bg-amber-100 border border-amber-300'} px-2.5 py-0.5 rounded-md">
-                        ${isCompleted ? 'اكتملت جميع الإجابات ✓' : `متبقي ${totalCount - answeredCount} أسئلة`}
+                        ${isCompleted ? 'اكتملت جميع الإجابات' : `متبقي ${totalCount - answeredCount} أسئلة`}
                     </span>
                 </div>
                 <p class="text-[11px] text-slate-600 leading-relaxed font-medium">
@@ -7575,11 +7582,31 @@ function renderActiveQuestions() {
         </div>
     `;
     container.innerHTML += submitFooterHtml;
+
+    // Update sticky submit button text and real-time answered progress
+    const btnSticky = document.getElementById('btnSubmitQuiz');
+    if (btnSticky) {
+        if (isCompleted) {
+            btnSticky.textContent = 'إرسال الإجابات واعتماد النتيجة (40 درجة) - اكتملت جميع الأسئلة';
+        } else if (answeredCount > 0) {
+            btnSticky.textContent = `إرسال الإجابات واعتماد النتيجة (${answeredCount} من ${totalCount} مُجاب)`;
+        } else {
+            btnSticky.textContent = 'إرسال الإجابات واعتماد النتيجة (40 درجة)';
+        }
+    }
 }
 
 function selectQuizOption(questionId, optionIndex) {
+    const container = document.getElementById('quizQuestionsContainer');
+    const prevScroll = container ? container.scrollTop : 0;
     activeQuizAnswers[questionId] = optionIndex;
     renderActiveQuestions();
+    if (container) {
+        container.scrollTop = prevScroll;
+        requestAnimationFrame(() => {
+            if (container) container.scrollTop = prevScroll;
+        });
+    }
 }
 
 async function submitActiveQuiz() {

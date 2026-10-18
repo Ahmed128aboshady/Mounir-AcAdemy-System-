@@ -835,8 +835,8 @@
 
     <!-- Modal: Quizzes & Assessment System -->
     <div id="quizzesModal" class="modal-overlay hidden p-2 sm:p-4 z-[9999]">
-        <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto overflow-hidden">
-            <div class="flex justify-between items-center mb-3 sm:mb-4 pb-2.5 border-b border-slate-100 shrink-0">
+        <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-3 sm:p-6 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col my-auto overflow-hidden quiz-modal-card">
+            <div class="flex justify-between items-center mb-2.5 sm:mb-4 pb-2 sm:pb-2.5 border-b border-slate-100 shrink-0">
                 <div>
                     <h3 class="font-black text-base sm:text-lg text-slate-900" id="quizModalTitle">الامتحانات الشهرية الشاملة</h3>
                     <p class="text-[11px] sm:text-xs text-slate-500 font-medium" id="quizModalSubtitle">ملخص الشهر الأول • 20 سؤالاً (40 درجة) • متاح من 16 حتى 19 أكتوبر</p>
@@ -852,17 +852,17 @@
             </div>
 
             <!-- Quiz Active Questions View -->
-            <div id="quizActiveView" class="hidden flex-col space-y-3 sm:space-y-4 text-xs overflow-hidden">
-                <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shrink-0">
+            <div id="quizActiveView" class="hidden flex-col flex-1 min-h-0 space-y-2.5 sm:space-y-3 text-xs overflow-hidden">
+                <div class="bg-slate-50 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shrink-0">
                     <strong class="text-slate-900 font-black text-xs sm:text-sm" id="activeQuizTitle">امتحان المسار</strong>
                     <span class="text-indigo-900 bg-indigo-100 font-black text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg" id="activeQuizMeta">20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال)</span>
                 </div>
 
-                <div id="quizQuestionsContainer" class="space-y-3 sm:space-y-4 max-h-[58vh] sm:max-h-[62vh] overflow-y-auto pr-1 pl-0.5">
+                <div id="quizQuestionsContainer" class="flex-1 min-h-0 space-y-3 overflow-y-auto pr-1 pl-0.5">
                     <!-- Injected questions -->
                 </div>
 
-                <div class="pt-2 sm:pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2 shrink-0">
+                <div id="quizStickyFooter" class="quiz-sticky-footer pt-2 sm:pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2 shrink-0 bg-white">
                     <button onclick="submitActiveQuiz()" id="btnSubmitQuiz" class="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-md transition text-xs sm:text-sm cursor-pointer">
                         إرسال الإجابات واعتماد النتيجة (40 درجة)
                     </button>
