@@ -3488,7 +3488,17 @@
                 const client = window.MonirDB.getClient();
 
                 // 1. Cloud Idempotency check: Make sure no attendance already exists for this student on this date
-                const startOfDay = dateStr + 'T00:00:00.000Z';
+                // Local cache check for same-day recording
+            const localAttKey = 'monir_att_' + studentId + '_' + dateStr;
+            const existingLocal = localStorage.getItem(localAttKey);
+            if (existingLocal) {
+                const exStatus = existingLocal === 'present' ? 'حضور' : existingLocal === 'absent' ? 'غياب' : 'عذر';
+                alert(`تنبيه أمان: تم رصد هذا الطالب مسبقاً لهذا التاريخ (${dateStr}) بحالة (${exStatus})!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر.`);
+                await loadDailyAttendanceMatchingData();
+                return;
+            }
+
+            const startOfDay = dateStr + 'T00:00:00.000Z';
                 const endOfDay = dateStr + 'T23:59:59.999Z';
 
                 const { data: existingAtt } = await client

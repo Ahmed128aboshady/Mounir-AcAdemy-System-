@@ -1744,11 +1744,12 @@
                 const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر', 'absent': 'غياب بدون عذر' };
                 const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب' };
 
-                const todayDateStr = new Date().toISOString().split('T')[0];
+                const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
+                const todayUtcStr = new Date().toISOString().split('T')[0];
                 const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
-                const prevRecord = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId])
+                const prevRecord = (window.todaySupabaseAttMap && (window.todaySupabaseAttMap[studentId]))
                     ? window.todaySupabaseAttMap[studentId].status
-                    : localStorage.getItem(todayKey);
+                    : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + studentId + '_' + todayUtcStr));
 
                 if (prevRecord) {
                     enableButtons();

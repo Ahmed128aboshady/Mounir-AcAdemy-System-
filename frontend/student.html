@@ -231,6 +231,9 @@
                             <button type="button" onclick="openStudentLedgerModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="عرض كشف حساب الحصص وسجل الحضور والغياب والتجديدات">
                                 <span>سجل الحصص والتجديدات</span>
                             </button>
+                            <button type="button" onclick="openHifzHistoryModal()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer text-center" title="عرض سجل الحفظ والتسميع التاريخي">
+                                <span>سجل الحفظ (History)</span>
+                            </button>
                             <button onclick="openPaymobModal()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
                                 <span>تجديد الباقة</span>
                             </button>
@@ -476,6 +479,10 @@
                                         <p class="text-[11px] text-slate-100 font-medium" id="planNotesDisplay"></p>
                                     </div>
                                 </div>
+                                <!-- Button: Direct Hifz History Modal -->
+                                <button type="button" onclick="openHifzHistoryModal()" class="w-full mt-3 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl transition shadow-xs text-center cursor-pointer">
+                                    <span>عرض سجل الحفظ والتسميع التاريخي (History)</span>
+                                </button>
                             </div>
                         </section>
                     </div>
@@ -857,7 +864,7 @@
 
                 <div class="pt-2 sm:pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2 shrink-0">
                     <button onclick="submitActiveQuiz()" id="btnSubmitQuiz" class="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-md transition text-xs sm:text-sm cursor-pointer">
-                        تسجيل الإجابات واعتماد النتيجة (40 درجة)
+                        إرسال الإجابات واعتماد النتيجة (40 درجة)
                     </button>
                     <button onclick="backToQuizList()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl sm:rounded-2xl transition text-xs sm:text-sm cursor-pointer">
                         رجوع

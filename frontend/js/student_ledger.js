@@ -133,7 +133,7 @@
     }
 
     // Main Open Ledger Function (Callable globally)
-    window.openStudentLedgerModal = async function(targetStudentId = null) {
+    window.openStudentLedgerModal = async function(targetStudentId = null, initialTab = 'attendance') {
         const modal = ensureModalElement();
         const content = document.getElementById('studentLedgerModalContent');
         if (!content) return;
@@ -537,6 +537,9 @@
                 </button>
             </div>
         `;
+        if (initialTab && initialTab !== 'attendance' && typeof window.switchLedgerTab === 'function') {
+            window.switchLedgerTab(initialTab);
+        }
     }
 
     // Helper: Render Tab 1 Attendance Table with verified real 2026 dates
@@ -1179,3 +1182,11 @@
 
     console.log('[StudentLedger] Module initialized successfully.');
 })();
+
+
+// Dedicated Global Shortcut for Student Memorization History
+window.openHifzHistoryModal = function(targetStudentId = null) {
+    if (typeof window.openStudentLedgerModal === 'function') {
+        window.openStudentLedgerModal(targetStudentId, 'hifz');
+    }
+};

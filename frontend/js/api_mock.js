@@ -2026,8 +2026,16 @@
         }
 
         // 8. Support Tickets
-        if (path === '/api/admin/support/tickets' || (path.startsWith('/api/student/') && path.endsWith('/support/tickets'))) {
-            return jsonResponse(DB.support_tickets);
+        if (path === '/api/admin/support/tickets') {
+            return jsonResponse(DB.support_tickets || []);
+        }
+
+        const studentTicketsMatch = path.match(/^\/api\/student\/([^\/]+)\/support\/tickets$/);
+        if (studentTicketsMatch) {
+            const rawSid = studentTicketsMatch[1];
+            const allTickets = DB.support_tickets || [];
+            const filtered = allTickets.filter(t => String(t.student_id) === String(rawSid) || String(t.student_code || '').toLowerCase() === String(rawSid).toLowerCase());
+            return jsonResponse(filtered);
         }
 
         // 9. Quizzes & Weekly Assessments API
@@ -2053,17 +2061,21 @@
             const qList = questions.filter(q => q.quiz_id === qId);
             const userAnswers = body.answers || {};
 
-            let totalPoints = 0;
-            let earnedPoints = 0;
-            qList.forEach(q => {
-                const pts = q.points || 5;
-                totalPoints += pts;
-                if (userAnswers[q.id] !== undefined && parseInt(userAnswers[q.id]) === q.correct_option_index) {
-                    earnedPoints += pts;
-                }
-            });
-            if (totalPoints === 0) totalPoints = 15;
-            const percentage = Math.round((earnedPoints / totalPoints) * 100);
+            let totalPoints = body.total_points !== undefined ? body.total_points : 0;
+            let earnedPoints = body.score !== undefined ? body.score : 0;
+            if (qList.length > 0 && body.score === undefined) {
+                totalPoints = 0;
+                earnedPoints = 0;
+                qList.forEach(q => {
+                    const pts = q.points || 2;
+                    totalPoints += pts;
+                    if (userAnswers[q.id] !== undefined && parseInt(userAnswers[q.id]) === q.correct_option_index) {
+                        earnedPoints += pts;
+                    }
+                });
+            }
+            if (totalPoints === 0) totalPoints = 40;
+            const percentage = body.percentage !== undefined ? body.percentage : Math.round((earnedPoints / totalPoints) * 100);
 
             if (!DB.quiz_submissions) DB.quiz_submissions = [];
             const subRecord = {
@@ -2073,12 +2085,12 @@
                 student_code: body.student_code || 'st0419',
                 student_name: body.student_name || 'طالب الأكاديمية',
                 track_name: body.track_name || 'أحكام التجويد',
-                quiz_title: body.quiz_title || 'اختبار الأسبوع',
+                quiz_title: body.quiz_title || 'امتحان الشهر الأول',
                 score: earnedPoints,
                 total_points: totalPoints,
                 percentage: percentage,
                 answers: userAnswers,
-                submitted_at: new Date().toISOString()
+                submitted_at: body.submitted_at || new Date().toISOString()
             };
             DB.quiz_submissions.unshift(subRecord);
             saveDb();
@@ -2167,21 +2179,48 @@
 
         // Action: Quran record session
         if (method === 'POST' && path === '/api/quran/record-session') {
-            const enr = DB.enrollments.find(e => e.student_id === body.student_id);
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (!DB.attendance) DB.attendance = [];
+
+            // Duplicate attendance/absence lock: prevent recording twice for the same student on the same date
+            const alreadyRecorded = DB.attendance.some(a => 
+                String(a.student_id) === String(body.student_id) && 
+                (a.joined_at || '').startsWith(todayStr)
+            );
+            if (alreadyRecorded) {
+                return jsonResponse({
+                    success: false,
+                    message: 'تم رصد حالة هذا الطالب مسبقاً لهذا اليوم، ولا يمكن تكرار تسجيل الحضور أو الغياب لنفس اليوم منعاً لأي خصم مكرر.'
+                }, 400);
+            }
+
+            const enr = (DB.enrollments || []).find(e => String(e.student_id) === String(body.student_id));
             if (enr) {
                 if (body.session_status === 'present') {
                     enr.remaining_credits = Math.max(0, (enr.remaining_credits || 4) - 1);
                     enr.present_count = (enr.present_count || 0) + 1;
                 } else if (body.session_status === 'excused') {
                     enr.excuse_count = (enr.excuse_count || 0) + 1;
-                    enr.absent_count = (enr.absent_count || 0) + 1;
                 } else if (body.session_status === 'absent') {
                     enr.remaining_credits = Math.max(0, (enr.remaining_credits || 4) - 1);
                     enr.absent_count = (enr.absent_count || 0) + 1;
                 }
             }
+
+            DB.attendance.push({
+                id: DB.attendance.length + 1,
+                student_id: body.student_id,
+                teacher_id: body.teacher_id,
+                status: body.session_status,
+                joined_at: new Date().toISOString()
+            });
+
             saveDb();
-            return jsonResponse({ success: true, message: 'تم تسجيل الجلسة بنجاح!', remaining_credits: enr ? enr.remaining_credits : 3 });
+            return jsonResponse({
+                success: true,
+                message: 'تم تسجيل الجلسة بنجاح.',
+                remaining_credits: enr ? enr.remaining_credits : 3
+            });
         }
 
         // Action: Quran update surah
@@ -2197,12 +2236,14 @@
 
         // Action: Support ticket submit
         if (method === 'POST' && path === '/api/support/tickets') {
+            if (!DB.support_tickets) DB.support_tickets = [];
             const newT = {
                 id: DB.support_tickets.length + 1,
                 student_id: body.student_id,
-                student_name: 'طالب الأكاديمية',
-                course_name: body.course_name || 'كتالوج الشباب 2.0',
-                category: body.category || 'استفسار',
+                student_code: body.student_code || '',
+                student_name: body.student_name || 'طالب الأكاديمية',
+                course_name: body.course_name || 'مسار القرآن الكريم والتدبر',
+                category: body.category || 'عام',
                 subject: body.subject,
                 message: body.message,
                 status: 'open',
@@ -2210,7 +2251,7 @@
             };
             DB.support_tickets.unshift(newT);
             saveDb();
-            return jsonResponse({ success: true, message: 'تم إرسال تذكرتك بنجاح وسيتم الرد خلال ساعات.', ticket_id: newT.id });
+            return jsonResponse({ success: true, message: 'تم استلام تذكرتك بنجاح وجاري المتابعة من فريق الدعم.', ticket_id: newT.id, ticket: newT });
         }
 
         // Action: Paymob Checkout

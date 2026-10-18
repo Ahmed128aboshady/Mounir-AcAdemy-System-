@@ -2961,54 +2961,21 @@ async function startQuiz(quizId) {
     }
 }
 
-async function submitActiveQuiz() {
-    const answers = {};
-    activeQuizQuestions.forEach(q => {
-        const sel = document.querySelector('input[name="q_' + q.id + '"]:checked');
-        answers[q.id] = sel ? parseInt(sel.value) : -1;
-    });
-    
-    try {
-        const res = await fetch('/api/quizzes/' + activeQuizId + '/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                student_id: currentStudentId,
-                answers: answers
-            })
-        });
-        const result = await res.json();
-        
-        document.getElementById('quizActiveView').classList.add('hidden');
-        document.getElementById('quizResultView').classList.remove('hidden');
-        
-        document.getElementById('quizResultIcon').innerText = result.percentage + '%';
-        if (result.passed) {
-            document.getElementById('quizResultTitle').innerText = 'أحسنت! تم اجتياز الاختبار بنجاح';
-            document.getElementById('quizResultIcon').className = 'w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-xl font-black';
-        } else {
-            document.getElementById('quizResultTitle').innerText = 'لم يتم اجتياز الاختبار (حاول مرة أخرى)';
-            document.getElementById('quizResultIcon').className = 'w-16 h-16 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center mx-auto text-xl font-black';
-        }
-        
-        document.getElementById('quizResultScore').innerText = 'الدرجة المحققة: ' + result.score + ' من ' + result.total_questions + ' (' + result.percentage + '%)';
-    } catch (err) {
-        console.error("Error submitting quiz:", err);
-    }
-}
-
+// Note: submitActiveQuiz is unified below for all quizzes
 function backToQuizList() {
     openQuizzesModal();
 }
 
 // ---------------- Support & Tickets System ----------------
 function openSupportModal() {
-    document.getElementById('supportModal').classList.remove('hidden');
+    const modal = document.getElementById('supportModal');
+    if (modal) modal.classList.remove('hidden');
     loadSupportTickets();
 }
 
 function closeSupportModal() {
-    document.getElementById('supportModal').classList.add('hidden');
+    const modal = document.getElementById('supportModal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function switchSupportTab(tab) {
@@ -3018,77 +2985,151 @@ function switchSupportTab(tab) {
     const listTab = document.getElementById('supportListTab');
     
     if (tab === 'new') {
-        btnNew.className = 'py-2 px-4 border-b-2 border-blue-900 text-blue-900 font-bold';
-        btnList.className = 'py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold';
-        formTab.classList.remove('hidden');
-        listTab.classList.add('hidden');
+        if (btnNew) btnNew.className = 'py-2 px-4 border-b-2 border-blue-900 text-blue-900 font-bold';
+        if (btnList) btnList.className = 'py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold';
+        if (formTab) formTab.classList.remove('hidden');
+        if (listTab) listTab.classList.add('hidden');
     } else {
-        btnList.className = 'py-2 px-4 border-b-2 border-blue-900 text-blue-900 font-bold';
-        btnNew.className = 'py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold';
-        formTab.classList.add('hidden');
-        listTab.classList.remove('hidden');
+        if (btnList) btnList.className = 'py-2 px-4 border-b-2 border-blue-900 text-blue-900 font-bold';
+        if (btnNew) btnNew.className = 'py-2 px-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold';
+        if (formTab) formTab.classList.add('hidden');
+        if (listTab) listTab.classList.remove('hidden');
         loadSupportTickets();
     }
 }
 
 async function submitSupportTicket() {
-    const category = document.getElementById('ticketCategory').value;
-    const subject = document.getElementById('ticketSubject').value.trim();
-    const message = document.getElementById('ticketMessage').value.trim();
+    const catEl = document.getElementById('ticketCategory');
+    const subEl = document.getElementById('ticketSubject');
+    const msgEl = document.getElementById('ticketMessage');
+    
+    const category = catEl ? catEl.value : 'عام';
+    const subject = subEl ? subEl.value.trim() : '';
+    const message = msgEl ? msgEl.value.trim() : '';
     
     if (!subject || !message) {
-        alert("يرجى ملء الموضوع وتفاصيل الرسالة.");
+        alert("يرجى إدخال عنوان الموضوع وتفاصيل الرسالة.");
         return;
     }
     
     const btn = document.getElementById('btnSubmitTicket');
-    btn.disabled = true;
-    btn.innerText = 'جاري الإرسال...';
+    const oldText = btn ? btn.innerText : 'إرسال التذكرة الآن';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'جاري إرسال التذكرة...';
+    }
     
     try {
-        const res = await fetch('/api/support/tickets', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                student_id: currentStudentId,
-                category: category,
-                subject: subject,
-                message: message
-            })
-        });
-        const data = await res.json();
-        
-        alert("تم إرسال تذكرتك بنجاح! سيقوم فريق الأكاديمية بالرد والمتابعة معك.");
-        document.getElementById('ticketSubject').value = '';
-        document.getElementById('ticketMessage').value = '';
-        btn.disabled = false;
-        btn.innerText = 'إرسال التذكرة الآن';
+        const u = activeUser || {};
+        const stName = u.full_name || u.name || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || 'طالب الأكاديمية';
+        const stCode = u.student_code || u.username || String(currentStudentId);
+
+        const newTicket = {
+            id: Date.now(),
+            student_id: currentStudentId,
+            student_code: stCode,
+            student_name: stName,
+            category: category,
+            subject: subject,
+            message: message,
+            status: 'open',
+            created_at: new Date().toISOString()
+        };
+
+        // 1. Save to localStorage immediately for instant persistence
+        const storageKey = 'monir_support_tickets_' + currentStudentId;
+        let stored = [];
+        try {
+            stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch(e) { stored = []; }
+        stored.unshift(newTicket);
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(stored));
+        } catch(e) {}
+
+        // 2. Submit to Mock/Backend API safely
+        try {
+            await fetch('/api/support/tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTicket)
+            });
+        } catch(fetchErr) {}
+
+        // 3. Submit to Supabase if configured
+        try {
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                const client = window.MonirDB.getClient();
+                await client.from('support_tickets').insert([newTicket]);
+            }
+        } catch(supaErr) {}
+
+        alert("تم إرسال تذكرتك بنجاح، وسيتم الرد والمتابعة معك من إدارة الأكاديمية.");
+        if (subEl) subEl.value = '';
+        if (msgEl) msgEl.value = '';
         
         switchSupportTab('list');
     } catch (err) {
         console.error("Error submitting ticket:", err);
-        btn.disabled = false;
-        btn.innerText = 'إرسال التذكرة الآن';
+        alert("حدث خطأ أثناء إرسال التذكرة، يرجى المحاولة مرة أخرى.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = oldText;
+        }
     }
 }
 
 async function loadSupportTickets() {
     try {
-        const res = await fetch('/api/student/' + currentStudentId + '/support/tickets');
-        const tickets = await res.json();
-        
-        document.getElementById('ticketCountBadge').innerText = tickets.length;
+        const storageKey = 'monir_support_tickets_' + currentStudentId;
+        let localTickets = [];
+        try {
+            localTickets = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch(e) { localTickets = []; }
+
+        let remoteTickets = [];
+        try {
+            const res = await fetch('/api/student/' + currentStudentId + '/support/tickets');
+            if (res.ok) {
+                remoteTickets = await res.json();
+            }
+        } catch(e) {}
+
+        if ((!remoteTickets || remoteTickets.length === 0) && window.MonirDB && window.MonirDB.isConfigured()) {
+            try {
+                const client = window.MonirDB.getClient();
+                const { data } = await client.from('support_tickets').select('*').eq('student_id', currentStudentId).order('created_at', { ascending: false });
+                if (data) remoteTickets = data;
+            } catch(e) {}
+        }
+
+        // Merge local and remote
+        const combined = [...localTickets];
+        (remoteTickets || []).forEach(rt => {
+            if (!combined.some(ct => String(ct.id) === String(rt.id) || (ct.subject === rt.subject && ct.created_at === rt.created_at))) {
+                combined.push(rt);
+            }
+        });
+
+        // Sort newest first
+        combined.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+        const badge = document.getElementById('ticketCountBadge');
+        if (badge) badge.innerText = combined.length;
+
         const list = document.getElementById('supportListTab');
+        if (!list) return;
         list.innerHTML = '';
         
-        if (tickets.length === 0) {
-            list.innerHTML = '<p class="text-center py-6 text-slate-400">لم تقم بإرسال أي تذاكر دعم سابقة.</p>';
+        if (combined.length === 0) {
+            list.innerHTML = '<p class="text-center py-6 text-slate-400 font-medium">لم تقم بإرسال أي تذاكر دعم سابقة.</p>';
             return;
         }
         
-        tickets.forEach(t => {
+        combined.forEach(t => {
             const div = document.createElement('div');
-            const isReplied = (t.status === 'replied');
+            const isReplied = (t.status === 'replied' || t.status === 'closed' || Boolean(t.admin_reply));
             div.className = 'bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2';
             
             let replyBlock = '';
@@ -3096,22 +3137,23 @@ async function loadSupportTickets() {
                 replyBlock = `
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-[11px] text-blue-950 mt-2">
                         <strong class="block text-blue-900 font-bold mb-0.5">رد إدارة الأكاديمية:</strong>
-                        <p>${t.admin_reply}</p>
+                        <p>${t.admin_reply || 'تمت متابعة طلبك من فريق الإشراف.'}</p>
                     </div>
                 `;
             } else {
-                replyBlock = `<span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">قيد المراجعة والرد</span>`;
+                replyBlock = `<span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-bold">قيد المراجعة والرد</span>`;
             }
             
+            const dateStr = (t.created_at || '').substring(0, 10) || 'اليوم';
             div.innerHTML = `
-                <div class="flex justify-between items-start">
+                <div class="flex justify-between items-start gap-2">
                     <div>
-                        <span class="bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px]">${t.category}</span>
+                        <span class="bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px]">${t.category || 'عام'}</span>
                         <h5 class="font-extrabold text-xs text-slate-900 mt-1">${t.subject}</h5>
                     </div>
-                    <span class="text-[10px] text-slate-400 font-mono">${t.created_at.slice(0, 10)}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
                 </div>
-                <p class="text-slate-600 text-[11px]">${t.message}</p>
+                <p class="text-slate-600 text-[11px] leading-relaxed">${t.message}</p>
                 ${replyBlock}
             `;
             list.appendChild(div);
@@ -3706,16 +3748,36 @@ async function loadGeneralLectures() {
 
         // Load student submissions
         let subs = [];
+        // 1. Load from localStorage first
+        const storageKey = 'monir_student_quiz_submissions_' + currentStudentId;
+        try {
+            subs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch(e) { subs = []; }
+
+        // 2. Merge with Supabase
         if (window.MonirDB && window.MonirDB.isConfigured()) {
             try {
                 const subRes = await window.MonirDB.getStudentQuizSubmissions(currentStudentId);
-                if (subRes.data) subs = subRes.data;
+                if (subRes && subRes.data && subRes.data.length > 0) {
+                    subRes.data.forEach(r => {
+                        if (!subs.some(s => s.quiz_id === r.quiz_id)) subs.push(r);
+                    });
+                }
             } catch(e) {}
         }
+
+        // 3. Merge with API Mock
         if (!subs || subs.length === 0) {
             try {
                 const subRes = await fetch('/api/student/' + currentStudentId + '/quizzes');
-                if (subRes.ok) subs = await subRes.json();
+                if (subRes.ok) {
+                    const apiSubs = await subRes.json();
+                    if (Array.isArray(apiSubs)) {
+                        apiSubs.forEach(r => {
+                            if (!subs.some(s => s.quiz_id === r.quiz_id)) subs.push(r);
+                        });
+                    }
+                }
             } catch(e) {}
         }
         cachedStudentSubmissions = subs || [];
@@ -7612,7 +7674,7 @@ async function submitActiveQuiz() {
         let stCode = String(currentStudentId);
         const u = activeUser;
         if (u) {
-            stName = u.full_name || u.username || stName;
+            stName = u.full_name || u.name || u.username || stName;
             stCode = u.student_code || u.username || stCode;
         }
 
@@ -7630,21 +7692,35 @@ async function submitActiveQuiz() {
             submitted_at: new Date().toISOString()
         };
 
-        // 1. Submit to Supabase Cloud
-        if (window.MonirDB && window.MonirDB.isConfigured()) {
-            await window.MonirDB.submitQuizResult(submissionData);
+        // 1. Immediately save to localStorage (guaranteed persistence even offline)
+        const storageKey = 'monir_student_quiz_submissions_' + currentStudentId;
+        try {
+            let localList = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const idx = localList.findIndex(s => s.quiz_id === activeQuizId);
+            if (idx !== -1) localList[idx] = submissionData;
+            else localList.unshift(submissionData);
+            localStorage.setItem(storageKey, JSON.stringify(localList));
+        } catch(e) {}
+
+        // 2. Submit to Supabase Cloud safely
+        try {
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                await window.MonirDB.submitQuizResult(submissionData);
+            }
+        } catch(supaErr) {
+            console.warn('[Quiz Supabase Submit Notice]:', supaErr);
         }
 
-        // 2. Submit to Mock/API fallback
+        // 3. Submit to Mock/API fallback safely
         try {
             await fetch('/api/quizzes/' + activeQuizId + '/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(submissionData)
             });
-        } catch(e) {}
+        } catch(apiErr) {}
 
-        // 3. Update local state
+        // 4. Update in-memory state
         const existingIdx = cachedStudentSubmissions.findIndex(s => s.quiz_id === activeQuizId);
         if (existingIdx !== -1) {
             cachedStudentSubmissions[existingIdx] = submissionData;
@@ -7652,7 +7728,7 @@ async function submitActiveQuiz() {
             cachedStudentSubmissions.unshift(submissionData);
         }
 
-        // 4. Render Results View with detailed review
+        // 5. Render Results View with detailed review
         renderQuizResultReview(submissionData, activeQuizQuestions);
 
         // Refresh views
