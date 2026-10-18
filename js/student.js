@@ -7399,12 +7399,6 @@ function loadQuizzesList() {
                 </div>
 
                 <div class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    ${(() => {
-                        const videoBtnFn = q.track === 'tafsir' ? 'openTafsirVideoModal()' : (q.track === 'hadith' ? 'openHadithVideoModal()' : 'openTajweedVideoModal()');
-                        return `<button type="button" onclick="${videoBtnFn}" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold px-3.5 py-3 rounded-xl sm:rounded-2xl border border-slate-300 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                            <span>فيديو ملخص الشهر</span>
-                        </button>`;
-                    })()}
                     ${sub ? `
                         <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
                             مراجعة الإجابات والنتيجة
