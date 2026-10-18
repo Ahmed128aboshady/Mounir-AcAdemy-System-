@@ -438,6 +438,10 @@
     </div>
 
     <script>
+        function getMonirLocalDateStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
         let currentTeacherId = 1;
         let currentTeacherName = '';
         let teacherSupportTickets = [];
@@ -634,7 +638,8 @@
                         // Preload latest attendance records and today's attendance for all students of this teacher
                         const latestAttendanceMap = {};
                         window.todaySupabaseAttMap = window.todaySupabaseAttMap || {};
-                        const todayDateStr = new Date().toISOString().split('T')[0];
+                        const todayDateStr = getMonirLocalDateStr();
+                        const todayUtcStr = new Date().toISOString().split('T')[0];
                         try {
                             const sids = enrData ? enrData.map(e => e.student_id).filter(Boolean) : [];
                             if (sids.length > 0) {
@@ -651,8 +656,8 @@
                                                 joined_at: a.joined_at
                                             };
                                         }
-                                        // Real-time Cloud Detection for Today's Attendance
-                                        if (a.joined_at && a.joined_at.startsWith(todayDateStr)) {
+                                        // Real-time Cloud Detection for Today's Attendance (checks local & UTC date)
+                                        if (a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr))) {
                                             window.todaySupabaseAttMap[a.student_id] = {
                                                 id: a.id,
                                                 status: a.status,
@@ -660,6 +665,7 @@
                                             };
                                             try {
                                                 localStorage.setItem('monir_att_' + a.student_id + '_' + todayDateStr, a.status);
+                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayUtcStr, a.status);
                                             } catch(e) {}
                                         }
                                     });
@@ -1507,10 +1513,11 @@
 
             const lastAttInfo = formatLastAttendanceInfo(s.last_attendance, s.id);
 
-            const todayDateStr = new Date().toISOString().split('T')[0];
+            const todayDateStr = getMonirLocalDateStr();
+            const todayUtcStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + s.id + '_' + todayDateStr;
             const supaToday = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[s.id]);
-            const todayRecordedStatus = supaToday ? supaToday.status : localStorage.getItem(todayKey);
+            const todayRecordedStatus = supaToday ? supaToday.status : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + s.id + '_' + todayUtcStr));
 
             let actionsHtml = '';
             if (isInactive) {
@@ -1920,6 +1927,7 @@
                             } catch(pErr) {}
 
                             localStorage.setItem(todayKey, sessionStatus);
+                            localStorage.setItem('monir_att_' + studentId + '_' + todayUtcStr, sessionStatus);
                             if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
                             window.todaySupabaseAttMap[studentId] = { status: sessionStatus, joined_at: new Date().toISOString() };
                             try {
@@ -1971,7 +1979,8 @@
         }
 
         async function undoTodayAttendance(studentId, enrollmentId, status) {
-            const todayDateStr = new Date().toISOString().split('T')[0];
+            const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
+            const todayUtcStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
             let confirmed = false;
             const confirmMsg = 'هل تود بالتأكيد التراجع عن تسجيل الحصة لهذا اليوم؟\nسيتم إعادة الحصة تلقائياً لرصيد الطالب وإلغاء تسجيل اليوم.';
@@ -2028,6 +2037,7 @@
                     }
                 }
                 localStorage.removeItem(todayKey);
+                localStorage.removeItem('monir_att_' + studentId + '_' + todayUtcStr);
                 if (window.todaySupabaseAttMap) {
                     delete window.todaySupabaseAttMap[studentId];
                 }
