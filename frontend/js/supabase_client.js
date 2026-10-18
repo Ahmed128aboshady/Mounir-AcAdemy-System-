@@ -603,25 +603,48 @@
             }
         },
 
-        submitQuizResult: async function(submission) {
+                submitQuizResult: async function(submission) {
             const client = this.getClient();
             if (!client) return { data: null, error: 'Supabase client not initialized' };
             try {
-                // Ensure id if needed
+                const sId = Number(submission.student_id);
+                const validStudentId = (!isNaN(sId) && sId > 0) ? sId : 1;
+                const qId = Number(submission.quiz_id) || 1001;
+
+                // 1. Primary insert attempt with all rich fields
                 const record = {
-                    quiz_id: submission.quiz_id,
-                    student_id: submission.student_id,
-                    student_code: submission.student_code || '',
-                    student_name: submission.student_name || '',
-                    track_name: submission.track_name || '',
-                    quiz_title: submission.quiz_title || '',
-                    score: submission.score,
-                    total_points: submission.total_points || 15,
-                    percentage: submission.percentage,
+                    quiz_id: qId,
+                    student_id: validStudentId,
+                    student_code: String(submission.student_code || ''),
+                    student_name: String(submission.student_name || 'طالب الأكاديمية'),
+                    track_name: String(submission.track_name || ''),
+                    quiz_title: String(submission.quiz_title || 'الامتحان الشهري'),
+                    score: Number(submission.score) || 0,
+                    total_points: Number(submission.total_points) || 40,
+                    percentage: Number(submission.percentage) || 0,
                     answers: submission.answers || {},
-                    submitted_at: new Date().toISOString()
+                    submitted_at: submission.submitted_at || new Date().toISOString()
                 };
-                const { data, error } = await client.from('quiz_submissions').insert([record]).select().single();
+
+                let { data, error } = await client.from('quiz_submissions').insert([record]).select().single();
+                
+                // 2. If table uses the base schema (max_score, answers_json), fallback safely
+                if (error) {
+                    const fallbackRecord = {
+                        quiz_id: qId,
+                        student_id: validStudentId,
+                        score: Number(submission.score) || 0,
+                        max_score: Number(submission.total_points) || 40,
+                        percentage: Number(submission.percentage) || 0,
+                        status: (submission.percentage >= 70) ? 'passed' : 'failed',
+                        answers_json: submission.answers || {},
+                        submitted_at: submission.submitted_at || new Date().toISOString()
+                    };
+                    const fallbackRes = await client.from('quiz_submissions').insert([fallbackRecord]).select().single();
+                    if (!fallbackRes.error) {
+                        return fallbackRes;
+                    }
+                }
                 return { data, error };
             } catch(e) {
                 return { data: null, error: e.message };
@@ -633,10 +656,11 @@
             if (!client) return { data: [], error: 'Supabase client not initialized' };
             try {
                 let query = client.from('quiz_submissions').select('*');
-                if (typeof studentIdentifier === 'number') {
-                    query = query.or(`student_id.eq.${studentIdentifier},student_code.eq.${studentIdentifier}`);
+                const num = Number(studentIdentifier);
+                if (!isNaN(num) && num > 0) {
+                    query = query.or(`student_id.eq.${num},student_code.eq.${studentIdentifier}`);
                 } else {
-                    query = query.or(`student_code.eq.${studentIdentifier},student_id.eq.${studentIdentifier}`);
+                    query = query.eq('student_code', String(studentIdentifier));
                 }
                 const { data, error } = await query.order('submitted_at', { ascending: false });
                 return { data: data || [], error };

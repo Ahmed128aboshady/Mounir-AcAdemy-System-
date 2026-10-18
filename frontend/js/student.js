@@ -2871,95 +2871,11 @@ function copyNextDueMeet() {
 }
 
 // ---------------- Quizzes System ----------------
-async function openQuizzesModal() {
-    document.getElementById('quizzesModal').classList.remove('hidden');
-    document.getElementById('quizSelectionView').classList.remove('hidden');
-    document.getElementById('quizActiveView').classList.add('hidden');
-    document.getElementById('quizResultView').classList.add('hidden');
-    document.getElementById('quizModalTitle').innerText = 'الاختبارات والتقييمات: ' + selectedCourseName;
-
-    try {
-        const res = await fetch('/api/courses/' + encodeURIComponent(selectedCourseName) + '/quizzes');
-        const quizzes = await res.json();
-        
-        const container = document.getElementById('quizzesListContainer');
-        container.innerHTML = '';
-        
-        if (quizzes.length === 0) {
-            container.innerHTML = '<p class="text-center py-6 text-xs text-slate-400">لا توجد اختبارات معلنة لهذا المسار حالياً.</p>';
-            return;
-        }
-
-        quizzes.forEach(q => {
-            const div = document.createElement('div');
-            div.className = 'bg-slate-50 border border-slate-200 hover:border-blue-500 p-4 rounded-2xl flex justify-between items-center transition';
-            div.innerHTML = `
-                <div>
-                    <span class="bg-blue-100 text-blue-900 font-bold text-[10px] px-2 py-0.5 rounded">بلوك رقم #${q.block_number}</span>
-                    <h4 class="font-extrabold text-sm text-slate-900 mt-1">${q.title}</h4>
-                    <p class="text-[11px] text-slate-500">${q.description || ''}</p>
-                </div>
-                <button onclick="startQuiz(${q.id})" class="bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-xs px-4 py-2 rounded-xl transition">
-                    بدء الاختبار
-                </button>
-            `;
-            container.appendChild(div);
-        });
-    } catch (err) {
-        console.error("Error loading quizzes:", err);
-    }
-}
-
 function closeQuizzesModal() {
     document.getElementById('quizzesModal').classList.add('hidden');
 }
 
-async function startQuiz(quizId) {
-    try {
-        const res = await fetch('/api/quizzes/' + quizId);
-        const data = await res.json();
-        
-        activeQuizId = data.id;
-        activeQuizQuestions = data.questions;
-        
-        document.getElementById('quizSelectionView').classList.add('hidden');
-        document.getElementById('quizActiveView').classList.remove('hidden');
-        document.getElementById('quizResultView').classList.add('hidden');
-        
-        document.getElementById('activeQuizTitle').innerText = data.title;
-        document.getElementById('activeQuizMeta').innerText = 'عدد الأسئلة: ' + data.questions.length + ' • درجة النجاح: ' + data.passing_score + '%';
-        
-        const container = document.getElementById('quizQuestionsContainer');
-        container.innerHTML = '';
-        
-        data.questions.forEach((q, idx) => {
-            const qDiv = document.createElement('div');
-            qDiv.className = 'bg-white p-4 rounded-xl border border-slate-200 space-y-2';
-            
-            let optionsHtml = '';
-            q.options.forEach((opt, optIdx) => {
-                optionsHtml += `
-                    <label class="flex items-center gap-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
-                        <input type="radio" name="q_${q.id}" value="${optIdx}" class="text-blue-900 focus:ring-blue-900">
-                        <span class="text-xs text-slate-800 font-medium">${opt}</span>
-                    </label>
-                `;
-            });
-            
-            qDiv.innerHTML = `
-                <div class="font-bold text-xs text-slate-900">
-                    <span class="text-blue-900">سؤال ${idx + 1}:</span> ${q.question_text}
-                </div>
-                <div class="space-y-1.5 pt-1">
-                    ${optionsHtml}
-                </div>
-            `;
-            container.appendChild(qDiv);
-        });
-    } catch (err) {
-        console.error("Error starting quiz:", err);
-    }
-}
+// Note: startQuiz and openQuizzesModal are unified below for monthly & track exams
 
 // Note: submitActiveQuiz is unified below for all quizzes
 function backToQuizList() {
@@ -3760,7 +3676,7 @@ async function loadGeneralLectures() {
                 const subRes = await window.MonirDB.getStudentQuizSubmissions(currentStudentId);
                 if (subRes && subRes.data && subRes.data.length > 0) {
                     subRes.data.forEach(r => {
-                        if (!subs.some(s => s.quiz_id === r.quiz_id)) subs.push(r);
+                        if (!subs.some(s => Number(s.quiz_id) === Number(r.quiz_id))) subs.push(r);
                     });
                 }
             } catch(e) {}
@@ -3774,7 +3690,7 @@ async function loadGeneralLectures() {
                     const apiSubs = await subRes.json();
                     if (Array.isArray(apiSubs)) {
                         apiSubs.forEach(r => {
-                            if (!subs.some(s => s.quiz_id === r.quiz_id)) subs.push(r);
+                            if (!subs.some(s => Number(s.quiz_id) === Number(r.quiz_id))) subs.push(r);
                         });
                     }
                 }
@@ -7528,7 +7444,7 @@ async function startQuiz(quizId) {
             return;
         }
         if (now > endWindow) {
-            const existingSub = (cachedStudentSubmissions || []).find(s => s.quiz_id === quizId);
+            const existingSub = (cachedStudentSubmissions || []).find(s => Number(s.quiz_id) === Number(quizId));
             if (existingSub) {
                 viewQuizReview(quizId);
                 return;
@@ -7696,7 +7612,7 @@ async function submitActiveQuiz() {
         const storageKey = 'monir_student_quiz_submissions_' + currentStudentId;
         try {
             let localList = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            const idx = localList.findIndex(s => s.quiz_id === activeQuizId);
+            const idx = localList.findIndex(s => Number(s.quiz_id) === Number(activeQuizId));
             if (idx !== -1) localList[idx] = submissionData;
             else localList.unshift(submissionData);
             localStorage.setItem(storageKey, JSON.stringify(localList));
@@ -7721,7 +7637,7 @@ async function submitActiveQuiz() {
         } catch(apiErr) {}
 
         // 4. Update in-memory state
-        const existingIdx = cachedStudentSubmissions.findIndex(s => s.quiz_id === activeQuizId);
+        const existingIdx = cachedStudentSubmissions.findIndex(s => Number(s.quiz_id) === Number(activeQuizId));
         if (existingIdx !== -1) {
             cachedStudentSubmissions[existingIdx] = submissionData;
         } else {
@@ -7848,7 +7764,7 @@ function renderQuizResultReview(sub, questions) {
 
 async function viewQuizReview(quizId) {
     activeQuizId = quizId;
-    const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === quizId);
+    const sub = (cachedStudentSubmissions || []).find(s => Number(s.quiz_id) === Number(quizId));
     if (!sub) {
         startQuiz(quizId);
         return;
