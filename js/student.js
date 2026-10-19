@@ -7372,28 +7372,61 @@ function loadQuizzesList() {
         { id: 1003, title: 'امتحان مسار أحكام التجويد ومخارج الحروف — ملخص الشهر الأول', track: 'tajweed', total_questions: 20, total_points: 40 }
     ];
 
+    const now = new Date();
+    const isExpired = now > new Date('2026-10-19T23:59:59');
+
     container.innerHTML = monthlyQuizzes.map(q => {
         const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === q.id || (s.quiz_title || '').includes(q.title));
 
+        let statusBadge = '';
+        let actionBtn = '';
+
+        if (sub) {
+            statusBadge = `
+                <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
+                    تم الحل بنجاح (${sub.score} / ${sub.total_points || 40})
+                </span>
+            `;
+            actionBtn = `
+                <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
+                    مراجعة الإجابات والنتيجة
+                </button>
+            `;
+        } else if (isExpired) {
+            statusBadge = `
+                <span class="text-[10px] sm:text-[11px] font-black text-red-800 bg-red-100 border border-red-200 px-2.5 py-0.5 rounded-full">
+                    انتهت فترة الامتحان (مغلق)
+                </span>
+            `;
+            actionBtn = `
+                <button type="button" disabled class="w-full sm:w-auto bg-slate-200 text-slate-500 text-xs sm:text-sm font-bold px-6 py-3 rounded-xl sm:rounded-2xl cursor-not-allowed block text-center">
+                    انتهت فترة الامتحان
+                </button>
+            `;
+        } else {
+            statusBadge = `
+                <span class="text-[10px] sm:text-[11px] font-black text-blue-800 bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-full animate-pulse">
+                    متاح للحل الآن • يغلق 12:00 منتصف الليل
+                </span>
+            `;
+            actionBtn = `
+                <button type="button" onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs sm:text-sm font-black px-7 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
+                    بدء الامتحان (20 سؤالاً)
+                </button>
+            `;
+        }
+
         return `
-            <div class="bg-white hover:bg-slate-50 border-2 ${sub ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200'} rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition shadow-2xs">
+            <div class="bg-white hover:bg-slate-50 border-2 ${sub ? 'border-emerald-300 bg-emerald-50/20' : (isExpired ? 'border-slate-200 bg-slate-50/50 opacity-90' : 'border-indigo-200 bg-indigo-50/10')} rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition shadow-2xs">
                 <div class="space-y-2 flex-1 w-full min-w-0">
                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         <span class="text-[10px] sm:text-[11px] font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
                             الامتحان الشهري الشامل
                         </span>
                         <span class="text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
-                            مفتوح 16 - 19 أكتوبر
+                            16 - 19 أكتوبر
                         </span>
-                        ${sub ? `
-                            <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
-                                تم الحل بنجاح (${sub.score} / ${sub.total_points || 40})
-                            </span>
-                        ` : `
-                            <span class="text-[10px] sm:text-[11px] font-black text-blue-800 bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                                متاح للحل الآن
-                            </span>
-                        `}
+                        ${statusBadge}
                     </div>
                     <strong class="text-sm sm:text-base font-black text-slate-900 block leading-snug">
                         ${q.title}
@@ -7404,15 +7437,7 @@ function loadQuizzesList() {
                 </div>
 
                 <div class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    ${sub ? `
-                        <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
-                            مراجعة الإجابات والنتيجة
-                        </button>
-                    ` : `
-                        <button type="button" onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs sm:text-sm font-black px-7 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
-                            بدء الامتحان (20 سؤالاً)
-                        </button>
-                    `}
+                    ${actionBtn}
                 </div>
             </div>
         `;
