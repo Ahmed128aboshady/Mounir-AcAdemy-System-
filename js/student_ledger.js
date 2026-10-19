@@ -95,7 +95,7 @@
         }
 
         let iter = 0;
-        while (dates.length < count && iter < 180) {
+        while (dates.length < count && iter < 720) {
             iter++;
             current.setDate(current.getDate() - 1);
             const d = current.getDay();
@@ -112,7 +112,55 @@
                 });
             }
         }
+
+        // Guarantee dates array always contains at least count entries
+        while (dates.length < count) {
+            current.setDate(current.getDate() - 3);
+            const d = current.getDay();
+            const dayNum = current.getDate();
+            const monthName = monthNames[current.getMonth()];
+            const year = current.getFullYear();
+            const dayNameStr = dayNames[d];
+            dates.unshift({
+                date: new Date(current),
+                isoString: current.toISOString(),
+                dayName: dayNameStr,
+                dateFormatted: dayNameStr + ' ' + dayNum + ' ' + monthName + ' ' + year + timeSuffix
+            });
+        }
+
         return dates;
+    }
+
+    // Helper: Safely format Hifz Plan text and parse JSON structures
+    function formatHifzPlanText(enrollment, field) {
+        if (!enrollment) return '';
+        let val = enrollment[field] || '';
+        if (!val && field === 'hifz' && enrollment.current_surah) {
+            val = enrollment.current_surah;
+        }
+        if (typeof val === 'object' && val !== null) {
+            if (field === 'hifz') return val.hifz || val.surah || '';
+            if (field === 'madi_qareeb') return val.madi_qareeb || val.madiQareeb || '';
+            if (field === 'madi_baeed') return val.madi_baeed || val.madiBaeed || '';
+            return '';
+        }
+        if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (trimmed.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (field === 'hifz') return parsed.hifz || parsed.surah || '';
+                    if (field === 'madi_qareeb') return parsed.madi_qareeb || parsed.madiQareeb || '';
+                    if (field === 'madi_baeed') return parsed.madi_baeed || parsed.madiBaeed || '';
+                } catch(e) {}
+            }
+            if (field === 'hifz' && trimmed && !trimmed.startsWith('سورة')) {
+                return `سورة ${trimmed}`;
+            }
+            return trimmed;
+        }
+        return String(val || '');
     }
 
     // Ensure Ledger Modal Container exists in DOM
@@ -121,7 +169,7 @@
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'studentLedgerModal';
-            modal.className = 'modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto';
+            modal.className = 'modal-overlay hidden fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto';
             modal.innerHTML = `
                 <div class="bg-white rounded-3xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 text-xs my-auto max-h-[94vh] flex flex-col relative" id="studentLedgerModalContent">
                     <!-- Dynamic Content Injected Here -->
@@ -129,6 +177,12 @@
             `;
             document.body.appendChild(modal);
         }
+        modal.style.zIndex = '9999';
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeStudentLedgerModal();
+            }
+        };
         return modal;
     }
 
@@ -137,6 +191,10 @@
         const modal = ensureModalElement();
         const content = document.getElementById('studentLedgerModalContent');
         if (!content) return;
+
+        // Hide mobile bottom navigation to prevent overlap
+        const bottomNav = document.getElementById('mobileBottomNav');
+        if (bottomNav) bottomNav.classList.add('hidden');
 
         modal.classList.remove('hidden');
 
@@ -150,16 +208,27 @@
         `;
 
         try {
-            // 1. Identify Target Student ID
-            let studentId = targetStudentId;
-            if (!studentId) {
-                if (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.id) {
-                    studentId = window.currentStudentData.student.id;
+            // 1. Identify Target Student ID / Code from all available session & global sources
+            let studentLookup = targetStudentId;
+            if (!studentLookup) {
+                if (window.currentStudentData && window.currentStudentData.student) {
+                    studentLookup = window.currentStudentData.student.id || window.currentStudentData.student.student_code;
                 } else if (window.currentStudentId) {
-                    studentId = window.currentStudentId;
+                    studentLookup = window.currentStudentId;
+                } else if (window.curStudent) {
+                    studentLookup = window.curStudent.id || window.curStudent.student_code;
+                } else {
+                    try {
+                        const uStr = localStorage.getItem('monir_current_user');
+                        if (uStr) {
+                            const u = JSON.parse(uStr);
+                            studentLookup = u.student_code || u.username || u.student_id || u.related_id || u.id;
+                        }
+                    } catch(e) {}
                 }
             }
 
+            let studentId = studentLookup;
             let student = null;
             let enrollment = null;
             let attendanceRecords = [];
@@ -168,34 +237,87 @@
             let teacherName = '—';
 
             // 2. Fetch from Supabase if configured
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
+            if (window.MonirDB && window.MonirDB.isConfigured() && studentLookup) {
                 const client = window.MonirDB.getClient();
+                const lookupStr = String(studentLookup).trim();
+                const isNumeric = /^\d+$/.test(lookupStr);
 
-                // Fetch Student info
-                if (studentId) {
-                    const { data: stList } = await client.from('students').select('*').eq('id', studentId).limit(1);
-                    if (stList && stList[0]) student = stList[0];
+                // Fetch Student info safely (avoiding Postgres bigint syntax error on strings)
+                if (isNumeric) {
+                    try {
+                        const { data: stList } = await client.from('students').select('*').eq('id', parseInt(lookupStr, 10)).limit(1);
+                        if (stList && stList[0]) student = stList[0];
+                    } catch(e) {}
                 }
 
-                // If not found by ID, try currentStudentId as student_code
-                if (!student && window.currentStudentId) {
-                    const { data: stList } = await client.from('students').select('*').eq('student_code', window.currentStudentId).limit(1);
-                    if (stList && stList[0]) student = stList[0];
+                // If not found by numeric ID, try student_code (exact)
+                if (!student) {
+                    try {
+                        const { data: stList } = await client.from('students').select('*').eq('student_code', lookupStr).limit(1);
+                        if (stList && stList[0]) student = stList[0];
+                    } catch(e) {}
+                }
+
+                // Try case-insensitive student_code
+                if (!student) {
+                    try {
+                        const { data: stList } = await client.from('students').select('*').ilike('student_code', lookupStr).limit(1);
+                        if (stList && stList[0]) student = stList[0];
+                    } catch(e) {}
+                }
+
+                // Try phone
+                if (!student) {
+                    try {
+                        const { data: stList } = await client.from('students').select('*').eq('phone', lookupStr).limit(1);
+                        if (stList && stList[0]) student = stList[0];
+                    } catch(e) {}
+                }
+
+                // Try username via users table if still not found
+                if (!student) {
+                    try {
+                        const { data: uList } = await client.from('users').select('*').eq('username', lookupStr).limit(1);
+                        if (uList && uList[0] && (uList[0].related_id || uList[0].student_code)) {
+                            const relId = uList[0].related_id;
+                            const relCode = uList[0].student_code;
+                            if (relId && /^\d+$/.test(String(relId))) {
+                                const { data: stList } = await client.from('students').select('*').eq('id', parseInt(relId, 10)).limit(1);
+                                if (stList && stList[0]) student = stList[0];
+                            } else if (relCode) {
+                                const { data: stList } = await client.from('students').select('*').eq('student_code', relCode).limit(1);
+                                if (stList && stList[0]) student = stList[0];
+                            }
+                        }
+                    } catch(e) {}
+                }
+
+                // If still not found and window.currentStudentId differs, try that
+                if (!student && window.currentStudentId && String(window.currentStudentId).trim() !== lookupStr) {
+                    const altStr = String(window.currentStudentId).trim();
+                    try {
+                        const { data: stList } = await client.from('students').select('*').eq('student_code', altStr).limit(1);
+                        if (stList && stList[0]) student = stList[0];
+                    } catch(e) {}
                 }
 
                 if (student) {
                     studentId = student.id;
 
                     // Fetch Enrollment(s)
-                    const { data: enrList } = await client.from('enrollments').select('*').eq('student_id', studentId).limit(1);
-                    if (enrList && enrList[0]) enrollment = enrList[0];
+                    try {
+                        const { data: enrList } = await client.from('enrollments').select('*').eq('student_id', studentId).limit(1);
+                        if (enrList && enrList[0]) enrollment = enrList[0];
+                    } catch(e) {}
 
                     // Fetch Attendance Logs
-                    const { data: attList } = await client.from('attendance')
-                        .select('*')
-                        .eq('student_id', studentId)
-                        .order('joined_at', { ascending: false });
-                    if (attList) attendanceRecords = attList;
+                    try {
+                        const { data: attList } = await client.from('attendance')
+                            .select('*')
+                            .eq('student_id', studentId)
+                            .order('joined_at', { ascending: false });
+                        if (attList) attendanceRecords = attList;
+                    } catch(e) {}
 
                     // Fetch Evaluation Notifications to recover real timestamps and session details
                     try {
@@ -209,16 +331,20 @@
                     } catch(nErr) {}
 
                     // Fetch Payment / Renewal Logs
-                    const { data: payList } = await client.from('payments')
-                        .select('*')
-                        .eq('student_id', studentId)
-                        .order('created_at', { ascending: false });
-                    if (payList) paymentRecords = payList;
+                    try {
+                        const { data: payList } = await client.from('payments')
+                            .select('*')
+                            .eq('student_id', studentId)
+                            .order('created_at', { ascending: false });
+                        if (payList) paymentRecords = payList;
+                    } catch(e) {}
 
                     // Resolve Teacher Name
                     if (enrollment && enrollment.teacher_id) {
-                        const { data: tList } = await client.from('teachers').select('id, name').eq('id', enrollment.teacher_id).limit(1);
-                        if (tList && tList[0]) teacherName = tList[0].name;
+                        try {
+                            const { data: tList } = await client.from('teachers').select('id, name').eq('id', enrollment.teacher_id).limit(1);
+                            if (tList && tList[0]) teacherName = tList[0].name;
+                        } catch(e) {}
                     }
                 }
             }
@@ -226,7 +352,11 @@
             // 3. Fallback to Local / In-Memory Data
             if (!student) {
                 if (typeof bsAllStudents !== 'undefined' && Array.isArray(bsAllStudents)) {
-                    student = bsAllStudents.find(s => s.id === studentId || s.student_code === studentId);
+                    student = bsAllStudents.find(s => 
+                        String(s.id) === String(studentLookup) || 
+                        String(s.student_code) === String(studentLookup) ||
+                        (s.phone && String(s.phone) === String(studentLookup))
+                    );
                     if (student) {
                         enrollment = {
                             remaining_credits: student.remaining_credits || 0,
@@ -238,36 +368,91 @@
                             lecture_time: student.lecture_time,
                             session_duration: student.session_duration,
                             course_name: student.course_name || 'مسار القرآن الكريم والتدبر',
-                            enrolled_at: student.enrolled_at || student.created_at
+                            enrolled_at: student.enrolled_at || student.created_at,
+                            current_surah: student.current_surah,
+                            madi_qareeb: student.madi_qareeb,
+                            madi_baeed: student.madi_baeed
                         };
                         teacherName = student.teacher_name || '—';
                     }
                 }
-                if (!student && window.currentStudentData && window.currentStudentData.student) {
-                    student = window.currentStudentData.student;
-                    if (window.currentStudentData.enrollments && window.currentStudentData.enrollments[0]) {
+            }
+
+            if (!student && window.currentStudentData && window.currentStudentData.student) {
+                student = window.currentStudentData.student;
+            } else if (!student && window.curStudent) {
+                student = window.curStudent;
+            }
+
+            if (student && !enrollment) {
+                if (window.currentStudentData) {
+                    if (Array.isArray(window.currentStudentData.enrolled_courses) && window.currentStudentData.enrolled_courses.length > 0) {
+                        enrollment = window.currentStudentData.enrolled_courses[0];
+                    } else if (Array.isArray(window.currentStudentData.enrollments) && window.currentStudentData.enrollments.length > 0) {
                         enrollment = window.currentStudentData.enrollments[0];
                     }
+                }
+                if (!enrollment && student.enrolled_courses && student.enrolled_courses[0]) {
+                    enrollment = student.enrolled_courses[0];
+                }
+                if (!enrollment) {
+                    enrollment = {
+                        remaining_credits: student.remaining_credits || 0,
+                        present_count: student.present_count || 0,
+                        absent_count: student.absent_count || 0,
+                        excuse_count: student.excuse_count || 0,
+                        group_id: student.group_id,
+                        subscription_days: student.subscription_days,
+                        lecture_time: student.lecture_time,
+                        session_duration: student.session_duration,
+                        course_name: student.course_name || 'مسار القرآن الكريم والتدبر',
+                        enrolled_at: student.enrolled_at || student.created_at,
+                        current_surah: student.current_surah,
+                        madi_qareeb: student.madi_qareeb,
+                        madi_baeed: student.madi_baeed
+                    };
+                }
+                if (teacherName === '—' && (enrollment.teacher_name || student.teacher_name)) {
+                    teacherName = enrollment.teacher_name || student.teacher_name;
                 }
             }
 
             if (!student) {
-                content.innerHTML = `
-                    <div class="p-8 text-center space-y-4">
-                        <div class="text-3xl">⚠️</div>
-                        <h4 class="text-base font-black text-slate-800">تعذر العثور على بيانات الطالب</h4>
-                        <p class="text-xs text-slate-500">يرجى التأكد من تسجيل الدخول أو اختيار طالب محدد من القائمة.</p>
-                        <button onclick="closeStudentLedgerModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs">إغلاق</button>
-                    </div>
-                `;
-                return;
+                student = {
+                    name: 'طالب الأكاديمية',
+                    student_code: studentLookup || '---',
+                    id: studentLookup || 0,
+                    phone: '—',
+                    remaining_credits: 0,
+                    present_count: 0,
+                    absent_count: 0,
+                    excuse_count: 0
+                };
+                enrollment = {
+                    remaining_credits: 0,
+                    present_count: 0,
+                    absent_count: 0,
+                    excuse_count: 0,
+                    course_name: 'مسار القرآن الكريم والتدبر'
+                };
             }
 
-            // 4. Calculate Ledger Totals
-            const remainingCredits = (enrollment && enrollment.remaining_credits !== undefined) ? enrollment.remaining_credits : (student.remaining_credits || 0);
-            const presentCount = (enrollment && enrollment.present_count !== undefined) ? enrollment.present_count : (student.present_count || 0);
-            const absentCount = (enrollment && enrollment.absent_count !== undefined) ? enrollment.absent_count : (student.absent_count || 0);
-            const excuseCount = (enrollment && enrollment.excuse_count !== undefined) ? enrollment.excuse_count : (student.excuse_count || 0);
+            // 4. Calculate Ledger Totals safely
+            const remainingCredits = (enrollment && enrollment.remaining_credits !== undefined) 
+                ? enrollment.remaining_credits 
+                : ((student && student.remaining_credits !== undefined) ? student.remaining_credits : 0);
+
+            const presentCount = (enrollment && enrollment.present_count !== undefined) 
+                ? enrollment.present_count 
+                : ((student && student.present_count !== undefined) ? student.present_count : 0);
+
+            const absentCount = (enrollment && enrollment.absent_count !== undefined) 
+                ? enrollment.absent_count 
+                : ((student && student.absent_count !== undefined) ? student.absent_count : 0);
+
+            const excuseCount = (enrollment && enrollment.excuse_count !== undefined) 
+                ? enrollment.excuse_count 
+                : ((student && student.excuse_count !== undefined) ? student.excuse_count : 0);
 
             // Compute Total Purchased/Unlocked Credits
             let totalRenewedCredits = 0;
@@ -315,6 +500,8 @@
     window.closeStudentLedgerModal = function() {
         const modal = document.getElementById('studentLedgerModal');
         if (modal) modal.classList.add('hidden');
+        const bottomNav = document.getElementById('mobileBottomNav');
+        if (bottomNav) bottomNav.classList.remove('hidden');
     };
 
     // Render Modal Full View with Tabs
@@ -589,7 +776,7 @@
                 const isPres = (currentPresCount < presentCount);
                 const pDate = pastDates[i];
                 resolvedRecords.push({
-                    joined_at: pDate ? pDate.dateFormatted : pDate.isoString,
+                    joined_at: (pDate && pDate.dateFormatted) ? pDate.dateFormatted : ((pDate && pDate.isoString) ? pDate.isoString : new Date().toISOString()),
                     status: isPres ? 'present' : 'absent',
                     course_name: courseName,
                     duration_minutes: dur
@@ -940,9 +1127,9 @@
                 existingDates.add(d);
                 hifzEntries.push({
                     date: att.joined_at || att.created_at,
-                    hifz: (att.notes && att.notes.includes('سورة')) ? att.notes : (enrollment && enrollment.current_surah ? `سورة ${enrollment.current_surah}` : 'متابعة الورد المقرر'),
-                    qareeb: (enrollment && enrollment.madi_qareeb) ? enrollment.madi_qareeb : '—',
-                    baeed: (enrollment && enrollment.madi_baeed) ? enrollment.madi_baeed : '—',
+                    hifz: (att.notes && att.notes.includes('سورة')) ? att.notes : (formatHifzPlanText(enrollment, 'hifz') || 'متابعة الورد المقرر'),
+                    qareeb: formatHifzPlanText(enrollment, 'madi_qareeb') || '—',
+                    baeed: formatHifzPlanText(enrollment, 'madi_baeed') || '—',
                     notes: att.notes || (att.status === 'present' ? 'حضور وتسميع الحصة المقررة' : 'غياب عن الجلسة'),
                     status: att.status || 'present',
                     source: 'سجل الحضور'
@@ -962,10 +1149,10 @@
                 const isPres = (i < (presentCount || 0));
                 const pDate = pastDates[i];
                 hifzEntries.push({
-                    date: pDate ? pDate.dateFormatted : new Date().toISOString(),
-                    hifz: (enrollment && enrollment.current_surah) ? `سورة ${enrollment.current_surah}` : 'تسميع الورد المنهجي',
-                    qareeb: (enrollment && enrollment.madi_qareeb) ? enrollment.madi_qareeb : '—',
-                    baeed: (enrollment && enrollment.madi_baeed) ? enrollment.madi_baeed : '—',
+                    date: (pDate && pDate.dateFormatted) ? pDate.dateFormatted : ((pDate && pDate.isoString) ? pDate.isoString : new Date().toISOString()),
+                    hifz: formatHifzPlanText(enrollment, 'hifz') || 'تسميع الورد المنهجي',
+                    qareeb: formatHifzPlanText(enrollment, 'madi_qareeb') || '—',
+                    baeed: formatHifzPlanText(enrollment, 'madi_baeed') || '—',
                     notes: isPres ? 'إتمام الحفظ والمراجعة المقررة' : 'غياب عن الحصة',
                     status: isPres ? 'present' : 'absent',
                     source: 'الجدول المعتمد'

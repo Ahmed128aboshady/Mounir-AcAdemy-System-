@@ -36,6 +36,7 @@ if (activeUser && activeUser.role === 'student') {
         currentStudentId = String(pId).startsWith('ST') ? pId : (parseInt(pId) || currentStudentId);
     }
 }
+window.currentStudentId = currentStudentId;
 
 function initStudentPage() {
     const sel = document.getElementById('studentSelectDropdown');
@@ -260,6 +261,10 @@ async function loadStudentProfile() {
         
         const s = data.student || {};
         window.currentStudentData = data;
+        window.curStudent = s;
+        if (s.id || s.student_code) {
+            window.currentStudentId = s.id || s.student_code;
+        }
         let loadedAge = (s.age !== undefined && s.age !== null) ? parseInt(s.age) : 9;
         const pageParams = new URLSearchParams(window.location.search);
         if (pageParams.has('sim_age')) {
