@@ -176,6 +176,8 @@
                 </div>
             `;
             document.body.appendChild(modal);
+        } else {
+            modal.classList.add('fixed', 'inset-0', 'overflow-y-auto');
         }
         modal.style.zIndex = '9999';
         modal.onclick = function(e) {
@@ -197,6 +199,7 @@
         if (bottomNav) bottomNav.classList.add('hidden');
 
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
 
         // Initial Loading State
         content.innerHTML = `
@@ -481,7 +484,8 @@
                 excuseCount,
                 totalChargedCredits,
                 totalRenewedCredits,
-                initialEstimatedCredits: Math.max(0, initialEstimatedCredits)
+                initialEstimatedCredits: Math.max(0, initialEstimatedCredits),
+                initialTab: initialTab || 'attendance'
             });
 
         } catch(err) {
@@ -499,7 +503,10 @@
 
     window.closeStudentLedgerModal = function() {
         const modal = document.getElementById('studentLedgerModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
         const bottomNav = document.getElementById('mobileBottomNav');
         if (bottomNav) bottomNav.classList.remove('hidden');
     };
@@ -519,7 +526,8 @@
             excuseCount,
             totalChargedCredits,
             totalRenewedCredits,
-            initialEstimatedCredits
+            initialEstimatedCredits,
+            initialTab = 'attendance'
         } = data;
 
         const stName = student.name || 'طالب الأكاديمية';
