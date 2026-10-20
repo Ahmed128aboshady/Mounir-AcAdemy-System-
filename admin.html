@@ -367,6 +367,10 @@
                             <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md" id="dailyMatchingDateBadge">
                                 اليوم: جاري التحميل...
                             </span>
+                            <span id="frequentAbsenceAlertBadge" onclick="switchDailyAttendanceTab('frequent'); event.stopPropagation();" class="cursor-pointer bg-red-100 hover:bg-red-200 text-red-800 border border-red-300 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs inline-flex items-center gap-1 transition" title="انقر لعرض رادار الطلاب المتكرري الغياب (2+ غياب)">
+                                <span class="animate-pulse">🚨</span>
+                                <span id="frequentAbsenceCountLabel">الغيابات المتكررة: جاري التحميل...</span>
+                            </span>
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="dailyMatchingStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
                         </div>
                         <p class="text-[11px] sm:text-xs text-slate-500">
@@ -387,119 +391,274 @@
 
             <!-- Content Area -->
             <div id="dailyMatchingContent" class="space-y-4 pt-1">
-                <!-- Filters Toolbar -->
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
-                        <!-- Date Picker & 7-Day Quick Selector -->
-                        <div class="lg:col-span-2">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">اختر اليوم أو تاريخ الكشف:</label>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <input type="date" id="dailyMatchingDatePicker" onchange="loadDailyAttendanceMatchingData()" class="bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 w-36">
-                                <div class="flex items-center gap-1 flex-wrap" id="dailyMatchingDayPills">
-                                    <button type="button" onclick="setDailyMatchingDay('today')" data-day="today" class="day-pill bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">اليوم</button>
-                                    <button type="button" onclick="setDailyMatchingDay('yesterday')" data-day="yesterday" class="day-pill bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">أمس</button>
-                                    <button type="button" onclick="setDailyMatchingDay('sat')" data-day="sat" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">السبت</button>
-                                    <button type="button" onclick="setDailyMatchingDay('sun')" data-day="sun" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الأحد</button>
-                                    <button type="button" onclick="setDailyMatchingDay('mon')" data-day="mon" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الاثنين</button>
-                                    <button type="button" onclick="setDailyMatchingDay('tue')" data-day="tue" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الثلاثاء</button>
-                                    <button type="button" onclick="setDailyMatchingDay('wed')" data-day="wed" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الأربعاء</button>
-                                    <button type="button" onclick="setDailyMatchingDay('thu')" data-day="thu" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الخميس</button>
-                                    <button type="button" onclick="setDailyMatchingDay('fri')" data-day="fri" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الجمعة</button>
+                <!-- Sub-Tabs Switcher: Daily Attendance vs Frequent Absence Radar -->
+                <div class="flex items-center gap-2 border-b border-slate-200 pb-2 flex-wrap">
+                    <button type="button" id="tabBtnDailyMatching" onclick="switchDailyAttendanceTab('matching')" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-emerald-600 text-white shadow-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span>كشف الحضور اليومي والمطابقة</span>
+                    </button>
+                    <button type="button" id="tabBtnFrequentAbsence" onclick="switchDailyAttendanceTab('frequent')" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700">
+                        <span>🚨</span>
+                        <span>رادار الغيابات المتكررة (إنذار المتابعة)</span>
+                        <span id="tabFrequentAbsenceBadge" class="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Daily Matching View -->
+                <div id="dailyMatchingView" class="space-y-4">
+                    <!-- Filters Toolbar -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                            <!-- Date Picker & 7-Day Quick Selector -->
+                            <div class="lg:col-span-2">
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">اختر اليوم أو تاريخ الكشف:</label>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <input type="date" id="dailyMatchingDatePicker" onchange="loadDailyAttendanceMatchingData()" class="bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 w-36">
+                                    <div class="flex items-center gap-1 flex-wrap" id="dailyMatchingDayPills">
+                                        <button type="button" onclick="setDailyMatchingDay('today')" data-day="today" class="day-pill bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">اليوم</button>
+                                        <button type="button" onclick="setDailyMatchingDay('yesterday')" data-day="yesterday" class="day-pill bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">أمس</button>
+                                        <button type="button" onclick="setDailyMatchingDay('sat')" data-day="sat" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">السبت</button>
+                                        <button type="button" onclick="setDailyMatchingDay('sun')" data-day="sun" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الأحد</button>
+                                        <button type="button" onclick="setDailyMatchingDay('mon')" data-day="mon" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الاثنين</button>
+                                        <button type="button" onclick="setDailyMatchingDay('tue')" data-day="tue" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الثلاثاء</button>
+                                        <button type="button" onclick="setDailyMatchingDay('wed')" data-day="wed" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الأربعاء</button>
+                                        <button type="button" onclick="setDailyMatchingDay('thu')" data-day="thu" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الخميس</button>
+                                        <button type="button" onclick="setDailyMatchingDay('fri')" data-day="fri" class="day-pill bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">الجمعة</button>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <!-- Teacher Filter -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">تصفية بالمعلم:</label>
+                                <select id="dailyMatchingTeacherFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="">جميع المعلمين (الكل)</option>
+                                </select>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الحضور:</label>
+                                <select id="dailyMatchingStatusFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="">الكل (حاضر + غائب + بعذر + مؤجلة + لم يُرصد)</option>
+                                    <option value="present">حاضر فقط</option>
+                                    <option value="absent">غائب فقط</option>
+                                    <option value="excused">بعذر فقط</option>
+                                    <option value="postponed">مؤجلة فقط</option>
+                                    <option value="not_recorded">لم يُرصد بعد</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Teacher Filter -->
+                        <!-- Quick Search Row -->
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">تصفية بالمعلم:</label>
-                            <select id="dailyMatchingTeacherFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="">جميع المعلمين (الكل)</option>
-                            </select>
-                        </div>
-
-                        <!-- Status Filter -->
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الحضور:</label>
-                            <select id="dailyMatchingStatusFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="">الكل (حاضر + غائب + بعذر + لم يُرصد)</option>
-                                <option value="present">حاضر فقط</option>
-                                <option value="absent">غائب فقط</option>
-                                <option value="excused">بعذر فقط</option>
-                                <option value="not_recorded">لم يُرصد بعد</option>
-                            </select>
+                            <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder="🔍 بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                     </div>
 
-                    <!-- Quick Search Row -->
-                    <div>
-                        <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder="🔍 بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                    <!-- KPI Summary Chips -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
+                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-emerald-900" id="dailyMatchingStatPresent">0</div>
+                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الحاضرون على المنصة</div>
+                        </div>
+                        <div class="bg-red-50/70 border border-red-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-red-900" id="dailyMatchingStatAbsent">0</div>
+                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الغائبون (بدون عذر)</div>
+                        </div>
+                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-amber-900" id="dailyMatchingStatExcused">0</div>
+                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الأعذار المقبولة</div>
+                        </div>
+                        <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-blue-900" id="dailyMatchingStatTotal">0</div>
+                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">إجمالي سجلات اليوم</div>
+                        </div>
+                    </div>
+
+                    <!-- Matching Table Area -->
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
+                                <tr>
+                                    <th class="p-2.5 text-center">#</th>
+                                    <th class="p-2.5 whitespace-nowrap">كود الطالب</th>
+                                    <th class="p-2.5 whitespace-nowrap">اسم الطالب</th>
+                                    <th class="p-2.5 whitespace-nowrap">رقم ولي الأمر</th>
+                                    <th class="p-2.5 whitespace-nowrap">المعلم</th>
+                                    <th class="p-2.5 whitespace-nowrap">المجموعة والموعد</th>
+                                    <th class="p-2.5 whitespace-nowrap text-center">حالة المنصة</th>
+                                    <th class="p-2.5 whitespace-nowrap">وقت التسجيل</th>
+                                    <th class="p-2.5">الورد القرآني والتقييم</th>
+                                    <th class="p-2.5 whitespace-nowrap text-center">المطابقة الفعلية للإشراف</th>
+                                    <th class="p-2.5 text-center whitespace-nowrap">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailyMatchingTableBody" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="11" class="text-center py-8 text-slate-400 font-bold">
+                                        جاري تحميل بيانات المطابقة...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Action Footer -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 text-xs">
+                        <span class="text-[11px] text-slate-500">
+                            ملاحظة للإشراف: يمكنك الضغط على "تصدير Excel (.xls)" لتنزيل الملف مباشرة بتنسيق Microsoft Excel بالألوان والبيانات الكاملة، أو تصدير CSV.
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="printDailyAttendanceMatchingReport()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer">
+                                طباعة الكشف
+                            </button>
+                            <button type="button" onclick="exportDailyAttendanceMatchingExcel('xls')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span>تصدير Excel (.xls)</span>
+                            </button>
+                            <button type="button" onclick="exportDailyAttendanceMatchingExcel('csv')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer">
+                                تصدير CSV
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- KPI Summary Chips -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
-                    <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 sm:p-3">
-                        <div class="text-base sm:text-xl font-black text-emerald-900" id="dailyMatchingStatPresent">0</div>
-                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الحاضرون على المنصة</div>
+                <!-- Tab 2: Frequent Absence Radar View -->
+                <div id="frequentAbsenceView" class="hidden space-y-4">
+                    <!-- Top alert card -->
+                    <div class="bg-gradient-to-r from-red-50 via-amber-50/60 to-red-50 border border-red-200 rounded-2xl p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
+                                🚨
+                            </div>
+                            <div>
+                                <h3 class="font-black text-slate-900 text-sm">رادار متابعة الطلاب ذوي الغياب المتكرر (2+ غياب)</h3>
+                                <p class="text-[11px] text-slate-600 mt-0.5">
+                                    حصر الطلاب المتكرري الغياب للتدخل والتواصل الفوري مع أولياء الأمور عبر واتساب للحفاظ على التزامهم بالمنصة وعدم انقطاعهم.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                            <button type="button" onclick="exportFrequentAbsencesExcel('xls')" class="bg-red-600 hover:bg-red-700 text-white font-black text-xs px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span>تصدير الغيابات المتكررة (Excel)</span>
+                            </button>
+                            <button type="button" onclick="exportFrequentAbsencesExcel('csv')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs px-2.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                                <span>CSV</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="bg-red-50/70 border border-red-200 rounded-xl p-2.5 sm:p-3">
-                        <div class="text-base sm:text-xl font-black text-red-900" id="dailyMatchingStatAbsent">0</div>
-                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الغائبون (بدون عذر)</div>
-                    </div>
-                    <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5 sm:p-3">
-                        <div class="text-base sm:text-xl font-black text-amber-900" id="dailyMatchingStatExcused">0</div>
-                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الأعذار المقبولة</div>
-                    </div>
-                    <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-2.5 sm:p-3">
-                        <div class="text-base sm:text-xl font-black text-blue-900" id="dailyMatchingStatTotal">0</div>
-                        <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">إجمالي سجلات اليوم</div>
-                    </div>
-                </div>
 
-                <!-- Matching Table Area -->
-                <div class="overflow-x-auto rounded-2xl border border-slate-200">
-                    <table class="w-full text-right text-xs">
-                        <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
-                            <tr>
-                                <th class="p-2.5 text-center">#</th>
-                                <th class="p-2.5 whitespace-nowrap">كود الطالب</th>
-                                <th class="p-2.5 whitespace-nowrap">اسم الطالب</th>
-                                <th class="p-2.5 whitespace-nowrap">رقم ولي الأمر</th>
-                                <th class="p-2.5 whitespace-nowrap">المعلم</th>
-                                <th class="p-2.5 whitespace-nowrap">المجموعة والموعد</th>
-                                <th class="p-2.5 whitespace-nowrap text-center">حالة المنصة</th>
-                                <th class="p-2.5 whitespace-nowrap">وقت التسجيل</th>
-                                <th class="p-2.5">الورد القرآني والتقييم</th>
-                                <th class="p-2.5 whitespace-nowrap text-center">المطابقة الفعلية للإشراف</th>
-                                <th class="p-2.5 text-center whitespace-nowrap">إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dailyMatchingTableBody" class="divide-y divide-slate-100">
-                            <tr>
-                                <td colspan="11" class="text-center py-8 text-slate-400 font-bold">
-                                    جاري تحميل بيانات المطابقة...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                    <!-- Filters Toolbar for Frequent Absences -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                            <!-- Absence Threshold Filter -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">مستوى تكرار الغياب:</label>
+                                <select id="freqAbsenceThresholdFilter" onchange="renderFrequentAbsencesTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
+                                    <option value="2">الكل (مرتين غياب أو أكثر - 2+)</option>
+                                    <option value="3">3 مرات غياب أو أكثر (3+)</option>
+                                    <option value="4">4 مرات غياب أو أكثر (إنذار أحمر 🚨)</option>
+                                </select>
+                            </div>
 
-                <!-- Action Footer -->
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 text-xs">
-                    <span class="text-[11px] text-slate-500">
-                        ملاحظة للإشراف: يمكنك الضغط على "تصدير Excel (.xls)" لتنزيل الملف مباشرة بتنسيق Microsoft Excel بالألوان والبيانات الكاملة، أو تصدير CSV.
-                    </span>
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="printDailyAttendanceMatchingReport()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer">
-                            طباعة الكشف
-                        </button>
-                        <button type="button" onclick="exportDailyAttendanceMatchingExcel('xls')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            <span>تصدير Excel (.xls)</span>
-                        </button>
-                        <button type="button" onclick="exportDailyAttendanceMatchingExcel('csv')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer">
-                            تصدير CSV
-                        </button>
+                            <!-- Teacher Filter -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">تصفية بالمعلم:</label>
+                                <select id="freqAbsenceTeacherFilter" onchange="renderFrequentAbsencesTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
+                                    <option value="">جميع المعلمين (الكل)</option>
+                                </select>
+                            </div>
+
+                            <!-- Subscription Status Filter -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الاشتراك:</label>
+                                <select id="freqAbsenceStatusFilter" onchange="renderFrequentAbsencesTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
+                                    <option value="">الكل (نشط وموقوف)</option>
+                                    <option value="active" selected>الاشتراكات النشطة فقط</option>
+                                    <option value="inactive">الموقوفين فقط</option>
+                                </select>
+                            </div>
+
+                            <!-- Balance Filter -->
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 text-[11px]">رصيد الحصص المتبقي:</label>
+                                <select id="freqAbsenceBalanceFilter" onchange="renderFrequentAbsencesTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
+                                    <option value="">الكل</option>
+                                    <option value="has_balance">لديه رصيد (> 0)</option>
+                                    <option value="zero_balance">رصيد 0 حصص</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div>
+                            <input type="text" id="freqAbsenceSearchInput" oninput="renderFrequentAbsencesTable()" placeholder="🔍 بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، أو اسم المعلم..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-red-500">
+                        </div>
+                    </div>
+
+                    <!-- KPI Summary Chips -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
+                        <div class="bg-red-50/80 border border-red-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-red-900" id="freqStatTotal">0</div>
+                            <div class="text-slate-600 font-bold text-[10px] sm:text-[11px]">إجمالي الطلاب في الرادار</div>
+                        </div>
+                        <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-amber-900" id="freqStatTwo">0</div>
+                            <div class="text-slate-600 font-bold text-[10px] sm:text-[11px]">غياب مرتين (2)</div>
+                        </div>
+                        <div class="bg-orange-50/80 border border-orange-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-orange-900" id="freqStatThree">0</div>
+                            <div class="text-slate-600 font-bold text-[10px] sm:text-[11px]">غياب 3 مرات (3)</div>
+                        </div>
+                        <div class="bg-rose-50/80 border border-rose-200 rounded-xl p-2.5 sm:p-3">
+                            <div class="text-base sm:text-xl font-black text-rose-900" id="freqStatFourPlus">0</div>
+                            <div class="text-slate-600 font-bold text-[10px] sm:text-[11px]">إنذار أحمر (4+ غيابات)</div>
+                        </div>
+                    </div>
+
+                    <!-- Frequent Absence Table -->
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
+                                <tr>
+                                    <th class="p-2.5 text-center">#</th>
+                                    <th class="p-2.5 whitespace-nowrap">كود الطالب</th>
+                                    <th class="p-2.5 whitespace-nowrap">اسم الطالب</th>
+                                    <th class="p-2.5 whitespace-nowrap text-center">مرات الغياب</th>
+                                    <th class="p-2.5 whitespace-nowrap text-center">الرصيد المتبقي</th>
+                                    <th class="p-2.5 whitespace-nowrap">المعلم المسؤول</th>
+                                    <th class="p-2.5 whitespace-nowrap">المجموعة والمواعيد</th>
+                                    <th class="p-2.5 whitespace-nowrap">رقم ولي الأمر</th>
+                                    <th class="p-2.5 whitespace-nowrap text-center">تواصل واتساب فوري</th>
+                                    <th class="p-2.5 text-center whitespace-nowrap">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="frequentAbsenceTableBody" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="10" class="text-center py-8 text-slate-400 font-bold">
+                                        جاري جلب قائمة الطلاب المتكرري الغياب... ⏳
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Action Footer for Frequent Absences -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 text-xs">
+                        <span class="text-[11px] text-slate-500">
+                            💡 زر "رسالة واتساب" يفتح محادثة مباشرة مع ولي الأمر متضمنة رسالة متابعة مهنية جاهزة باسم الطالب وعدد مرات غيابه.
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="exportFrequentAbsencesExcel('xls')" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span>تصدير Excel (.xls)</span>
+                            </button>
+                            <button type="button" onclick="exportFrequentAbsencesExcel('csv')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer">
+                                تصدير CSV
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3143,6 +3302,9 @@
                             const rawStatus = String(s.status || s.account_status || enr.status || '').toLowerCase().trim();
                             const isInactive = ['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(rawStatus);
                             const remCredits = (enr.remaining_credits !== undefined) ? parseInt(enr.remaining_credits || 0, 10) : parseInt(s.remaining_credits || 0, 10);
+                            const absCount = parseInt(enr.absent_count !== undefined ? enr.absent_count : (s.absent_count || 0), 10);
+                            const presCount = parseInt(enr.present_count !== undefined ? enr.present_count : (s.present_count || 0), 10);
+                            const excCount = parseInt(enr.excuse_count !== undefined ? enr.excuse_count : (s.excuse_count || 0), 10);
                             return {
                                 id: s.id,
                                 name: s.name || '',
@@ -3157,7 +3319,10 @@
                                 current_surah: enr.current_surah || s.current_surah || '—',
                                 status: s.status,
                                 is_inactive: isInactive,
-                                remaining_credits: remCredits
+                                remaining_credits: remCredits,
+                                absent_count: absCount,
+                                present_count: presCount,
+                                excuse_count: excCount
                             };
                         });
                         window._monirDailyStudentsCache = studentsList;
@@ -3236,7 +3401,8 @@
                     let recordedRole = '';
 
                     if (supaRec) {
-                        status = supaRec.status || 'present';
+                        const isPostponed = !!(supaRec.course_name && supaRec.course_name.includes('[تأجيل'));
+                        status = isPostponed ? 'postponed' : (supaRec.status || 'present');
                         const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
                         recordedRole = isSup ? 'إشراف' : 'معلم';
                         if (supaRec.joined_at) {
@@ -3279,6 +3445,9 @@
                         status: status,
                         is_inactive: s.is_inactive || false,
                         remaining_credits: s.remaining_credits || 0,
+                        absent_count: s.absent_count || 0,
+                        present_count: s.present_count || 0,
+                        excuse_count: s.excuse_count || 0,
                         recorded_at: recordedAt,
                         recorded_role: recordedRole,
                         surah: s.current_surah || '—',
@@ -3295,7 +3464,9 @@
                     const s = studentsList.find(st => st.id === sid) || {};
                     let recordedAt = '—';
                     const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
+                    const isPostponed = !!(supaRec.course_name && supaRec.course_name.includes('[تأجيل'));
                     const extraRole = isSup ? 'إشراف' : 'معلم';
+                    const extraStatus = isPostponed ? 'postponed' : (supaRec.status || 'present');
                     if (supaRec.joined_at) {
                         try {
                             const dt = new Date(supaRec.joined_at);
@@ -3314,7 +3485,12 @@
                         group_id: s.group_id || '—',
                         subscription_days: s.subscription_days || 'حصة إضافية/تعويض',
                         lecture_time: s.lecture_time || '—',
-                        status: supaRec.status || 'present',
+                        status: extraStatus,
+                        is_inactive: s.is_inactive || false,
+                        remaining_credits: s.remaining_credits || 0,
+                        absent_count: s.absent_count || 0,
+                        present_count: s.present_count || 0,
+                        excuse_count: s.excuse_count || 0,
                         recorded_at: recordedAt,
                         recorded_role: extraRole,
                         surah: s.current_surah || '—',
@@ -3325,6 +3501,9 @@
             });
 
             dailyMatchingRawRecords = matchedRecords;
+
+            // Update Frequent Absences Badge and internal cache
+            updateFrequentAbsencesBadgeAndState(studentsList);
 
             const teacherSelect = document.getElementById('dailyMatchingTeacherFilter');
             if (teacherSelect) {
@@ -3407,7 +3586,7 @@
 
             tbody.innerHTML = dailyMatchingFilteredRecords.map((r, idx) => {
                 let statusBadge = '';
-                const isRecorded = (r.status === 'present' || r.status === 'absent' || r.status === 'excused');
+                const isRecorded = (r.status === 'present' || r.status === 'absent' || r.status === 'excused' || r.status === 'postponed');
 
                 const roleBadge = (r.recorded_role === 'إشراف')
                     ? '<span class="bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.2 rounded-md text-[9px] mr-1">إشراف</span>'
@@ -3419,6 +3598,8 @@
                     statusBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غائب</span> ${roleBadge}</span>`;
                 } else if (r.status === 'excused') {
                     statusBadge = `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span> ${roleBadge}</span>`;
+                } else if (r.status === 'postponed') {
+                    statusBadge = `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>⏱</span><span>مؤجلة</span> ${roleBadge}</span>`;
                 } else if (r.is_inactive || r.remaining_credits <= 0) {
                     statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
                 } else {
@@ -3447,7 +3628,12 @@
                     <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
                         <td class="p-2.5 text-center text-slate-400 font-bold font-mono text-[11px]">${idx + 1}</td>
                         <td class="p-2.5 font-mono font-bold text-slate-800 text-[11px]">${r.student_code}</td>
-                        <td class="p-2.5 font-bold text-slate-900">${r.name}</td>
+                        <td class="p-2.5 font-bold text-slate-900">
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <span>${r.name}</span>
+                                ${(r.absent_count >= 2) ? `<span class="bg-red-100 text-red-800 border border-red-300 font-extrabold text-[9px] px-1.5 py-0.2 rounded inline-flex items-center gap-0.5" title="تنبيه: الطالب لديه ${r.absent_count} مرات غياب مسجلة">⚠️ ${r.absent_count} غياب</span>` : ''}
+                            </div>
+                        </td>
                         <td class="p-2.5 text-slate-600 font-mono text-[11px]">
                             ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-700 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1" title="فتح محادثة واتساب"><span>💬</span><span>${r.phone}</span></a>` : r.phone}
                         </td>
@@ -3622,13 +3808,16 @@
 
         async function undoOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, currentStatus) {
             const studentName = decodeURIComponent(encodedName);
-            const statusLabel = currentStatus === 'present' ? 'حضور' : currentStatus === 'absent' ? 'غياب' : 'عذر';
+            const statusLabel = currentStatus === 'present' ? 'حضور' : currentStatus === 'absent' ? 'غياب' : currentStatus === 'excused' ? 'عذر' : 'مؤجلة';
 
-            const confirmMsg = `تأكيد التراجع عن الرصد من الإشراف:\n\n• الطالب: ${studentName} (${studentCode})\n• التاريخ: ${dateStr}\n• الحالة الحالية: ${statusLabel}\n\nسيتم حذف سجل الحضور لهذا اليوم وإعادة الحصة لرصيد الطالب تلقائياً.\nهل تود المتابعة؟`;
+            const confirmMsg = (currentStatus === 'postponed')
+                ? `تأكيد إلغاء تأجيل الجلسة من الإشراف:\n\n• الطالب: ${studentName} (${studentCode})\n• التاريخ: ${dateStr}\n\nسيتم حذف تسجيل تأجيل الجلسة وإعادة خيارات التسجيل لهذا اليوم.\nهل تود المتابعة؟`
+                : `تأكيد التراجع عن الرصد من الإشراف:\n\n• الطالب: ${studentName} (${studentCode})\n• التاريخ: ${dateStr}\n• الحالة الحالية: ${statusLabel}\n\nسيتم حذف سجل الحضور لهذا اليوم وإعادة الحصة لرصيد الطالب تلقائياً.\nهل تود المتابعة؟`;
 
             let confirmed = false;
+            const confirmBtnText = (currentStatus === 'postponed') ? 'نعم، إلغاء التأجيل' : 'نعم، تراجع واستعادة الحصة';
             if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد التراجع واستعادة الحصة', 'warning', 'نعم، تراجع واستعادة الحصة', 'إلغاء');
+                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد التراجع', 'warning', confirmBtnText, 'إلغاء');
             } else {
                 confirmed = confirm(confirmMsg);
             }
@@ -3658,7 +3847,9 @@
                         if ('excuse_count' in enr) updates.excuse_count = Math.max(0, (enr.excuse_count || 0) - 1);
                     }
 
-                    await client.from('enrollments').update(updates).eq('id', enr.id);
+                    if (Object.keys(updates).length > 0) {
+                        await client.from('enrollments').update(updates).eq('id', enr.id);
+                    }
                 }
 
                 // 2. Delete attendance row for this date/session
@@ -3731,6 +3922,326 @@
             }, 40000);
         }
 
+
+        // -------------------------------------------------------------
+        // Frequent Absence Radar & Tab Switcher Functions (الإشراف)
+        // -------------------------------------------------------------
+        function switchDailyAttendanceTab(tab) {
+            const matchingView = document.getElementById('dailyMatchingView');
+            const frequentView = document.getElementById('frequentAbsenceView');
+            const tabBtnMatching = document.getElementById('tabBtnDailyMatching');
+            const tabBtnFrequent = document.getElementById('tabBtnFrequentAbsence');
+
+            if (tab === 'frequent') {
+                if (matchingView) matchingView.classList.add('hidden');
+                if (frequentView) frequentView.classList.remove('hidden');
+
+                if (tabBtnMatching) {
+                    tabBtnMatching.className = 'px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700';
+                }
+                if (tabBtnFrequent) {
+                    tabBtnFrequent.className = 'px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-red-600 text-white shadow-xs';
+                }
+
+                // If daily data not loaded yet, load it to get students
+                if (!window._allStudentsFullList || window._allStudentsFullList.length === 0) {
+                    loadDailyAttendanceMatchingData().then(() => renderFrequentAbsencesTable());
+                } else {
+                    renderFrequentAbsencesTable();
+                }
+            } else {
+                if (matchingView) matchingView.classList.remove('hidden');
+                if (frequentView) frequentView.classList.add('hidden');
+
+                if (tabBtnMatching) {
+                    tabBtnMatching.className = 'px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-emerald-600 text-white shadow-xs';
+                }
+                if (tabBtnFrequent) {
+                    tabBtnFrequent.className = 'px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700';
+                }
+            }
+        }
+
+        function updateFrequentAbsencesBadgeAndState(studentsList) {
+            if (!Array.isArray(studentsList) || studentsList.length === 0) return;
+            window._allStudentsFullList = studentsList;
+
+            const freqList = studentsList.filter(s => (s.absent_count || 0) >= 2);
+            const freqCount = freqList.length;
+
+            const alertBadge = document.getElementById('frequentAbsenceAlertBadge');
+            const alertLabel = document.getElementById('frequentAbsenceCountLabel');
+            const tabBadge = document.getElementById('tabFrequentAbsenceBadge');
+
+            if (alertLabel) alertLabel.innerText = `الغيابات المتكررة: ${freqCount} طالب`;
+            if (tabBadge) tabBadge.innerText = freqCount;
+
+            // Populate frequent absences teacher filter dropdown
+            const fTeacherSelect = document.getElementById('freqAbsenceTeacherFilter');
+            if (fTeacherSelect) {
+                const curVal = fTeacherSelect.value;
+                const teachersWithFreq = [...new Set(freqList.map(s => s.teacher_name).filter(t => t && t !== 'غير محدد'))].sort((a,b) => a.localeCompare(b, 'ar'));
+                const tCountMap = {};
+                freqList.forEach(s => {
+                    if (s.teacher_name && s.teacher_name !== 'غير محدد') {
+                        tCountMap[s.teacher_name] = (tCountMap[s.teacher_name] || 0) + 1;
+                    }
+                });
+                fTeacherSelect.innerHTML = '<option value="">جميع المعلمين (الكل - ' + teachersWithFreq.length + ' معلم)</option>' +
+                    teachersWithFreq.map(t => {
+                        const cnt = tCountMap[t] || 0;
+                        return `<option value="${t}" ${t === curVal ? 'selected' : ''}>${t} (${cnt} طالب متكرر الغياب)</option>`;
+                    }).join('');
+            }
+        }
+
+        let _freqFilteredRecords = [];
+
+        function renderFrequentAbsencesTable() {
+            const allStudents = window._allStudentsFullList || window._monirDailyStudentsCache || [];
+            const threshold = parseInt(document.getElementById('freqAbsenceThresholdFilter')?.value || '2', 10);
+            const teacherFilter = document.getElementById('freqAbsenceTeacherFilter')?.value || '';
+            const statusFilter = document.getElementById('freqAbsenceStatusFilter')?.value || 'active';
+            const balanceFilter = document.getElementById('freqAbsenceBalanceFilter')?.value || '';
+            const searchInput = (document.getElementById('freqAbsenceSearchInput')?.value || '').trim().toLowerCase();
+
+            // Filter students
+            let baseList = allStudents.filter(s => (s.absent_count || 0) >= threshold);
+
+            // Update KPI stats for the radar view
+            let statTotal = 0;
+            let statTwo = 0;
+            let statThree = 0;
+            let statFourPlus = 0;
+
+            allStudents.forEach(s => {
+                const abs = s.absent_count || 0;
+                if (abs >= 2) {
+                    statTotal++;
+                    if (abs === 2) statTwo++;
+                    else if (abs === 3) statThree++;
+                    else if (abs >= 4) statFourPlus++;
+                }
+            });
+
+            const elTotal = document.getElementById('freqStatTotal');
+            const elTwo = document.getElementById('freqStatTwo');
+            const elThree = document.getElementById('freqStatThree');
+            const elFour = document.getElementById('freqStatFourPlus');
+            if (elTotal) elTotal.innerText = statTotal;
+            if (elTwo) elTwo.innerText = statTwo;
+            if (elThree) elThree.innerText = statThree;
+            if (elFour) elFour.innerText = statFourPlus;
+
+            _freqFilteredRecords = baseList.filter(s => {
+                if (teacherFilter && s.teacher_name !== teacherFilter) return false;
+                if (statusFilter === 'active' && s.is_inactive) return false;
+                if (statusFilter === 'inactive' && !s.is_inactive) return false;
+                if (balanceFilter === 'has_balance' && (s.remaining_credits || 0) <= 0) return false;
+                if (balanceFilter === 'zero_balance' && (s.remaining_credits || 0) > 0) return false;
+                if (searchInput) {
+                    const matchName = (s.name || '').toLowerCase().includes(searchInput);
+                    const matchCode = (s.student_code || '').toLowerCase().includes(searchInput);
+                    const matchPhone = (s.phone || '').includes(searchInput) || (s.parent_phone || '').includes(searchInput);
+                    const matchTeacher = (s.teacher_name || '').toLowerCase().includes(searchInput);
+                    const matchGroup = (s.group_id || '').toLowerCase().includes(searchInput);
+                    if (!matchName && !matchCode && !matchPhone && !matchTeacher && !matchGroup) return false;
+                }
+                return true;
+            });
+
+            // Sort by absence count descending, then by remaining credits ascending
+            _freqFilteredRecords.sort((a,b) => (b.absent_count || 0) - (a.absent_count || 0) || (a.remaining_credits || 0) - (b.remaining_credits || 0));
+
+            const tbody = document.getElementById('frequentAbsenceTableBody');
+            if (!tbody) return;
+
+            if (_freqFilteredRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center py-10 text-slate-400 font-bold">
+                            لا يوجد طلاب مطابقون لمعايير البحث في رادار الغيابات المتكررة.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = _freqFilteredRecords.map((s, idx) => {
+                const abs = s.absent_count || 0;
+                let absBadge = '';
+                if (abs === 2) {
+                    absBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>⚠️</span><span>مرتين (2)</span></span>';
+                } else if (abs === 3) {
+                    absBadge = '<span class="bg-orange-100 text-orange-900 border border-orange-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>🚨</span><span>3 مرات (3)</span></span>';
+                } else {
+                    absBadge = `<span class="bg-red-600 text-white font-black px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse shadow-xs"><span>🔥</span><span>${abs} غيابات (إنذار أحمر)</span></span>`;
+                }
+
+                const cleanPhone = (s.parent_phone && s.parent_phone !== '—' ? s.parent_phone : (s.phone || '')).replace(/[^0-9]/g, '');
+                const waPhone = cleanPhone.startsWith('0') ? '20' + cleanPhone.substring(1) : cleanPhone;
+                const waMsg = encodeURIComponent(`السلام عليكم ورحمة الله وبركاته، تحياتنا لكم من إدارة منصة منير أكاديمي 🌿\n\nنود المتابعة والاطمئنان بخصوص غياب الطالب/ة الكريم (${s.name}) المتكرر عن حصص القرآن الكريم (${abs} مرات غياب مسجلة).\n\nحرصاً منا على استمرار الطالب في رحلته القرآنية، نرجو التكرم بالتواصل معنا للإفادة والاطمئنان وتنظيم المواعيد.\nبارك الله فيكم وحفظكم.`);
+                const waLink = cleanPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
+
+                const creditColor = (s.remaining_credits || 0) <= 0 ? 'text-red-600 bg-red-50 border-red-200' : (s.remaining_credits <= 2 ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200');
+
+                return `
+                    <tr class="hover:bg-red-50/30 transition border-b border-slate-100 text-xs">
+                        <td class="p-2.5 text-center text-slate-400 font-bold font-mono text-[11px]">${idx + 1}</td>
+                        <td class="p-2.5 font-mono font-bold text-slate-800 text-[11px]">${s.student_code}</td>
+                        <td class="p-2.5">
+                            <div class="font-bold text-slate-900">${s.name}</div>
+                            ${s.is_inactive ? '<span class="bg-red-100 text-red-800 text-[9px] font-bold px-1.5 py-0.2 rounded">موقوف</span>' : ''}
+                        </td>
+                        <td class="p-2.5 text-center">${absBadge}</td>
+                        <td class="p-2.5 text-center">
+                            <span class="font-mono font-bold px-2 py-0.5 rounded-lg border text-[11px] ${creditColor}">
+                                ${s.remaining_credits || 0} حصة
+                            </span>
+                        </td>
+                        <td class="p-2.5 font-bold text-slate-800">${s.teacher_name}</td>
+                        <td class="p-2.5">
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <span class="bg-slate-100 text-slate-700 font-mono font-bold px-1.5 py-0.5 rounded text-[10px]">${s.group_id}</span>
+                                <span class="text-slate-500 text-[10px]">${s.subscription_days || ''} ${s.lecture_time || ''}</span>
+                            </div>
+                        </td>
+                        <td class="p-2.5 text-slate-600 font-mono text-[11px]">${s.parent_phone || s.phone || '—'}</td>
+                        <td class="p-2.5 text-center">
+                            ${waLink ? `
+                                <a href="${waLink}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-xl text-[10px] shadow-xs transition" title="فتح واتساب بمحادثة متابعة جاهزة">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                                    <span>رسالة متابعة</span>
+                                </a>
+                            ` : '<span class="text-slate-400 text-[10px]">لا يوجد هاتف</span>'}
+                        </td>
+                        <td class="p-2.5 text-center">
+                            <button type="button" onclick="showStudentFullLedgerModal(${s.id})" class="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="عرض سجل الحضور الكامل للطالب">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function exportFrequentAbsencesExcel(format = 'xls') {
+            if (!_freqFilteredRecords || _freqFilteredRecords.length === 0) {
+                renderFrequentAbsencesTable();
+            }
+            const records = (_freqFilteredRecords && _freqFilteredRecords.length > 0)
+                ? _freqFilteredRecords
+                : (window._allStudentsFullList || []).filter(s => (s.absent_count || 0) >= 2);
+
+            if (!records || records.length === 0) {
+                alert('لا توجد بيانات طلاب متكرري الغياب لتصديرها.');
+                return;
+            }
+
+            const todayStr = getFormatDateLocal(new Date());
+
+            if (format === 'csv') {
+                let csv = '\uFEFF';
+                csv += 'م,كود الطالب,اسم الطالب,مرات الغياب,الرصيد المتبقي,المعلم المسؤول,المجموعة,المواعيد,رقم ولي الأمر,حالة الاشتراك\n';
+                records.forEach((s, idx) => {
+                    const num = idx + 1;
+                    const code = '"' + (s.student_code || '').replace(/"/g, '""') + '"';
+                    const name = '"' + (s.name || '').replace(/"/g, '""') + '"';
+                    const abs = s.absent_count || 0;
+                    const rem = s.remaining_credits || 0;
+                    const teacher = '"' + (s.teacher_name || '').replace(/"/g, '""') + '"';
+                    const group = '"' + (s.group_id || '').replace(/"/g, '""') + '"';
+                    const schedule = '"' + ((s.subscription_days || '') + ' ' + (s.lecture_time || '')).trim().replace(/"/g, '""') + '"';
+                    const phone = '"\'' + (s.parent_phone || s.phone || '').replace(/"/g, '""') + '"';
+                    const stStatus = s.is_inactive ? 'موقوف' : 'نشط';
+                    csv += `${num},${code},${name},${abs},${rem},${teacher},${group},${schedule},${phone},${stStatus}\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                triggerBlobDownload(blob, `تقرير_الغيابات_المتكررة_${todayStr}.csv`);
+            } else {
+                const escapeXml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                let rowsHtml = records.map((s, idx) => {
+                    const abs = s.absent_count || 0;
+                    let absBg = '#fef3c7';
+                    let absColor = '#92400e';
+                    if (abs >= 4) { absBg = '#fee2e2'; absColor = '#991b1b'; }
+                    else if (abs === 3) { absBg = '#ffedd5'; absColor = '#9a3412'; }
+
+                    return `
+                        <tr>
+                            <td style="text-align:center; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${idx + 1}</td>
+                            <td style="text-align:center; font-family:Consolas,monospace; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(s.student_code)}</td>
+                            <td style="font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(s.name)}</td>
+                            <td style="text-align:center; font-weight:bold; background-color:${absBg}; color:${absColor}; border:1px solid #cbd5e1; padding:6px 8px;">${abs} غيابات</td>
+                            <td style="text-align:center; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${s.remaining_credits || 0}</td>
+                            <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(s.teacher_name)}</td>
+                            <td style="text-align:center; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(s.group_id)}</td>
+                            <td style="text-align:center; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(s.subscription_days || '')} ${escapeXml(s.lecture_time || '')}</td>
+                            <td style="mso-number-format:'\\@'; text-align:center; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(s.parent_phone || s.phone || '')}</td>
+                            <td style="text-align:center; border:1px solid #cbd5e1; padding:6px 8px;">${s.is_inactive ? 'موقوف' : 'نشط'}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const excelHtml = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="UTF-8">
+                        <!--[if gte mso 9]>
+                        <xml>
+                            <x:ExcelWorkbook>
+                                <x:ExcelWorksheets>
+                                    <x:ExcelWorksheet>
+                                        <x:Name>الغيابات المتكررة</x:Name>
+                                        <x:WorksheetOptions>
+                                            <x:DisplayRightToLeft/>
+                                        </x:WorksheetOptions>
+                                    </x:ExcelWorksheet>
+                                </x:ExcelWorksheets>
+                            </x:ExcelWorkbook>
+                        </xml>
+                        <![endif]-->
+                        <style>
+                            body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; }
+                            table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+                            th { background-color: #991b1b; color: white; font-weight: bold; padding: 8px; border: 1px solid #7f1d1d; text-align: center; }
+                        </style>
+                    </head>
+                    <body>
+                        <div style="font-size:16pt; font-weight:bold; color:#991b1b; text-align:center; margin-bottom:5px;">
+                            تقرير رادار الغيابات المتكررة للطلاب (2+ غياب) — منصة منير أكاديمي
+                        </div>
+                        <div style="font-size:10pt; color:#64748b; text-align:center; margin-bottom:15px;">
+                            تاريخ استخراج التقرير: ${todayStr} | إجمالي الحالات: ${records.length} طالب
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>م</th>
+                                    <th>كود الطالب</th>
+                                    <th>اسم الطالب</th>
+                                    <th>مرات الغياب</th>
+                                    <th>الرصيد المتبقي</th>
+                                    <th>المعلم المسؤول</th>
+                                    <th>المجموعة</th>
+                                    <th>المواعيد</th>
+                                    <th>رقم ولي الأمر</th>
+                                    <th>حالة الاشتراك</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
+                `;
+
+                const blob = new Blob(['\uFEFF' + excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+                triggerBlobDownload(blob, `تقرير_الغيابات_المتكررة_${todayStr}.xls`);
+            }
+        }
+
         async function exportDailyAttendanceMatchingExcel(format = 'xls') {
             const exportBtn = document.getElementById('dailyMatchingExportExcelBtn');
             const origBtnHtml = exportBtn ? exportBtn.innerHTML : '';
@@ -3771,6 +4282,7 @@
                         if (r.status === 'present') statusLabel = 'حاضر';
                         else if (r.status === 'absent') statusLabel = 'غائب';
                         else if (r.status === 'excused') statusLabel = 'بعذر';
+                        else if (r.status === 'postponed') statusLabel = 'مؤجلة';
                         else if (r.is_inactive || r.remaining_credits <= 0) statusLabel = 'موقوف / رصيد 0';
 
                         let matchLabel = 'لم تطابق بعد';
@@ -3818,6 +4330,10 @@
                             statusLabel = 'بعذر';
                             statusBg = '#fef3c7';
                             statusColor = '#92400e';
+                        } else if (r.status === 'postponed') {
+                            statusLabel = 'مؤجلة';
+                            statusBg = '#e0e7ff';
+                            statusColor = '#3730a3';
                         } else if (r.is_inactive || r.remaining_credits <= 0) {
                             statusLabel = 'موقوف / رصيد 0';
                             statusBg = '#f1f5f9';

@@ -663,19 +663,25 @@
                                         const isSameDay = a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr));
                                         const isRecentSlot = (hoursDiff >= 0 && hoursDiff < 30);
                                         const isBySupervisor = !!(a.course_name && a.course_name.includes('[إشراف]'));
+                                        const isPostponed = !!(a.course_name && a.course_name.includes('[تأجيل'));
+                                        const effectiveStatus = isPostponed ? 'postponed' : a.status;
 
                                         if ((isSameDay || isRecentSlot) && !window.todaySupabaseAttMap[a.student_id]) {
                                             window.todaySupabaseAttMap[a.student_id] = {
                                                 id: a.id,
-                                                status: a.status,
+                                                status: effectiveStatus,
                                                 joined_at: a.joined_at,
-                                                bySupervisor: isBySupervisor
+                                                bySupervisor: isBySupervisor,
+                                                isPostponed: isPostponed
                                             };
                                             try {
-                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayDateStr, a.status);
-                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayUtcStr, a.status);
+                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayDateStr, effectiveStatus);
+                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayUtcStr, effectiveStatus);
                                                 if (isBySupervisor) {
                                                     localStorage.setItem('monir_att_by_supervisor_' + a.student_id, '1');
+                                                }
+                                                if (isPostponed) {
+                                                    localStorage.setItem('monir_att_postponed_' + a.student_id, '1');
                                                 }
                                             } catch(e) {}
                                         }
@@ -1091,6 +1097,10 @@
                                 <button type="button" onclick="handleResetGroupMeet('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2.5 py-2 rounded-xl text-[11px] shadow-sm transition cursor-pointer" title="استعادة إعدادات قاعة الأكاديمية الأصلية">
                                     
                                     <span>الرابط الأصلي</span>
+                                </button>
+                                <button type="button" onclick="postponeGroupSession('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-indigo-50 hover:bg-indigo-100 active:scale-95 border border-indigo-200 text-indigo-900 font-bold px-3 py-2 rounded-xl text-[11px] shadow-sm transition cursor-pointer" title="تأجيل جلسة اليوم للمجموعة دون خصم حصص ودون استهلاك أعذار الطلاب">
+                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>تأجيل السيشن</span>
                                 </button>
                                 ${(() => {
                                     const inactiveCount = g.students.filter(st => st.status === 'inactive' || st.account_status === 'موقوف').length;
@@ -1589,6 +1599,15 @@
                                 تراجع
                             </button>
                         `;
+                    } else if (todayRecordedStatus === 'postponed') {
+                        recordButtonsHtml = `
+                            <button type="button" disabled class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2.5 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تأجيل هذه الجلسة دون أي خصم من رصيد الحصص أو الأعذار">
+                                <span>⏱</span><span>مؤجلة</span>
+                            </button>
+                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'postponed')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تأجيل الجلسة وإعادة خيارات التسجيل">
+                                تراجع
+                            </button>
+                        `;
                     }
                 } else {
                     // رصيد صفر — أزرار مقفولة
@@ -1601,6 +1620,7 @@
                             <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
                             ${excuseButtonHtml}
                             <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
+                            <button onclick="postponeStudentSession(${s.id}, ${s.enrollment_id || 'null'}, this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تأجيل حصة الطالب لليوم دون خصم أي رصيد ودون استهلاك عذر">تأجيل</button>
                         `;
                     }
                 }
@@ -2042,9 +2062,12 @@
             }
 
             let confirmed = false;
-            const confirmMsg = 'هل تود بالتأكيد التراجع عن تسجيل الحصة لهذا اليوم؟\nسيتم إعادة الحصة تلقائياً لرصيد الطالب وإلغاء تسجيل اليوم.';
+            const confirmMsg = (status === 'postponed')
+                ? 'هل تود بالتأكيد إلغاء تأجيل الجلسة لهذا اليوم وإعادة خيارات التسجيل؟'
+                : 'هل تود بالتأكيد التراجع عن تسجيل الحصة لهذا اليوم؟\nسيتم إعادة الحصة تلقائياً لرصيد الطالب وإلغاء تسجيل اليوم.';
+            const confirmBtnText = (status === 'postponed') ? 'نعم، إلغاء التأجيل' : 'نعم، تراجع واستعادة الحصة';
             if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد التراجع عن التسجيل', 'warning', 'نعم، تراجع واستعادة الحصة', 'إلغاء');
+                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد التراجع عن التسجيل', 'warning', confirmBtnText, 'إلغاء');
             } else {
                 confirmed = confirm('تأكيد التراجع عن التسجيل\n\n' + confirmMsg);
             }
@@ -2070,7 +2093,9 @@
                             updates.excuse_count = Math.max(0, (e.excuse_count || 0) - 1);
                             updates.max_allowed_excuses = 1;
                         }
-                        await client.from('enrollments').update(updates).eq('id', e.id);
+                        if (Object.keys(updates).length > 0) {
+                            await client.from('enrollments').update(updates).eq('id', e.id);
+                        }
 
                         try {
                             const deleteStart = new Date(Date.now() - 30 * 3600 * 1000).toISOString();
@@ -2084,12 +2109,13 @@
 
                         // Payment audit trail log for undo
                         try {
+                            const actionLabel = (status === 'present') ? 'حضور' : (status === 'absent') ? 'غياب' : (status === 'excused') ? 'عذر' : 'تأجيل الجلسة';
                             await client.from('payments').insert([{
                                 student_id: studentId,
                                 amount: 0,
                                 payment_method: 'معلم',
                                 status: 'completed',
-                                whatsapp_message: `تراجع عن تسجيل ${status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : 'عذر'} واستعادة حصة بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
+                                whatsapp_message: `تراجع عن ${actionLabel} بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
                             }]);
                         } catch(pErr) {}
                     }
@@ -2097,13 +2123,16 @@
                 localStorage.removeItem(todayKey);
                 localStorage.removeItem('monir_att_' + studentId + '_' + todayUtcStr);
                 localStorage.removeItem('monir_att_by_supervisor_' + studentId);
+                localStorage.removeItem('monir_att_postponed_' + studentId);
                 if (window.todaySupabaseAttMap) {
                     delete window.todaySupabaseAttMap[studentId];
                 }
                 try {
                     localStorage.removeItem('monir_last_att_info_' + studentId);
                 } catch(e) {}
-                const toastMsg = 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ✓';
+                const toastMsg = (status === 'postponed')
+                    ? 'تم إلغاء التأجيل وإعادة خيارات التسجيل بنجاح ✓'
+                    : 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ✓';
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
                     window.MonirPopup.toast(toastMsg, 'success');
                 } else {
@@ -2113,6 +2142,320 @@
             } catch(err) {
                 console.error('Error undoing attendance:', err);
                 alert('حدث خطأ أثناء التراجع: ' + (err.message || err));
+            }
+        }
+
+        async function postponeStudentSession(studentId, enrollmentId = null, btn = null) {
+            window._inFlightSessionLocks = window._inFlightSessionLocks || {};
+            if (window._inFlightSessionLocks[studentId]) {
+                console.warn('عملية التأجيل جارية بالفعل لهذا الطالب!');
+                return;
+            }
+            window._inFlightSessionLocks[studentId] = true;
+
+            const cell = document.getElementById('actions-cell-' + studentId);
+            const disableButtons = () => {
+                if (cell) {
+                    cell.querySelectorAll('button').forEach(b => {
+                        b.disabled = true;
+                        b.classList.add('opacity-40', 'cursor-not-allowed');
+                    });
+                }
+            };
+            const enableButtons = () => {
+                delete window._inFlightSessionLocks[studentId];
+                if (cell) {
+                    cell.querySelectorAll('button').forEach(b => {
+                        b.disabled = false;
+                        b.classList.remove('opacity-40', 'cursor-not-allowed');
+                    });
+                }
+            };
+
+            disableButtons();
+
+            try {
+                let foundStudent = null;
+                if (typeof teacherGroups !== 'undefined' && Array.isArray(teacherGroups)) {
+                    for (const g of teacherGroups) {
+                        const match = (g.students || []).find(st => st.id === studentId || st.student_id === studentId);
+                        if (match) { foundStudent = match; break; }
+                    }
+                }
+
+                if (foundStudent && (foundStudent.status === 'inactive' || foundStudent.account_status === 'موقوف')) {
+                    enableButtons();
+                    const warnMsg = 'عذراً، اشتراك هذا الطالب موقوف من قبل الإدارة ولا يمكن تأجيل حصته.';
+                    if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                        window.MonirPopup.toast(warnMsg, 'error');
+                    } else {
+                        alert(warnMsg);
+                    }
+                    return;
+                }
+
+                const stName = foundStudent ? (foundStudent.name || foundStudent.student_name || 'طالب الأكاديمية') : 'الطالب';
+                const stCode = foundStudent ? (foundStudent.student_code || '') : '';
+                const curCredits = foundStudent ? (foundStudent.remaining_credits ?? 0) : 0;
+
+                const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
+                const todayUtcStr = new Date().toISOString().split('T')[0];
+                const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
+                const prevRecord = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId])
+                    ? window.todaySupabaseAttMap[studentId].status
+                    : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + studentId + '_' + todayUtcStr));
+
+                if (prevRecord) {
+                    enableButtons();
+                    const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب', 'postponed': 'مؤجلة' };
+                    const prevLabel = statusNames[prevRecord] || prevRecord;
+                    const blockMsg = `تم بالفعل رصد (${prevLabel}) للطالب (${stName}) اليوم!\n\nإذا أردت تعديل التسجيل أو تأجيل الجلسة، يمكنك الضغط على "تراجع" أولاً.`;
+                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                        await window.MonirPopup.alert(blockMsg, 'تم الرصد مسبقاً', 'info');
+                    } else {
+                        alert(blockMsg);
+                    }
+                    return;
+                }
+
+                const confirmTitle = 'تأكيد تأجيل الجلسة للطالب';
+                const confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تأجيل جلسة اليوم للطالب؟\n\n📌 المزايا والضمانات:\n• لن يتم خصم أي حصة من رصيد الطالب (${curCredits} حصة متبقية).\n• لن يتم استهلاك رصيد الأعذار الشهري للطالب.\n• سيتم إرسال إشعار فوري لولي الأمر بتأجيل الجلسة.`;
+
+                let confirmed = false;
+                if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
+                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, 'question', '✓ تأكيد التأجيل', 'تراجع وإلغاء');
+                } else {
+                    confirmed = confirm(confirmTitle + '\n\n' + confirmMsg);
+                }
+
+                if (!confirmed) {
+                    enableButtons();
+                    return;
+                }
+
+                if (btn) btn.innerHTML = '<span>جاري...</span>';
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+
+                    // Insert attendance with status 'excused' and tagged with '[تأجيل معلم]' to comply with database check constraint
+                    const courseNameTag = `حلقة قرآنية [معلم] [تأجيل معلم]`;
+                    try {
+                        await client
+                            .from('attendance')
+                            .insert([{
+                                student_id: studentId,
+                                status: 'excused',
+                                joined_at: new Date().toISOString(),
+                                course_name: courseNameTag,
+                                duration_minutes: 0
+                            }]);
+                    } catch(attErr) {
+                        console.error('Error inserting postponed attendance:', attErr);
+                    }
+
+                    // Notification for student/parent
+                    try {
+                        await client.from('notifications').insert([{
+                            user_id: studentId,
+                            title: 'تأجيل موعد الجلسة',
+                            message: `تم تأجيل جلسة القرآن الكريم المقررة اليوم مع المعلم (${currentTeacherName || 'المعلم'}). رصيدك من الحصص والأعذار محفوظ بالكامل ولم يُخصم منه شيء.`,
+                            is_read: false
+                        }]);
+                    } catch(nErr) {
+                        console.warn('Notice insert warning:', nErr);
+                    }
+
+                    // Audit log in payments table
+                    try {
+                        await client.from('payments').insert([{
+                            student_id: studentId,
+                            amount: 0,
+                            payment_method: 'معلم',
+                            status: 'completed',
+                            whatsapp_message: `تأجيل جلسة الطالب (${stName}) بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr} دون خصم رصيد أو استهلاك عذر`
+                        }]);
+                    } catch(pErr) {}
+                }
+
+                // Update local maps
+                if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
+                window.todaySupabaseAttMap[studentId] = {
+                    id: null,
+                    status: 'postponed',
+                    joined_at: new Date().toISOString(),
+                    bySupervisor: false,
+                    isPostponed: true
+                };
+                try {
+                    localStorage.setItem(todayKey, 'postponed');
+                    localStorage.setItem('monir_att_' + studentId + '_' + todayUtcStr, 'postponed');
+                    localStorage.setItem('monir_att_postponed_' + studentId, '1');
+                } catch(e) {}
+
+                const toastMsg = 'تم تأجيل الجلسة للطالب بنجاح مع الحفاظ على رصيده وأعذاره بالكامل ✓';
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(toastMsg, 'success');
+                } else {
+                    alert(toastMsg);
+                }
+
+                delete window._inFlightSessionLocks[studentId];
+                await loadTeacherGroups();
+            } catch(err) {
+                enableButtons();
+                console.error('Error postponing student session:', err);
+                alert('حدث خطأ أثناء تأجيل الجلسة: ' + (err.message || err));
+            }
+        }
+
+        async function postponeGroupSession(groupId, idSafe, btn = null) {
+            try {
+                let group = null;
+                if (typeof teacherGroups !== 'undefined' && Array.isArray(teacherGroups)) {
+                    group = teacherGroups.find(g => String(g.id) === String(groupId) || String(g.group_id) === String(groupId));
+                }
+
+                if (!group || !Array.isArray(group.students) || group.students.length === 0) {
+                    const warnMsg = 'تعذر العثور على طلاب في هذه المجموعة لتأجيل الجلسة.';
+                    if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                        window.MonirPopup.toast(warnMsg, 'warning');
+                    } else {
+                        alert(warnMsg);
+                    }
+                    return;
+                }
+
+                const activeStudents = group.students.filter(st => st.status !== 'inactive' && st.account_status !== 'موقوف');
+                if (activeStudents.length === 0) {
+                    const warnMsg = 'جميع طلاب هذه المجموعة موقوفون ولا توجد جلسات نشطة لتأجيلها.';
+                    if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                        window.MonirPopup.toast(warnMsg, 'info');
+                    } else {
+                        alert(warnMsg);
+                    }
+                    return;
+                }
+
+                const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
+                const todayUtcStr = new Date().toISOString().split('T')[0];
+
+                // Filter eligible students who have not already recorded attendance today
+                const eligibleStudents = activeStudents.filter(st => {
+                    const sid = st.id;
+                    const todayKey = 'monir_att_' + sid + '_' + todayDateStr;
+                    const prev = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[sid])
+                        ? window.todaySupabaseAttMap[sid].status
+                        : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + sid + '_' + todayUtcStr));
+                    return !prev;
+                });
+
+                if (eligibleStudents.length === 0) {
+                    const infoMsg = 'تم بالفعل رصد حضور أو تأجيل لجميع طلاب هذه المجموعة لليوم.';
+                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                        await window.MonirPopup.alert(infoMsg, 'تم الرصد مسبقاً', 'info');
+                    } else {
+                        alert(infoMsg);
+                    }
+                    return;
+                }
+
+                const confirmTitle = `تأكيد تأجيل جلسة المجموعة (${groupId})`;
+                const confirmMsg = `مجموعة: ${groupId}\nعدد الطلاب المستهدفين بالتأجيل: ${eligibleStudents.length} طالب\n\nهل تود تأكيد تأجيل جلسة اليوم للمجموعة بالكامل؟\n\n📌 المزايا والضمانات:\n• لن يتم خصم أي حصص من رصيد الطلاب.\n• لن يتم استهلاك رصيد الأعذار الشهري لأي طالب.\n• سيتم إرسال إشعار فوري لجميع الطلاب وأولياء الأمور بتأجيل الجلسة.`;
+
+                let confirmed = false;
+                if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
+                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, 'question', `✓ تأجيل جلسة الـ ${eligibleStudents.length} طالب`, 'إلغاء');
+                } else {
+                    confirmed = confirm(confirmTitle + '\n\n' + confirmMsg);
+                }
+
+                if (!confirmed) return;
+
+                const origBtnHtml = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span>جاري التأجيل...</span>';
+                }
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const nowIso = new Date().toISOString();
+                    const courseNameTag = `حلقة ${groupId} [معلم] [تأجيل معلم]`;
+
+                    const attRows = eligibleStudents.map(st => ({
+                        student_id: st.id,
+                        status: 'excused',
+                        joined_at: nowIso,
+                        course_name: courseNameTag,
+                        duration_minutes: 0
+                    }));
+
+                    const notifRows = eligibleStudents.map(st => ({
+                        user_id: st.id,
+                        title: 'تأجيل موعد الجلسة الجماعية',
+                        message: `تم تأجيل جلسة القرآن الكريم المقررة اليوم لمجموعتكم (${groupId}) مع المعلم (${currentTeacherName || 'المعلم'}). رصيدك من الحصص والأعذار محفوظ بالكامل.`,
+                        is_read: false
+                    }));
+
+                    const payAuditRows = eligibleStudents.map(st => ({
+                        student_id: st.id,
+                        amount: 0,
+                        payment_method: 'معلم',
+                        status: 'completed',
+                        whatsapp_message: `تأجيل جلسة مجموعة (${groupId}) للطالب (${st.name || st.student_code}) بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr} دون خصم رصيد أو عذر`
+                    }));
+
+                    try {
+                        await client.from('attendance').insert(attRows);
+                    } catch(e) { console.error('Error inserting group attendance postponement:', e); }
+
+                    try {
+                        await client.from('notifications').insert(notifRows);
+                    } catch(e) {}
+
+                    try {
+                        await client.from('payments').insert(payAuditRows);
+                    } catch(e) {}
+                }
+
+                if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
+                eligibleStudents.forEach(st => {
+                    const sid = st.id;
+                    window.todaySupabaseAttMap[sid] = {
+                        id: null,
+                        status: 'postponed',
+                        joined_at: new Date().toISOString(),
+                        bySupervisor: false,
+                        isPostponed: true
+                    };
+                    try {
+                        localStorage.setItem('monir_att_' + sid + '_' + todayDateStr, 'postponed');
+                        localStorage.setItem('monir_att_' + sid + '_' + todayUtcStr, 'postponed');
+                        localStorage.setItem('monir_att_postponed_' + sid, '1');
+                    } catch(e) {}
+                });
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origBtnHtml;
+                }
+
+                const successMsg = `تم تأجيل جلسة المجموعة لـ (${eligibleStudents.length}) طالب بنجاح مع الحفاظ على كامل رصيدهم وأعذارهم ✓`;
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(successMsg, 'success');
+                } else {
+                    alert(successMsg);
+                }
+
+                await loadTeacherGroups();
+            } catch(err) {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>تأجيل السيشن</span>';
+                }
+                console.error('Error postponing group session:', err);
+                alert('حدث خطأ أثناء تأجيل جلسة المجموعة: ' + (err.message || err));
             }
         }
 
