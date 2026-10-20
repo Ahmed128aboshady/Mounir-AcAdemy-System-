@@ -813,17 +813,23 @@
         let rowsHtml = records.map((r, i) => {
             let statusBadge = '';
             let creditImpact = '';
+            const isSup = (r.course_name && r.course_name.includes('[إشراف]'));
+            const isTch = (r.course_name && r.course_name.includes('[معلم]'));
+            const roleBadge = isSup 
+                ? '<span class="bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.5 rounded-md text-[9px] mr-1">إشراف</span>' 
+                : (isTch ? '<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold px-1.5 py-0.5 rounded-md text-[9px] mr-1">معلم</span>' : '');
+
             if (r.status === 'present') {
-                statusBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>حضور وتواصل</span></span>';
+                statusBadge = `<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>حضور وتواصل</span> ${roleBadge}</span>`;
                 creditImpact = '<span class="font-mono text-red-600 font-black">-1 حصة</span>';
             } else if (r.status === 'absent') {
-                statusBadge = '<span class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>غياب بدون عذر</span></span>';
+                statusBadge = `<span class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>غياب بدون عذر</span> ${roleBadge}</span>`;
                 creditImpact = '<span class="font-mono text-red-600 font-black">-1 حصة</span>';
             } else if (r.status === 'excused') {
-                statusBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>عذر رسمي مقبول</span></span>';
+                statusBadge = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-lg text-[10px] inline-flex items-center gap-1"><span>عذر رسمي مقبول</span> ${roleBadge}</span>`;
                 creditImpact = '<span class="font-mono text-slate-500 font-bold">0 (لم يخصم)</span>';
             } else {
-                statusBadge = `<span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded-lg text-[10px] font-bold">${r.status}</span>`;
+                statusBadge = `<span class="bg-slate-100 text-slate-800 px-2 py-0.5 rounded-lg text-[10px] font-bold">${r.status} ${roleBadge}</span>`;
                 creditImpact = '<span class="text-slate-400">—</span>';
             }
 

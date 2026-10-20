@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
-<script src="js/student_ledger.js?v=20261020_v3"></script>
+<script src="js/student_ledger.js?v=20261020_v4"></script>
     <script src="js/teacher_notifications.js?v=20261003_v2"></script>
 
     <script>
@@ -645,10 +645,11 @@
                             if (sids.length > 0) {
                                 const { data: attList } = await client
                                     .from('attendance')
-                                    .select('id, student_id, status, joined_at')
+                                    .select('id, student_id, status, joined_at, course_name')
                                     .in('student_id', sids)
                                     .order('joined_at', { ascending: false });
                                 if (attList && attList.length > 0) {
+                                    const nowMs = Date.now();
                                     attList.forEach(a => {
                                         if (!latestAttendanceMap[a.student_id]) {
                                             latestAttendanceMap[a.student_id] = {
@@ -656,16 +657,26 @@
                                                 joined_at: a.joined_at
                                             };
                                         }
-                                        // Real-time Cloud Detection for Today's Attendance (checks local & UTC date)
-                                        if (a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr))) {
+                                        // Real-time Cloud Detection for Today / Recent Session (checks local date, UTC date, or within 30 hours)
+                                        const attMs = a.joined_at ? new Date(a.joined_at).getTime() : 0;
+                                        const hoursDiff = (nowMs - attMs) / (1000 * 3600);
+                                        const isSameDay = a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr));
+                                        const isRecentSlot = (hoursDiff >= 0 && hoursDiff < 30);
+                                        const isBySupervisor = !!(a.course_name && a.course_name.includes('[إشراف]'));
+
+                                        if ((isSameDay || isRecentSlot) && !window.todaySupabaseAttMap[a.student_id]) {
                                             window.todaySupabaseAttMap[a.student_id] = {
                                                 id: a.id,
                                                 status: a.status,
-                                                joined_at: a.joined_at
+                                                joined_at: a.joined_at,
+                                                bySupervisor: isBySupervisor
                                             };
                                             try {
                                                 localStorage.setItem('monir_att_' + a.student_id + '_' + todayDateStr, a.status);
                                                 localStorage.setItem('monir_att_' + a.student_id + '_' + todayUtcStr, a.status);
+                                                if (isBySupervisor) {
+                                                    localStorage.setItem('monir_att_by_supervisor_' + a.student_id, '1');
+                                                }
                                             } catch(e) {}
                                         }
                                     });
@@ -1541,33 +1552,44 @@
                     : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر متاح لاشتراك الحصص الحالي (عذر واحد لكل ${cycleDesc})">عذر</button>`;
 
                 let recordButtonsHtml = '';
-                if (todayRecordedStatus === 'present') {
-                    recordButtonsHtml = `
-                        <button type="button" disabled class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل حضور الطالب اليوم بنجاح وخصم حصة">
-                            <span>✓</span><span>تم الحضور</span>
-                        </button>
-                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل حضور اليوم وإعادة الحصة لرصيد الطالب">
-                            تراجع
-                        </button>
-                    `;
-                } else if (todayRecordedStatus === 'absent') {
-                    recordButtonsHtml = `
-                        <button type="button" disabled class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل غياب الطالب اليوم">
-                            <span>✗</span><span>تم الغياب</span>
-                        </button>
-                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'absent')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل غياب اليوم وإعادة الحصة لرصيد الطالب">
-                            تراجع
-                        </button>
-                    `;
-                } else if (todayRecordedStatus === 'excused') {
-                    recordButtonsHtml = `
-                        <button type="button" disabled class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل عذر الطالب اليوم">
-                            <span>تم العذر</span>
-                        </button>
-                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'excused')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل عذر اليوم">
-                            تراجع
-                        </button>
-                    `;
+                const isBySupervisorLock = (supaToday && supaToday.bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + s.id) === '1');
+
+                if (todayRecordedStatus) {
+                    const statusLabel = todayRecordedStatus === 'present' ? 'حضور' : todayRecordedStatus === 'absent' ? 'غياب' : 'عذر';
+                    if (isBySupervisorLock) {
+                        recordButtonsHtml = `
+                            <button type="button" disabled class="bg-purple-100 text-purple-900 border border-purple-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم رصد (${statusLabel}) لهذا الطالب بواسطة الإشراف ولا يمكن التكرار منعاً للخصم المزدوج">
+                                <span>🔒</span><span>تم الرصد (إشراف)</span>
+                            </button>
+                        `;
+                    } else if (todayRecordedStatus === 'present') {
+                        recordButtonsHtml = `
+                            <button type="button" disabled class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل حضور الطالب اليوم بنجاح وخصم حصة">
+                                <span>✓</span><span>تم الحضور</span>
+                            </button>
+                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل حضور اليوم وإعادة الحصة لرصيد الطالب">
+                                تراجع
+                            </button>
+                        `;
+                    } else if (todayRecordedStatus === 'absent') {
+                        recordButtonsHtml = `
+                            <button type="button" disabled class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل غياب الطالب اليوم">
+                                <span>✗</span><span>تم الغياب</span>
+                            </button>
+                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'absent')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل غياب اليوم وإعادة الحصة لرصيد الطالب">
+                                تراجع
+                            </button>
+                        `;
+                    } else if (todayRecordedStatus === 'excused') {
+                        recordButtonsHtml = `
+                            <button type="button" disabled class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل عذر الطالب اليوم">
+                                <span>تم العذر</span>
+                            </button>
+                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'excused')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل عذر اليوم">
+                                تراجع
+                            </button>
+                        `;
+                    }
                 } else {
                     // رصيد صفر — أزرار مقفولة
                     if (rc <= 0) {
@@ -1760,10 +1782,13 @@
 
                 if (prevRecord) {
                     enableButtons();
+                    const isSup = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId] && window.todaySupabaseAttMap[studentId].bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + studentId) === '1');
                     const prevLabel = statusNames[prevRecord] || prevRecord;
-                    const blockMsg = `تم بالفعل تسجيل (${prevLabel}) للطالب (${stName}) اليوم!\n\nلحماية رصيد الطالب من الخصم المكرر، لا يمكن تسجيل الحضور أكثر من مرة لنفس اليوم.\nإذا أردت تعديل التسجيل، يمكنك الضغط على "تراجع" لاستعادة الحصة أولاً.`;
+                    const blockMsg = isSup
+                        ? `تنبيه أمان قاطع: تم رصد (${prevLabel}) للطالب (${stName}) بواسطة الإشراف مسبقاً!\n\nتم قفل التسجيل تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`
+                        : `تم بالفعل تسجيل (${prevLabel}) للطالب (${stName}) اليوم!\n\nلحماية رصيد الطالب من الخصم المكرر، لا يمكن تسجيل الحضور أكثر من مرة لنفس اليوم.\nإذا أردت تعديل التسجيل، يمكنك الضغط على "تراجع" لاستعادة الحصة أولاً.`;
                     if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
-                        await window.MonirPopup.alert(blockMsg, 'تم الرصد اليوم مسبقاً', 'warning');
+                        await window.MonirPopup.alert(blockMsg, 'تم الرصد مسبقاً', 'warning');
                     } else {
                         alert(blockMsg);
                     }
@@ -1837,30 +1862,52 @@
                     try {
                         const client = window.MonirDB.getClient();
 
-                        // Strict Real-Time Cloud Idempotency Check: Verify in Supabase before any balance change
-                        const startOfToday = todayDateStr + 'T00:00:00.000Z';
-                        const endOfToday = todayDateStr + 'T23:59:59.999Z';
-                        const { data: cloudAtt } = await client
+                        // Strict Real-Time Cloud Idempotency Check: Verify in Supabase across today and recent 30 hours
+                        const { data: recentAtt } = await client
                             .from('attendance')
-                            .select('id, status, joined_at')
+                            .select('id, status, joined_at, course_name')
                             .eq('student_id', studentId)
-                            .gte('joined_at', startOfToday)
-                            .lte('joined_at', endOfToday)
-                            .limit(1);
+                            .order('joined_at', { ascending: false })
+                            .limit(5);
 
-                        if (cloudAtt && cloudAtt.length > 0) {
+                        let duplicateRecord = null;
+                        if (recentAtt && recentAtt.length > 0) {
+                            const nowMs = Date.now();
+                            for (const att of recentAtt) {
+                                if (!att.joined_at) continue;
+                                const attMs = new Date(att.joined_at).getTime();
+                                const hoursDiff = (nowMs - attMs) / (1000 * 3600);
+                                const isSameDay = att.joined_at.startsWith(todayDateStr) || att.joined_at.startsWith(todayUtcStr);
+                                const isWithinRecentSlot = (hoursDiff >= 0 && hoursDiff < 30);
+                                if (isSameDay || isWithinRecentSlot) {
+                                    duplicateRecord = att;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (duplicateRecord) {
                             enableButtons();
-                            const existing = cloudAtt[0];
-                            const statusLabel = existing.status === 'present' ? 'حضور' : existing.status === 'absent' ? 'غياب' : 'عذر';
-                            const alertMsg = `تنبيه أمان: تم رصد (${statusLabel}) لهذا الطالب اليوم (${todayDateStr}) مسبقاً في السحابة!\n\nتم إيقاف العملية تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`;
+                            const isBySup = !!(duplicateRecord.course_name && duplicateRecord.course_name.includes('[إشراف]'));
+                            const statusLabel = duplicateRecord.status === 'present' ? 'حضور' : duplicateRecord.status === 'absent' ? 'غياب' : 'عذر';
+                            const roleLabel = isBySup ? 'بواسطة الإشراف' : 'في السحابة';
+                            const alertMsg = `تنبيه أمان قاطع: تم رصد (${statusLabel}) لهذا الطالب ${roleLabel} مسبقاً!\n\nتم إيقاف العملية تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`;
                             if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
                                 await window.MonirPopup.alert(alertMsg, 'تم الرصد مسبقاً', 'info');
                             } else {
                                 alert(alertMsg);
                             }
                             if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
-                            window.todaySupabaseAttMap[studentId] = existing;
-                            try { localStorage.setItem(todayKey, existing.status); } catch(e) {}
+                            window.todaySupabaseAttMap[studentId] = {
+                                id: duplicateRecord.id,
+                                status: duplicateRecord.status,
+                                joined_at: duplicateRecord.joined_at,
+                                bySupervisor: isBySup
+                            };
+                            try {
+                                localStorage.setItem(todayKey, duplicateRecord.status);
+                                if (isBySup) localStorage.setItem('monir_att_by_supervisor_' + studentId, '1');
+                            } catch(e) {}
                             await loadTeacherGroups();
                             return;
                         }
@@ -1901,12 +1948,12 @@
 
                             await client.from('enrollments').update(updates).eq('id', enrData.id);
 
-                            // Official attendance log table
+                            // Official attendance log table (tagged with [معلم])
                             try {
                                 await client.from('attendance').insert([{
                                     student_id: studentId,
                                     lecture_id: null,
-                                    course_name: enrData.course_name || 'مسار القرآن الكريم والتدبر',
+                                    course_name: (enrData.course_name || 'مسار القرآن الكريم والتدبر') + ' [معلم]',
                                     status: sessionStatus,
                                     joined_at: new Date().toISOString(),
                                     duration_minutes: parseInt(enrData.session_duration) || 20
@@ -1922,7 +1969,7 @@
                                     amount: 0,
                                     payment_method: 'معلم',
                                     status: 'completed',
-                                    notes: `رصد ${statusNames[sessionStatus]} بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
+                                    whatsapp_message: `رصد ${statusNames[sessionStatus]} بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
                                 }]);
                             } catch(pErr) {}
 
@@ -1982,6 +2029,18 @@
             const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
             const todayUtcStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
+
+            const isSup = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId] && window.todaySupabaseAttMap[studentId].bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + studentId) === '1');
+            if (isSup) {
+                const blockSupMsg = 'تنبيه أمان: تم رصد هذا الطالب بواسطة الإشراف، ولا يمكن التراجع عنه أو حذفه إلا من خلال شاشة مطابقة الحضور في لوحة تحكم الإشراف.';
+                if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                    await window.MonirPopup.alert(blockSupMsg, 'الرصد خاص بالإشراف', 'info');
+                } else {
+                    alert(blockSupMsg);
+                }
+                return;
+            }
+
             let confirmed = false;
             const confirmMsg = 'هل تود بالتأكيد التراجع عن تسجيل الحصة لهذا اليوم؟\nسيتم إعادة الحصة تلقائياً لرصيد الطالب وإلغاء تسجيل اليوم.';
             if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
@@ -2014,12 +2073,11 @@
                         await client.from('enrollments').update(updates).eq('id', e.id);
 
                         try {
-                            const todayStart = new Date();
-                            todayStart.setHours(0, 0, 0, 0);
+                            const deleteStart = new Date(Date.now() - 30 * 3600 * 1000).toISOString();
                             await client.from('attendance')
                                 .delete()
                                 .eq('student_id', studentId)
-                                .gte('joined_at', todayStart.toISOString());
+                                .gte('joined_at', deleteStart);
                         } catch(attDelErr) {
                             console.warn('Attendance delete on undo notice:', attDelErr);
                         }
@@ -2031,13 +2089,14 @@
                                 amount: 0,
                                 payment_method: 'معلم',
                                 status: 'completed',
-                                notes: `تراجع عن تسجيل ${status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : 'عذر'} واستعادة حصة بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
+                                whatsapp_message: `تراجع عن تسجيل ${status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : 'عذر'} واستعادة حصة بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
                             }]);
                         } catch(pErr) {}
                     }
                 }
                 localStorage.removeItem(todayKey);
                 localStorage.removeItem('monir_att_' + studentId + '_' + todayUtcStr);
+                localStorage.removeItem('monir_att_by_supervisor_' + studentId);
                 if (window.todaySupabaseAttMap) {
                     delete window.todaySupabaseAttMap[studentId];
                 }
@@ -2779,6 +2838,13 @@
             const notif = e.detail;
             if (notif && notif.teacher_id === currentTeacherId) {
                 updateTeacherNotificationsBadge();
+            }
+        });
+
+        // Silently sync teacher groups and attendance when window is focused
+        window.addEventListener('focus', () => {
+            if (typeof loadTeacherGroups === 'function') {
+                loadTeacherGroups();
             }
         });
     </script>

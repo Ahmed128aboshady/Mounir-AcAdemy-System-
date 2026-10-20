@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260918_v3"></script>
     <script src="js/api_mock.js?v=20260918_v3"></script>
-<script src="js/student_ledger.js?v=20261020_v3"></script>
+<script src="js/student_ledger.js?v=20261020_v4"></script>
     <script src="js/teacher_notifications.js?v=20261003_v2"></script>
     <script>
         // Access Guard for Admin
@@ -3192,17 +3192,22 @@
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 try {
                     const client = window.MonirDB.getClient();
-                    const startIso = dailyMatchingSelectedDate + 'T00:00:00.000Z';
-                    const endIso = dailyMatchingSelectedDate + 'T23:59:59.999Z';
+                    // Query attendance within session window: from 4 hours before day start to 32 hours after day start
+                    const dObj = new Date(dailyMatchingSelectedDate + 'T00:00:00');
+                    const startIso = new Date(dObj.getTime() - 4 * 3600 * 1000).toISOString();
+                    const endIso = new Date(dObj.getTime() + 32 * 3600 * 1000).toISOString();
                     const { data: attData } = await client
                         .from('attendance')
                         .select('*')
                         .gte('joined_at', startIso)
-                        .lte('joined_at', endIso);
+                        .lte('joined_at', endIso)
+                        .order('joined_at', { ascending: false });
 
                     if (Array.isArray(attData)) {
                         attData.forEach(a => {
-                            if (a.student_id) supabaseAttMap[a.student_id] = a;
+                            if (a.student_id && !supabaseAttMap[a.student_id]) {
+                                supabaseAttMap[a.student_id] = a;
+                            }
                         });
                     }
                 } catch(err) {}
@@ -3228,13 +3233,16 @@
 
                     let status = 'not_recorded';
                     let recordedAt = '—';
+                    let recordedRole = '';
 
                     if (supaRec) {
                         status = supaRec.status || 'present';
+                        const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
+                        recordedRole = isSup ? 'إشراف' : 'معلم';
                         if (supaRec.joined_at) {
                             try {
                                 const dt = new Date(supaRec.joined_at);
-                                recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                                recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + ` (${recordedRole})`;
                             } catch(e) {}
                         }
                     } else if (localStatus) {
@@ -3272,6 +3280,7 @@
                         is_inactive: s.is_inactive || false,
                         remaining_credits: s.remaining_credits || 0,
                         recorded_at: recordedAt,
+                        recorded_role: recordedRole,
                         surah: s.current_surah || '—',
                         manual_match: manualMatch,
                         is_scheduled: isScheduledToday
@@ -3285,10 +3294,12 @@
                     const supaRec = supabaseAttMap[sid];
                     const s = studentsList.find(st => st.id === sid) || {};
                     let recordedAt = '—';
+                    const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
+                    const extraRole = isSup ? 'إشراف' : 'معلم';
                     if (supaRec.joined_at) {
                         try {
                             const dt = new Date(supaRec.joined_at);
-                            recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                            recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + ` (${extraRole})`;
                         } catch(e) {}
                     }
                     const manualMatchKey = 'monir_sup_match_' + sid + '_' + dailyMatchingSelectedDate;
@@ -3305,6 +3316,7 @@
                         lecture_time: s.lecture_time || '—',
                         status: supaRec.status || 'present',
                         recorded_at: recordedAt,
+                        recorded_role: extraRole,
                         surah: s.current_surah || '—',
                         manual_match: localStorage.getItem(manualMatchKey) || '',
                         is_scheduled: false
@@ -3397,12 +3409,16 @@
                 let statusBadge = '';
                 const isRecorded = (r.status === 'present' || r.status === 'absent' || r.status === 'excused');
 
+                const roleBadge = (r.recorded_role === 'إشراف')
+                    ? '<span class="bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.2 rounded-md text-[9px] mr-1">إشراف</span>'
+                    : (r.recorded_role === 'معلم' ? '<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold px-1.5 py-0.2 rounded-md text-[9px] mr-1">معلم</span>' : '');
+
                 if (r.status === 'present') {
-                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✓</span><span>حاضر</span></span>';
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✓</span><span>حاضر</span> ${roleBadge}</span>`;
                 } else if (r.status === 'absent') {
-                    statusBadge = '<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غائب</span></span>';
+                    statusBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غائب</span> ${roleBadge}</span>`;
                 } else if (r.status === 'excused') {
-                    statusBadge = '<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span></span>';
+                    statusBadge = `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span> ${roleBadge}</span>`;
                 } else if (r.is_inactive || r.remaining_credits <= 0) {
                     statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
                 } else {
@@ -3487,32 +3503,46 @@
                 }
                 const client = window.MonirDB.getClient();
 
-                // 1. Cloud Idempotency check: Make sure no attendance already exists for this student on this date
-                // Local cache check for same-day recording
-            const localAttKey = 'monir_att_' + studentId + '_' + dateStr;
-            const existingLocal = localStorage.getItem(localAttKey);
-            if (existingLocal) {
-                const exStatus = existingLocal === 'present' ? 'حضور' : existingLocal === 'absent' ? 'غياب' : 'عذر';
-                alert(`تنبيه أمان: تم رصد هذا الطالب مسبقاً لهذا التاريخ (${dateStr}) بحالة (${exStatus})!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر.`);
-                await loadDailyAttendanceMatchingData();
-                return;
-            }
-
-            const startOfDay = dateStr + 'T00:00:00.000Z';
-                const endOfDay = dateStr + 'T23:59:59.999Z';
-
-                const { data: existingAtt } = await client
-                    .from('attendance')
-                    .select('id, status, joined_at')
-                    .eq('student_id', studentId)
-                    .gte('joined_at', startOfDay)
-                    .lte('joined_at', endOfDay)
-                    .limit(1);
-
-                if (existingAtt && existingAtt.length > 0) {
-                    const ex = existingAtt[0];
-                    const exStatus = ex.status === 'present' ? 'حضور' : ex.status === 'absent' ? 'غياب' : 'عذر';
+                // 1. Cloud Idempotency check: Make sure no attendance already exists for this student on or around this session (within 30 hours or same date)
+                const localAttKey = 'monir_att_' + studentId + '_' + dateStr;
+                const existingLocal = localStorage.getItem(localAttKey);
+                if (existingLocal) {
+                    const exStatus = existingLocal === 'present' ? 'حضور' : existingLocal === 'absent' ? 'غياب' : 'عذر';
                     alert(`تنبيه أمان: تم رصد هذا الطالب مسبقاً لهذا التاريخ (${dateStr}) بحالة (${exStatus})!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر.`);
+                    await loadDailyAttendanceMatchingData();
+                    return;
+                }
+
+                const { data: recentAtt } = await client
+                    .from('attendance')
+                    .select('id, status, joined_at, course_name')
+                    .eq('student_id', studentId)
+                    .order('joined_at', { ascending: false })
+                    .limit(5);
+
+                let isDuplicate = false;
+                let dupAtt = null;
+                if (recentAtt && recentAtt.length > 0) {
+                    const selMs = new Date(dateStr + 'T12:00:00').getTime();
+                    for (const att of recentAtt) {
+                        if (!att.joined_at) continue;
+                        const attDate = att.joined_at.split('T')[0];
+                        const attMs = new Date(att.joined_at).getTime();
+                        const hoursDiff = Math.abs(selMs - attMs) / (1000 * 3600);
+                        if (attDate === dateStr || hoursDiff < 30) {
+                            isDuplicate = true;
+                            dupAtt = att;
+                            break;
+                        }
+                    }
+                }
+
+                if (isDuplicate && dupAtt) {
+                    const ex = dupAtt;
+                    const exStatus = ex.status === 'present' ? 'حضور' : ex.status === 'absent' ? 'غياب' : 'عذر';
+                    const isBySup = !!(ex.course_name && ex.course_name.includes('[إشراف]'));
+                    const roleTxt = isBySup ? 'بواسطة الإشراف' : 'بواسطة المعلم';
+                    alert(`تنبيه أمان قاطع: تم رصد هذا الطالب مسبقاً (${roleTxt}) بحالة (${exStatus}) في السحابة!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`);
                     await loadDailyAttendanceMatchingData();
                     return;
                 }
@@ -3546,24 +3576,24 @@
                 // Update enrollments
                 await client.from('enrollments').update(updates).eq('id', enr.id);
 
-                // Insert official attendance record for the specific date
+                // Insert official attendance record for the specific date with [إشراف] marker
                 await client.from('attendance').insert([{
                     student_id: studentId,
                     lecture_id: null,
-                    course_name: enr.course_name || 'مسار القرآن الكريم والتدبر',
+                    course_name: (enr.course_name || 'مسار القرآن الكريم والتدبر') + ' [إشراف]',
                     status: status,
                     joined_at: dateStr + 'T12:00:00.000Z',
                     duration_minutes: parseInt(enr.session_duration) || 20
                 }]);
 
-                // Insert audit trail in payments
+                // Insert audit trail in payments (using whatsapp_message)
                 try {
                     await client.from('payments').insert([{
                         student_id: studentId,
                         amount: 0,
                         payment_method: 'إشراف',
                         status: 'completed',
-                        notes: `رصد ${status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : 'عذر'} رسمي من شاشة المطابقة بواسطة الإشراف لتاريخ ${dateStr}`
+                        whatsapp_message: `رصد ${status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : 'عذر'} رسمي من شاشة المطابقة بواسطة الإشراف لتاريخ ${dateStr}`
                     }]);
                 } catch(pErr) {}
 
@@ -3631,25 +3661,26 @@
                     await client.from('enrollments').update(updates).eq('id', enr.id);
                 }
 
-                // 2. Delete attendance row for this date
-                const startOfDay = dateStr + 'T00:00:00.000Z';
-                const endOfDay = dateStr + 'T23:59:59.999Z';
+                // 2. Delete attendance row for this date/session
+                const dObj = new Date(dateStr + 'T12:00:00');
+                const startWindow = new Date(dObj.getTime() - 14 * 3600 * 1000).toISOString();
+                const endWindow = new Date(dObj.getTime() + 18 * 3600 * 1000).toISOString();
 
                 await client
                     .from('attendance')
                     .delete()
                     .eq('student_id', studentId)
-                    .gte('joined_at', startOfDay)
-                    .lte('joined_at', endOfDay);
+                    .gte('joined_at', startWindow)
+                    .lte('joined_at', endWindow);
 
-                // 3. Payment audit trail
+                // 3. Payment audit trail (using whatsapp_message)
                 try {
                     await client.from('payments').insert([{
                         student_id: studentId,
                         amount: 0,
                         payment_method: 'إشراف',
                         status: 'completed',
-                        notes: `تراجع عن رصد ${statusLabel} واستعادة حصة بواسطة الإشراف لتاريخ ${dateStr}`
+                        whatsapp_message: `تراجع عن رصد ${statusLabel} واستعادة حصة بواسطة الإشراف لتاريخ ${dateStr}`
                     }]);
                 } catch(pErr) {}
 
