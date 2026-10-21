@@ -3715,7 +3715,7 @@
                         const attDate = att.joined_at.split('T')[0];
                         const attMs = new Date(att.joined_at).getTime();
                         const hoursDiff = Math.abs(selMs - attMs) / (1000 * 3600);
-                        if (attDate === dateStr || hoursDiff < 30) {
+                        if (attDate === dateStr || hoursDiff < 36) {
                             isDuplicate = true;
                             dupAtt = att;
                             break;
@@ -3763,12 +3763,14 @@
                 await client.from('enrollments').update(updates).eq('id', enr.id);
 
                 // Insert official attendance record for the specific date with [إشراف] marker
+                const todayStr = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
+                const joinedAtTime = (dateStr === todayStr) ? new Date().toISOString() : (dateStr + 'T12:00:00.000Z');
                 await client.from('attendance').insert([{
                     student_id: studentId,
                     lecture_id: null,
                     course_name: (enr.course_name || 'مسار القرآن الكريم والتدبر') + ' [إشراف]',
                     status: status,
-                    joined_at: dateStr + 'T12:00:00.000Z',
+                    joined_at: joinedAtTime,
                     duration_minutes: parseInt(enr.session_duration) || 20
                 }]);
 

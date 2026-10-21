@@ -494,7 +494,48 @@
             }
 
             loadTeacherGroups();
+            setupTeacherRealtimeSync();
         });
+
+        function setupTeacherRealtimeSync() {
+            let channelSubscribed = false;
+            function trySubscribe() {
+                if (channelSubscribed) return;
+                if (window.MonirDB && window.MonirDB.getClient()) {
+                    try {
+                        const client = window.MonirDB.getClient();
+                        if (client && typeof client.channel === 'function') {
+                            client.channel('teacher-attendance-cloud-sync')
+                                .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
+                                    if (typeof loadTeacherGroups === 'function') {
+                                        loadTeacherGroups(true);
+                                    }
+                                })
+                                .subscribe();
+                            channelSubscribed = true;
+                        }
+                    } catch(e) {
+                        console.warn('Realtime subscription notice:', e);
+                    }
+                }
+                if (!channelSubscribed) {
+                    setTimeout(trySubscribe, 2000);
+                }
+            }
+            trySubscribe();
+
+            window.addEventListener('focus', () => {
+                if (typeof loadTeacherGroups === 'function') {
+                    loadTeacherGroups(true);
+                }
+            });
+
+            setInterval(() => {
+                if (typeof loadTeacherGroups === 'function' && document.visibilityState === 'visible') {
+                    loadTeacherGroups(true);
+                }
+            }, 30000);
+        }
 
         async function loadAllTeachersForAdminSwitcher(activeId) {
             const sel = document.getElementById('adminTeacherQuickSelect');
@@ -594,9 +635,11 @@
         }
         window.formatLastAttendanceInfo = formatLastAttendanceInfo;
 
-        async function loadTeacherGroups() {
+        async function loadTeacherGroups(silent = false) {
             const container = document.getElementById('groupsContainer');
-            container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-xs text-slate-400 font-bold mb-2">جاري التحميل...</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
+            if (!silent && container) {
+                container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-xs text-slate-400 font-bold mb-2">جاري التحميل...</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
+            }
 
             try {
                 // Ensure MonirDB client is initialized
@@ -637,7 +680,7 @@
 
                         // Preload latest attendance records and today's attendance for all students of this teacher
                         const latestAttendanceMap = {};
-                        window.todaySupabaseAttMap = window.todaySupabaseAttMap || {};
+                        window.todaySupabaseAttMap = {};
                         const todayDateStr = getMonirLocalDateStr();
                         const todayUtcStr = new Date().toISOString().split('T')[0];
                         try {
@@ -657,16 +700,22 @@
                                                 joined_at: a.joined_at
                                             };
                                         }
-                                        // Real-time Cloud Detection for Today / Recent Session (checks local date, UTC date, or within 30 hours)
+                                        // Real-time Cloud Detection for Today / Recent Session
                                         const attMs = a.joined_at ? new Date(a.joined_at).getTime() : 0;
                                         const hoursDiff = (nowMs - attMs) / (1000 * 3600);
+                                        const absHours = Math.abs(hoursDiff);
                                         const isSameDay = a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr));
-                                        const isRecentSlot = (hoursDiff >= 0 && hoursDiff < 30);
                                         const isBySupervisor = !!(a.course_name && a.course_name.includes('[إشراف]'));
                                         const isPostponed = !!(a.course_name && a.course_name.includes('[تأجيل'));
                                         const effectiveStatus = isPostponed ? 'postponed' : a.status;
 
-                                        if ((isSameDay || isRecentSlot) && !window.todaySupabaseAttMap[a.student_id]) {
+                                        // Strict Supervisor Lock: Supervisor record locks the teacher portal across the entire 60-hour session window or same day
+                                        // Teacher records lock out for same day or 30 hours
+                                        const isLocked = isBySupervisor
+                                            ? (isSameDay || absHours < 60)
+                                            : (isSameDay || (hoursDiff >= -4 && hoursDiff < 30));
+
+                                        if (isLocked && !window.todaySupabaseAttMap[a.student_id]) {
                                             window.todaySupabaseAttMap[a.student_id] = {
                                                 id: a.id,
                                                 status: effectiveStatus,
@@ -679,9 +728,13 @@
                                                 localStorage.setItem('monir_att_' + a.student_id + '_' + todayUtcStr, effectiveStatus);
                                                 if (isBySupervisor) {
                                                     localStorage.setItem('monir_att_by_supervisor_' + a.student_id, '1');
+                                                } else {
+                                                    localStorage.removeItem('monir_att_by_supervisor_' + a.student_id);
                                                 }
                                                 if (isPostponed) {
                                                     localStorage.setItem('monir_att_postponed_' + a.student_id, '1');
+                                                } else {
+                                                    localStorage.removeItem('monir_att_postponed_' + a.student_id);
                                                 }
                                             } catch(e) {}
                                         }
@@ -1882,7 +1935,7 @@
                     try {
                         const client = window.MonirDB.getClient();
 
-                        // Strict Real-Time Cloud Idempotency Check: Verify in Supabase across today and recent 30 hours
+                        // Strict Real-Time Cloud Idempotency Check: Verify in Supabase across today and recent hours
                         const { data: recentAtt } = await client
                             .from('attendance')
                             .select('id, status, joined_at, course_name')
@@ -1897,9 +1950,14 @@
                                 if (!att.joined_at) continue;
                                 const attMs = new Date(att.joined_at).getTime();
                                 const hoursDiff = (nowMs - attMs) / (1000 * 3600);
+                                const absHours = Math.abs(hoursDiff);
                                 const isSameDay = att.joined_at.startsWith(todayDateStr) || att.joined_at.startsWith(todayUtcStr);
-                                const isWithinRecentSlot = (hoursDiff >= 0 && hoursDiff < 30);
-                                if (isSameDay || isWithinRecentSlot) {
+                                const isBySup = !!(att.course_name && att.course_name.includes('[إشراف]'));
+                                const isBlocked = isBySup 
+                                    ? (isSameDay || absHours < 60)
+                                    : (isSameDay || (hoursDiff >= -4 && hoursDiff < 30));
+
+                                if (isBlocked) {
                                     duplicateRecord = att;
                                     break;
                                 }
@@ -1928,7 +1986,7 @@
                                 localStorage.setItem(todayKey, duplicateRecord.status);
                                 if (isBySup) localStorage.setItem('monir_att_by_supervisor_' + studentId, '1');
                             } catch(e) {}
-                            await loadTeacherGroups();
+                            await loadTeacherGroups(true);
                             return;
                         }
 
