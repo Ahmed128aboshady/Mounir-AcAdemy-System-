@@ -104,7 +104,9 @@
             const cleanDigits = u.replace(/\D/g, '');
 
             // Query users table for matching username, email, or phone
-            let orCond = `username.ilike.${u},email.ilike.${u}`;
+            let orCond = (u === 'admin' || u === 'mounir')
+                ? 'username.ilike.mounir,username.ilike.admin,email.ilike.mounir@monir-academy.edu.eg,email.ilike.admin@monir-academy.edu.eg'
+                : `username.ilike.${u},email.ilike.${u}`;
             if (cleanDigits.length >= 8) {
                 orCond += `,phone.ilike.%${cleanDigits.slice(-9)}%`;
             }
@@ -115,7 +117,7 @@
                 .or(orCond);
 
             // For admin, strictly enforce exact password check (no universal bypass allowed)
-            if (expectedRole === 'admin' || u === 'admin') {
+            if (expectedRole === 'admin' || u === 'admin' || u === 'mounir') {
                 if (!p) return { error: 'يرجى إدخال كلمة المرور' };
                 query = query.eq('password_hash', p);
             } else if (p !== '123456' && p !== '') {
