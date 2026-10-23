@@ -5219,7 +5219,7 @@ function renderGeneralTrackView() {
                 const mSub = (cachedStudentSubmissions || []).find(s => s.quiz_id === mInfo.id || (s.quiz_title || '').includes(mInfo.title));
                 const now = new Date();
                 const startWindow = new Date('2026-10-16T00:00:00');
-                const endWindow = new Date('2026-10-19T23:59:59');
+                const endWindow = new Date('2026-10-23T23:59:59');
 
                 return `
                     <div class="bg-gradient-to-r from-[#171D3B] via-[#1F274B] to-[#2B3564] text-white p-4 sm:p-4.5 rounded-2xl shadow-md border border-indigo-900/60 mt-3 space-y-3">
@@ -5232,7 +5232,7 @@ function renderGeneralTrackView() {
                                 <strong class="text-sm sm:text-base font-black text-white block">${mInfo.title}</strong>
                             </div>
                             <span class="text-[11px] font-bold text-amber-200 bg-amber-950/50 px-3 py-1 rounded-xl border border-amber-400/30">
-                                متاح من 16 إلى 19 أكتوبر 2026
+                                متاح حتى اليوم الجمعة 23 أكتوبر 2026 (12:00 منتصف الليل)
                             </span>
                         </div>
 
@@ -5658,7 +5658,7 @@ window.MONTHLY_EXAMS_DATA = {
       "id": 1001,
       "course_name": "مسار القرآن الكريم والتدبر",
       "title": "امتحان التفسير والتدبر — ملخص الشهر الأول",
-      "description": "{\"track\": \"tafsir\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار التفسير والتدبر يغطي الحلقات والمحاضرات من سورة لقمان والتطبيقات الإيمانية والعملية.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-19T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
+      "description": "{\"track\": \"tafsir\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار التفسير والتدبر يغطي الحلقات والمحاضرات من سورة لقمان والتطبيقات الإيمانية والعملية.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-23T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
       "total_questions": 20,
       "passing_score": 70
     },
@@ -5666,7 +5666,7 @@ window.MONTHLY_EXAMS_DATA = {
       "id": 1002,
       "course_name": "مسار القرآن الكريم والتدبر",
       "title": "امتحان الحديث الشريف والسنة النبوية — ملخص الشهر الأول",
-      "description": "{\"track\": \"hadith\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار الحديث الشريف والسنة النبوية يغطي مجالس الحديث والتطبيقات التربوية للأحاديث الشريفة.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-19T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
+      "description": "{\"track\": \"hadith\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار الحديث الشريف والسنة النبوية يغطي مجالس الحديث والتطبيقات التربوية للأحاديث الشريفة.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-23T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
       "total_questions": 20,
       "passing_score": 70
     },
@@ -5674,7 +5674,7 @@ window.MONTHLY_EXAMS_DATA = {
       "id": 1003,
       "course_name": "مسار القرآن الكريم والتدبر",
       "title": "امتحان أحكام التجويد ومخارج الحروف — ملخص الشهر الأول",
-      "description": "{\"track\": \"tajweed\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار أحكام التجويد يغطي أحكام النون الساكنة والتنوين والمخارج والتطبيقات العملية في جزء عم.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-19T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
+      "description": "{\"track\": \"tajweed\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار أحكام التجويد يغطي أحكام النون الساكنة والتنوين والمخارج والتطبيقات العملية في جزء عم.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-23T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
       "total_questions": 20,
       "passing_score": 70
     }
@@ -7373,7 +7373,7 @@ function loadQuizzesList() {
     ];
 
     const now = new Date();
-    const isExpired = now > new Date('2026-10-19T23:59:59');
+    const isExpired = now > new Date('2026-10-23T23:59:59');
 
     container.innerHTML = monthlyQuizzes.map(q => {
         const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === q.id || (s.quiz_title || '').includes(q.title));
@@ -7406,7 +7406,7 @@ function loadQuizzesList() {
         } else {
             statusBadge = `
                 <span class="text-[10px] sm:text-[11px] font-black text-blue-800 bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-full animate-pulse">
-                    متاح للحل الآن • يغلق 12:00 منتصف الليل
+                    متاح للحل الآن • يغلق 12:00 منتصف ليل اليوم الجمعة
                 </span>
             `;
             actionBtn = `
@@ -7424,7 +7424,7 @@ function loadQuizzesList() {
                             الامتحان الشهري الشامل
                         </span>
                         <span class="text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
-                            16 - 19 أكتوبر
+                            16 - 23 أكتوبر
                         </span>
                         ${statusBadge}
                     </div>
@@ -7472,7 +7472,7 @@ async function startQuiz(quizId) {
     if (isMonthly) {
         const now = new Date();
         const startWindow = new Date('2026-10-16T00:00:00');
-        const endWindow = new Date('2026-10-19T23:59:59');
+        const endWindow = new Date('2026-10-23T23:59:59');
         if (now < startWindow) {
             alert('عذراً، تبدأ فترة الامتحان الشهري يوم الجمعة 16 أكتوبر 2026.');
             backToQuizList();
@@ -7484,7 +7484,7 @@ async function startQuiz(quizId) {
                 viewQuizReview(quizId);
                 return;
             } else {
-                alert('عذراً، انتهت فترة أداء الامتحان الشهري يوم الاثنين 19 أكتوبر 2026.');
+                alert('عذراً، انتهت فترة أداء الامتحان الشهري (أُغلق الاختبار الساعة 12:00 منتصف ليل اليوم الجمعة 23 أكتوبر 2026).');
                 backToQuizList();
                 return;
             }
@@ -7495,7 +7495,7 @@ async function startQuiz(quizId) {
     const qMetaEl = document.getElementById('activeQuizMeta');
     if (qTitleEl) qTitleEl.textContent = quiz.title;
     if (qMetaEl) {
-        qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال) • ينتهي 19 أكتوبر';
+        qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال) • ينتهي اليوم 23 أكتوبر الساعة 12:00 منتصف الليل';
     }
 
     const container = document.getElementById('quizQuestionsContainer');
