@@ -5219,7 +5219,7 @@ function renderGeneralTrackView() {
                 const mSub = (cachedStudentSubmissions || []).find(s => s.quiz_id === mInfo.id || (s.quiz_title || '').includes(mInfo.title));
                 const now = new Date();
                 const startWindow = new Date('2026-10-16T00:00:00');
-                const endWindow = new Date('2026-10-23T23:59:59');
+                const endWindow = new Date('2026-10-24T00:59:59+02:00');
 
                 return `
                     <div class="bg-gradient-to-r from-[#171D3B] via-[#1F274B] to-[#2B3564] text-white p-4 sm:p-4.5 rounded-2xl shadow-md border border-indigo-900/60 mt-3 space-y-3">
@@ -5242,11 +5242,16 @@ function renderGeneralTrackView() {
                             </p>
                             <div class="w-full sm:w-auto shrink-0">
                                 ${mSub ? `
-                                    <button type="button" onclick="openQuizModalForId(${mInfo.id})" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition shadow cursor-pointer">
-                                        عرض النتيجة ومراجعة الإجابات
-                                    </button>
+                                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                        <button type="button" onclick="viewQuizReview(${mInfo.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow cursor-pointer">
+                                            عرض النتيجة السابقة
+                                        </button>
+                                        <button type="button" onclick="startQuiz(${mInfo.id})" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition shadow cursor-pointer">
+                                            بدء الامتحان (متاح حتى 12:00 منتصف الليل)
+                                        </button>
+                                    </div>
                                 ` : `
-                                    <button type="button" onclick="openQuizModalForId(${mInfo.id})" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition shadow cursor-pointer">
+                                    <button type="button" onclick="startQuiz(${mInfo.id})" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition shadow cursor-pointer">
                                         بدء الامتحان الشهري (40 درجة)
                                     </button>
                                 `}
@@ -7338,12 +7343,8 @@ function openQuizModalForId(quizId) {
         quizId = numId || quizId;
     }
 
-    const sub = (cachedStudentSubmissions || []).find(s => Number(s.quiz_id) === Number(quizId));
-    if (sub) {
-        viewQuizReview(quizId);
-    } else {
-        startQuiz(quizId);
-    }
+    // Open the quiz questions immediately so students can solve or retake
+    startQuiz(quizId);
 }
 
 function closeQuizzesModal() {
@@ -7373,7 +7374,9 @@ function loadQuizzesList() {
     ];
 
     const now = new Date();
-    const isExpired = now > new Date('2026-10-23T23:59:59');
+    // Closes at 12:00 midnight tonight (end of Friday 23 October 2026)
+    const deadlineTime = new Date('2026-10-24T00:59:59+02:00');
+    const isExpired = now > deadlineTime;
 
     container.innerHTML = monthlyQuizzes.map(q => {
         const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === q.id || (s.quiz_title || '').includes(q.title));
@@ -7386,11 +7389,19 @@ function loadQuizzesList() {
                 <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
                     تم الحل بنجاح (${sub.score} / ${sub.total_points || 40})
                 </span>
+                ${!isExpired ? `<span class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">مفتوح للإعادة أو التعديل</span>` : ''}
             `;
             actionBtn = `
-                <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center">
-                    مراجعة الإجابات والنتيجة
-                </button>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <button type="button" onclick="viewQuizReview(${q.id})" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white text-xs sm:text-sm font-black px-5 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center whitespace-nowrap">
+                        مراجعة الإجابات والنتيجة
+                    </button>
+                    ${!isExpired ? `
+                        <button type="button" onclick="startQuiz(${q.id})" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 text-xs sm:text-sm font-black px-5 py-3 rounded-xl sm:rounded-2xl transition shadow-xs cursor-pointer block text-center whitespace-nowrap">
+                            بدء الامتحان مجدداً (20 سؤالاً)
+                        </button>
+                    ` : ''}
+                </div>
             `;
         } else if (isExpired) {
             statusBadge = `
@@ -7472,7 +7483,7 @@ async function startQuiz(quizId) {
     if (isMonthly) {
         const now = new Date();
         const startWindow = new Date('2026-10-16T00:00:00');
-        const endWindow = new Date('2026-10-23T23:59:59');
+        const endWindow = new Date('2026-10-24T00:59:59+02:00');
         if (now < startWindow) {
             alert('عذراً، تبدأ فترة الامتحان الشهري يوم الجمعة 16 أكتوبر 2026.');
             backToQuizList();
@@ -8003,7 +8014,7 @@ function renderGradebookTranscript() {
                         ${monthlyScore !== null ? `
                             <strong class="text-emerald-700 font-black text-xs block mt-1">${monthlyScore} / 40</strong>
                         ` : `
-                            <span class="text-amber-700 font-bold block mt-1">متاح (16-19 أكتوبر)</span>
+                            <span class="text-amber-700 font-bold block mt-1">متاح (حتى 12:00 منتصف الليل)</span>
                         `}
                     </div>
                 </div>
