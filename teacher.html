@@ -635,7 +635,33 @@
         }
         window.formatLastAttendanceInfo = formatLastAttendanceInfo;
 
+        // Prevent background refresh from wiping inputs while the teacher is typing
+        window._pendingTeacherReload = false;
+        function isTeacherEditing() {
+            const ae = document.activeElement;
+            if (ae && ['INPUT', 'SELECT', 'TEXTAREA'].includes(ae.tagName) && ae.id !== 'searchInput') return true;
+            const openModal = ['updateSurahModal', 'rateStudentModal'].some(id => {
+                const m = document.getElementById(id);
+                return m && !m.classList.contains('hidden');
+            });
+            if (openModal) return true;
+            if (window._surahSaveTimers && Object.keys(window._surahSaveTimers).length > 0) return true;
+            return false;
+        }
+        document.addEventListener('focusout', () => {
+            setTimeout(() => {
+                if (window._pendingTeacherReload && !isTeacherEditing()) {
+                    window._pendingTeacherReload = false;
+                    loadTeacherGroups(true);
+                }
+            }, 1500);
+        });
+
         async function loadTeacherGroups(silent = false) {
+            if (silent && isTeacherEditing()) {
+                window._pendingTeacherReload = true;
+                return;
+            }
             const container = document.getElementById('groupsContainer');
             if (!silent && container) {
                 container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-xs text-slate-400 font-bold mb-2">جاري التحميل...</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
@@ -1011,6 +1037,17 @@
                 return;
             }
 
+            const _openGroupIds = Array.from(container.querySelectorAll('.teacher-group-content:not(.hidden)')).map(c => c.id);
+            const _prevScrollY = window.scrollY;
+            setTimeout(() => {
+                _openGroupIds.forEach(cid => {
+                    const idSafe = cid.replace('content-', '');
+                    const c = document.getElementById(cid);
+                    if (c && c.classList.contains('hidden')) toggleTeacherGroup(idSafe);
+                });
+                if (_openGroupIds.length) window.scrollTo(0, _prevScrollY);
+            }, 0);
+
             container.innerHTML = '';
             groups.forEach((g, gIdx) => {
                 let cleanGid = (g.group_id || 'G000').toString().trim();
@@ -1356,7 +1393,25 @@
     ];
 
 
-        async function handleSurahOrTargetChange(studentId, enrollmentId, studentCode) {
+        window._surahSaveTimers = window._surahSaveTimers || {};
+        function handleSurahOrTargetChange(studentId, enrollmentId, studentCode) {
+            clearTimeout(window._surahSaveTimers[studentId]);
+            window._surahSaveTimers[studentId] = setTimeout(() => {
+                const targetInput = document.getElementById('target-ayat-' + studentId);
+                const surahSelect = document.getElementById('surah-select-' + studentId);
+                const ae = document.activeElement;
+                if (ae && (ae === targetInput || ae === surahSelect)) {
+                    // still typing in this row: wait until she finishes
+                    delete window._surahSaveTimers[studentId];
+                    handleSurahOrTargetChange(studentId, enrollmentId, studentCode);
+                    return;
+                }
+                delete window._surahSaveTimers[studentId];
+                saveSurahOrTargetNow(studentId, enrollmentId, studentCode);
+            }, 2500);
+        }
+
+        async function saveSurahOrTargetNow(studentId, enrollmentId, studentCode) {
             const surahSelect = document.getElementById('surah-select-' + studentId);
             const targetInput = document.getElementById('target-ayat-' + studentId);
             if (!surahSelect || !targetInput) return;
@@ -1762,7 +1817,6 @@
                                    value="${currentTargetAya || ''}" 
                                    placeholder="عدد الآيات" 
                                    onchange="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
-                                   onblur="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
                                    class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none transition text-center shadow-2xs">
                         </div>
                     </td>
@@ -3245,7 +3299,7 @@
         // Silently sync teacher groups and attendance when window is focused
         window.addEventListener('focus', () => {
             if (typeof loadTeacherGroups === 'function') {
-                loadTeacherGroups();
+                loadTeacherGroups(true);
             }
         });
     </script>
