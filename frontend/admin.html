@@ -17,10 +17,24 @@
     <script src="js/api_mock.js?v=20261023_open_v2"></script>
 <script src="js/student_ledger.js?v=20261020_v4"></script>
     <script src="js/teacher_notifications.js?v=20261003_v2"></script>
+    <style>
+        /* View-Only Supervisor Mode */
+        body.admin-view-only .view-only-hidden {
+            display: none !important;
+        }
+        body.admin-view-only .view-only-disabled {
+            pointer-events: none !important;
+            opacity: 0.55 !important;
+            filter: grayscale(0.6);
+            cursor: not-allowed !important;
+        }
+    </style>
     <script>
-        // Access Guard for Admin
+        // Access Guard for Admin & Security Session Epoch Version
+        const REQUIRED_ADMIN_SESSION_EPOCH = '20261025_session_v2';
         (function checkAdminAuth() {
             const userStr = localStorage.getItem('monir_current_user');
+            const adminSessionEpoch = localStorage.getItem('monir_admin_session_epoch');
             if (!userStr) {
                 window.location.replace('admin-login.html?error=unauthorized');
                 return;
@@ -29,11 +43,124 @@
                 const u = JSON.parse(userStr);
                 if (u.role !== 'admin') {
                     window.location.replace('admin-login.html?error=unauthorized');
+                    return;
+                }
+                // Force logout check for all past supervisor sessions:
+                if (adminSessionEpoch !== REQUIRED_ADMIN_SESSION_EPOCH) {
+                    localStorage.removeItem('monir_current_user');
+                    localStorage.removeItem('monir_auth_token');
+                    localStorage.removeItem('monir_admin_session_epoch');
+                    window.location.replace('admin-login.html?notice=reauth_required&msg=' + encodeURIComponent('تم إنهاء جميع جلسات الإشراف السابقة بنجاح لدواعي الأمان. يرجى إدخال كلمة المرور لتسجيل الدخول مجدداً.'));
+                    return;
                 }
             } catch(e) {
                 window.location.replace('admin-login.html?error=unauthorized');
             }
         })();
+
+        // Check View-Only Admin Mode
+        (function initAdminRoleFlags() {
+            try {
+                const u = JSON.parse(localStorage.getItem('monir_current_user') || '{}');
+                window._isReadOnlyAdmin = !!(u.is_read_only || (u.username && u.username.toLowerCase().includes('view')));
+            } catch(e) {
+                window._isReadOnlyAdmin = false;
+            }
+        })();
+
+        function guardReadOnlyAction(actionDesc) {
+            if (window._isReadOnlyAdmin) {
+                const msg = 'عذراً، هذا الحساب مخصص للمشاهدة والمتابعة فقط، وغير مصرح له بإجراء أي تعديلات أو إضافات أو حذف (' + (actionDesc || 'العملية') + ').';
+                if (window.MonirPopup && window.MonirPopup.alert) {
+                    window.MonirPopup.alert(msg, 'صلاحية مشاهدة فقط', 'info');
+                } else {
+                    alert(msg);
+                }
+                return true;
+            }
+            return false;
+        }
+        window.guardReadOnlyAction = guardReadOnlyAction;
+
+        // Capture and block any form submit by view-only admin
+        document.addEventListener('submit', (e) => {
+            if (window._isReadOnlyAdmin) {
+                e.preventDefault();
+                e.stopPropagation();
+                guardReadOnlyAction('إرسال النماذج وتعديل البيانات');
+                return false;
+            }
+        }, true);
+
+        // Capture and block any mutation button clicks by view-only admin
+        document.addEventListener('click', (e) => {
+            if (!window._isReadOnlyAdmin) return;
+            const btn = e.target.closest('button, a, input[type="button"], input[type="submit"]');
+            if (!btn) return;
+            const onclickAttr = btn.getAttribute('onclick') || '';
+            const text = (btn.innerText || '').trim();
+
+            // Allow navigation, filtering, exporting, printing, accordions, search, modals view
+            const isSafeViewAction = onclickAttr.includes('switchTab') || 
+                                     onclickAttr.includes('switchAdminQuizSubTab') ||
+                                     onclickAttr.includes('switchDailyAttendanceTab') ||
+                                     onclickAttr.includes('toggle') || 
+                                     onclickAttr.includes('filter') || 
+                                     onclickAttr.includes('export') || 
+                                     onclickAttr.includes('print') || 
+                                     onclickAttr.includes('load') || 
+                                     onclickAttr.includes('ensureOpen') || 
+                                     onclickAttr.includes('close') || 
+                                     onclickAttr.includes('download') || 
+                                     onclickAttr.includes('search') || 
+                                     onclickAttr.includes('handleAdminLogout') ||
+                                     onclickAttr.includes('openStudentLedgerModal') ||
+                                     onclickAttr.includes('openAdminLiveChat') ||
+                                     btn.classList.contains('filter-btn') ||
+                                     text.includes('تحديث') || 
+                                     text.includes('تصدير') || 
+                                     text.includes('طباعة') || 
+                                     text.includes('عرض') || 
+                                     text.includes('خروج') || 
+                                     text.includes('بحث') || 
+                                     text.includes('إغلاق') ||
+                                     text.includes('×');
+
+            if (!isSafeViewAction) {
+                const isMutatingAction = onclickAttr.includes('save') || 
+                                         onclickAttr.includes('delete') || 
+                                         onclickAttr.includes('Delete') ||
+                                         onclickAttr.includes('add') || 
+                                         onclickAttr.includes('Add') || 
+                                         onclickAttr.includes('edit') || 
+                                         onclickAttr.includes('Edit') || 
+                                         onclickAttr.includes('bulk') || 
+                                         onclickAttr.includes('Bulk') || 
+                                         onclickAttr.includes('restore') || 
+                                         onclickAttr.includes('settle') || 
+                                         onclickAttr.includes('record') || 
+                                         onclickAttr.includes('postpone') || 
+                                         onclickAttr.includes('reassign') || 
+                                         onclickAttr.includes('create') || 
+                                         onclickAttr.includes('Create') || 
+                                         onclickAttr.includes('reply') ||
+                                         btn.id === 'bulkModalSubmitBtn' ||
+                                         text.includes('حفظ') || 
+                                         text.includes('حذف') || 
+                                         text.includes('إضافة') || 
+                                         text.includes('تعديل') || 
+                                         text.includes('تأكيد') ||
+                                         text.includes('تسجيل') ||
+                                         text.includes('تأجيل');
+
+                if (isMutatingAction) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    guardReadOnlyAction(text || 'التعديل والحفظ');
+                    return false;
+                }
+            }
+        }, true);
     </script>
 </head>
 <body class="bg-slate-100 text-slate-800 pb-20 overflow-x-hidden min-h-screen">
@@ -5588,7 +5715,29 @@
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 const u = JSON.parse(localStorage.getItem('monir_current_user') || '{}');
-                if (u && u.full_name) {
+                const isViewOnly = !!(u.is_read_only || (u.username && u.username.toLowerCase().includes('view')));
+                window._isReadOnlyAdmin = isViewOnly;
+
+                if (isViewOnly) {
+                    document.body.classList.add('admin-view-only');
+                    const el = document.getElementById('adminHeaderName');
+                    if (el) el.innerText = (u.full_name || 'إشراف المتابعة') + ' (مشاهدة فقط)';
+                    
+                    // Show a sticky view-only warning banner under the header
+                    if (!document.getElementById('viewOnlyNoticeBar')) {
+                        const banner = document.createElement('div');
+                        banner.id = 'viewOnlyNoticeBar';
+                        banner.className = 'bg-amber-500 text-slate-950 font-black text-xs sm:text-sm py-2 px-4 text-center sticky top-[57px] z-30 shadow-md flex items-center justify-center gap-2 border-b border-amber-600';
+                        banner.innerHTML = `
+                            <svg class="w-4 h-4 text-slate-950 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <span>حساب إشراف مخصص للمشاهدة والمتابعة فقط (صلاحية القراءة الكاملة دون إمكانية التعديل أو الحذف)</span>
+                        `;
+                        const header = document.querySelector('header');
+                        if (header && header.parentNode) {
+                            header.parentNode.insertBefore(banner, header.nextSibling);
+                        }
+                    }
+                } else if (u && u.full_name) {
                     const el = document.getElementById('adminHeaderName');
                     if (el) el.innerText = u.full_name;
                 }
@@ -5602,12 +5751,14 @@
                         if (confirmed) {
                             localStorage.removeItem('monir_current_user');
                             localStorage.removeItem('monir_auth_token');
+                            localStorage.removeItem('monir_admin_session_epoch');
                             window.location.href = 'admin-login.html';
                         }
                     });
             } else if (confirm("هل ترغب في تسجيل الخروج من لوحة الإدارة؟")) {
                 localStorage.removeItem('monir_current_user');
                 localStorage.removeItem('monir_auth_token');
+                localStorage.removeItem('monir_admin_session_epoch');
                 window.location.href = 'admin-login.html';
             }
         }

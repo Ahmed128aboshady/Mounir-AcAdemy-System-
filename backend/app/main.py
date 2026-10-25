@@ -161,7 +161,7 @@ def auth_login(req: AuthLoginRequest):
     FROM users u
     LEFT JOIN students s ON u.role = 'student' AND (u.related_id = s.id OR u.username = s.student_code)
     LEFT JOIN teachers t ON u.role = 'teacher' AND u.related_id = t.id
-    WHERE (LOWER(u.username) = LOWER(?) OR LOWER(u.email) = LOWER(?) OR (LOWER(?) IN ('mounir', 'admin') AND u.role = 'admin') OR s.student_code = ?) AND u.status = 'active'
+    WHERE (LOWER(u.username) = LOWER(?) OR LOWER(u.email) = LOWER(?) OR (LOWER(?) IN ('mounir', 'admin', 'mounirview', 'supervisorview') AND u.role = 'admin') OR s.student_code = ?) AND u.status = 'active'
     """, (req.username.strip(), req.username.strip(), req.username.strip(), req.username.strip()))
     
     user = c.fetchone()
@@ -186,6 +186,7 @@ def auth_login(req: AuthLoginRequest):
             "username": user["username"],
             "full_name": user["full_name"],
             "role": user["role"],
+            "is_read_only": bool("view" in user["username"].lower()),
             "related_id": user["related_id"],
             "student_id": user["student_id"] or (user["related_id"] if user["role"] == "student" else None),
             "teacher_id": user["teacher_id"] or (user["related_id"] if user["role"] == "teacher" else None),

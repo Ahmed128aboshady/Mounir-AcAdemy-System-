@@ -106,6 +106,8 @@
             // Query users table for matching username, email, or phone
             let orCond = (u === 'admin' || u === 'mounir')
                 ? 'username.ilike.mounir,username.ilike.admin,email.ilike.mounir@monir-academy.edu.eg,email.ilike.admin@monir-academy.edu.eg'
+                : (u === 'mounirview' || u === 'supervisorview' || u === 'view')
+                ? 'username.ilike.mounirview,username.ilike.supervisorview,email.ilike.view@monir-academy.edu.eg'
                 : `username.ilike.${u},email.ilike.${u}`;
             if (cleanDigits.length >= 8) {
                 orCond += `,phone.ilike.%${cleanDigits.slice(-9)}%`;
@@ -117,7 +119,7 @@
                 .or(orCond);
 
             // For admin, strictly enforce exact password check (no universal bypass allowed)
-            if (expectedRole === 'admin' || u === 'admin' || u === 'mounir') {
+            if (expectedRole === 'admin' || u === 'admin' || u === 'mounir' || u === 'mounirview' || u === 'supervisorview' || u === 'view') {
                 if (!p) return { error: 'يرجى إدخال كلمة المرور' };
                 query = query.eq('password_hash', p);
             } else if (p !== '123456' && p !== '') {
@@ -189,6 +191,9 @@
                 }
             }
 
+            if (user && user.username && user.username.toLowerCase().includes('view')) {
+                user.is_read_only = true;
+            }
             const token = 'sb_token_' + user.role + '_' + user.id + '_' + Date.now();
             return { success: true, token: token, user: user, student: studentData };
         },

@@ -257,6 +257,9 @@
 
             localStorage.setItem('monir_current_user', JSON.stringify(user));
             if (token) localStorage.setItem('monir_auth_token', token);
+            if (user.role === 'admin') {
+                localStorage.setItem('monir_admin_session_epoch', '20261025_session_v2');
+            }
 
             alertBox.innerText = 'تم تسجيل الدخول بنجاح! جاري التوجيه إلى بوابتك...';
             alertBox.className = 'mb-4 p-3 rounded-xl text-xs font-bold border bg-emerald-900/40 border-emerald-600 text-emerald-200 block';

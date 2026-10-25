@@ -163,7 +163,8 @@ def seed_all():
     # 4. Insert Admin Account
     cursor.execute('''
     INSERT INTO users (username, password_hash, role, related_id, full_name, email, phone, status)
-    VALUES ('Mounir', 'Mm@593593@2026', 'admin', NULL, 'إدارة أكاديمية منير', 'admin@monir-academy.edu.eg', '01000000000', 'active')
+    VALUES ('Mounir', 'Mm@593593@2026', 'admin', NULL, 'إدارة أكاديمية منير', 'admin@monir-academy.edu.eg', '01000000000', 'active'),
+       ('MounirView', 'View@593593@2026', 'admin', NULL, 'إشراف المتابعة والمشاهدة', 'view@monir-academy.edu.eg', '01000000000', 'active')
     ''')
 
     # 5. Insert Courses
