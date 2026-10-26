@@ -372,6 +372,11 @@
     const OFFICIAL_GROUP_MEET_LINKS = {
         // Tajweed Official Zoom Meeting
         "CMP-T01": "https://zoom.us/j/98264506630",
+        "CMP-H01": "https://zoom.us/j/98264506630",
+        "CMP-F01": "https://zoom.us/j/98264506630",
+        "CMP-TAJWEED": "https://zoom.us/j/98264506630",
+        "CMP-HADITH": "https://zoom.us/j/98264506630",
+        "CMP-TAFSIR": "https://zoom.us/j/98264506630",
         "CMP-TAJWEED": "https://zoom.us/j/98264506630",
         "TAJWEED": "https://zoom.us/j/98264506630",
         "مسار أحكام التجويد ومخارج الحروف": "https://zoom.us/j/98264506630",
@@ -741,7 +746,7 @@
             }
         });
         // Clear any stale jit.si links for Tajweed and force Zoom for competition track CMP-T01
-        ['CMP-T01', 'CMP-TAJWEED'].forEach(gid => {
+        ['CMP-T01', 'CMP-H01', 'CMP-F01', 'CMP-TAJWEED', 'CMP-HADITH', 'CMP-TAFSIR'].forEach(gid => {
             if (stored[gid] && stored[gid].includes('meet.jit.si')) {
                 stored[gid] = 'https://zoom.us/j/98264506630';
                 changed = true;
@@ -783,13 +788,34 @@
         const cleanGid = groupId ? String(groupId).trim() : '';
         const cName = courseName ? String(courseName).trim() : '';
 
-        // Strict Tajweed Competition Course Check (ONLY for the specific competition track, NEVER Quran memorization!)
-        const isStrictTajweedCompetition = (
-            cleanGid === 'CMP-T01' || cleanGid === 'CMP-TAJWEED' ||
-            cName === 'مسار أحكام التجويد ومخارج الحروف' || cName === 'أحكام التجويد ومخارج الحروف' || cName === 'مسار أحكام التجويد'
+        // Strict Competition Course Check (Tajweed, Hadith, Tafsir - NEVER JITSI!)
+        const isAnyCompetition = (
+            cleanGid.startsWith('CMP-') ||
+            cName.includes('مسابقة') || cName.includes('الحديث') || cName.includes('التجويد') || cName.includes('التفسير والتدبر') ||
+            (typeof currentPortalTrack !== 'undefined' && currentPortalTrack === 'competition')
         );
 
-        if (isStrictTajweedCompetition) {
+        if (isAnyCompetition) {
+            if (cleanGid === 'CMP-H01' || cName.includes('الحديث')) {
+                // If student gender/age info is available via window
+                if (typeof window !== 'undefined' && window.MONDAY_HADITH_CONFIG && window.currentStudentData) {
+                    const st = window.currentStudentData.student || {};
+                    const sName = st.name || '';
+                    const sExplicit = st.gender || st.parent_name;
+                    const sCode = st.student_code || st.id;
+                    const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'f';
+                    const age = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(st.age) || 9);
+                    if (gender === 'm' && age < 10) {
+                        return window.MONDAY_HADITH_CONFIG.boys_under_10.url; // Google Meet
+                    } else if (gender === 'f' && age >= 10) {
+                        return window.MONDAY_HADITH_CONFIG.girls_10_and_up.url; // Zoom 99924246069
+                    }
+                }
+                return 'https://zoom.us/j/98264506630';
+            }
+            if (cleanGid === 'CMP-F01' || cName.includes('التفسير والتدبر')) {
+                return 'https://zoom.us/j/98264506630';
+            }
             return 'https://zoom.us/j/98264506630';
         }
 

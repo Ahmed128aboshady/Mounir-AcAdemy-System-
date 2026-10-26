@@ -1563,12 +1563,24 @@ function renderEnrolledCoursesTabs(courses) {
             }
         }
 
-        const isStrictTajweedTrack = (groupId === 'CMP-T01' || groupId === 'CMP-TAJWEED' || cName === 'مسار أحكام التجويد ومخارج الحروف' || cName === 'أحكام التجويد ومخارج الحروف');
-        let meetUrl = isStrictTajweedTrack
-            ? 'https://zoom.us/j/98264506630'
-            : ((typeof window !== 'undefined' && window.getGroupMeetUrl)
+        const isCompetitionCard = (
+            String(groupId).startsWith('CMP-') ||
+            (c && c.track_name === 'competition') ||
+            (typeof currentPortalTrack !== 'undefined' && currentPortalTrack === 'competition') ||
+            cName.includes('الحديث') || cName.includes('التجويد') || cName.includes('التفسير والتدبر')
+        );
+        let meetUrl = '';
+        if (isCompetitionCard) {
+            meetUrl = (c.google_meet_url && !c.google_meet_url.includes('meet.jit.si'))
+                ? c.google_meet_url
+                : ((typeof window !== 'undefined' && window.getGroupMeetUrl)
+                    ? window.getGroupMeetUrl(groupId, c.teacher_id || teacherName, cName)
+                    : 'https://zoom.us/j/98264506630');
+        } else {
+            meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
                 ? window.getGroupMeetUrl(groupId, c.teacher_id || teacherName, cName)
-                : (c.google_meet_url || 'https://meet.google.com'));
+                : (c.google_meet_url || 'https://meet.google.com');
+        }
 
         const activeBorderClass = isSelected 
             ? 'border-2 border-indigo-600 shadow-md ring-2 ring-indigo-200/80' 
@@ -1647,7 +1659,7 @@ function renderEnrolledCoursesTabs(courses) {
 
                     <!-- Actions -->
                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
-                        <button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${isStrictTajweedTrack ? 'https://zoom.us/j/98264506630' : meetUrl}')" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                        <button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                             <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                             <span>دخول القاعة الذكية</span>
                         </button>
@@ -1734,7 +1746,7 @@ function renderEnrolledCoursesTabs(courses) {
                             <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
                             <span>${isStudentAdminPaused ? 'الحساب موقوف إدارياً' : 'رصيدك منتهي (0) — تجديد الآن'}</span>
                            </button>`
-                        : `<button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); joinMeet(null, '${isStrictTajweedTrack ? 'https://zoom.us/j/98264506630' : meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                        : `<button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                             <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                             <span>دخول القاعة الذكية</span>
                            </button>`
@@ -2733,14 +2745,29 @@ function joinMeet(lectureId, meetUrl) {
         return;
     }
 
-    // Strict Tajweed Competition Track check:
-    const isTajweedContext = (
-        (meetUrl && (meetUrl.includes('98264506630') || meetUrl.includes('CMP-T01'))) ||
-        (typeof selectedCourseName !== 'undefined' && (selectedCourseName === 'مسار أحكام التجويد ومخارج الحروف' || selectedCourseName === 'أحكام التجويد ومخارج الحروف'))
+    // Strict Competition Track check (Tajweed, Hadith, Tafsir — ALWAYS Free, NEVER deduct credits, NEVER JITSI):
+    const curCourseInfoForJoin = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
+    const curGidForJoin = curCourseInfoForJoin.group_id || '';
+    const isCompTrackContext = (
+        (meetUrl && (meetUrl.includes('CMP-') || meetUrl.includes('98264506630') || meetUrl.includes('99924246069') || meetUrl.includes('che-nnub-mxf'))) ||
+        String(curGidForJoin).startsWith('CMP-') ||
+        (curCourseInfoForJoin && curCourseInfoForJoin.track_name === 'competition') ||
+        (typeof currentPortalTrack !== 'undefined' && currentPortalTrack === 'competition') ||
+        (typeof selectedCourseName !== 'undefined' && (selectedCourseName.includes('الحديث') || selectedCourseName.includes('التجويد') || selectedCourseName.includes('التفسير والتدبر')))
     );
 
-    if (isTajweedContext) {
-        window.open('https://zoom.us/j/98264506630', '_blank');
+    if (isCompTrackContext) {
+        let compTarget = meetUrl;
+        if (!compTarget || compTarget.includes('meet.jit.si') || compTarget === 'https://meet.google.com') {
+            if (curCourseInfoForJoin && curCourseInfoForJoin.google_meet_url && !curCourseInfoForJoin.google_meet_url.includes('meet.jit.si')) {
+                compTarget = curCourseInfoForJoin.google_meet_url;
+            } else if (typeof window !== 'undefined' && window.getGroupMeetUrl) {
+                compTarget = window.getGroupMeetUrl(curGidForJoin || 'CMP-H01', curCourseInfoForJoin.teacher_id, selectedCourseName);
+            } else {
+                compTarget = 'https://zoom.us/j/98264506630';
+            }
+        }
+        window.open(compTarget, '_blank');
         try {
             if (lectureId) {
                 fetch('/api/lectures/' + lectureId + '/join', {
@@ -2796,11 +2823,16 @@ function joinMeet(lectureId, meetUrl) {
         }
     }
     if (!targetUrl || targetUrl.trim() === '') targetUrl = 'https://meet.google.com';
-    // Final safety: if URL is jitsi but course is strictly Tajweed competition, redirect to zoom
+    // Final safety: if URL is jitsi but course is any competition track, redirect to Zoom/Meet
     if (targetUrl.includes('meet.jit.si')) {
-        const isStrictTaj = (selectedCourseName === 'مسار أحكام التجويد ومخارج الحروف' || (curCourse && curCourse.course_name === 'مسار أحكام التجويد ومخارج الحروف'));
-        if (isStrictTaj) {
-            targetUrl = 'https://zoom.us/j/98264506630';
+        const isComp = (
+            (selectedCourseName && (selectedCourseName.includes('الحديث') || selectedCourseName.includes('التجويد') || selectedCourseName.includes('التفسير والتدبر'))) ||
+            (curCourse && (String(curCourse.group_id).startsWith('CMP-') || curCourse.track_name === 'competition'))
+        );
+        if (isComp) {
+            targetUrl = (curCourse && curCourse.google_meet_url && !curCourse.google_meet_url.includes('meet.jit.si'))
+                ? curCourse.google_meet_url
+                : 'https://zoom.us/j/98264506630';
         }
     }
     window.open(targetUrl, '_blank');
