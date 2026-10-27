@@ -798,17 +798,25 @@
         if (isAnyCompetition) {
             if (cleanGid === 'CMP-H01' || cName.includes('الحديث')) {
                 // If student gender/age info is available via window
-                if (typeof window !== 'undefined' && window.MONDAY_HADITH_CONFIG && window.currentStudentData) {
-                    const st = window.currentStudentData.student || {};
+                if (typeof window !== 'undefined') {
+                    const st = (window.currentStudentData && window.currentStudentData.student) || {};
                     const sName = st.name || '';
-                    const sExplicit = st.gender || st.parent_name;
-                    const sCode = st.student_code || st.id;
-                    const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'f';
+                    const sCode = st.student_code || st.id || '';
+                    const sExplicit = st.gender || '';
+                    const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'm';
                     const age = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(st.age) || 9);
-                    if (gender === 'm' && age < 10) {
-                        return window.MONDAY_HADITH_CONFIG.boys_under_10.url; // Google Meet
-                    } else if (gender === 'f' && age >= 10) {
-                        return window.MONDAY_HADITH_CONFIG.girls_10_and_up.url; // Zoom 99924246069
+                    if (gender === 'm') {
+                        if (age < 10) {
+                            return 'https://meet.google.com/che-nnub-mxf'; // Google Meet for boys under 10
+                        } else {
+                            return 'https://zoom.us/j/98264506630';
+                        }
+                    } else {
+                        if (age >= 10) {
+                            return 'https://zoom.us/j/99924246069';
+                        } else {
+                            return 'https://zoom.us/j/98264506630';
+                        }
                     }
                 }
                 return 'https://zoom.us/j/98264506630';

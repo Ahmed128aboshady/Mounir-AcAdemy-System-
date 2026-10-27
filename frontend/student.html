@@ -33,7 +33,7 @@
         })();
     </script>
     <script src="js/popup.js?v=20260915_fix4"></script>
-    <script src="js/meet_manager.js?v=20261026_comp_zoom"></script>
+    <script src="js/meet_manager.js?v=20261027_nobanner"></script>
     <script src="js/student_genders.js?v=20260922_v1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260923_v1"></script>
@@ -173,19 +173,6 @@
             <button onclick="closeTopBanner()" class="text-amber-700 hover:text-amber-900 text-xs font-bold px-2 py-1 bg-amber-100 rounded-md cursor-pointer shrink-0">حسناً</button>
         </div>
 
-        <!-- Dedicated Real-time Zoom Live Notification Banner (إشعار وتنبيه البث المباشر الفوري) -->
-        <div id="liveZoomBroadcastBanner" class="hidden bg-gradient-to-r from-emerald-700 via-teal-800 to-emerald-900 border-2 border-emerald-400 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
-            <div class="flex items-center gap-3">
-                <div>
-                    <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span class="bg-red-500 text-white font-black text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">بث مباشر الآن</span>
-                        <strong class="text-sm sm:text-base font-black text-white" id="liveZoomBannerTitle">محاضرة البث المباشر (Zoom) متاحة الآن!</strong>
-                    </div>
-                    <p class="text-xs sm:text-[13px] text-emerald-100 font-medium leading-relaxed" id="liveZoomBannerSubtitle">
-                        المحاضرة العامة بدأت الآن مع المعلم. اضغط على الزر للانضمام مباشرة لحلقة اليوم.
-                    </p>
-                </div>
-            </div>
             <a href="https://zoom.us/j/98264506630" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-[#1F274B] hover:bg-slate-900 active:scale-95 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer border border-white/15">
                 <span>انضم للبث المباشر (Zoom)</span>
             </a>
@@ -1707,7 +1694,7 @@
     </script>
 
     <script src="js/api_mock.js?v=20261023_open_v2"></script>
-    <script src="js/student.js?v=20261026_comp_zoom"></script>
+    <script src="js/student.js?v=20261027_nobanner"></script>
     <script src="js/student_ledger.js?v=20261023_open_v2"></script>
 </body>
 </html>

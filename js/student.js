@@ -1079,10 +1079,10 @@ const MONDAY_HADITH_CONFIG = {
     boys_under_10: {
         url: "https://meet.google.com/che-nnub-mxf",
         label: "أولاد أقل من 10 سنوات",
-        timeLabel: "الإثنين 7:30 م - 8:30 م (تفتح 7:20 م)",
+        timeLabel: "الإثنين 8:00 م (أولاد أقل من 10 سنوات)",
         openMins: 1160,  // 19:20 (7:20 PM)
-        startMins: 1170, // 19:30 (7:30 PM)
-        endMins: 1230,   // 20:30 (8:30 PM)
+        startMins: 1200, // 20:00 (8:00 PM)
+        endMins: 1260,   // 21:00 (9:00 PM)
         platform: "Google Meet"
     },
     boys_10_and_up: {
@@ -1217,7 +1217,7 @@ function getFilteredCoursesList() {
                     return {
                         ...c,
                         subscription_days: 'الإثنين',
-                        lecture_time: 'الإثنين 8:00 م (أولاد)',
+                        lecture_time: (age < 10) ? 'الإثنين 8:00 م (أولاد أقل من 10 سنوات)' : 'الإثنين 8:00 م (أولاد 10 سنوات وأكبر)',
                         session_duration: 'جلسة أسبوعية تفاعلية',
                         google_meet_url: hadithMeetUrl
                     };
@@ -4757,13 +4757,14 @@ function syncZoomLiveStatusAll() {
         });
     }
 
-    // 4. Top Real-time Zoom Live Notification Banner
+    // 4. Top Real-time Zoom Live Notification Banner (Permanently disabled per request to avoid confusion)
     const banner = document.getElementById('liveZoomBroadcastBanner');
-    const titleEl = document.getElementById('liveZoomBannerTitle');
-    const subEl = document.getElementById('liveZoomBannerSubtitle');
-    const bannerLink = banner ? banner.querySelector('a') : null;
-
     if (banner) {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+        banner.style.display = 'none';
+    }
+    if (false && banner) {
         // Wednesday Tafsir: بنات >= 10 أو أولاد < 10
         const isWednesdayTarget = (sGender === 'f' && studentAge >= 10) || (sGender === 'm' && studentAge < 10);
         if (wednesdayStatus && wednesdayStatus.isWithinWindow && isWednesdayTarget) {
