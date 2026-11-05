@@ -163,7 +163,7 @@
                     <h2 class="text-lg sm:text-xl font-black text-slate-900 truncate" id="teacherName">جاري التحميل...</h2>
                     <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-mono truncate" id="teacherContact" dir="ltr">—</p>
                 </div>
-                <div class="grid grid-cols-3 gap-1.5 sm:gap-3 w-full md:w-auto">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3 w-full md:w-auto">
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 sm:p-3 text-center min-w-0">
                         <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 truncate">إجمالي الطلاب</div>
                         <div class="text-base sm:text-xl font-black text-blue-900 mt-0.5" id="statStudentCount">0</div>
@@ -172,9 +172,13 @@
                         <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 truncate">المجموعات</div>
                         <div class="text-base sm:text-xl font-black text-emerald-700 mt-0.5" id="statGroupCount">0</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 sm:p-3 text-center min-w-0">
-                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 truncate">المسار</div>
-                        <div class="text-[11px] sm:text-xs font-black text-slate-800 mt-1 sm:mt-1.5 truncate leading-tight">القرآن الكريم</div>
+                    <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-2 sm:p-3 text-center min-w-0 shadow-2xs">
+                        <div class="text-[10px] sm:text-[11px] font-black text-emerald-800 truncate">رصيد الحصص المنجزة</div>
+                        <div class="text-base sm:text-xl font-black text-emerald-900 mt-0.5" id="statTeacherEarnedSessions">0</div>
+                    </div>
+                    <div class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-2 sm:p-3 text-center min-w-0 shadow-2xs">
+                        <div class="text-[10px] sm:text-[11px] font-black text-indigo-800 truncate">المستحقات المقدرة</div>
+                        <div class="text-base sm:text-xl font-black text-indigo-950 mt-0.5" id="statTeacherEarnedBalance">0 ج.م</div>
                     </div>
                 </div>
             </div>
@@ -185,6 +189,10 @@
             <div class="flex-1 flex gap-1.5 sm:gap-2">
                 <input type="text" id="searchInput" onkeyup="filterGroups()" placeholder="ابحث برقم الطالب أو المجموعة..." class="w-full bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
                 <button onclick="loadTeacherGroups()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap cursor-pointer">تحديث</button>
+                <button type="button" onclick="openTeacherSubstituteModal()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center gap-1.5 cursor-pointer" title="تولي تعويض حصة لمعلم آخر لهذا اليوم فقط">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    <span>تولي حصة بديلة</span>
+                </button>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2 justify-end">
                 <button type="button" onclick="toggleAllTeacherGroups(true)" class="flex-1 sm:flex-none bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center justify-center gap-1 cursor-pointer" title="فتح جميع المجموعات">
@@ -1119,6 +1127,15 @@
                 const el = document.createElement('div');
                 el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden transition-all duration-200';
                 el.innerHTML = `
+                    ${g.is_substitute ? `
+                        <div class="bg-amber-500 text-slate-950 px-3 sm:px-5 py-2 flex items-center justify-between text-xs font-black border-b border-amber-600">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-950 text-amber-300 px-2 py-0.5 rounded-lg text-[10px] font-black">حصة تعويضية بديلة اليوم</span>
+                                <span class="text-[11px] text-slate-900">المعلم الأصلي: <strong>${g.original_teacher_name || '—'}</strong></span>
+                            </div>
+                            <span class="text-[10px] bg-slate-900 text-white font-bold px-2 py-0.5 rounded-md">تُحتسب في رصيدك فور الرصد</span>
+                        </div>
+                    ` : ''}
                     <!-- Group Header (Accordion Dropdown Trigger) -->
                     <div class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white px-3 sm:px-5 py-2.5 sm:py-3.5 flex justify-between items-center cursor-pointer select-none group hover:brightness-110 transition gap-2 sm:gap-4" onclick="toggleTeacherGroup('${idSafe}')">
                         <!-- Right Side: Arrow + Group Code + Title & Duration -->
@@ -2063,7 +2080,8 @@
                             if (sessionStatus === 'present') {
                                 updates.remaining_credits = Math.max(0, rc - 1);
                                 if (hasExtendedCols) updates.present_count = (enrData.present_count || 0) + 1;
-                                resultMsg = `تم تسجيل حضور (${stName}) بنجاح ✓\nالرصيد المتبقي للطالب: ${updates.remaining_credits} حصة`;
+                                const isSubToday = (foundStudent && foundStudent.is_substitute) || (window.currentActiveSubGroup === foundStudent?.group_id);
+                                resultMsg = `تم تسجيل حضور (${stName}) بنجاح ✓\nتم خصم حصة من رصيد الطالب (المتبقي: ${updates.remaining_credits}) وإضافتها لرصيد حصص المعلم${isSubToday ? ' البديل' : ''} المنجزة.`;
                             } else if (sessionStatus === 'excused') {
                                 updates.excuse_count = excuseCount + 1;
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
@@ -2085,7 +2103,7 @@
                                 await client.from('attendance').insert([{
                                     student_id: studentId,
                                     lecture_id: null,
-                                    course_name: (enrData.course_name || 'مسار القرآن الكريم والتدبر') + ' [معلم]',
+                                    course_name: (enrData.course_name || 'مسار القرآن الكريم والتدبر') + ((foundStudent && foundStudent.is_substitute) ? ` [بديل: ${currentTeacherName || 'المعلم البديل'}]` : ' [معلم]'),
                                     status: sessionStatus,
                                     joined_at: new Date().toISOString(),
                                     duration_minutes: parseInt(enrData.session_duration) || 20
@@ -2109,6 +2127,11 @@
                             localStorage.setItem('monir_att_' + studentId + '_' + todayUtcStr, sessionStatus);
                             if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
                             window.todaySupabaseAttMap[studentId] = { status: sessionStatus, joined_at: new Date().toISOString() };
+                            // Increment teacher earned session tally in real time
+                            updateTeacherEarnedStatsAfterSession(1);
+                            if (foundStudent && foundStudent.is_substitute) {
+                                completeGroupSubstitution(foundStudent.group_id);
+                            }
                             try {
                                 localStorage.setItem('monir_last_att_info_' + studentId, JSON.stringify({
                                     status: sessionStatus,
@@ -3303,5 +3326,51 @@
             }
         });
     </script>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: TAKE SUBSTITUTE SESSION (تولي حصة تعويضية للمعلم)            -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="teacherSubstituteModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-black text-sm sm:text-base text-slate-900">تولي حصة تعويضية كمعلم بديل</h3>
+                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع احتساب الحصة في رصيدك</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTeacherSubstituteModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">اختر المجموعة التي ستعوضها اليوم:</label>
+                    <select id="tSubModalGroupSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري تحميل المجموعات المتاحة...</option>
+                    </select>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-[11px] text-indigo-950 space-y-1">
+                    <p class="font-bold">آلية التعويض المعتمدة:</p>
+                    <p>• ستظهر المجموعة في حسابك لهذا اليوم فقط لتباشر الحصة وترصد الحضور.</p>
+                    <p>• يُخصم الرصيد من الطلاب ويُضاف مباشرة لرصيد حصصك المنجزة ومستحقاتك.</p>
+                    <p>• بعد رصد الحصة، تعود المجموعة تلقائياً لمعلمها الأصلي دون أي لخبطة.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="confirmTeacherTakeSubstitution()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
+                    تأكيد تولي الحصة
+                </button>
+                <button type="button" onclick="closeTeacherSubstituteModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

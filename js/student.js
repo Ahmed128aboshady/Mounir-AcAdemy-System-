@@ -699,6 +699,24 @@ function renderDetailsPanel() {
         const rc = (curCourse.remaining_credits !== undefined) ? curCourse.remaining_credits : (curStudent.remaining_credits || 0);
         dCredits.innerText = rc + ' حصص متبقية';
     }
+
+    const dSurah = document.getElementById('detailsCurrentSurah');
+    if (dSurah) {
+        let sName = 'سورة الفاتحة';
+        const raw = curCourse.current_surah || curStudent.current_surah;
+        if (raw) {
+            const trimmed = String(raw).trim();
+            if (trimmed.startsWith('{')) {
+                try {
+                    const p = JSON.parse(trimmed);
+                    sName = p.hifz || p.surah || '—';
+                } catch(e) { sName = trimmed; }
+            } else {
+                sName = trimmed;
+            }
+        }
+        dSurah.innerText = sName;
+    }
 }
 
 function populateCertificateModalData() {
