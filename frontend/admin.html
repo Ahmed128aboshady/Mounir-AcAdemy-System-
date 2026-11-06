@@ -398,6 +398,7 @@
                         </div>
                         <select id="selectQuizFilterTrack" onchange="filterQuizSubmissionsTable()" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer w-full sm:w-auto">
                             <option value="">جميع المسارات</option>
+                            <option value="quran">مسار حفظ القرآن الكريم (اختبار الحفاظ)</option>
                             <option value="tajweed">أحكام التجويد</option>
                             <option value="tafsir">التفسير وتدبر القرآن</option>
                             <option value="hadith">الحديث الشريف</option>
@@ -506,6 +507,10 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap" onclick="event.stopPropagation()">
+                    <button type="button" onclick="openSubstituteTeacherModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="تعيين معلم بديل لحصة اليوم">
+                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        <span>تعيين معلم بديل اليوم</span>
+                    </button>
                     <button type="button" id="dailyMatchingExportExcelBtn" onclick="exportDailyAttendanceMatchingExcel('xls')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                         <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span id="dailyMatchingExportBtnLabel">تصدير الكشف (Excel)</span>
@@ -623,7 +628,7 @@
                             </thead>
                             <tbody id="dailyMatchingTableBody" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="11" class="text-center py-8 text-slate-400 font-bold">
+                                    <td colspan="12" class="text-center py-8 text-slate-400 font-bold">
                                         جاري تحميل بيانات المطابقة...
                                     </td>
                                 </tr>
@@ -1254,6 +1259,7 @@
                             <th class="p-3">النوع</th>
                             <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('group_id')">المجموعة ↕</th>
                             <th class="p-3">المعلم</th>
+                            <th class="p-3 whitespace-nowrap">السورة الحالية</th>
                             <th class="p-3 cursor-pointer hover:text-[#57BA9E] transition" onclick="sortBulkTable('remaining_credits')">الرصيد ↕</th>
                             <th class="p-3">اليوم / الوقت</th>
                             <th class="p-3">الحالة</th>
@@ -1261,7 +1267,7 @@
                         </tr>
                     </thead>
                     <tbody id="bsTableBody" class="divide-y divide-slate-100">
-                        <tr><td colspan="11" class="text-center py-16 text-slate-400">
+                        <tr><td colspan="12" class="text-center py-16 text-slate-400">
                             <p class="font-bold text-sm">اضغط "تحميل الطلاب" لتشغيل مدير الطلاب</p>
                             <p class="text-[11px] mt-1">يدعم كافة الطلاب مع الفلترة والتعديل الجماعي المتقدم</p>
                         </td></tr>
@@ -2916,6 +2922,7 @@
                                     <th class="p-2.5">#</th>
                                     <th class="p-2.5">اسم الطالب</th>
                                     <th class="p-2.5">الكود</th>
+                                    <th class="p-2.5 whitespace-nowrap">السورة الحالية</th>
                                     <th class="p-2.5">السن</th>
                                     <th class="p-2.5">ولي الأمر</th>
                                     <th class="p-2.5">الهاتف</th>
@@ -2943,6 +2950,9 @@
                                             </td>
                                             <td class="p-2.5 font-mono text-blue-900 font-extrabold text-[11px]">
                                                 <a href="student.html?code=${s.student_code || s.id}" target="_blank" class="hover:underline text-blue-700 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200" title="فتح بروفايل الطالب">${s.student_code || '—'}</a>
+                                            </td>
+                                            <td class="p-2.5 whitespace-nowrap">
+                                                <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold px-2 py-0.5 rounded-lg text-[10px] inline-block max-w-[120px] truncate" title="${formatSurahForDisplay(s.current_surah, s.current_aya)}">${formatSurahForDisplay(s.current_surah, s.current_aya)}</span>
                                             </td>
                                             <td class="p-2.5 text-slate-600">${s.age || '—'}</td>
                                             <td class="p-2.5 text-slate-600">${s.parent_name || '—'}</td>
@@ -3106,6 +3116,229 @@
                 console.error("Error updating limits:", err);
             }
         }
+
+        
+        // ── Helper: Format Surah and Hifz Position Cleanly ──
+        function formatSurahForDisplay(rawSurah, rawAya) {
+            if (!rawSurah || rawSurah === '—' || rawSurah === 'null' || rawSurah === 'undefined') return '—';
+            let name = '';
+            if (typeof rawSurah === 'string' && rawSurah.trim().startsWith('{')) {
+                try {
+                    const p = JSON.parse(rawSurah);
+                    name = p.hifz || p.surah || p.notes || '';
+                    if (p.target_ayat || p.ayat) name += ' (' + (p.target_ayat || p.ayat) + ')';
+                } catch(e) {}
+            }
+            if (!name) name = String(rawSurah).trim();
+            if (name && rawAya && Number(rawAya) > 1 && !name.includes('آية') && !name.includes('اية')) {
+                name += ' (آية ' + rawAya + ')';
+            }
+            return name || '—';
+        }
+
+        // ── Central Substitute Teacher System (نظام المعلم البديل) ──
+        const MONIR_SUBSTITUTIONS_KEY = 'monir_substitutions_v1';
+
+        function getActiveSubstitutions() {
+            try {
+                const raw = localStorage.getItem(MONIR_SUBSTITUTIONS_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch(e) { return []; }
+        }
+
+        function saveActiveSubstitutions(list) {
+            try {
+                localStorage.setItem(MONIR_SUBSTITUTIONS_KEY, JSON.stringify(list));
+            } catch(e) {}
+        }
+
+        function getGroupSubstitution(groupId, dateStr) {
+            if (!groupId || !dateStr) return null;
+            const list = getActiveSubstitutions();
+            const cleanGid = String(groupId).trim();
+            return list.find(s => String(s.group_id).trim() === cleanGid && s.date === dateStr && !s.completed);
+        }
+
+        function openSubstituteTeacherModal(prefillGroup, prefillTeacherId) {
+            const modal = document.getElementById('assignSubstituteTeacherModal');
+            if (!modal) return;
+
+            const groupSelect = document.getElementById('subModalGroupSelect');
+            const teacherSelect = document.getElementById('subModalTeacherSelect');
+            const dateInput = document.getElementById('subModalDate');
+
+            const todayDateStr = (typeof getMonirLocalDateStr === 'function')
+                ? getMonirLocalDateStr()
+                : (document.getElementById('dailyMatchingDatePicker')?.value || new Date().toISOString().split('T')[0]);
+
+            if (dateInput) dateInput.value = todayDateStr;
+
+            // Populate Groups from dailyMatching or schedAllGroups or bsAllStudents
+            const groupsMap = {};
+            const teachersMap = {};
+
+            if (Array.isArray(window.dailyMatchingRawRecords)) {
+                window.dailyMatchingRawRecords.forEach(r => {
+                    const gid = (r.group_id || '').trim();
+                    if (gid) {
+                        if (!groupsMap[gid]) {
+                            groupsMap[gid] = {
+                                group_id: gid,
+                                teacher_name: r.teacher_name || 'غير محدد',
+                                teacher_id: r.teacher_id || null,
+                                count: 0
+                            };
+                        }
+                        groupsMap[gid].count++;
+                    }
+                    if (r.teacher_name && r.teacher_name !== 'غير محدد') {
+                        teachersMap[r.teacher_name] = r.teacher_id || null;
+                    }
+                });
+            }
+
+            if (Array.isArray(window.schedAllGroups)) {
+                window.schedAllGroups.forEach(g => {
+                    const gid = (g.group_id || '').trim();
+                    if (gid && !groupsMap[gid]) {
+                        groupsMap[gid] = {
+                            group_id: gid,
+                            teacher_name: g.teacher_name || 'غير محدد',
+                            teacher_id: g.teacher_id || null,
+                            count: (g.students || []).length
+                        };
+                    }
+                    if (g.teacher_name && g.teacher_name !== 'غير محدد') {
+                        teachersMap[g.teacher_name] = g.teacher_id || null;
+                    }
+                });
+            }
+
+            // Fallback from teachers cache
+            if (Array.isArray(window._allTeachersCache)) {
+                window._allTeachersCache.forEach(t => {
+                    if (t.name) teachersMap[t.name] = t.id;
+                });
+            }
+
+            window._subModalGroupsMap = groupsMap;
+
+            // Fill Group Select
+            const groupKeys = Object.keys(groupsMap).sort();
+            if (groupSelect) {
+                groupSelect.innerHTML = '<option value="">-- اختر المجموعة المراد تعويضها --</option>' +
+                    groupKeys.map(k => {
+                        const g = groupsMap[k];
+                        const isSel = (prefillGroup && prefillGroup === k);
+                        return `<option value="${k}" ${isSel ? 'selected' : ''}>${k} (المعلم: ${g.teacher_name} - ${g.count} طلاب)</option>`;
+                    }).join('');
+            }
+
+            // Fill Teachers Select
+            const teacherNames = Object.keys(teachersMap).sort();
+            if (teacherSelect) {
+                teacherSelect.innerHTML = '<option value="">-- اختر المعلم البديل لحصة اليوم --</option>' +
+                    teacherNames.map(name => {
+                        const tid = teachersMap[name];
+                        return `<option value="${tid || name}" data-name="${name}">${name}</option>`;
+                    }).join('');
+            }
+
+            if (prefillGroup) {
+                onSubModalGroupChange(prefillGroup);
+            } else if (groupKeys.length > 0) {
+                onSubModalGroupChange(groupKeys[0]);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeSubstituteTeacherModal() {
+            const modal = document.getElementById('assignSubstituteTeacherModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function onSubModalGroupChange(groupId) {
+            const g = (window._subModalGroupsMap && window._subModalGroupsMap[groupId]) || null;
+            const origEl = document.getElementById('subModalOriginalTeacher');
+            const cntEl = document.getElementById('subModalStudentCount');
+            if (origEl) origEl.innerText = g ? g.teacher_name : '—';
+            if (cntEl) cntEl.innerText = g ? (g.count + ' طالب') : '0';
+        }
+
+        async function confirmSaveSubstituteTeacher() {
+            const groupSelect = document.getElementById('subModalGroupSelect');
+            const teacherSelect = document.getElementById('subModalTeacherSelect');
+            const dateInput = document.getElementById('subModalDate');
+
+            const groupId = groupSelect?.value;
+            const substituteVal = teacherSelect?.value;
+            const substituteOption = teacherSelect?.selectedOptions[0];
+            const substituteName = substituteOption?.getAttribute('data-name') || teacherSelect?.value;
+            const dateStr = dateInput?.value || new Date().toISOString().split('T')[0];
+
+            if (!groupId) {
+                alert('يرجى اختيار المجموعة أولاً.');
+                return;
+            }
+            if (!substituteVal) {
+                alert('يرجى اختيار المعلم البديل.');
+                return;
+            }
+
+            const g = (window._subModalGroupsMap && window._subModalGroupsMap[groupId]) || {};
+            const originalTeacherName = g.teacher_name || 'غير محدد';
+            const originalTeacherId = g.teacher_id || null;
+
+            if (substituteName === originalTeacherName) {
+                alert('تنبيه: المعلم البديل المختار هو نفسه المعلم الأصلي للمجموعة!');
+                return;
+            }
+
+            // Save substitution
+            const list = getActiveSubstitutions().filter(s => !(s.group_id === groupId && s.date === dateStr));
+            list.push({
+                group_id: groupId,
+                original_teacher_id: originalTeacherId,
+                original_teacher_name: originalTeacherName,
+                substitute_teacher_id: substituteVal,
+                substitute_teacher_name: substituteName,
+                date: dateStr,
+                created_at: new Date().toISOString(),
+                completed: false
+            });
+            saveActiveSubstitutions(list);
+
+            // Audit record in database if configured
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    await client.from('payments').insert([{
+                        student_id: null,
+                        amount: 0,
+                        payment_method: 'بديل',
+                        status: 'completed',
+                        whatsapp_message: `تعيين معلم بديل (${substituteName}) للمجموعة (${groupId}) بدلاً من (${originalTeacherName}) لتاريخ ${dateStr}`
+                    }]);
+                } catch(e) {
+                    console.warn('[Substitute Audit Log]', e);
+                }
+            }
+
+            closeSubstituteTeacherModal();
+
+            if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                window.MonirPopup.toast(`تم تعيين (${substituteName}) معلماً بديلاً للمجموعة (${groupId}) لحصة ${dateStr} بنجاح ✓`, 'success');
+            } else {
+                alert(`تم تعيين (${substituteName}) معلماً بديلاً للمجموعة (${groupId}) لحصة ${dateStr} بنجاح ✓`);
+            }
+
+            // Refresh views
+            if (typeof renderDailyAttendanceMatchingTable === 'function') {
+                renderDailyAttendanceMatchingTable();
+            }
+        }
+
 
         // ---------------- 2. Teacher Payroll Engine ----------------
         async function loadPayrollData() {
@@ -3367,7 +3600,7 @@
             if (tbody) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="11" class="text-center py-8 text-emerald-700 font-bold animate-pulse">
+                        <td colspan="12" class="text-center py-8 text-emerald-700 font-bold animate-pulse">
                             جاري جلب كشوفات ومطابقة حضور يوم ${dailyMatchingSelectedDate}... ⏳
                         </td>
                     </tr>
@@ -3703,7 +3936,7 @@
             if (dailyMatchingFilteredRecords.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="11" class="text-center py-10 text-slate-400 font-bold">
+                        <td colspan="12" class="text-center py-10 text-slate-400 font-bold">
                             لا توجد مجموعات مجدولة أو سجلات حضور لهذا اليوم (${dailyMatchingSelectedDate}) حسب الفلاتر المحددة.
                         </td>
                     </tr>
@@ -3764,7 +3997,13 @@
                         <td class="p-2.5 text-slate-600 font-mono text-[11px]">
                             ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-700 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1" title="فتح محادثة واتساب"><span>💬</span><span>${r.phone}</span></a>` : r.phone}
                         </td>
-                        <td class="p-2.5 font-bold text-slate-800">${r.teacher_name}</td>
+                        <td class="p-2.5 font-bold text-slate-800">
+                            <div>${r.teacher_name}</div>
+                            ${(() => {
+                                const sub = (typeof getGroupSubstitution === 'function') ? getGroupSubstitution(r.group_id, dailyMatchingSelectedDate) : null;
+                                return sub ? `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded text-[10px] block mt-0.5">بديل اليوم: ${sub.substitute_teacher_name}</span>` : '';
+                            })()}
+                        </td>
                         <td class="p-2.5">
                             <div class="flex items-center gap-1 flex-wrap">
                                 <span class="bg-slate-100 text-slate-700 font-mono font-bold px-1.5 py-0.5 rounded text-[10px]">${r.group_id}</span>
@@ -3773,7 +4012,9 @@
                         </td>
                         <td class="p-2.5 text-center">${statusBadge}</td>
                         <td class="p-2.5 text-slate-500 text-[10px] font-mono">${r.recorded_at}</td>
-                        <td class="p-2.5 text-slate-600 text-[11px] max-w-[140px] truncate" title="${r.surah}">${r.surah}</td>
+                        <td class="p-2.5 text-slate-700 text-[11px] max-w-[140px] truncate" title="${formatSurahForDisplay(r.surah, r.current_aya)}">
+                            <span class="bg-emerald-50/80 text-emerald-900 border border-emerald-200/60 px-1.5 py-0.5 rounded text-[10px] font-bold block truncate">${formatSurahForDisplay(r.surah, r.current_aya)}</span>
+                        </td>
                         <td class="p-2.5 text-center">
                             <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
                                 <option value="" ${matchSelected === '' ? 'selected' : ''}>— غير محدد —</option>
@@ -3889,17 +4130,27 @@
                 // Update enrollments
                 await client.from('enrollments').update(updates).eq('id', enr.id);
 
-                // Insert official attendance record for the specific date with [إشراف] marker
+                // Check for substitute teacher on this session
+                const activeSub = (typeof getGroupSubstitution === 'function') ? getGroupSubstitution(enr.group_id, dateStr) : null;
+                const effectiveTeacherName = activeSub ? activeSub.substitute_teacher_name : (enr.teachers ? enr.teachers.name : 'الإشراف');
+                const subTag = activeSub ? ` [بديل: ${activeSub.substitute_teacher_name}]` : ' [إشراف]';
+
+                // Insert official attendance record with teacher/substitute attribution
                 const todayStr = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
                 const joinedAtTime = (dateStr === todayStr) ? new Date().toISOString() : (dateStr + 'T12:00:00.000Z');
                 await client.from('attendance').insert([{
                     student_id: studentId,
                     lecture_id: null,
-                    course_name: (enr.course_name || 'مسار القرآن الكريم والتدبر') + ' [إشراف]',
+                    course_name: (enr.course_name || 'مسار القرآن الكريم والتدبر') + subTag,
                     status: status,
                     joined_at: joinedAtTime,
                     duration_minutes: parseInt(enr.session_duration) || 20
                 }]);
+
+                if (activeSub) {
+                    activeSub.completed = true;
+                    saveActiveSubstitutions(getActiveSubstitutions());
+                }
 
                 // Insert audit trail in payments (using whatsapp_message)
                 try {
@@ -4362,7 +4613,76 @@
                                 ${rowsHtml}
                             </tbody>
                         </table>
-                    </body>
+                    
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">تعيين معلم بديل للحصة</h3>
+                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع إعادة المجموعة تلقائياً للمعلم الأصلي</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المجموعة المعنية:</label>
+                    <select id="subModalGroupSelect" onchange="onSubModalGroupChange(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">المعلم الأصلي:</span>
+                        <span class="font-bold text-slate-900" id="subModalOriginalTeacher">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">عدد الطلاب:</span>
+                        <span class="font-bold text-slate-900" id="subModalStudentCount">0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المعلم البديل المقترح:</label>
+                    <select id="subModalTeacherSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">تاريخ الحصة التعويضية:</label>
+                    <input type="date" id="subModalDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1">
+                    <p class="font-bold">ملاحظة تنظيمية:</p>
+                    <p>• تُنقل المجموعة للمعلم البديل خلال هذه الجلسة فقط ليتسنى له رصد الحضور وقاعتها.</p>
+                    <p>• يُخصم وقت/رصيد الحصة من الطلاب ويُحتسب تلقائياً في رصيد المعلم البديل.</p>
+                    <p>• تعود المجموعة تلقائياً للمعلم الأصلي فور إتمام الرصد دون أي تعديل دائم.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="confirmSaveSubstituteTeacher()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
+                    تأكيد تعيين المعلم البديل
+                </button>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
                     </html>
                 `;
 
@@ -4547,7 +4867,76 @@
                                     ${rowsHtml}
                                 </tbody>
                             </table>
-                        </body>
+                        
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">تعيين معلم بديل للحصة</h3>
+                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع إعادة المجموعة تلقائياً للمعلم الأصلي</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المجموعة المعنية:</label>
+                    <select id="subModalGroupSelect" onchange="onSubModalGroupChange(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">المعلم الأصلي:</span>
+                        <span class="font-bold text-slate-900" id="subModalOriginalTeacher">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">عدد الطلاب:</span>
+                        <span class="font-bold text-slate-900" id="subModalStudentCount">0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المعلم البديل المقترح:</label>
+                    <select id="subModalTeacherSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">تاريخ الحصة التعويضية:</label>
+                    <input type="date" id="subModalDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1">
+                    <p class="font-bold">ملاحظة تنظيمية:</p>
+                    <p>• تُنقل المجموعة للمعلم البديل خلال هذه الجلسة فقط ليتسنى له رصد الحضور وقاعتها.</p>
+                    <p>• يُخصم وقت/رصيد الحصة من الطلاب ويُحتسب تلقائياً في رصيد المعلم البديل.</p>
+                    <p>• تعود المجموعة تلقائياً للمعلم الأصلي فور إتمام الرصد دون أي تعديل دائم.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="confirmSaveSubstituteTeacher()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
+                    تأكيد تعيين المعلم البديل
+                </button>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
                         </html>
                     `;
 
@@ -4659,7 +5048,76 @@
                             ${rowsHtml}
                         </tbody>
                     </table>
-                </body>
+                
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">تعيين معلم بديل للحصة</h3>
+                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع إعادة المجموعة تلقائياً للمعلم الأصلي</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المجموعة المعنية:</label>
+                    <select id="subModalGroupSelect" onchange="onSubModalGroupChange(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">المعلم الأصلي:</span>
+                        <span class="font-bold text-slate-900" id="subModalOriginalTeacher">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">عدد الطلاب:</span>
+                        <span class="font-bold text-slate-900" id="subModalStudentCount">0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المعلم البديل المقترح:</label>
+                    <select id="subModalTeacherSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">تاريخ الحصة التعويضية:</label>
+                    <input type="date" id="subModalDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1">
+                    <p class="font-bold">ملاحظة تنظيمية:</p>
+                    <p>• تُنقل المجموعة للمعلم البديل خلال هذه الجلسة فقط ليتسنى له رصد الحضور وقاعتها.</p>
+                    <p>• يُخصم وقت/رصيد الحصة من الطلاب ويُحتسب تلقائياً في رصيد المعلم البديل.</p>
+                    <p>• تعود المجموعة تلقائياً للمعلم الأصلي فور إتمام الرصد دون أي تعديل دائم.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="confirmSaveSubstituteTeacher()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
+                    تأكيد تعيين المعلم البديل
+                </button>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
                 </html>
             `;
             printWindow.document.write(htmlContent);
@@ -6071,7 +6529,7 @@
             const tbody = document.getElementById('bsTableBody');
 
             const showStatus = (icon, msg, sub='') => {
-                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-12 text-slate-400">
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-12 text-slate-400">
                     <div class="text-4xl mb-3">${icon}</div>
                     <p class="font-bold text-slate-700">${msg}</p>
                     ${sub ? `<p class="text-[12px] text-slate-400 mt-1">${sub}</p>` : ''}
@@ -6127,7 +6585,7 @@
                             const chunk = allIds.slice(i, i + 400);
                             const { data: chunkEnr, error: chunkErr } = await client
                                 .from('enrollments')
-                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, session_duration, group_id, teachers(id, name)')
+                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, session_duration, group_id, current_surah, current_aya, teachers(id, name)')
                                 .in('student_id', chunk);
                             if (chunkEnr) enrData = enrData.concat(chunkEnr);
                             if (chunkErr) console.warn('[BulkStudents] chunk error:', chunkErr.message);
@@ -6173,6 +6631,8 @@
                                 id:               s.id,
                                 name:             s.name || '',
                                 student_code:     s.student_code || '',
+                                current_surah:    enr.current_surah || s.current_surah || '',
+                                current_aya:      enr.current_aya || s.current_aya || 1,
                                 phone:            s.phone || s.parent_phone || '',
                                 age:              s.age || 0,
                                 gender:           guessGender(s.name, s.gender || s.parent_name, s.student_code || s.id),
@@ -6443,7 +6903,7 @@
                         </button>
                     </div>`;
 
-                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-10 text-slate-400 font-bold">
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10 text-slate-400 font-bold">
                     <div class="text-2xl mb-1">📭</div>
                     <div>لا يوجد طلاب بهذه المعايير — جرّب تعديل الفلترة</div>
                     ${addBtnHtml}
@@ -6485,6 +6945,9 @@
                     </td>
                     <td class="p-2.5 text-slate-700 max-w-[120px]">
                         <div class="truncate text-[11px]" title="${s.teacher_name}">${s.teacher_name || '—'}</div>
+                    </td>
+                    <td class="p-2.5 whitespace-nowrap">
+                        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold px-2 py-0.5 rounded-lg text-[11px] block max-w-[130px] truncate" title="${formatSurahForDisplay(s.current_surah, s.current_aya)}">${formatSurahForDisplay(s.current_surah, s.current_aya)}</span>
                     </td>
                     <td class="p-2.5">
                         <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openAddCreditsModal(${s.id})" title="الرصيد الحالي: ${s.remaining_credits} حصص — انقر لإضافة وشحن رصيد">${s.remaining_credits}</span>
@@ -9640,6 +10103,7 @@
                                     ${genderBadge}
                                     ${ageBadge}
                                     <span class="bg-[#57BA9E] text-slate-950 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${grp}</span>
+                                    ${s.current_surah ? `<span class="bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.5 rounded truncate max-w-[120px]" title="${formatSurahForDisplay(s.current_surah, s.current_aya)}">${formatSurahForDisplay(s.current_surah, s.current_aya)}</span>` : ''}
                                     ${status}
                                 </div>
                                 <p class="text-[11px] text-slate-500 truncate">${s.parent_name ? 'ولي الأمر: ' + s.parent_name : ''} ${s.phone || s.parent_phone ? '• ' + (s.parent_phone || s.phone) : ''}</p>
@@ -9869,20 +10333,28 @@
 
             if (trackFilter) {
                 list = list.filter(s => {
+                    const ans = s.answers_json || s.answers || {};
+                    const tName = s.track_name || ans.track_name || '';
+                    const qTitle = s.quiz_title || ans.exam_title || '';
+                    if (trackFilter === 'quran') return Number(s.quiz_id) === 1004 || tName.includes('القرآن') || qTitle.includes('حفاظ القرآن');
                     if (s.track_name) return s.track_name === trackFilter;
-                    if (trackFilter === 'tajweed') return (s.quiz_title || '').includes('تجويد');
-                    if (trackFilter === 'tafsir') return (s.quiz_title || '').includes('تفسير');
-                    if (trackFilter === 'hadith') return (s.quiz_title || '').includes('حديث');
+                    if (trackFilter === 'tajweed') return qTitle.includes('تجويد');
+                    if (trackFilter === 'tafsir') return qTitle.includes('تفسير');
+                    if (trackFilter === 'hadith') return qTitle.includes('حديث');
                     return false;
                 });
             }
 
             if (searchInput) {
-                list = list.filter(s => 
-                    (s.student_name && s.student_name.toLowerCase().includes(searchInput)) ||
-                    (s.student_code && s.student_code.toLowerCase().includes(searchInput)) ||
-                    (s.quiz_title && s.quiz_title.toLowerCase().includes(searchInput))
-                );
+                list = list.filter(s => {
+                    const ans = s.answers_json || s.answers || {};
+                    const stName = s.student_name || ans.student_name || '';
+                    const stCode = s.student_code || ans.student_code || ('ST' + s.student_id);
+                    const qTitle = s.quiz_title || ans.exam_title || '';
+                    return stName.toLowerCase().includes(searchInput) ||
+                           stCode.toLowerCase().includes(searchInput) ||
+                           qTitle.toLowerCase().includes(searchInput);
+                });
             }
 
             if (list.length === 0) {
@@ -9891,18 +10363,25 @@
             }
 
             body.innerHTML = list.map((s, idx) => {
+                const ans = s.answers_json || s.answers || {};
+                const stCode = s.student_code || ans.student_code || ('ST' + s.student_id);
+                const stName = s.student_name || ans.student_name || 'طالب الأكاديمية';
+                const qTitle = s.quiz_title || ans.exam_title || 'اختبار تقييم';
+                const totalPts = s.total_points || s.max_score || ans.max_score || 20;
+                const scoreVal = (ans.exact_total_score !== undefined && ans.exact_total_score !== null) ? ans.exact_total_score : (s.score || 0);
                 const dateStr = s.submitted_at ? new Date(s.submitted_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '---';
-                const isPerfect = (s.score >= (s.total_points || 15));
-                const trackBadge = s.track_name === 'tajweed' ? '🌟 التجويد' : (s.track_name === 'tafsir' ? '📖 التفسير' : (s.track_name === 'hadith' ? '📜 الحديث' : 'عام'));
+                const isPerfect = (scoreVal >= totalPts);
+                const isQuran = (Number(s.quiz_id) === 1004 || (s.track_name || '').includes('القرآن') || (ans.track_name || '').includes('القرآن') || qTitle.includes('حفاظ القرآن'));
+                const trackBadge = isQuran ? 'حفظ القرآن الكريم' : (s.track_name === 'tajweed' ? 'أحكام التجويد' : (s.track_name === 'tafsir' ? 'التفسير' : (s.track_name === 'hadith' ? 'الحديث الشريف' : 'مسار عام')));
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-3 font-mono font-bold text-slate-400">${idx + 1}</td>
-                        <td class="p-3 font-mono font-black text-indigo-900">${s.student_code || ('ST' + s.student_id)}</td>
-                        <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${s.student_name || 'طالب الأكاديمية'}</td>
-                        <td class="p-3"><span class="bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">${trackBadge}</span></td>
-                        <td class="p-3 text-slate-700 font-medium">${s.quiz_title || 'اختبار أسبوعي'}</td>
-                        <td class="p-3 font-black ${isPerfect ? 'text-emerald-700' : 'text-slate-900'}">${s.score} / ${s.total_points || 15}</td>
+                        <td class="p-3 font-mono font-black text-indigo-900">${stCode}</td>
+                        <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${stName}</td>
+                        <td class="p-3"><span class="${isQuran ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-indigo-50 border border-indigo-200 text-indigo-900'} text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">${trackBadge}</span></td>
+                        <td class="p-3 text-slate-700 font-medium">${qTitle}</td>
+                        <td class="p-3 font-black ${isPerfect ? 'text-emerald-700' : 'text-slate-900'}">${scoreVal} / ${totalPts}</td>
                         <td class="p-3 font-black font-mono ${isPerfect ? 'text-emerald-600' : 'text-blue-600'}">${s.percentage}%</td>
                         <td class="p-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">${dateStr}</td>
                     </tr>
@@ -10048,7 +10527,76 @@
                     <script>
                         window.onload = function() { window.print(); }
                     <\/script>
-                </body>
+                
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">تعيين معلم بديل للحصة</h3>
+                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع إعادة المجموعة تلقائياً للمعلم الأصلي</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المجموعة المعنية:</label>
+                    <select id="subModalGroupSelect" onchange="onSubModalGroupChange(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">المعلم الأصلي:</span>
+                        <span class="font-bold text-slate-900" id="subModalOriginalTeacher">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">عدد الطلاب:</span>
+                        <span class="font-bold text-slate-900" id="subModalStudentCount">0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المعلم البديل المقترح:</label>
+                    <select id="subModalTeacherSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">تاريخ الحصة التعويضية:</label>
+                    <input type="date" id="subModalDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1">
+                    <p class="font-bold">ملاحظة تنظيمية:</p>
+                    <p>• تُنقل المجموعة للمعلم البديل خلال هذه الجلسة فقط ليتسنى له رصد الحضور وقاعتها.</p>
+                    <p>• يُخصم وقت/رصيد الحصة من الطلاب ويُحتسب تلقائياً في رصيد المعلم البديل.</p>
+                    <p>• تعود المجموعة تلقائياً للمعلم الأصلي فور إتمام الرصد دون أي تعديل دائم.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="confirmSaveSubstituteTeacher()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
+                    تأكيد تعيين المعلم البديل
+                </button>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
                 </html>
             `);
             printWindow.document.close();
@@ -10330,6 +10878,75 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">تعيين معلم بديل للحصة</h3>
+                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع إعادة المجموعة تلقائياً للمعلم الأصلي</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المجموعة المعنية:</label>
+                    <select id="subModalGroupSelect" onchange="onSubModalGroupChange(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">المعلم الأصلي:</span>
+                        <span class="font-bold text-slate-900" id="subModalOriginalTeacher">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-bold">عدد الطلاب:</span>
+                        <span class="font-bold text-slate-900" id="subModalStudentCount">0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">المعلم البديل المقترح:</label>
+                    <select id="subModalTeacherSelect" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">تاريخ الحصة التعويضية:</label>
+                    <input type="date" id="subModalDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1">
+                    <p class="font-bold">ملاحظة تنظيمية:</p>
+                    <p>• تُنقل المجموعة للمعلم البديل خلال هذه الجلسة فقط ليتسنى له رصد الحضور وقاعتها.</p>
+                    <p>• يُخصم وقت/رصيد الحصة من الطلاب ويُحتسب تلقائياً في رصيد المعلم البديل.</p>
+                    <p>• تعود المجموعة تلقائياً للمعلم الأصلي فور إتمام الرصد دون أي تعديل دائم.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="confirmSaveSubstituteTeacher()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
+                    تأكيد تعيين المعلم البديل
+                </button>
+                <button type="button" onclick="closeSubstituteTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
         </div>
     </div>
 
