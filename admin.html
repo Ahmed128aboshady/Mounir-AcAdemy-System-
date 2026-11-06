@@ -452,6 +452,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end" onclick="event.stopPropagation()">
+                    <button type="button" onclick="openAddTeacherModal()" class="w-full sm:w-auto text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 sm:py-1.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"><span>+ إضافة معلم جديد</span></button>
                     <button onclick="ensureOpenAndLoadPerformance()" class="w-full sm:w-auto text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 sm:py-1.5 rounded-lg transition">تحديث التقرير</button>
                 </div>
             </div>
@@ -4617,6 +4618,71 @@
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
+    
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ADD NEW TEACHER TO PLATFORM                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="addTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">إضافة معلم جديد للمنصة</h3>
+                        <p class="text-[11px] text-slate-500">إنشاء ملف المعلم وقاعة Meet وحساب الدخول فوراً</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <form id="addTeacherForm" onsubmit="event.preventDefault(); submitAddNewTeacher();" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">اسم المعلم / المعلمة: <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newTeacherName" required placeholder="مثال: أحمد محمد أو سارة علي" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">رابط قاعة Google Meet:</label>
+                    <input type="text" id="newTeacherMeet" placeholder="مثال: https://meet.google.com/xxx-yyyy-zzz" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500 focus:bg-white text-left" dir="ltr">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">المسار / التخصص:</label>
+                        <select id="newTeacherSpecialty" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500 focus:bg-white">
+                            <option value="معلمة القرآن الكريم">معلمة القرآن الكريم</option>
+                            <option value="معلم القرآن الكريم">معلم القرآن الكريم</option>
+                            <option value="أحكام التجويد والإتقان">أحكام التجويد والإتقان</option>
+                            <option value="التفسير والحديث">التفسير والحديث</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رقم الهاتف (اختياري):</label>
+                        <input type="tel" id="newTeacherPhone" placeholder="01xxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500 focus:bg-white text-left" dir="ltr">
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-900 space-y-1">
+                    <p class="font-bold">توليد حساب الدخول تلقائياً:</p>
+                    <p>• سيتم إنشاء كود دخول تلقائي للمعلم (مثال: T080) بكلمة مرور افتراضية: <span class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300">123456</span>.</p>
+                    <p>• سيظهر المعلم فوراً في قوائم إسناد المجموعات وحصص التعويض.</p>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="submit" id="saveTeacherBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer flex items-center justify-center gap-1.5">
+                        <span>حفظ وإضافة المعلم فوراً</span>
+                    </button>
+                    <button type="button" onclick="closeAddTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -10721,6 +10787,113 @@
         setTimeout(() => {
             loadAdminQuizData();
         }, 1200);
+    
+        // --- ADD TEACHER MODAL LOGIC ---
+        function openAddTeacherModal() {
+            const modal = document.getElementById('addTeacherModal');
+            if (!modal) return;
+            const nameEl = document.getElementById('newTeacherName');
+            const meetEl = document.getElementById('newTeacherMeet');
+            const phoneEl = document.getElementById('newTeacherPhone');
+            if (nameEl) nameEl.value = '';
+            if (meetEl) meetEl.value = '';
+            if (phoneEl) phoneEl.value = '';
+            modal.classList.remove('hidden');
+        }
+
+        function closeAddTeacherModal() {
+            const modal = document.getElementById('addTeacherModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function submitAddNewTeacher() {
+            const nameInput = document.getElementById('newTeacherName');
+            const meetInput = document.getElementById('newTeacherMeet');
+            const specialtyInput = document.getElementById('newTeacherSpecialty');
+            const phoneInput = document.getElementById('newTeacherPhone');
+            const btn = document.getElementById('saveTeacherBtn');
+
+            const name = (nameInput ? nameInput.value : '').trim();
+            let meet = (meetInput ? meetInput.value : '').trim();
+            if (meet && !meet.startsWith('http')) meet = 'https://' + meet;
+            const specialty = (specialtyInput ? specialtyInput.value : 'معلم القرآن الكريم').trim();
+            const phone = (phoneInput ? phoneInput.value : '').trim();
+
+            if (!name) {
+                alert('يرجى إدخال اسم المعلم');
+                return;
+            }
+
+            const oldText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = 'جاري الحفظ...';
+            }
+
+            try {
+                let newId = 80;
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    const { data: maxRows } = await client.from('teachers').select('id').order('id', { ascending: false }).limit(1);
+                    if (maxRows && maxRows.length > 0) newId = Number(maxRows[0].id) + 1;
+
+                    const tRecord = {
+                        id: newId,
+                        name: name,
+                        specialty: specialty,
+                        email: 'teacher_' + newId + '@monir-academy.edu.eg',
+                        bio: meet || null,
+                        phone: phone || null,
+                        active: 1,
+                        rate_per_session: 150.0,
+                        rate_per_private_session: 80.0,
+                        late_count: 0,
+                        cancellation_count: 0
+                    };
+
+                    const { data: created, error } = await client.from('teachers').insert([tRecord]).select().single();
+                    if (error) throw new Error(error.message);
+
+                    const tCode = 'T' + String(newId).padStart(3, '0');
+                    const { data: userMax } = await client.from('users').select('id').order('id', { ascending: false }).limit(1);
+                    const nextUserId = (userMax && userMax.length > 0) ? Number(userMax[0].id) + 1 : (newId + 1000);
+
+                    await client.from('users').insert([{
+                        id: nextUserId,
+                        username: tCode,
+                        password_hash: '123456',
+                        role: 'teacher',
+                        related_id: newId,
+                        full_name: name,
+                        email: tRecord.email,
+                        phone: phone || '---',
+                        status: 'active'
+                    }]);
+
+                    if (!window._monirAllTeachersCache) window._monirAllTeachersCache = [];
+                    window._monirAllTeachersCache.push(created || tRecord);
+                    if (Array.isArray(window.allTeachers)) window.allTeachers.push(created || tRecord);
+
+                    closeAddTeacherModal();
+                    alert('تمت إضافة المعلم بنجاح!\nكود الدخول: ' + tCode + '\nكلمة المرور: 123456');
+
+                    if (typeof initSubstituteTeacherDropdowns === 'function') initSubstituteTeacherDropdowns();
+                    if (typeof ensureOpenAndLoadPerformance === 'function') ensureOpenAndLoadPerformance();
+                } else {
+                    alert('تم حفظ المعلم محلياً');
+                    closeAddTeacherModal();
+                }
+            } catch(err) {
+                console.error('Error adding teacher:', err);
+                alert('حدث خطأ أثناء إضافة المعلم: ' + (err.message || err));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = oldText;
+                }
+            }
+        }
+
     </script>
 
     <!-- Modal: Create General Lecture & Quiz (إضافة محاضرة واختبار أسبوعي جديد) -->
