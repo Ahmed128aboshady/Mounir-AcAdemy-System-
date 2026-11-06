@@ -7999,6 +7999,81 @@ function renderGradebookTranscript() {
 
     let html = '';
 
+    // 0. Quran Hifz & Evaluation Track (Academic Evaluation)
+    const quranSub = (cachedStudentSubmissions || []).find(s => 
+        Number(s.quiz_id) === 1004 || 
+        (s.quiz_title || '').includes('حفاظ القرآن') || 
+        ((s.answers_json || s.answers || {}).exam_title || '').includes('حفاظ القرآن')
+    );
+
+    if (quranSub) {
+        const qAns = quranSub.answers_json || quranSub.answers || {};
+        const qScore = qAns.exact_total_score || qAns.total_score || quranSub.score || 0;
+        const qMax = qAns.max_score || quranSub.max_score || 20;
+        const qHifzPart = qAns.hifz_part || '—';
+        const qHifzScore = (qAns.hifz_score !== null && qAns.hifz_score !== undefined) ? qAns.hifz_score : 'معتمد';
+        const qMqPart = qAns.madi_qareeb_part || '—';
+        const qMqScore = (qAns.madi_qareeb_score !== null && qAns.madi_qareeb_score !== undefined) ? qAns.madi_qareeb_score : 'معتمد';
+        const qMbPart = qAns.madi_baeed_part || '—';
+        const qTeacher = qAns.teacher_name || 'غير محدد';
+        const qAge = qAns.age_group || '';
+        const qPerc = Math.round((Number(qScore) / Number(qMax)) * 100);
+
+        totalEarned += Number(qScore);
+        totalMax += Number(qMax);
+
+        html += `
+            <div class="bg-indigo-50/60 border border-indigo-200/80 rounded-2xl p-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-indigo-100 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                        <strong class="font-black text-slate-900 text-xs sm:text-sm">مسار حفظ القرآن الكريم — اختبار الحفاظ والتقييم الشهري</strong>
+                    </div>
+                    <span class="text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                        المحصل: ${qScore} / ${qMax} (${qPerc}%)
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                    <div class="bg-white p-2.5 rounded-xl border border-indigo-100">
+                        <span class="text-[10px] text-slate-500 block font-bold">الحفظ الجديد</span>
+                        <strong class="text-slate-900 font-bold block mt-0.5 truncate" title="${qHifzPart}">${qHifzPart}</strong>
+                        <span class="text-emerald-700 font-black text-xs block mt-1">${qHifzScore !== 'معتمد' ? qHifzScore + ' / 10' : 'معتمد'}</span>
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-xl border border-indigo-100">
+                        <span class="text-[10px] text-slate-500 block font-bold">مراجعة الماضي القريب</span>
+                        <strong class="text-slate-900 font-bold block mt-0.5 truncate" title="${qMqPart}">${qMqPart}</strong>
+                        <span class="text-emerald-700 font-black text-xs block mt-1">${qMqScore !== 'معتمد' ? qMqScore + ' / 10' : 'معتمد'}</span>
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-xl border border-indigo-100 col-span-2 sm:col-span-1">
+                        <span class="text-[10px] text-slate-500 block font-bold">الماضي البعيد والمشرف</span>
+                        <strong class="text-slate-900 font-bold block mt-0.5 truncate" title="${qMbPart}">${qMbPart !== '—' ? qMbPart : 'معتمد'}</strong>
+                        <span class="text-slate-500 text-[10px] block mt-1">${qTeacher ? 'إشراف: ' + qTeacher : ''} ${qAge ? '(' + qAge + ')' : ''}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                <div class="flex justify-between items-center border-b border-slate-200/60 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span>
+                        <strong class="font-black text-slate-900 text-xs sm:text-sm">مسار حفظ القرآن الكريم — اختبار الحفاظ والتقييم الشهري</strong>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-600 bg-slate-200/80 px-2.5 py-0.5 rounded-full">
+                        لم يختبر في هذه الدورة
+                    </span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    لم يتقدم الطالب لاختبار التقييم لهذا الشهر، وسيتم إدراجه في الدورة التقييمية القادمة مع معلمه المعتمد بإذن الله.
+                </p>
+            </div>
+        `;
+    }
+
     tracksConfig.forEach(track => {
         // Find submissions for this track
         const trackSubs = (cachedStudentSubmissions || []).filter(s => {

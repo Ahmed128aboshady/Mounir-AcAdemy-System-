@@ -398,6 +398,7 @@
                         </div>
                         <select id="selectQuizFilterTrack" onchange="filterQuizSubmissionsTable()" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer w-full sm:w-auto">
                             <option value="">جميع المسارات</option>
+                            <option value="quran">مسار حفظ القرآن الكريم (اختبار الحفاظ)</option>
                             <option value="tajweed">أحكام التجويد</option>
                             <option value="tafsir">التفسير وتدبر القرآن</option>
                             <option value="hadith">الحديث الشريف</option>
@@ -10332,20 +10333,28 @@
 
             if (trackFilter) {
                 list = list.filter(s => {
+                    const ans = s.answers_json || s.answers || {};
+                    const tName = s.track_name || ans.track_name || '';
+                    const qTitle = s.quiz_title || ans.exam_title || '';
+                    if (trackFilter === 'quran') return Number(s.quiz_id) === 1004 || tName.includes('القرآن') || qTitle.includes('حفاظ القرآن');
                     if (s.track_name) return s.track_name === trackFilter;
-                    if (trackFilter === 'tajweed') return (s.quiz_title || '').includes('تجويد');
-                    if (trackFilter === 'tafsir') return (s.quiz_title || '').includes('تفسير');
-                    if (trackFilter === 'hadith') return (s.quiz_title || '').includes('حديث');
+                    if (trackFilter === 'tajweed') return qTitle.includes('تجويد');
+                    if (trackFilter === 'tafsir') return qTitle.includes('تفسير');
+                    if (trackFilter === 'hadith') return qTitle.includes('حديث');
                     return false;
                 });
             }
 
             if (searchInput) {
-                list = list.filter(s => 
-                    (s.student_name && s.student_name.toLowerCase().includes(searchInput)) ||
-                    (s.student_code && s.student_code.toLowerCase().includes(searchInput)) ||
-                    (s.quiz_title && s.quiz_title.toLowerCase().includes(searchInput))
-                );
+                list = list.filter(s => {
+                    const ans = s.answers_json || s.answers || {};
+                    const stName = s.student_name || ans.student_name || '';
+                    const stCode = s.student_code || ans.student_code || ('ST' + s.student_id);
+                    const qTitle = s.quiz_title || ans.exam_title || '';
+                    return stName.toLowerCase().includes(searchInput) ||
+                           stCode.toLowerCase().includes(searchInput) ||
+                           qTitle.toLowerCase().includes(searchInput);
+                });
             }
 
             if (list.length === 0) {
@@ -10354,18 +10363,25 @@
             }
 
             body.innerHTML = list.map((s, idx) => {
+                const ans = s.answers_json || s.answers || {};
+                const stCode = s.student_code || ans.student_code || ('ST' + s.student_id);
+                const stName = s.student_name || ans.student_name || 'طالب الأكاديمية';
+                const qTitle = s.quiz_title || ans.exam_title || 'اختبار تقييم';
+                const totalPts = s.total_points || s.max_score || ans.max_score || 20;
+                const scoreVal = (ans.exact_total_score !== undefined && ans.exact_total_score !== null) ? ans.exact_total_score : (s.score || 0);
                 const dateStr = s.submitted_at ? new Date(s.submitted_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : '---';
-                const isPerfect = (s.score >= (s.total_points || 15));
-                const trackBadge = s.track_name === 'tajweed' ? '🌟 التجويد' : (s.track_name === 'tafsir' ? '📖 التفسير' : (s.track_name === 'hadith' ? '📜 الحديث' : 'عام'));
+                const isPerfect = (scoreVal >= totalPts);
+                const isQuran = (Number(s.quiz_id) === 1004 || (s.track_name || '').includes('القرآن') || (ans.track_name || '').includes('القرآن') || qTitle.includes('حفاظ القرآن'));
+                const trackBadge = isQuran ? 'حفظ القرآن الكريم' : (s.track_name === 'tajweed' ? 'أحكام التجويد' : (s.track_name === 'tafsir' ? 'التفسير' : (s.track_name === 'hadith' ? 'الحديث الشريف' : 'مسار عام')));
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-3 font-mono font-bold text-slate-400">${idx + 1}</td>
-                        <td class="p-3 font-mono font-black text-indigo-900">${s.student_code || ('ST' + s.student_id)}</td>
-                        <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${s.student_name || 'طالب الأكاديمية'}</td>
-                        <td class="p-3"><span class="bg-indigo-50 border border-indigo-200 text-indigo-900 text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">${trackBadge}</span></td>
-                        <td class="p-3 text-slate-700 font-medium">${s.quiz_title || 'اختبار أسبوعي'}</td>
-                        <td class="p-3 font-black ${isPerfect ? 'text-emerald-700' : 'text-slate-900'}">${s.score} / ${s.total_points || 15}</td>
+                        <td class="p-3 font-mono font-black text-indigo-900">${stCode}</td>
+                        <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${stName}</td>
+                        <td class="p-3"><span class="${isQuran ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-indigo-50 border border-indigo-200 text-indigo-900'} text-[10px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">${trackBadge}</span></td>
+                        <td class="p-3 text-slate-700 font-medium">${qTitle}</td>
+                        <td class="p-3 font-black ${isPerfect ? 'text-emerald-700' : 'text-slate-900'}">${scoreVal} / ${totalPts}</td>
                         <td class="p-3 font-black font-mono ${isPerfect ? 'text-emerald-600' : 'text-blue-600'}">${s.percentage}%</td>
                         <td class="p-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">${dateStr}</td>
                     </tr>
