@@ -4625,69 +4625,6 @@
     <!-- MODAL: ASSIGN SUBSTITUTE TEACHER FOR TODAY                        -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
     
-    <!-- ══════════════════════════════════════════════════════════════════ -->
-    <!-- MODAL: ADD NEW TEACHER TO PLATFORM                               -->
-    <!-- ══════════════════════════════════════════════════════════════════ -->
-    <div id="addTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    </span>
-                    <div>
-                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">إضافة معلم جديد للمنصة</h3>
-                        <p class="text-[11px] text-slate-500">إنشاء ملف المعلم وقاعة Meet وحساب الدخول فوراً</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
-            </div>
-
-            <form id="addTeacherForm" onsubmit="event.preventDefault(); submitAddNewTeacher();" class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">اسم المعلم / المعلمة: <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newTeacherName" required placeholder="مثال: أحمد محمد أو سارة علي" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">رابط قاعة Google Meet:</label>
-                    <input type="text" id="newTeacherMeet" placeholder="مثال: https://meet.google.com/xxx-yyyy-zzz" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500 focus:bg-white text-left" dir="ltr">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">المسار / التخصص:</label>
-                        <select id="newTeacherSpecialty" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500 focus:bg-white">
-                            <option value="معلمة القرآن الكريم">معلمة القرآن الكريم</option>
-                            <option value="معلم القرآن الكريم">معلم القرآن الكريم</option>
-                            <option value="أحكام التجويد والإتقان">أحكام التجويد والإتقان</option>
-                            <option value="التفسير والحديث">التفسير والحديث</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">رقم الهاتف (اختياري):</label>
-                        <input type="tel" id="newTeacherPhone" placeholder="01xxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500 focus:bg-white text-left" dir="ltr">
-                    </div>
-                </div>
-
-                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-900 space-y-1">
-                    <p class="font-bold">توليد حساب الدخول تلقائياً:</p>
-                    <p>• سيتم إنشاء كود دخول تلقائي للمعلم (مثال: T080) بكلمة مرور افتراضية: <span class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300">123456</span>.</p>
-                    <p>• سيظهر المعلم فوراً في قوائم إسناد المجموعات وحصص التعويض.</p>
-                </div>
-
-                <div class="pt-2 flex gap-2">
-                    <button type="submit" id="saveTeacherBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer flex items-center justify-center gap-1.5">
-                        <span>حفظ وإضافة المعلم فوراً</span>
-                    </button>
-                    <button type="button" onclick="closeAddTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
-                        إلغاء
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div id="assignSubstituteTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -11133,6 +11070,71 @@
                     إلغاء
                 </button>
             </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: ADD NEW TEACHER TO PLATFORM                               -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="addTeacherModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">إضافة معلم جديد للمنصة</h3>
+                        <p class="text-[11px] text-slate-500">إنشاء ملف المعلم وقاعة Meet وحساب الدخول فوراً</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
+            </div>
+
+            <form id="addTeacherForm" onsubmit="event.preventDefault(); submitAddNewTeacher();" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">اسم المعلم / المعلمة: <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newTeacherName" required placeholder="مثال: أحمد محمد أو سارة علي" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">رابط قاعة Google Meet:</label>
+                    <input type="text" id="newTeacherMeet" placeholder="مثال: https://meet.google.com/xxx-yyyy-zzz" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500 focus:bg-white text-left" dir="ltr">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">المسار / التخصص:</label>
+                        <select id="newTeacherSpecialty" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500 focus:bg-white">
+                            <option value="معلمة القرآن الكريم">معلمة القرآن الكريم</option>
+                            <option value="معلم القرآن الكريم">معلم القرآن الكريم</option>
+                            <option value="أحكام التجويد والإتقان">أحكام التجويد والإتقان</option>
+                            <option value="التفسير والحديث">التفسير والحديث</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رقم الهاتف (اختياري):</label>
+                        <input type="tel" id="newTeacherPhone" placeholder="01xxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500 focus:bg-white text-left" dir="ltr">
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-900 space-y-1">
+                    <p class="font-bold">توليد حساب الدخول تلقائياً:</p>
+                    <p>• سيتم إنشاء كود دخول تلقائي للمعلم (مثال: T080) بكلمة مرور افتراضية: <span class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-300">123456</span>.</p>
+                    <p>• سيظهر المعلم فوراً في قوائم إسناد المجموعات وحصص التعويض.</p>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="submit" id="saveTeacherBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer flex items-center justify-center gap-1.5">
+                        <span>حفظ وإضافة المعلم فوراً</span>
+                    </button>
+                    <button type="button" onclick="closeAddTeacherModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
