@@ -881,8 +881,11 @@
                     </div>
                 </div>
 
-                <div class="pt-2 flex justify-center gap-2">
-                    <button onclick="backToQuizList()" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white font-black px-8 py-3 rounded-xl sm:rounded-2xl transition cursor-pointer text-xs sm:text-sm shadow-md">
+                <div class="pt-2 flex flex-col sm:flex-row justify-center gap-2">
+                    <button type="button" onclick="toggleGradebookModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 rounded-xl sm:rounded-2xl transition cursor-pointer text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5">
+                        <span>عرض سجل الدرجات والتقييم</span>
+                    </button>
+                    <button type="button" onclick="backToQuizList()" class="w-full sm:w-auto bg-[#1F274B] hover:bg-[#2D396E] text-white font-black px-8 py-3 rounded-xl sm:rounded-2xl transition cursor-pointer text-xs sm:text-sm shadow-md">
                         العودة لقائمة الامتحانات
                     </button>
                 </div>
