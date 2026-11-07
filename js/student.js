@@ -7419,6 +7419,7 @@ function loadQuizzesList() {
 
     // Strictly the 3 Monthly Exams (Tafsir, Hadith, Tajweed) - Zero weekly division!
     const monthlyQuizzes = [
+        { id: 1004, title: 'اختبار حفاظ القرآن الكريم والتقييم الشهري — دورة سبتمبر 2026', track: 'quran', total_questions: 'تقييم الحفظ والتجويد', total_points: 20 },
         { id: 1001, title: 'امتحان مسار التفسير والتدبر — ملخص الشهر الأول', track: 'tafsir', total_questions: 20, total_points: 40 },
         { id: 1002, title: 'امتحان مسار الحديث الشريف والسنة — ملخص الشهر الأول', track: 'hadith', total_questions: 20, total_points: 40 },
         { id: 1003, title: 'امتحان مسار أحكام التجويد ومخارج الحروف — ملخص الشهر الأول', track: 'tajweed', total_questions: 20, total_points: 40 }
@@ -7438,7 +7439,7 @@ function loadQuizzesList() {
         if (sub) {
             statusBadge = `
                 <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full">
-                    تم الحل بنجاح (${sub.score} / ${sub.total_points || 40})
+                    تم الحل بنجاح (${sub.score} / ${(Number(q.id) === 1004 ? 20 : (sub.total_points || q.total_points || 40))})
                 </span>
                 ${!isExpired ? `<span class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">مفتوح للإعادة أو التعديل</span>` : ''}
             `;
@@ -7837,7 +7838,8 @@ function renderQuizResultReview(sub, questions) {
     const revSummary = document.getElementById('quizResultReviewSummary');
     const revList = document.getElementById('quizResultReviewList');
 
-    const percentage = sub.percentage !== undefined ? sub.percentage : Math.round((sub.score / (sub.total_points || 40)) * 100);
+    const maxScore = (Number(sub.quiz_id) === 1004 ? 20 : (sub.max_score || sub.total_points || 40));
+    const percentage = sub.percentage !== undefined ? sub.percentage : Math.round((sub.score / maxScore) * 100);
     const isSuccess = percentage >= 70;
 
     if (resIcon) {
@@ -7850,7 +7852,41 @@ function renderQuizResultReview(sub, questions) {
     }
 
     if (resScore) {
-        resScore.innerHTML = `حصلت على <strong class="text-emerald-700 font-black text-xs sm:text-sm">${sub.score} من ${sub.total_points || 40} درجة</strong> (${percentage}%) وتم تسجيل نتيجتك في سجل الدرجات فوراً.`;
+        resScore.innerHTML = `حصلت على <strong class="text-emerald-700 font-black text-xs sm:text-sm">${sub.score} من ${maxScore} درجة</strong> (${percentage}%) وتم تسجيل نتيجتك في سجل الدرجات فوراً.`;
+    }
+
+    if (Number(sub.quiz_id) === 1004) {
+        const qAns = sub.answers_json || sub.answers || {};
+        if (revSummary) {
+            revSummary.innerHTML = `
+                <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-4 space-y-3 text-right">
+                    <div class="flex justify-between items-center font-bold text-xs text-indigo-950 border-b border-indigo-100 pb-2">
+                        <span>مسار حفظ القرآن الكريم — اختبار الحفاظ والتقييم الشهري</span>
+                        <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">الدرجة النهائية: ${sub.score} / 20 (${percentage}%)</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                        <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
+                            <div class="text-slate-500 text-[11px] font-bold">الحفظ الجديد</div>
+                            <div class="font-black text-slate-800 text-sm mt-0.5">${qAns.hifz_part || 'الفجر (9 آية)'}</div>
+                            <div class="text-emerald-700 font-bold text-xs mt-1">${qAns.hifz_score !== null && qAns.hifz_score !== undefined ? qAns.hifz_score : '10'} / 10</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
+                            <div class="text-slate-500 text-[11px] font-bold">مراجعة الماضي القريب</div>
+                            <div class="font-black text-slate-800 text-sm mt-0.5">${qAns.madi_qareeb_part || 'البينة'}</div>
+                            <div class="text-emerald-700 font-bold text-xs mt-1">${qAns.madi_qareeb_score !== null && qAns.madi_qareeb_score !== undefined ? qAns.madi_qareeb_score : '9'} / 10</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
+                            <div class="text-slate-500 text-[11px] font-bold">الماضي البعيد والمشرف</div>
+                            <div class="font-black text-slate-800 text-sm mt-0.5">${qAns.madi_baeed_part || 'الشرح'}</div>
+                            <div class="text-slate-600 font-bold text-xs mt-1">المعلمة: ${qAns.teacher_name || 'روضة'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        if (revList) revList.innerHTML = '';
+        if (revContainer) revContainer.classList.remove('hidden');
+        return;
     }
 
     if (!revContainer || !revList) return;
