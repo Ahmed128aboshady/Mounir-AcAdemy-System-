@@ -162,6 +162,7 @@
             }
         }, true);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 pb-20 overflow-x-hidden min-h-screen">
 
@@ -311,6 +312,12 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end" onclick="event.stopPropagation()">
+                    
+                    <button type="button" onclick="openUploadQuranGradesModal()" class="w-full sm:w-auto text-xs bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer" title="رفع شيت درجات اختبار القرآن الشهري (Excel)">
+                        <span>📥</span>
+                        <span>رفع درجات القرآن (Excel)</span>
+                    </button>
+
                     <button onclick="openCreateGeneralQuizModal()" class="w-full sm:w-auto text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1 shadow-sm">
                         <span>➕</span>
                         <span>إضافة محاضرة واختبار</span>
@@ -4690,6 +4697,443 @@
             </div>
         </div>
     </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: UPLOAD QURAN EXAM GRADES VIA EXCEL                         -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="uploadQuranGradesModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                        📥
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">رفع درجات اختبار حفظ القرآن الكريم الشهري (Excel)</h3>
+                        <p class="text-[11px] text-slate-500">رفع شيت الدرجات المعتمد بضغطة زر واحدة وتحديث حسابات وسجلات الطلاب فوراً</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeUploadQuranGradesModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">&times;</button>
+            </div>
+
+            <!-- Download Template Banner -->
+            <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div>
+                    <h4 class="font-black text-amber-900 mb-0.5">هل تحتاجين قالب الشيت المعتمد؟</h4>
+                    <p class="text-[11px] text-amber-800">قالب إكسيل جاهز يحتوي على جميع طلاب الأكاديمية مسبقاً، فقط املئي الدرجات والسور.</p>
+                </div>
+                <a href="quran_exam_grades_template.xlsx" download="قالب_رصد_درجات_اختبار_القرآن_أكاديمية_منير.xlsx" class="shrink-0 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <span>📥</span>
+                    <span>تحميل قالب الإكسيل الجاهز</span>
+                </a>
+            </div>
+
+            <!-- Exam Cycle & Selection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">دورة / شهر الاختبار: <span class="text-rose-500">*</span></label>
+                    <select id="quranUploadExamMonth" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500 focus:bg-white">
+                        <option value="سبتمبر 2026" selected>دورة سبتمبر 2026 (الرئيسية)</option>
+                        <option value="أكتوبر 2026">دورة أكتوبر 2026</option>
+                        <option value="نوفمبر 2026">دورة نوفمبر 2026</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">طريقة معاملة من لم يختبر:</label>
+                    <div class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-600 font-bold">
+                        تلقائياً: يُسجل "لم يختبر" دون احتساب درجة صفرية
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Upload Drag & Drop Area -->
+            <div>
+                <input type="file" id="quranGradesFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleQuranGradesFileSelect(event)">
+                <div id="quranUploadDropZone" onclick="document.getElementById('quranGradesFileInput').click()" class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 bg-slate-50/80 rounded-2xl p-6 text-center cursor-pointer transition space-y-2">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl shadow-xs">
+                        📊
+                    </div>
+                    <div>
+                        <p class="font-extrabold text-xs sm:text-sm text-slate-800" id="quranUploadFileNameLabel">اضغطي هنا لاختيار ملف الإكسيل (Excel) أو اسحبيه وأفلتيه هنا</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">يقبل ملفات بصيغة .xlsx أو .xls أو .csv</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Box (Shown after parsing) -->
+            <div id="quranGradesPreviewBox" class="hidden space-y-3 pt-1 text-xs">
+                <div class="grid grid-cols-3 gap-2.5 text-center">
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-2.5">
+                        <div class="text-base sm:text-lg font-black text-indigo-900" id="previewTotalRead">0</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500">إجمالي المقروء</div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
+                        <div class="text-base sm:text-lg font-black text-emerald-900" id="previewGradedCount">0</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500">تم رصد درجات لهم</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+                        <div class="text-base sm:text-lg font-black text-amber-900" id="previewUntestedCount">0</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500">لم يختبروا بعد</div>
+                    </div>
+                </div>
+
+                <!-- Sample Preview Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="bg-slate-100 px-3 py-1.5 font-bold text-[11px] text-slate-700">معاينة أولية لأول عينة من الطلاب المرصودين:</div>
+                    <div class="max-h-40 overflow-y-auto">
+                        <table class="w-full text-right text-[11px]">
+                            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0">
+                                <tr>
+                                    <th class="p-2">كود الطالب</th>
+                                    <th class="p-2">الاسم</th>
+                                    <th class="p-2">الحفظ الجديد</th>
+                                    <th class="p-2 text-center">الدرجة</th>
+                                    <th class="p-2">الماضي القريب</th>
+                                    <th class="p-2 text-center">الدرجة</th>
+                                    <th class="p-2 text-center">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quranPreviewTableBody" class="divide-y divide-slate-100">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex flex-col sm:flex-row gap-2">
+                <button type="button" id="btnConfirmUploadQuranGrades" onclick="confirmAndSaveQuranGrades()" disabled class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span>اعتماد وحفظ الدرجات على المنصة فوراً 🚀</span>
+                </button>
+                <button type="button" onclick="closeUploadQuranGradesModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// QURAN EXAM GRADES EXCEL UPLOADER LOGIC
+// ══════════════════════════════════════════════════════════════════════
+let parsedQuranExamRecords = [];
+
+function openUploadQuranGradesModal() {
+    const modal = document.getElementById('uploadQuranGradesModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    resetQuranUploadForm();
+}
+
+function closeUploadQuranGradesModal() {
+    const modal = document.getElementById('uploadQuranGradesModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+}
+
+function resetQuranUploadForm() {
+    parsedQuranExamRecords = [];
+    const input = document.getElementById('quranGradesFileInput');
+    if (input) input.value = '';
+    const label = document.getElementById('quranUploadFileNameLabel');
+    if (label) label.textContent = 'اضغطي هنا لاختيار ملف الإكسيل (Excel) أو اسحبيه وأفلتيه هنا';
+    const previewBox = document.getElementById('quranGradesPreviewBox');
+    if (previewBox) previewBox.classList.add('hidden');
+    const btn = document.getElementById('btnConfirmUploadQuranGrades');
+    if (btn) btn.disabled = true;
+}
+
+function handleQuranGradesFileSelect(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const label = document.getElementById('quranUploadFileNameLabel');
+    if (label) label.innerHTML = `📄 <strong>${file.name}</strong> (${Math.round(file.size / 1024)} كيلوبايت)`;
+
+    if (typeof XLSX === 'undefined') {
+        alert('مكتبة قراءة ملفات الإكسيل غير متوفرة حالياً، يرجى إعادة تحميل الصفحة أو فحص الاتصال بالإنترنت.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            processQuranExamExcelRows(rawRows);
+        } catch(err) {
+            console.error('Error reading Excel:', err);
+            alert('حدث خطأ أثناء قراءة ملف الإكسيل: ' + err.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function normalizeHeaderName(str) {
+    if (!str) return '';
+    return String(str).trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function processQuranExamExcelRows(rows) {
+    if (!rows || rows.length < 2) {
+        alert('الملف فارغ أو لا يحتوي على صفوف بيانات كافية.');
+        return;
+    }
+
+    // Find header row (usually row 4 or contains "كود" / "اسم")
+    let headerRowIdx = -1;
+    for (let r = 0; r < Math.min(10, rows.length); r++) {
+        const rowStr = (rows[r] || []).map(c => String(c)).join(' ');
+        if (rowStr.includes('كود') || rowStr.includes('student') || rowStr.includes('طالب') || rowStr.includes('حفظ')) {
+            headerRowIdx = r;
+            break;
+        }
+    }
+
+    if (headerRowIdx === -1) headerRowIdx = 0;
+
+    const headerRow = rows[headerRowIdx] || [];
+    let colCode = -1, colName = -1, colHifzPart = -1, colHifzScore = -1;
+    let colMqPart = -1, colMqScore = -1, colMbPart = -1, colTeacher = -1;
+
+    headerRow.forEach((cell, idx) => {
+        const val = String(cell || '').trim();
+        if (val.includes('كود') || val.toLowerCase().includes('code')) colCode = idx;
+        else if ((val.includes('اسم الطالب') || val.includes('الطالب')) && colName === -1) colName = idx;
+        else if (val.includes('مقدار الحفظ') || val.includes('الحفظ الجديد') || val.includes('حفظ جديد')) colHifzPart = idx;
+        else if (val.includes('درجة الحفظ') || val.includes('درجة حفظ')) colHifzScore = idx;
+        else if (val.includes('الماضي القريب') && !val.includes('درجة')) colMqPart = idx;
+        else if (val.includes('درجة الماضي') || val.includes('درجة ماضي')) colMqScore = idx;
+        else if (val.includes('الماضي البعيد')) colMbPart = idx;
+        else if (val.includes('ممتحن') || val.includes('مشرف') || val.includes('معلم')) colTeacher = idx;
+    });
+
+    // Fallbacks if columns weren't by name
+    if (colCode === -1) colCode = 1;
+    if (colName === -1) colName = 2;
+    if (colHifzPart === -1) colHifzPart = 4;
+    if (colHifzScore === -1) colHifzScore = 5;
+    if (colMqPart === -1) colMqPart = 6;
+    if (colMqScore === -1) colMqScore = 7;
+    if (colMbPart === -1) colMbPart = 8;
+    if (colTeacher === -1) colTeacher = 9;
+
+    parsedQuranExamRecords = [];
+    let testedCount = 0;
+    let untestedCount = 0;
+
+    for (let r = headerRowIdx + 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
+
+        const code = String(row[colCode] || '').trim();
+        const name = String(row[colName] || '').trim();
+        if (!code && !name) continue;
+
+        const hPart = String(row[colHifzPart] || '').trim();
+        const rawHScore = row[colHifzScore];
+        const mqPart = String(row[colMqPart] || '').trim();
+        const rawMqScore = row[colMqScore];
+        const mbPart = String(row[colMbPart] || '').trim();
+        const teacherName = String(row[colTeacher] || '').trim();
+
+        const hScoreNum = parseFloat(rawHScore);
+        const mqScoreNum = parseFloat(rawMqScore);
+
+        const isUntested = (
+            isNaN(hScoreNum) && isNaN(mqScoreNum)
+        ) || String(rawHScore).includes('لم') || String(rawMqScore).includes('لم');
+
+        let totalScore = null;
+        let isTested = false;
+
+        if (!isUntested && (!isNaN(hScoreNum) || !isNaN(mqScoreNum))) {
+            const h = isNaN(hScoreNum) ? 0 : Math.min(10, Math.max(0, hScoreNum));
+            const mq = isNaN(mqScoreNum) ? 0 : Math.min(10, Math.max(0, mqScoreNum));
+            totalScore = h + mq;
+            isTested = true;
+            testedCount++;
+        } else {
+            untestedCount++;
+        }
+
+        parsedQuranExamRecords.push({
+            code: code,
+            name: name,
+            hifz_part: hPart || 'غير محدد',
+            hifz_score: isTested ? (!isNaN(hScoreNum) ? hScoreNum : 0) : null,
+            madi_qareeb_part: mqPart || 'غير محدد',
+            madi_qareeb_score: isTested ? (!isNaN(mqScoreNum) ? mqScoreNum : 0) : null,
+            madi_baeed_part: mbPart || 'غير محدد',
+            teacher_name: teacherName || 'معلم الأكاديمية',
+            total_score: totalScore,
+            is_tested: isTested
+        });
+    }
+
+    // Render Preview
+    document.getElementById('previewTotalRead').textContent = parsedQuranExamRecords.length;
+    document.getElementById('previewGradedCount').textContent = testedCount;
+    document.getElementById('previewUntestedCount').textContent = untestedCount;
+
+    const tbody = document.getElementById('quranPreviewTableBody');
+    tbody.innerHTML = '';
+
+    const sample = parsedQuranExamRecords.filter(p => p.is_tested).slice(0, 6);
+    sample.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+            <td class="p-2 font-mono font-bold text-indigo-700">${item.code || '—'}</td>
+            <td class="p-2 font-bold text-slate-800">${item.name}</td>
+            <td class="p-2 text-slate-600">${item.hifz_part}</td>
+            <td class="p-2 text-center font-bold text-emerald-700">${item.hifz_score !== null ? item.hifz_score : '—'}</td>
+            <td class="p-2 text-slate-600">${item.madi_qareeb_part}</td>
+            <td class="p-2 text-center font-bold text-emerald-700">${item.madi_qareeb_score !== null ? item.madi_qareeb_score : '—'}</td>
+            <td class="p-2 text-center font-black text-emerald-800 bg-emerald-50">${item.total_score !== null ? item.total_score + ' / 20' : 'لم يختبر'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('quranGradesPreviewBox').classList.remove('hidden');
+    document.getElementById('btnConfirmUploadQuranGrades').disabled = (testedCount === 0);
+}
+
+async function confirmAndSaveQuranGrades() {
+    if (!parsedQuranExamRecords || parsedQuranExamRecords.length === 0) {
+        alert('لا توجد بيانات صالحة للحفظ.');
+        return;
+    }
+
+    const testedRecords = parsedQuranExamRecords.filter(r => r.is_tested);
+    if (testedRecords.length === 0) {
+        alert('لم يتم العثور على أي درجات مرصودة للطلاب في هذا الشيت.');
+        return;
+    }
+
+    const examMonth = document.getElementById('quranUploadExamMonth').value || 'سبتمبر 2026';
+    const examTitle = 'اختبار حفاظ القرآن الكريم والتقييم الشهري — دورة ' + examMonth;
+
+    const btn = document.getElementById('btnConfirmUploadQuranGrades');
+    btn.disabled = true;
+    btn.innerHTML = 'جاري حفظ واعتماد الدرجات على المنصة... ⏳';
+
+    try {
+        if (!window.MonirDB || !window.MonirDB.isConfigured()) {
+            throw new Error('قاعدة بيانات المنصة غير متصلة.');
+        }
+
+        // Fetch students map by student_code and name
+        const { data: stList, error: stErr } = await window.MonirDB.supabase
+            .from('students')
+            .select('id, student_code, name');
+
+        if (stErr) throw stErr;
+
+        const codeToId = {};
+        const nameToId = {};
+        (stList || []).forEach(st => {
+            if (st.student_code) codeToId[st.student_code.trim().toUpperCase()] = st.id;
+            if (st.name) nameToId[st.name.trim().toLowerCase()] = st.id;
+        });
+
+        const submissionsToUpsert = [];
+        const surahUpdates = [];
+
+        testedRecords.forEach(rec => {
+            let sId = null;
+            if (rec.code && codeToId[rec.code.trim().toUpperCase()]) {
+                sId = codeToId[rec.code.trim().toUpperCase()];
+            } else if (rec.name && nameToId[rec.name.trim().toLowerCase()]) {
+                sId = nameToId[rec.name.trim().toLowerCase()];
+            }
+
+            if (!sId) return;
+
+            const percentage = Math.round((rec.total_score / 20) * 100);
+            const answersJson = {
+                exam_title: examTitle,
+                hifz_part: rec.hifz_part,
+                hifz_score: rec.hifz_score,
+                madi_qareeb_part: rec.madi_qareeb_part,
+                madi_qareeb_score: rec.madi_qareeb_score,
+                madi_baeed_part: rec.madi_baeed_part,
+                teacher_name: rec.teacher_name,
+                exact_total_score: rec.total_score,
+                max_score: 20
+            };
+
+            submissionsToUpsert.push({
+                quiz_id: 1004,
+                student_id: sId,
+                score: Math.round(rec.total_score),
+                total_points: 20,
+                percentage: percentage,
+                submitted_at: new Date().toISOString(),
+                answers_json: answersJson
+            });
+
+            if (rec.hifz_part && rec.hifz_part !== 'غير محدد') {
+                surahUpdates.push({
+                    student_id: sId,
+                    current_surah: JSON.stringify({
+                        hifz: rec.hifz_part,
+                        madi_qareeb: rec.madi_qareeb_part,
+                        madi_baeed: rec.madi_baeed_part,
+                        teacher_name: rec.teacher_name,
+                        updated_at: new Date().toISOString()
+                    })
+                });
+            }
+        });
+
+        if (submissionsToUpsert.length === 0) {
+            throw new Error('لم يتطابق أي كود طالب مع قاعدة البيانات.');
+        }
+
+        // Upsert in chunks of 50
+        const chunkSize = 50;
+        for (let i = 0; i < submissionsToUpsert.length; i += chunkSize) {
+            const chunk = submissionsToUpsert.slice(i, i + chunkSize);
+            const { error: upErr } = await window.MonirDB.supabase
+                .from('quiz_submissions')
+                .upsert(chunk, { onConflict: 'quiz_id,student_id' });
+            if (upErr) console.warn('Chunk upsert warning:', upErr);
+        }
+
+        // Also update current_surah in enrollments
+        for (const sup of surahUpdates) {
+            try {
+                await window.MonirDB.supabase
+                    .from('enrollments')
+                    .update({ current_surah: sup.current_surah })
+                    .eq('student_id', sup.student_id);
+            } catch(e) {}
+        }
+
+        alert(`تم بحمد الله اعتماد ورفع درجات (${submissionsToUpsert.length}) طالباً بنجاح على المنصة وتحديث حساباتهم وسجلاتهم فوراً! 🎉`);
+        closeUploadQuranGradesModal();
+
+        // Refresh admin views if open
+        if (typeof adminQuizViewSubmissions === 'function') adminQuizViewSubmissions();
+        if (typeof loadDailyAttendanceMatchingData === 'function') loadDailyAttendanceMatchingData();
+    } catch(err) {
+        console.error('Save grades error:', err);
+        alert('حدث خطأ أثناء حفظ الدرجات: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'اعتماد وحفظ الدرجات على المنصة فوراً 🚀';
+    }
+}
+</script>
 
 </body>
                     </html>
@@ -11137,6 +11581,443 @@
             </form>
         </div>
     </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- MODAL: UPLOAD QURAN EXAM GRADES VIA EXCEL                         -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div id="uploadQuranGradesModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                        📥
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-900">رفع درجات اختبار حفظ القرآن الكريم الشهري (Excel)</h3>
+                        <p class="text-[11px] text-slate-500">رفع شيت الدرجات المعتمد بضغطة زر واحدة وتحديث حسابات وسجلات الطلاب فوراً</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeUploadQuranGradesModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">&times;</button>
+            </div>
+
+            <!-- Download Template Banner -->
+            <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div>
+                    <h4 class="font-black text-amber-900 mb-0.5">هل تحتاجين قالب الشيت المعتمد؟</h4>
+                    <p class="text-[11px] text-amber-800">قالب إكسيل جاهز يحتوي على جميع طلاب الأكاديمية مسبقاً، فقط املئي الدرجات والسور.</p>
+                </div>
+                <a href="quran_exam_grades_template.xlsx" download="قالب_رصد_درجات_اختبار_القرآن_أكاديمية_منير.xlsx" class="shrink-0 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <span>📥</span>
+                    <span>تحميل قالب الإكسيل الجاهز</span>
+                </a>
+            </div>
+
+            <!-- Exam Cycle & Selection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">دورة / شهر الاختبار: <span class="text-rose-500">*</span></label>
+                    <select id="quranUploadExamMonth" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500 focus:bg-white">
+                        <option value="سبتمبر 2026" selected>دورة سبتمبر 2026 (الرئيسية)</option>
+                        <option value="أكتوبر 2026">دورة أكتوبر 2026</option>
+                        <option value="نوفمبر 2026">دورة نوفمبر 2026</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">طريقة معاملة من لم يختبر:</label>
+                    <div class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-600 font-bold">
+                        تلقائياً: يُسجل "لم يختبر" دون احتساب درجة صفرية
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Upload Drag & Drop Area -->
+            <div>
+                <input type="file" id="quranGradesFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleQuranGradesFileSelect(event)">
+                <div id="quranUploadDropZone" onclick="document.getElementById('quranGradesFileInput').click()" class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 bg-slate-50/80 rounded-2xl p-6 text-center cursor-pointer transition space-y-2">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl shadow-xs">
+                        📊
+                    </div>
+                    <div>
+                        <p class="font-extrabold text-xs sm:text-sm text-slate-800" id="quranUploadFileNameLabel">اضغطي هنا لاختيار ملف الإكسيل (Excel) أو اسحبيه وأفلتيه هنا</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">يقبل ملفات بصيغة .xlsx أو .xls أو .csv</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Box (Shown after parsing) -->
+            <div id="quranGradesPreviewBox" class="hidden space-y-3 pt-1 text-xs">
+                <div class="grid grid-cols-3 gap-2.5 text-center">
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-2.5">
+                        <div class="text-base sm:text-lg font-black text-indigo-900" id="previewTotalRead">0</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500">إجمالي المقروء</div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
+                        <div class="text-base sm:text-lg font-black text-emerald-900" id="previewGradedCount">0</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500">تم رصد درجات لهم</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+                        <div class="text-base sm:text-lg font-black text-amber-900" id="previewUntestedCount">0</div>
+                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500">لم يختبروا بعد</div>
+                    </div>
+                </div>
+
+                <!-- Sample Preview Table -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="bg-slate-100 px-3 py-1.5 font-bold text-[11px] text-slate-700">معاينة أولية لأول عينة من الطلاب المرصودين:</div>
+                    <div class="max-h-40 overflow-y-auto">
+                        <table class="w-full text-right text-[11px]">
+                            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0">
+                                <tr>
+                                    <th class="p-2">كود الطالب</th>
+                                    <th class="p-2">الاسم</th>
+                                    <th class="p-2">الحفظ الجديد</th>
+                                    <th class="p-2 text-center">الدرجة</th>
+                                    <th class="p-2">الماضي القريب</th>
+                                    <th class="p-2 text-center">الدرجة</th>
+                                    <th class="p-2 text-center">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quranPreviewTableBody" class="divide-y divide-slate-100">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex flex-col sm:flex-row gap-2">
+                <button type="button" id="btnConfirmUploadQuranGrades" onclick="confirmAndSaveQuranGrades()" disabled class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span>اعتماد وحفظ الدرجات على المنصة فوراً 🚀</span>
+                </button>
+                <button type="button" onclick="closeUploadQuranGradesModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// QURAN EXAM GRADES EXCEL UPLOADER LOGIC
+// ══════════════════════════════════════════════════════════════════════
+let parsedQuranExamRecords = [];
+
+function openUploadQuranGradesModal() {
+    const modal = document.getElementById('uploadQuranGradesModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    resetQuranUploadForm();
+}
+
+function closeUploadQuranGradesModal() {
+    const modal = document.getElementById('uploadQuranGradesModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+}
+
+function resetQuranUploadForm() {
+    parsedQuranExamRecords = [];
+    const input = document.getElementById('quranGradesFileInput');
+    if (input) input.value = '';
+    const label = document.getElementById('quranUploadFileNameLabel');
+    if (label) label.textContent = 'اضغطي هنا لاختيار ملف الإكسيل (Excel) أو اسحبيه وأفلتيه هنا';
+    const previewBox = document.getElementById('quranGradesPreviewBox');
+    if (previewBox) previewBox.classList.add('hidden');
+    const btn = document.getElementById('btnConfirmUploadQuranGrades');
+    if (btn) btn.disabled = true;
+}
+
+function handleQuranGradesFileSelect(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const label = document.getElementById('quranUploadFileNameLabel');
+    if (label) label.innerHTML = `📄 <strong>${file.name}</strong> (${Math.round(file.size / 1024)} كيلوبايت)`;
+
+    if (typeof XLSX === 'undefined') {
+        alert('مكتبة قراءة ملفات الإكسيل غير متوفرة حالياً، يرجى إعادة تحميل الصفحة أو فحص الاتصال بالإنترنت.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+            processQuranExamExcelRows(rawRows);
+        } catch(err) {
+            console.error('Error reading Excel:', err);
+            alert('حدث خطأ أثناء قراءة ملف الإكسيل: ' + err.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function normalizeHeaderName(str) {
+    if (!str) return '';
+    return String(str).trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function processQuranExamExcelRows(rows) {
+    if (!rows || rows.length < 2) {
+        alert('الملف فارغ أو لا يحتوي على صفوف بيانات كافية.');
+        return;
+    }
+
+    // Find header row (usually row 4 or contains "كود" / "اسم")
+    let headerRowIdx = -1;
+    for (let r = 0; r < Math.min(10, rows.length); r++) {
+        const rowStr = (rows[r] || []).map(c => String(c)).join(' ');
+        if (rowStr.includes('كود') || rowStr.includes('student') || rowStr.includes('طالب') || rowStr.includes('حفظ')) {
+            headerRowIdx = r;
+            break;
+        }
+    }
+
+    if (headerRowIdx === -1) headerRowIdx = 0;
+
+    const headerRow = rows[headerRowIdx] || [];
+    let colCode = -1, colName = -1, colHifzPart = -1, colHifzScore = -1;
+    let colMqPart = -1, colMqScore = -1, colMbPart = -1, colTeacher = -1;
+
+    headerRow.forEach((cell, idx) => {
+        const val = String(cell || '').trim();
+        if (val.includes('كود') || val.toLowerCase().includes('code')) colCode = idx;
+        else if ((val.includes('اسم الطالب') || val.includes('الطالب')) && colName === -1) colName = idx;
+        else if (val.includes('مقدار الحفظ') || val.includes('الحفظ الجديد') || val.includes('حفظ جديد')) colHifzPart = idx;
+        else if (val.includes('درجة الحفظ') || val.includes('درجة حفظ')) colHifzScore = idx;
+        else if (val.includes('الماضي القريب') && !val.includes('درجة')) colMqPart = idx;
+        else if (val.includes('درجة الماضي') || val.includes('درجة ماضي')) colMqScore = idx;
+        else if (val.includes('الماضي البعيد')) colMbPart = idx;
+        else if (val.includes('ممتحن') || val.includes('مشرف') || val.includes('معلم')) colTeacher = idx;
+    });
+
+    // Fallbacks if columns weren't by name
+    if (colCode === -1) colCode = 1;
+    if (colName === -1) colName = 2;
+    if (colHifzPart === -1) colHifzPart = 4;
+    if (colHifzScore === -1) colHifzScore = 5;
+    if (colMqPart === -1) colMqPart = 6;
+    if (colMqScore === -1) colMqScore = 7;
+    if (colMbPart === -1) colMbPart = 8;
+    if (colTeacher === -1) colTeacher = 9;
+
+    parsedQuranExamRecords = [];
+    let testedCount = 0;
+    let untestedCount = 0;
+
+    for (let r = headerRowIdx + 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
+
+        const code = String(row[colCode] || '').trim();
+        const name = String(row[colName] || '').trim();
+        if (!code && !name) continue;
+
+        const hPart = String(row[colHifzPart] || '').trim();
+        const rawHScore = row[colHifzScore];
+        const mqPart = String(row[colMqPart] || '').trim();
+        const rawMqScore = row[colMqScore];
+        const mbPart = String(row[colMbPart] || '').trim();
+        const teacherName = String(row[colTeacher] || '').trim();
+
+        const hScoreNum = parseFloat(rawHScore);
+        const mqScoreNum = parseFloat(rawMqScore);
+
+        const isUntested = (
+            isNaN(hScoreNum) && isNaN(mqScoreNum)
+        ) || String(rawHScore).includes('لم') || String(rawMqScore).includes('لم');
+
+        let totalScore = null;
+        let isTested = false;
+
+        if (!isUntested && (!isNaN(hScoreNum) || !isNaN(mqScoreNum))) {
+            const h = isNaN(hScoreNum) ? 0 : Math.min(10, Math.max(0, hScoreNum));
+            const mq = isNaN(mqScoreNum) ? 0 : Math.min(10, Math.max(0, mqScoreNum));
+            totalScore = h + mq;
+            isTested = true;
+            testedCount++;
+        } else {
+            untestedCount++;
+        }
+
+        parsedQuranExamRecords.push({
+            code: code,
+            name: name,
+            hifz_part: hPart || 'غير محدد',
+            hifz_score: isTested ? (!isNaN(hScoreNum) ? hScoreNum : 0) : null,
+            madi_qareeb_part: mqPart || 'غير محدد',
+            madi_qareeb_score: isTested ? (!isNaN(mqScoreNum) ? mqScoreNum : 0) : null,
+            madi_baeed_part: mbPart || 'غير محدد',
+            teacher_name: teacherName || 'معلم الأكاديمية',
+            total_score: totalScore,
+            is_tested: isTested
+        });
+    }
+
+    // Render Preview
+    document.getElementById('previewTotalRead').textContent = parsedQuranExamRecords.length;
+    document.getElementById('previewGradedCount').textContent = testedCount;
+    document.getElementById('previewUntestedCount').textContent = untestedCount;
+
+    const tbody = document.getElementById('quranPreviewTableBody');
+    tbody.innerHTML = '';
+
+    const sample = parsedQuranExamRecords.filter(p => p.is_tested).slice(0, 6);
+    sample.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+            <td class="p-2 font-mono font-bold text-indigo-700">${item.code || '—'}</td>
+            <td class="p-2 font-bold text-slate-800">${item.name}</td>
+            <td class="p-2 text-slate-600">${item.hifz_part}</td>
+            <td class="p-2 text-center font-bold text-emerald-700">${item.hifz_score !== null ? item.hifz_score : '—'}</td>
+            <td class="p-2 text-slate-600">${item.madi_qareeb_part}</td>
+            <td class="p-2 text-center font-bold text-emerald-700">${item.madi_qareeb_score !== null ? item.madi_qareeb_score : '—'}</td>
+            <td class="p-2 text-center font-black text-emerald-800 bg-emerald-50">${item.total_score !== null ? item.total_score + ' / 20' : 'لم يختبر'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('quranGradesPreviewBox').classList.remove('hidden');
+    document.getElementById('btnConfirmUploadQuranGrades').disabled = (testedCount === 0);
+}
+
+async function confirmAndSaveQuranGrades() {
+    if (!parsedQuranExamRecords || parsedQuranExamRecords.length === 0) {
+        alert('لا توجد بيانات صالحة للحفظ.');
+        return;
+    }
+
+    const testedRecords = parsedQuranExamRecords.filter(r => r.is_tested);
+    if (testedRecords.length === 0) {
+        alert('لم يتم العثور على أي درجات مرصودة للطلاب في هذا الشيت.');
+        return;
+    }
+
+    const examMonth = document.getElementById('quranUploadExamMonth').value || 'سبتمبر 2026';
+    const examTitle = 'اختبار حفاظ القرآن الكريم والتقييم الشهري — دورة ' + examMonth;
+
+    const btn = document.getElementById('btnConfirmUploadQuranGrades');
+    btn.disabled = true;
+    btn.innerHTML = 'جاري حفظ واعتماد الدرجات على المنصة... ⏳';
+
+    try {
+        if (!window.MonirDB || !window.MonirDB.isConfigured()) {
+            throw new Error('قاعدة بيانات المنصة غير متصلة.');
+        }
+
+        // Fetch students map by student_code and name
+        const { data: stList, error: stErr } = await window.MonirDB.supabase
+            .from('students')
+            .select('id, student_code, name');
+
+        if (stErr) throw stErr;
+
+        const codeToId = {};
+        const nameToId = {};
+        (stList || []).forEach(st => {
+            if (st.student_code) codeToId[st.student_code.trim().toUpperCase()] = st.id;
+            if (st.name) nameToId[st.name.trim().toLowerCase()] = st.id;
+        });
+
+        const submissionsToUpsert = [];
+        const surahUpdates = [];
+
+        testedRecords.forEach(rec => {
+            let sId = null;
+            if (rec.code && codeToId[rec.code.trim().toUpperCase()]) {
+                sId = codeToId[rec.code.trim().toUpperCase()];
+            } else if (rec.name && nameToId[rec.name.trim().toLowerCase()]) {
+                sId = nameToId[rec.name.trim().toLowerCase()];
+            }
+
+            if (!sId) return;
+
+            const percentage = Math.round((rec.total_score / 20) * 100);
+            const answersJson = {
+                exam_title: examTitle,
+                hifz_part: rec.hifz_part,
+                hifz_score: rec.hifz_score,
+                madi_qareeb_part: rec.madi_qareeb_part,
+                madi_qareeb_score: rec.madi_qareeb_score,
+                madi_baeed_part: rec.madi_baeed_part,
+                teacher_name: rec.teacher_name,
+                exact_total_score: rec.total_score,
+                max_score: 20
+            };
+
+            submissionsToUpsert.push({
+                quiz_id: 1004,
+                student_id: sId,
+                score: Math.round(rec.total_score),
+                total_points: 20,
+                percentage: percentage,
+                submitted_at: new Date().toISOString(),
+                answers_json: answersJson
+            });
+
+            if (rec.hifz_part && rec.hifz_part !== 'غير محدد') {
+                surahUpdates.push({
+                    student_id: sId,
+                    current_surah: JSON.stringify({
+                        hifz: rec.hifz_part,
+                        madi_qareeb: rec.madi_qareeb_part,
+                        madi_baeed: rec.madi_baeed_part,
+                        teacher_name: rec.teacher_name,
+                        updated_at: new Date().toISOString()
+                    })
+                });
+            }
+        });
+
+        if (submissionsToUpsert.length === 0) {
+            throw new Error('لم يتطابق أي كود طالب مع قاعدة البيانات.');
+        }
+
+        // Upsert in chunks of 50
+        const chunkSize = 50;
+        for (let i = 0; i < submissionsToUpsert.length; i += chunkSize) {
+            const chunk = submissionsToUpsert.slice(i, i + chunkSize);
+            const { error: upErr } = await window.MonirDB.supabase
+                .from('quiz_submissions')
+                .upsert(chunk, { onConflict: 'quiz_id,student_id' });
+            if (upErr) console.warn('Chunk upsert warning:', upErr);
+        }
+
+        // Also update current_surah in enrollments
+        for (const sup of surahUpdates) {
+            try {
+                await window.MonirDB.supabase
+                    .from('enrollments')
+                    .update({ current_surah: sup.current_surah })
+                    .eq('student_id', sup.student_id);
+            } catch(e) {}
+        }
+
+        alert(`تم بحمد الله اعتماد ورفع درجات (${submissionsToUpsert.length}) طالباً بنجاح على المنصة وتحديث حساباتهم وسجلاتهم فوراً! 🎉`);
+        closeUploadQuranGradesModal();
+
+        // Refresh admin views if open
+        if (typeof adminQuizViewSubmissions === 'function') adminQuizViewSubmissions();
+        if (typeof loadDailyAttendanceMatchingData === 'function') loadDailyAttendanceMatchingData();
+    } catch(err) {
+        console.error('Save grades error:', err);
+        alert('حدث خطأ أثناء حفظ الدرجات: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'اعتماد وحفظ الدرجات على المنصة فوراً 🚀';
+    }
+}
+</script>
 
 </body>
 </html>
