@@ -1454,7 +1454,7 @@ function renderInlineCourseLecturesHtml(cName) {
 
                 ${l.key_message ? `
                     <div class="text-[10px] sm:text-[11px] text-emerald-950 bg-emerald-50/80 border border-emerald-200/80 p-2.5 rounded-xl font-bold flex items-start gap-1.5">
-                        <span class="text-emerald-800 shrink-0 font-black">🎯 رسالة الحلقة:</span>
+                        <span class="text-emerald-800 shrink-0 font-black"> رسالة الحلقة:</span>
                         <span>${l.key_message}</span>
                     </div>
                 ` : ''}
@@ -2685,7 +2685,7 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             </p>
             ${l.key_message ? `
                 <div class="text-[10px] sm:text-[11px] text-emerald-950 bg-white/90 border border-emerald-200/70 p-2.5 rounded-xl font-bold flex items-start gap-1.5">
-                    <span class="text-emerald-700 shrink-0 font-black">🎯 رسالة الحلقة:</span>
+                    <span class="text-emerald-700 shrink-0 font-black"> رسالة الحلقة:</span>
                     <span>${l.key_message}</span>
                 </div>
             ` : ''}
@@ -2921,7 +2921,7 @@ function joinNextDueMeet() {
 }
 
 function copyNextDueMeet() {
-    // 🔒 Direct join only — link copying is disabled for classroom privacy
+    //  Direct join only — link copying is disabled for classroom privacy
     joinMeet();
 }
 

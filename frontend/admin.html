@@ -187,7 +187,7 @@
                     <strong class="text-white" id="adminHeaderName">إدارة الأكاديمية</strong>
                 </div>
                 <button type="button" onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="لوحة شرف الأوائل ورصد المحاضرات العامة">
-                    <span>🏆</span>
+                    <span></span>
                     <span>المحاضرات والأوائل</span>
                 </button>
                 <button onclick="openLiveChatModal()" class="relative bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer">
@@ -301,7 +301,7 @@
                     <div>
                         <div class="flex items-center flex-wrap gap-2 mb-1">
                             <span class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
-                                🏆 منظومة الأوائل والمحاضرات العامة
+                                 منظومة الأوائل والمحاضرات العامة
                             </span>
                             <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-900 transition">لوحة شرف الأوائل ورصد درجات المحاضرات الأسبوعية</h2>
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="generalLecturesAdminStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
@@ -318,11 +318,11 @@
                     </button>
 
                     <button onclick="openCreateGeneralQuizModal()" class="w-full sm:w-auto text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-black px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1 shadow-sm">
-                        <span>➕</span>
+                        <span></span>
                         <span>إضافة محاضرة واختبار</span>
                     </button>
                     <button onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="w-full sm:w-auto text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-3.5 py-2 rounded-xl transition flex items-center justify-center gap-1 shadow-sm">
-                        <span>🔄</span>
+                        <span></span>
                         <span>تحديث البيانات</span>
                     </button>
                 </div>
@@ -400,7 +400,7 @@
                     <div class="flex flex-col sm:flex-row items-center gap-2">
                         <div class="relative flex-1 w-full">
                             <input type="text" id="inputQuizSearch" oninput="filterQuizSubmissionsTable()" placeholder="ابحث باسم الطالب، الكود، أو عنوان الاختبار..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 pr-8 outline-none focus:border-indigo-500 focus:bg-white">
-                            <span class="absolute right-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                            <span class="absolute right-2.5 top-2 text-slate-400 text-xs"></span>
                         </div>
                         <select id="selectQuizFilterTrack" onchange="filterQuizSubmissionsTable()" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2 text-xs font-bold outline-none cursor-pointer w-full sm:w-auto">
                             <option value="">جميع المسارات</option>
@@ -503,7 +503,7 @@
                                 اليوم: جاري التحميل...
                             </span>
                             <span id="frequentAbsenceAlertBadge" onclick="switchDailyAttendanceTab('frequent'); event.stopPropagation();" class="cursor-pointer bg-red-100 hover:bg-red-200 text-red-800 border border-red-300 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs inline-flex items-center gap-1 transition" title="انقر لعرض رادار الطلاب المتكرري الغياب (2+ غياب)">
-                                <span class="animate-pulse">🚨</span>
+                                <span class="animate-pulse"></span>
                                 <span id="frequentAbsenceCountLabel">الغيابات المتكررة: جاري التحميل...</span>
                             </span>
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="dailyMatchingStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
@@ -537,7 +537,7 @@
                         <span>كشف الحضور اليومي والمطابقة</span>
                     </button>
                     <button type="button" id="tabBtnFrequentAbsence" onclick="switchDailyAttendanceTab('frequent')" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700">
-                        <span>🚨</span>
+                        <span></span>
                         <span>رادار الغيابات المتكررة (إنذار المتابعة)</span>
                         <span id="tabFrequentAbsenceBadge" class="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
                     </button>
@@ -591,7 +591,7 @@
 
                         <!-- Quick Search Row -->
                         <div>
-                            <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder="🔍 بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                            <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder=" بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
                         </div>
                     </div>
 
@@ -669,7 +669,7 @@
                     <div class="bg-gradient-to-r from-red-50 via-amber-50/60 to-red-50 border border-red-200 rounded-2xl p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-2xs">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
-                                🚨
+                                
                             </div>
                             <div>
                                 <h3 class="font-black text-slate-900 text-sm">رادار متابعة الطلاب ذوي الغياب المتكرر (2+ غياب)</h3>
@@ -698,7 +698,7 @@
                                 <select id="freqAbsenceThresholdFilter" onchange="renderFrequentAbsencesTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
                                     <option value="2">الكل (مرتين غياب أو أكثر - 2+)</option>
                                     <option value="3">3 مرات غياب أو أكثر (3+)</option>
-                                    <option value="4">4 مرات غياب أو أكثر (إنذار أحمر 🚨)</option>
+                                    <option value="4">4 مرات غياب أو أكثر (إنذار أحمر )</option>
                                 </select>
                             </div>
 
@@ -733,7 +733,7 @@
 
                         <!-- Search Input -->
                         <div>
-                            <input type="text" id="freqAbsenceSearchInput" oninput="renderFrequentAbsencesTable()" placeholder="🔍 بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، أو اسم المعلم..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-red-500">
+                            <input type="text" id="freqAbsenceSearchInput" oninput="renderFrequentAbsencesTable()" placeholder=" بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، أو اسم المعلم..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-red-500">
                         </div>
                     </div>
 
@@ -777,7 +777,7 @@
                             <tbody id="frequentAbsenceTableBody" class="divide-y divide-slate-100">
                                 <tr>
                                     <td colspan="10" class="text-center py-8 text-slate-400 font-bold">
-                                        جاري جلب قائمة الطلاب المتكرري الغياب... ⏳
+                                        جاري جلب قائمة الطلاب المتكرري الغياب... 
                                     </td>
                                 </tr>
                             </tbody>
@@ -787,7 +787,7 @@
                     <!-- Action Footer for Frequent Absences -->
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 text-xs">
                         <span class="text-[11px] text-slate-500">
-                            💡 زر "رسالة واتساب" يفتح محادثة مباشرة مع ولي الأمر متضمنة رسالة متابعة مهنية جاهزة باسم الطالب وعدد مرات غيابه.
+                             زر "رسالة واتساب" يفتح محادثة مباشرة مع ولي الأمر متضمنة رسالة متابعة مهنية جاهزة باسم الطالب وعدد مرات غيابه.
                         </span>
                         <div class="flex items-center gap-2">
                             <button type="button" onclick="exportFrequentAbsencesExcel('xls')" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer flex items-center gap-1">
@@ -814,7 +814,7 @@
                     <div>
                         <div class="flex items-center flex-wrap gap-2 mb-1">
                             <span class="bg-gradient-to-r from-[#1F274B] to-[#41519C] text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
-                                📅 جدول المشرفين اليومي
+                                 جدول المشرفين اليومي
                             </span>
                             <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-indigo-900 transition">متابعة الحصص والمجموعات بالساعة</h2>
                             <span id="schedTodayBadge" class="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
@@ -829,7 +829,7 @@
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end" onclick="event.stopPropagation()">
                     <button onclick="ensureOpenAndLoadSupervisorSchedule()" class="w-full sm:w-auto text-xs bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
-                        <span>🔄</span>
+                        <span></span>
                         <span>تحديث الجدول</span>
                     </button>
                 </div>
@@ -860,7 +860,7 @@
                 <!-- Days Navigation Tabs Bar -->
                 <div class="space-y-2">
                     <div class="text-[11px] font-black text-slate-700 flex items-center justify-between">
-                        <span>🗓️ اختر اليوم للمتابعة:</span>
+                        <span>️ اختر اليوم للمتابعة:</span>
                         <span class="text-[10px] text-slate-400 font-normal">اضغط على أي يوم لعرض مجموعاته المجدولة</span>
                     </div>
                     <div class="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin" id="schedDaysTabBar">
@@ -873,12 +873,12 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
                         <!-- Search Input -->
                         <div class="lg:col-span-2">
-                            <label class="block font-bold text-slate-600 mb-1 text-[11px]">🔍 بحث سريع:</label>
+                            <label class="block font-bold text-slate-600 mb-1 text-[11px]"> بحث سريع:</label>
                             <div class="relative">
                                 <input type="text" id="schedSearchInput" oninput="applyScheduleFilters()" 
                                     placeholder="بحث برقم المجموعة (G..)، اسم المعلم، أو اسم/كود الطالب..." 
                                     class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-indigo-500 text-xs font-semibold">
-                                <button type="button" onclick="document.getElementById('schedSearchInput').value=''; applyScheduleFilters();" class="absolute left-2.5 top-2 text-slate-400 hover:text-slate-600 font-bold text-xs">✕</button>
+                                <button type="button" onclick="document.getElementById('schedSearchInput').value=''; applyScheduleFilters();" class="absolute left-2.5 top-2 text-slate-400 hover:text-slate-600 font-bold text-xs"></button>
                             </div>
                         </div>
 
@@ -892,7 +892,7 @@
 
                         <!-- Period Filter -->
                         <div>
-                            <label class="block font-bold text-slate-600 mb-1 text-[11px]">⏰ الفترة الزمنية:</label>
+                            <label class="block font-bold text-slate-600 mb-1 text-[11px]"> الفترة الزمنية:</label>
                             <select id="schedPeriodSelect" onchange="applyScheduleFilters()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-indigo-500 text-xs font-bold">
                                 <option value="all">كل الأوقات</option>
                                 <option value="morning">صباحاً (قبل 1:00 م)</option>
@@ -908,11 +908,11 @@
                         <div class="flex items-center gap-1.5">
                             <span class="text-slate-500 font-bold text-[11px]">طريقة العرض:</span>
                             <button type="button" id="schedViewBtnTimeline" onclick="setScheduleViewMode('timeline')" class="px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 bg-[#1F274B] text-white shadow-xs text-[11px]">
-                                <span>🕒</span>
+                                <span></span>
                                 <span>كروت زمنية بالساعة</span>
                             </button>
                             <button type="button" id="schedViewBtnTable" onclick="setScheduleViewMode('table')" class="px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 text-[11px]">
-                                <span>📋</span>
+                                <span></span>
                                 <span>جدول منظم</span>
                             </button>
                         </div>
@@ -929,7 +929,7 @@
                 <!-- Schedule Content Container with smooth inner scrollbar -->
                 <div id="schedContentContainer" class="space-y-4 min-h-[200px] max-h-[550px] overflow-y-auto pr-1">
                     <div class="text-center py-12 text-slate-400 animate-pulse">
-                        <div class="text-4xl mb-2">⏳</div>
+                        <div class="text-4xl mb-2"></div>
                         <p class="font-bold text-sm">جاري تنظيم جدول المجموعات وحساب المواعيد بالساعة...</p>
                     </div>
                 </div>
@@ -946,7 +946,7 @@
                     </button>
                     <div>
                         <div class="flex items-center gap-2 flex-wrap mb-1">
-                            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-blue-950 transition">🗂️ إدارة المجموعات التعليمية الكاملة</h2>
+                            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-blue-950 transition">️ إدارة المجموعات التعليمية الكاملة</h2>
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="adminGroupsStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
                         </div>
                         <p class="text-[11px] sm:text-xs text-slate-500">عرض شامل لجميع المجموعات وطلابها وبيانات الاشتراكات — مخصص للإدارة فقط</p>
@@ -981,7 +981,7 @@
                 <!-- Groups Container with smooth inner scrollbar -->
                 <div id="adminGroupsContainer" class="space-y-4 max-h-[550px] overflow-y-auto pr-1">
                     <div class="text-center py-10 text-slate-400">
-                        <div class="text-4xl mb-2">🗂️</div>
+                        <div class="text-4xl mb-2">️</div>
                         <p class="font-bold text-sm">اضغط "تحديث" لتحميل المجموعات من قاعدة البيانات</p>
                     </div>
                 </div>
@@ -1061,7 +1061,7 @@
                         <span id="statTeacherTicketsBadge" class="bg-indigo-200/80 text-indigo-950 px-1.5 py-0.2 rounded-full text-[9px] font-black">0</span>
                     </button>
                     <button onclick="filterTickets('students')" id="btnTicketStudents" class="bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1">
-                        <span>🎓 تذاكر الطلاب</span>
+                        <span> تذاكر الطلاب</span>
                         <span id="statStudentTicketsBadge" class="bg-blue-200/80 text-blue-950 px-1.5 py-0.2 rounded-full text-[9px] font-black">0</span>
                     </button>
                 </div>
@@ -1135,7 +1135,7 @@
                         <span>شيت تسجيل الطلاب الجدد (Excel)</span>
                     </a>
                     <button type="button" onclick="openAddStudentsToGroupModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-3.5 py-2.5 sm:py-2 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
-                        <span>➕</span>
+                        <span></span>
                         <span>إضافة طلاب لمجموعة</span>
                     </button>
                     <button onclick="ensureOpenAndLoadBulkStudents()" class="w-full sm:w-auto bg-[#41519C] hover:bg-[#2D396E] text-white font-black text-xs px-4 py-2.5 sm:py-2 rounded-xl shadow-sm transition">
@@ -1154,7 +1154,7 @@
                         <svg class="w-4 h-4 text-[#41519C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                         <span class="text-xs font-black text-slate-700">فلترة ذكية</span>
                     </div>
-                    <button onclick="resetBulkFilters()" class="text-[11px] text-slate-400 hover:text-red-500 transition font-bold">مسح الفلترة ✕</button>
+                    <button onclick="resetBulkFilters()" class="text-[11px] text-slate-400 hover:text-red-500 transition font-bold">مسح الفلترة </button>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
                     <!-- Search -->
@@ -1168,7 +1168,7 @@
                         <div class="flex items-center justify-between mb-1">
                             <label class="block font-bold text-slate-600">معرف المجموعة (Group ID)</label>
                             <button type="button" onclick="openAddStudentsToGroupModal()" class="text-[10px] font-black text-[#41519C] hover:underline flex items-center gap-0.5">
-                                <span>➕ إضافة</span>
+                                <span> إضافة</span>
                             </button>
                         </div>
                         <input type="text" id="bsFilterGroupText" list="bsGroupDatalist"
@@ -1206,8 +1206,8 @@
                             <label class="block font-bold text-slate-600 mb-1">النوع</label>
                             <select id="bsFilterGender" onchange="applyBulkFilters()" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-2 outline-none focus:border-[#41519C]">
                                 <option value="">الكل</option>
-                                <option value="f">بنت 👧</option>
-                                <option value="m">ولد 👦</option>
+                                <option value="f">بنت </option>
+                                <option value="m">ولد </option>
                             </select>
                         </div>
                     </div>
@@ -1245,13 +1245,13 @@
                 <span class="text-[#57BA9E] font-black text-xs sm:text-sm" id="bsSelectedCount">0 طالب محدد</span>
                 <span class="text-slate-400 text-xs hidden sm:inline">← اختر عملية:</span>
                 <div class="flex flex-wrap gap-1.5 w-full sm:w-auto">
-                    <button onclick="openBulkAction('group')" class="bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">🏠 تعيين مجموعة</button>
+                    <button onclick="openBulkAction('group')" class="bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition"> تعيين مجموعة</button>
                     <button onclick="openBulkAction('teacher')" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition"> تعيين مدرس</button>
-                    <button onclick="openBulkAction('credits')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-2.5 py-1.5 rounded-xl transition">💰 تعديل الرصيد</button>
-                    <button onclick="openBulkAction('schedule')" class="bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">🕐 تعديل الوقت</button>
-                    <button onclick="openBulkAction('duration')" class="bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">⏱️ مدة الحلقة</button>
-                    <button onclick="openBulkAction('status_active')" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">✅ تفعيل</button>
-                    <button onclick="openBulkAction('status_inactive')" class="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">🚫 إيقاف</button>
+                    <button onclick="openBulkAction('credits')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-2.5 py-1.5 rounded-xl transition"> تعديل الرصيد</button>
+                    <button onclick="openBulkAction('schedule')" class="bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition"> تعديل الوقت</button>
+                    <button onclick="openBulkAction('duration')" class="bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">️ مدة الحلقة</button>
+                    <button onclick="openBulkAction('status_active')" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition"> تفعيل</button>
+                    <button onclick="openBulkAction('status_inactive')" class="bg-red-600 hover:bg-red-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition"> إيقاف</button>
                     <button onclick="clearBulkSelection()" class="bg-slate-600 hover:bg-slate-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition">إلغاء</button>
                 </div>
             </div>
@@ -1315,13 +1315,13 @@
                     <h3 class="font-black text-base text-slate-900" id="bulkModalTitle">تعديل جماعي</h3>
                     <p class="text-[11px] text-slate-500 mt-0.5" id="bulkModalSubtitle">سيُطبَّق التعديل على كل الطلاب المحددين</p>
                 </div>
-                <button onclick="closeBulkActionModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">✕</button>
+                <button onclick="closeBulkActionModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold"></button>
             </div>
             <div id="bulkModalBody" class="space-y-4 text-xs"></div>
             <div class="flex gap-2 pt-2">
                 <button onclick="submitBulkAction()" id="bulkModalSubmitBtn"
                     class="flex-1 bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-lg text-sm">
-                    ✅ تطبيق التعديل الجماعي
+                     تطبيق التعديل الجماعي
                 </button>
                 <button onclick="closeBulkActionModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl transition">
                     إلغاء
@@ -1348,7 +1348,7 @@
                         <span id="addCreditsStudentMeta" class="font-mono text-slate-600 text-[10px]">—</span>
                     </p>
                 </div>
-                <button type="button" onclick="closeAddCreditsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg font-bold flex items-center justify-center cursor-pointer transition">✕</button>
+                <button type="button" onclick="closeAddCreditsModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-lg font-bold flex items-center justify-center cursor-pointer transition"></button>
             </div>
 
             <!-- Scrollable Body -->
@@ -1449,12 +1449,12 @@
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
                     <h3 class="font-black text-base text-slate-900 flex items-center gap-1.5">
-                        <span>✏️</span>
+                        <span>️</span>
                         <span>تعديل وتحديث بيانات الطالب</span>
                     </h3>
                     <p class="text-[11px] text-[#41519C] font-bold mt-0.5" id="inlineEditStudentName">—</p>
                 </div>
-                <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">✕</button>
+                <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1"></button>
             </div>
             <div class="mb-3">
                 <button type="button" onclick="if (typeof bsInlineStudentId !== 'undefined' && bsInlineStudentId) openStudentLedgerModal(bsInlineStudentId);" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
@@ -1482,8 +1482,8 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">النوع (الجنس)</label>
                     <select id="inlineGender" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
-                        <option value="f">👧 أنثى (بنت)</option>
-                        <option value="m">👦 ذكر (ولد)</option>
+                        <option value="f"> أنثى (بنت)</option>
+                        <option value="m"> ذكر (ولد)</option>
                     </select>
                 </div>
                 <div>
@@ -1518,7 +1518,7 @@
                     <input type="text" id="inlineTime" placeholder="مثال: 8:00 مساءً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">⏱️ مدة الحلقة</label>
+                    <label class="block font-bold text-slate-700 mb-1">️ مدة الحلقة</label>
                     <select id="inlineDuration" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
                         <option value="20 دقيقة">20 دقيقة (جلسة فردية سريعة)</option>
                         <option value="30 دقيقة">30 دقيقة (نصف ساعة)</option>
@@ -1530,8 +1530,8 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">حالة الحساب</label>
                     <select id="inlineStatus" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C]">
-                        <option value="active">نشط ✅</option>
-                        <option value="inactive">غير نشط / مجمد 🚫</option>
+                        <option value="active">نشط </option>
+                        <option value="inactive">غير نشط / مجمد </option>
                     </select>
                 </div>
                 <div class="sm:col-span-2">
@@ -1541,7 +1541,7 @@
             </div>
             <div class="flex gap-2 pt-2">
                 <button type="button" onclick="saveInlineEdit()" id="inlineSaveBtn" class="flex-1 bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
-                    <span>💾 حفظ التعديلات الكاملة</span>
+                    <span> حفظ التعديلات الكاملة</span>
                 </button>
                 <button type="button" onclick="closeInlineEdit()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl transition">
                     إلغاء
@@ -1559,12 +1559,12 @@
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
                 <div>
                     <h3 class="font-black text-base sm:text-lg text-slate-900 flex items-center gap-2">
-                        <span class="p-1.5 bg-[#41519C]/10 text-[#41519C] rounded-xl text-sm">👥</span>
+                        <span class="p-1.5 bg-[#41519C]/10 text-[#41519C] rounded-xl text-sm"></span>
                         <span>إضافة وتسكين طلاب في مجموعة</span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">اختر المجموعة وأضف إليها طلاباً مسجلين أو أنشئ طالباً جديداً مباشرة</p>
                 </div>
-                <button onclick="closeAddStudentsToGroupModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1">✕</button>
+                <button onclick="closeAddStudentsToGroupModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1"></button>
             </div>
 
             <!-- Target Group Selection Bar -->
@@ -1576,7 +1576,7 @@
                         oninput="onAsgTargetGroupChanged()">
                 </div>
                 <div class="text-[11px] text-blue-900 leading-tight">
-                    <span>💡 اكتب كود أي مجموعة (مثل <code class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-blue-200">G424</code>) أو اختر من المجموعات الحالية.</span>
+                    <span> اكتب كود أي مجموعة (مثل <code class="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-blue-200">G424</code>) أو اختر من المجموعات الحالية.</span>
                 </div>
             </div>
             <div id="asgTargetGroupInfo" class="hidden text-xs bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2 text-emerald-950 font-bold flex items-center justify-between flex-shrink-0">
@@ -1586,11 +1586,11 @@
             <!-- Tabs Header -->
             <div class="flex border-b border-slate-200 flex-shrink-0">
                 <button type="button" id="asgTabBtn1" onclick="switchAsgTab(1)" class="flex-1 pb-2.5 font-black text-xs border-b-2 border-[#41519C] text-[#41519C] transition flex items-center justify-center gap-1.5">
-                    <span>👥 نقل وتسكين طلاب مسجلين</span>
+                    <span> نقل وتسكين طلاب مسجلين</span>
                     <span id="asgSelectedCountBadge" class="hidden bg-[#41519C] text-white text-[10px] px-2 py-0.5 rounded-full">0</span>
                 </button>
                 <button type="button" id="asgTabBtn2" onclick="switchAsgTab(2)" class="flex-1 pb-2.5 font-bold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-1.5">
-                    <span>➕ إنشاء طالب جديد بالمجموعة</span>
+                    <span> إنشاء طالب جديد بالمجموعة</span>
                 </button>
             </div>
 
@@ -1627,14 +1627,14 @@
                 <div class="bg-indigo-50/90 border border-indigo-200 rounded-xl p-2.5 flex items-center justify-between text-xs flex-shrink-0">
                     <label class="flex items-center gap-2 cursor-pointer font-bold text-indigo-950">
                         <input type="checkbox" id="asgKeepExistingGroups" class="w-4 h-4 accent-[#41519C] rounded cursor-pointer" checked>
-                        <span>إبقاء المجموعات السابقة للطالب (إضافة كمجموعة إضافية دون حذفه من مجموعته الحالية) 🌟</span>
+                        <span>إبقاء المجموعات السابقة للطالب (إضافة كمجموعة إضافية دون حذفه من مجموعته الحالية) </span>
                     </label>
                 </div>
 
                 <!-- Action Submit Button -->
                 <div class="flex gap-2 pt-2 flex-shrink-0">
                     <button type="button" onclick="submitAddExistingStudentsToGroup()" id="asgSubmitBtn" class="flex-1 bg-[#41519C] hover:bg-[#2D396E] text-white font-black py-2.5 sm:py-3 rounded-xl transition shadow-md text-xs sm:text-sm flex items-center justify-center gap-2">
-                        <span>✅ إضافة وتسكين الطلاب المحددين في المجموعة</span>
+                        <span> إضافة وتسكين الطلاب المحددين في المجموعة</span>
                     </button>
                     <button type="button" onclick="closeAddStudentsToGroupModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 sm:py-3 rounded-xl transition text-xs">
                         إلغاء
@@ -1669,8 +1669,8 @@
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">النوع</label>
                             <select id="asgNewGender" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 outline-none focus:border-[#41519C]">
-                                <option value="m">ولد 👦</option>
-                                <option value="f">بنت 👧</option>
+                                <option value="m">ولد </option>
+                                <option value="f">بنت </option>
                             </select>
                         </div>
                     </div>
@@ -1696,7 +1696,7 @@
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">⏱️ مدة الحلقة</label>
+                        <label class="block font-bold text-slate-700 mb-1">️ مدة الحلقة</label>
                         <select id="asgNewDuration" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
                             <option value="20 دقيقة">20 دقيقة (جلسة فردية سريعة)</option>
                             <option value="30 دقيقة" selected>30 دقيقة (نصف ساعة)</option>
@@ -1715,7 +1715,7 @@
                 <!-- Action Submit Button -->
                 <div class="flex gap-2 pt-3 flex-shrink-0">
                     <button type="button" onclick="submitCreateNewStudentInGroup()" id="asgNewSubmitBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 sm:py-3 rounded-xl transition shadow-md text-xs sm:text-sm flex items-center justify-center gap-2">
-                        <span>✅ حفظ وإنشاء الطالب بالمجموعة</span>
+                        <span> حفظ وإنشاء الطالب بالمجموعة</span>
                     </button>
                     <button type="button" onclick="closeAddStudentsToGroupModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 sm:py-3 rounded-xl transition text-xs">
                         إلغاء
@@ -1879,7 +1879,7 @@
     <!-- Floating Live Chat Trigger Button -->
     <div id="floatingChatBtnContainer" class="fixed bottom-5 left-5 z-40 flex items-center gap-2">
         <button type="button" onclick="openLiveChatModal()" class="relative bg-[#1F274B] hover:bg-[#2D396E] text-white p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-2xl shadow-2xl border-2 border-[#57BA9E] transition-all transform hover:scale-105 flex items-center gap-2.5 font-black text-xs cursor-pointer group">
-            <span class="text-xl group-hover:scale-110 transition-transform">💬</span>
+            <span class="text-xl group-hover:scale-110 transition-transform"></span>
             <span class="hidden sm:inline font-bold">شات ورسائل الدعم المباشر</span>
             <span id="floatingChatBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">0</span>
         </button>
@@ -1892,7 +1892,7 @@
             <div class="bg-[#1F274B] text-white px-5 py-3.5 flex justify-between items-center shrink-0 border-b border-[#2D396E]">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-[#57BA9E] text-slate-950 flex items-center justify-center font-black text-xl shadow-sm shrink-0">
-                        💬
+                        
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
@@ -1907,7 +1907,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="loadAdminTickets()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition font-bold flex items-center gap-1.5" title="تحديث الرسائل">
-                        <span>🔄</span>
+                        <span></span>
                         <span class="hidden sm:inline text-[11px]">تحديث</span>
                     </button>
                     <button type="button" onclick="closeLiveChatModal()" class="text-slate-400 hover:text-white text-2xl font-bold p-1 rounded-xl hover:bg-white/10 transition leading-none">&times;</button>
@@ -1919,7 +1919,7 @@
                 <!-- Two Main Tabs: Parents/Students vs Teachers -->
                 <div class="flex items-center gap-1.5 bg-slate-200/80 p-1 rounded-xl">
                     <button type="button" id="liveChatTabBtnStudents" onclick="switchLiveChatTab('students')" class="flex-1 sm:flex-initial py-2 px-3 sm:px-4 rounded-lg font-black text-xs transition flex items-center justify-center gap-2 bg-[#1F274B] text-white shadow-xs">
-                        <span>👨‍👩‍👧‍👦</span>
+                        <span>‍‍‍</span>
                         <span>أولياء الأمور والطلاب</span>
                         <span id="tabLiveChatStudentsBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">0</span>
                     </button>
@@ -1933,8 +1933,8 @@
                 <!-- Status Filter Pills -->
                 <div class="flex items-center gap-1 justify-center">
                     <button type="button" id="liveChatFilterAll" onclick="filterLiveChatStatus('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#1F274B] text-white transition shadow-xs">الكل</button>
-                    <button type="button" id="liveChatFilterOpen" onclick="filterLiveChatStatus('open')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition">⏳ بانتظار الرد</button>
-                    <button type="button" id="liveChatFilterResolved" onclick="filterLiveChatStatus('resolved')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition">✓ تم الرد</button>
+                    <button type="button" id="liveChatFilterOpen" onclick="filterLiveChatStatus('open')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition"> بانتظار الرد</button>
+                    <button type="button" id="liveChatFilterResolved" onclick="filterLiveChatStatus('resolved')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition"> تم الرد</button>
                 </div>
             </div>
 
@@ -1945,15 +1945,15 @@
                     <!-- Search Input -->
                     <div class="p-3 border-b border-slate-200 bg-white">
                         <div class="relative">
-                            <input type="text" id="liveChatSearchInput" onkeyup="filterLiveChatSearch(this.value)" placeholder="🔍 بحث بالاسم، الكود، المجموعة..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pr-3 pl-8 py-2 text-xs font-bold outline-none focus:border-[#57BA9E] focus:bg-white transition">
-                            <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs cursor-pointer" onclick="document.getElementById('liveChatSearchInput').value=''; filterLiveChatSearch('');">✕</span>
+                            <input type="text" id="liveChatSearchInput" onkeyup="filterLiveChatSearch(this.value)" placeholder=" بحث بالاسم، الكود، المجموعة..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pr-3 pl-8 py-2 text-xs font-bold outline-none focus:border-[#57BA9E] focus:bg-white transition">
+                            <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs cursor-pointer" onclick="document.getElementById('liveChatSearchInput').value=''; filterLiveChatSearch('');"></span>
                         </div>
                     </div>
 
                     <!-- Conversations Scrollable Area -->
                     <div id="liveChatConversationsContainer" class="flex-1 overflow-y-auto p-2 space-y-1.5 divide-y-0">
                         <div class="text-center py-10 text-slate-400">
-                            <div class="text-2xl mb-1 animate-spin">⏳</div>
+                            <div class="text-2xl mb-1 animate-spin"></div>
                             <p class="font-bold">جاري تحميل المحادثات...</p>
                         </div>
                     </div>
@@ -1964,7 +1964,7 @@
                     <div id="liveChatThreadContent" class="flex-1 flex flex-col h-full">
                         <!-- Placeholder when nothing selected -->
                         <div class="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-                            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl mb-3">💬</div>
+                            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl mb-3"></div>
                             <h4 class="font-black text-sm text-slate-700 mb-1">اختر محادثة لعرض تفاصيل الرسالة والرد</h4>
                             <p class="text-xs text-slate-400 max-w-sm">يمكنك الاطلاع على كافة الاستفسارات، والتواصل الفوري مع أولياء الأمور أو المعلمين مباشرة من هنا</p>
                         </div>
@@ -2194,14 +2194,14 @@
         function showSchedCopySuccess(btn) {
             if (!btn) return;
             const orig = btn.innerHTML;
-            btn.innerHTML = '<span>✅ تم النسخ</span>';
+            btn.innerHTML = '<span> تم النسخ</span>';
             btn.classList.add('bg-emerald-600', 'text-white');
             setTimeout(() => {
                 btn.innerHTML = orig;
                 btn.classList.remove('bg-emerald-600', 'text-white');
             }, 1800);
             if (window.MonirPopup && MonirPopup.toast) {
-                MonirPopup.toast('تم نسخ رابط القاعة بنجاح ✅', 'success');
+                MonirPopup.toast('تم نسخ رابط القاعة بنجاح ', 'success');
             }
         }
 
@@ -2238,7 +2238,7 @@
             });
 
             const tabs = [
-                { key: 'today', label: `⭐ اليوم (${todayName})`, badge: counts['today'], isSpecial: true },
+                { key: 'today', label: ` اليوم (${todayName})`, badge: counts['today'], isSpecial: true },
                 { key: 'tomorrow', label: `غداً (${tomorrowName})`, badge: counts['tomorrow'], isSpecial: true },
                 ...SCHED_DAYS.map(d => ({
                     key: d.key,
@@ -2246,7 +2246,7 @@
                     badge: counts[d.key],
                     isToday: d.key === actualTodayKey
                 })),
-                { key: 'all', label: '🌐 كافة الأيام', badge: counts['all'], isSpecial: false }
+                { key: 'all', label: ' كافة الأيام', badge: counts['all'], isSpecial: false }
             ];
 
             let html = '';
@@ -2328,12 +2328,12 @@
             if (todayBadge && todayObj) {
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-                todayBadge.innerHTML = `🟢 اليوم: <strong>${todayObj.name}</strong> • ${timeStr}`;
+                todayBadge.innerHTML = ` اليوم: <strong>${todayObj.name}</strong> • ${timeStr}`;
             }
 
             container.innerHTML = `
                 <div class="text-center py-12 text-slate-400 animate-pulse">
-                    <div class="text-4xl mb-2">⏳</div>
+                    <div class="text-4xl mb-2"></div>
                     <p class="font-bold text-sm">جاري تجميع وتنظيم جدول المجموعات من قاعدة البيانات...</p>
                 </div>
             `;
@@ -2435,7 +2435,7 @@
                 console.error('[SupervisorSchedule] Load error:', err);
                 container.innerHTML = `
                     <div class="text-center py-10 text-rose-500">
-                        <div class="text-3xl mb-1">⚠️</div>
+                        <div class="text-3xl mb-1">️</div>
                         <p class="font-bold text-sm">حدث خطأ أثناء تحميل جدول المجموعات.</p>
                         <button onclick="loadSupervisorSchedule(true)" class="mt-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-1.5 rounded-xl text-xs transition">إعادة المحاولة</button>
                     </div>
@@ -2532,7 +2532,7 @@
             if (finalGroups.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-16 bg-slate-50/70 border border-dashed border-slate-200 rounded-3xl space-y-2">
-                        <div class="text-4xl">📭</div>
+                        <div class="text-4xl"></div>
                         <h4 class="font-extrabold text-slate-800 text-sm">لا توجد مجموعات مطابقة</h4>
                         <p class="text-xs text-slate-400">لا توجد مجموعات مجدولة في هذا اليوم أو بناءً على معايير البحث الحالية.</p>
                         <button type="button" onclick="document.getElementById('schedSearchInput').value=''; document.getElementById('schedTeacherSelect').value=''; document.getElementById('schedPeriodSelect').value='all'; applyScheduleFilters();" class="mt-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
@@ -2574,10 +2574,10 @@
                 const totalSlotStudents = slot.groups.reduce((acc, g) => acc + g.students.length, 0);
 
                 let periodBadge = '';
-                if (slot.period === 'morning') periodBadge = '<span class="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-bold">☀️ الصباح</span>';
-                else if (slot.period === 'afternoon') periodBadge = '<span class="text-[10px] bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md font-bold">🌤️ فترة الظهر / العصر</span>';
-                else if (slot.period === 'evening') periodBadge = '<span class="text-[10px] bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-md font-bold">🌙 المساء</span>';
-                else if (slot.period === 'night') periodBadge = '<span class="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-md font-bold">✨ ليلاً</span>';
+                if (slot.period === 'morning') periodBadge = '<span class="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-bold">️ الصباح</span>';
+                else if (slot.period === 'afternoon') periodBadge = '<span class="text-[10px] bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md font-bold">️ فترة الظهر / العصر</span>';
+                else if (slot.period === 'evening') periodBadge = '<span class="text-[10px] bg-indigo-50 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-md font-bold"> المساء</span>';
+                else if (slot.period === 'night') periodBadge = '<span class="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-md font-bold"> ليلاً</span>';
 
                 html += `
                     <div class="space-y-3 pt-2">
@@ -2617,16 +2617,16 @@
                                 <div class="flex items-center gap-1.5">
                                     <span class="font-mono font-black text-xs text-white bg-[#1F274B] px-2 py-0.5 rounded-md shadow-xs">${g.group_id}</span>
                                     <span class="text-[11px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
-                                        ⏰ ${g.timeInfo.display}
+                                         ${g.timeInfo.display}
                                     </span>
                                 </div>
                                 <div class="text-[10px] text-slate-400 font-bold mt-1">
-                                    📅 ${g.days || 'غير محدد'}
+                                     ${g.days || 'غير محدد'}
                                 </div>
                             </div>
                             <div class="text-right">
                                 <span class="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 whitespace-nowrap">
-                                    ⏱️ ${g.duration}
+                                    ️ ${g.duration}
                                 </span>
                             </div>
                         </div>
@@ -2642,7 +2642,7 @@
                             </div>
                             <div class="text-right">
                                 <span class="text-[11px] font-bold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                                    👥 ${g.students.length} ${g.students.length === 1 ? 'طالب' : 'طلاب'}
+                                     ${g.students.length} ${g.students.length === 1 ? 'طالب' : 'طلاب'}
                                 </span>
                             </div>
                         </div>
@@ -2671,7 +2671,7 @@
                                                 ` : ''}
                                                 ${st.phone ? `
                                                     <a href="tel:${st.phone}" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-1.5 py-0.5 rounded text-[9px] font-bold transition" title="اتصال">
-                                                        <span>📞</span>
+                                                        <span></span>
                                                     </a>
                                                 ` : ''}
                                             </div>
@@ -2686,13 +2686,13 @@
                     <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
                         <a href="${meetUrl}" target="_blank" 
                             class="flex-1 text-center justify-center bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs py-2 rounded-xl transition shadow-xs flex items-center gap-1.5" title="${meetUrl}">
-                            <span>🎥</span>
+                            <span></span>
                             <span>دخول القاعة</span>
                             ${isGoogleMeet ? '<span class="text-[9px] bg-white/25 px-1.5 py-0.5 rounded font-mono font-bold tracking-tight">Meet</span>' : ''}
                         </a>
                         <button type="button" onclick="copySchedMeetLink('${safeMeetUrl}', this)" 
                             class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 transition shadow-xs flex items-center gap-1 whitespace-nowrap" title="نسخ رابط القاعة (${meetUrl})">
-                            <span>📋</span>
+                            <span></span>
                             <span>نسخ</span>
                         </button>
                     </div>
@@ -2727,7 +2727,7 @@
                         <td class="p-3 text-center font-mono text-slate-400 font-bold">${idx + 1}</td>
                         <td class="p-3">
                             <span class="inline-flex items-center gap-1 font-black text-indigo-900 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md text-[11px]">
-                                ⏰ ${g.timeInfo.display}
+                                 ${g.timeInfo.display}
                             </span>
                             <div class="text-[10px] text-slate-400 font-bold mt-0.5">${g.days || '—'}</div>
                         </td>
@@ -2741,7 +2741,7 @@
                         <td class="p-3">
                             <div class="flex items-center justify-center gap-1.5">
                                 <a href="${meetUrl}" target="_blank" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1 whitespace-nowrap" title="${meetUrl}">
-                                    <span>🎥</span>
+                                    <span></span>
                                     <span>دخول</span>
                                     ${isGoogleMeet ? '<span class="text-[9px] bg-white/25 px-1.5 py-0.5 rounded font-mono font-bold">Meet</span>' : ''}
                                 </a>
@@ -2770,7 +2770,7 @@
         async function loadAdminGroups() {
             const container = document.getElementById('adminGroupsContainer');
             if (!container) return;
-            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-4xl mb-2">⏳</div><p class="font-bold text-sm">جاري تحميل المجموعات من Supabase...</p></div>';
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-4xl mb-2"></div><p class="font-bold text-sm">جاري تحميل المجموعات من Supabase...</p></div>';
 
             try {
                 let groups = [];
@@ -2884,7 +2884,7 @@
             if (!container) return;
 
             if (!groups || groups.length === 0) {
-                container.innerHTML = '<div class="text-center py-10 text-slate-400"><div class="text-4xl mb-2">📭</div><p class="font-bold">لا توجد مجموعات مطابقة للبحث</p></div>';
+                container.innerHTML = '<div class="text-center py-10 text-slate-400"><div class="text-4xl mb-2"></div><p class="font-bold">لا توجد مجموعات مطابقة للبحث</p></div>';
                 return;
             }
 
@@ -2898,7 +2898,7 @@
                     : (g.google_meet_url || ('https://meet.google.com/mnr-' + (g.group_id || '').toLowerCase().replace(/[^a-z0-9]/g, '')));
                 const lowRcStudents = g.students.filter(s => s.remaining_credits <= 2).length;
                 const alertBadge = lowRcStudents > 0
-                    ? `<span class="bg-red-100 text-red-700 border border-red-300 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">⚠️ ${lowRcStudents} رصيد منخفض</span>`
+                    ? `<span class="bg-red-100 text-red-700 border border-red-300 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">️ ${lowRcStudents} رصيد منخفض</span>`
                     : '';
 
                 el.innerHTML = `
@@ -2918,7 +2918,7 @@
                     </div>
                     <div class="bg-emerald-50/90 border-b border-emerald-200 px-3 sm:px-4 py-2 flex justify-between items-center flex-wrap gap-2 text-xs">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-bold text-emerald-900">📹 Google Meet:</span>
+                            <span class="font-bold text-emerald-900"> Google Meet:</span>
                             <a href="${meetUrl}" target="_blank" class="font-mono text-emerald-700 hover:underline truncate max-w-[280px] sm:max-w-[420px]" dir="ltr">${meetUrl}</a>
                         </div>
                         <div class="flex items-center gap-1.5">
@@ -2947,7 +2947,7 @@
                                     const rc = s.remaining_credits || 0;
                                     let rcBadge;
                                     if (rc === 0) rcBadge = `<span class="bg-slate-200 text-slate-700 font-black px-2 py-0.5 rounded text-[10px]">منتهي</span>`;
-                                    else if (rc <= 2) rcBadge = `<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded text-[10px] animate-pulse">⚠️ ${rc}</span>`;
+                                    else if (rc <= 2) rcBadge = `<span class="bg-red-100 text-red-800 font-black px-2 py-0.5 rounded text-[10px] animate-pulse">️ ${rc}</span>`;
                                     else rcBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px]">${rc}</span>`;
 
                                     const status = s.status === 'active' ? '<span class="text-emerald-600 font-bold">نشط</span>' : '<span class="text-red-500 font-bold">موقوف</span>';
@@ -2957,7 +2957,7 @@
                                             <td class="p-2.5 font-bold text-slate-900">
                                                 <a href="student.html?id=${s.id || s.student_code}" target="_blank" class="hover:underline text-[#41519C] hover:text-[#2D396E] flex items-center gap-1" title="عرض بروفايل الطالب">
                                                     <span>${s.name || '—'}</span>
-                                                    <span class="text-[10px] text-slate-400">🔗</span>
+                                                    <span class="text-[10px] text-slate-400"></span>
                                                 </a>
                                             </td>
                                             <td class="p-2.5 font-mono text-blue-900 font-extrabold text-[11px]">
@@ -3340,9 +3340,9 @@
             closeSubstituteTeacherModal();
 
             if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                window.MonirPopup.toast(`تم تعيين (${substituteName}) معلماً بديلاً للمجموعة (${groupId}) لحصة ${dateStr} بنجاح ✓`, 'success');
+                window.MonirPopup.toast(`تم تعيين (${substituteName}) معلماً بديلاً للمجموعة (${groupId}) لحصة ${dateStr} بنجاح `, 'success');
             } else {
-                alert(`تم تعيين (${substituteName}) معلماً بديلاً للمجموعة (${groupId}) لحصة ${dateStr} بنجاح ✓`);
+                alert(`تم تعيين (${substituteName}) معلماً بديلاً للمجموعة (${groupId}) لحصة ${dateStr} بنجاح `);
             }
 
             // Refresh views
@@ -3512,7 +3512,7 @@
         }
 
         // ══════════════════════════════════════════════════════════════════
-        // 📋 DAILY ATTENDANCE MATCHING & EXCEL EXPORT ENGINE
+        //  DAILY ATTENDANCE MATCHING & EXCEL EXPORT ENGINE
         // ══════════════════════════════════════════════════════════════════
         let dailyMatchingRawRecords = [];
         let dailyMatchingFilteredRecords = [];
@@ -3613,7 +3613,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="12" class="text-center py-8 text-emerald-700 font-bold animate-pulse">
-                            جاري جلب كشوفات ومطابقة حضور يوم ${dailyMatchingSelectedDate}... ⏳
+                            جاري جلب كشوفات ومطابقة حضور يوم ${dailyMatchingSelectedDate}... 
                         </td>
                     </tr>
                 `;
@@ -3965,13 +3965,13 @@
                     : (r.recorded_role === 'معلم' ? '<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold px-1.5 py-0.2 rounded-md text-[9px] mr-1">معلم</span>' : '');
 
                 if (r.status === 'present') {
-                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✓</span><span>حاضر</span> ${roleBadge}</span>`;
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span></span><span>حاضر</span> ${roleBadge}</span>`;
                 } else if (r.status === 'absent') {
-                    statusBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>✗</span><span>غائب</span> ${roleBadge}</span>`;
+                    statusBadge = `<span class="bg-red-100 text-red-800 border border-red-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span></span><span>غائب</span> ${roleBadge}</span>`;
                 } else if (r.status === 'excused') {
                     statusBadge = `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span> ${roleBadge}</span>`;
                 } else if (r.status === 'postponed') {
-                    statusBadge = `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>⏱</span><span>مؤجلة</span> ${roleBadge}</span>`;
+                    statusBadge = `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span></span><span>مؤجلة</span> ${roleBadge}</span>`;
                 } else if (r.is_inactive || r.remaining_credits <= 0) {
                     statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
                 } else {
@@ -4003,11 +4003,11 @@
                         <td class="p-2.5 font-bold text-slate-900">
                             <div class="flex items-center gap-1 flex-wrap">
                                 <span>${r.name}</span>
-                                ${(r.absent_count >= 2) ? `<span class="bg-red-100 text-red-800 border border-red-300 font-extrabold text-[9px] px-1.5 py-0.2 rounded inline-flex items-center gap-0.5" title="تنبيه: الطالب لديه ${r.absent_count} مرات غياب مسجلة">⚠️ ${r.absent_count} غياب</span>` : ''}
+                                ${(r.absent_count >= 2) ? `<span class="bg-red-100 text-red-800 border border-red-300 font-extrabold text-[9px] px-1.5 py-0.2 rounded inline-flex items-center gap-0.5" title="تنبيه: الطالب لديه ${r.absent_count} مرات غياب مسجلة">️ ${r.absent_count} غياب</span>` : ''}
                             </div>
                         </td>
                         <td class="p-2.5 text-slate-600 font-mono text-[11px]">
-                            ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-700 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1" title="فتح محادثة واتساب"><span>💬</span><span>${r.phone}</span></a>` : r.phone}
+                            ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-700 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1" title="فتح محادثة واتساب"><span></span><span>${r.phone}</span></a>` : r.phone}
                         </td>
                         <td class="p-2.5 font-bold text-slate-800">
                             <div>${r.teacher_name}</div>
@@ -4030,8 +4030,8 @@
                         <td class="p-2.5 text-center">
                             <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
                                 <option value="" ${matchSelected === '' ? 'selected' : ''}>— غير محدد —</option>
-                                <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}>✓ مطابق فعلياً</option>
-                                <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}>⚠ به اختلاف</option>
+                                <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}> مطابق فعلياً</option>
+                                <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}> به اختلاف</option>
                                 <option value="manual_excused" ${matchSelected === 'manual_excused' ? 'selected' : ''}>عذر معتمد</option>
                             </select>
                         </td>
@@ -4056,7 +4056,7 @@
 
             let confirmed = false;
             if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد الرصد الرسمي', 'question', '✓ تأكيد الرصد', 'إلغاء');
+                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد الرصد الرسمي', 'question', ' تأكيد الرصد', 'إلغاء');
             } else {
                 confirmed = confirm(confirmMsg);
             }
@@ -4185,9 +4185,9 @@
                 window.bsAllStudents = [];
 
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast('تم الرصد الرسمي بنجاح ✓ وتحديث الرصيد وسجل الحضور', 'success');
+                    window.MonirPopup.toast('تم الرصد الرسمي بنجاح  وتحديث الرصيد وسجل الحضور', 'success');
                 } else {
-                    alert('تم الرصد بنجاح ✓');
+                    alert('تم الرصد بنجاح ');
                 }
 
                 await loadDailyAttendanceMatchingData();
@@ -4276,7 +4276,7 @@
                 window.bsAllStudents = [];
 
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast('تم التراجع عن الرصد واستعادة الحصة بنجاح ✓', 'success');
+                    window.MonirPopup.toast('تم التراجع عن الرصد واستعادة الحصة بنجاح ', 'success');
                 } else {
                     alert('تم التراجع بنجاح');
                 }
@@ -4463,16 +4463,16 @@
                 const abs = s.absent_count || 0;
                 let absBadge = '';
                 if (abs === 2) {
-                    absBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>⚠️</span><span>مرتين (2)</span></span>';
+                    absBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>️</span><span>مرتين (2)</span></span>';
                 } else if (abs === 3) {
-                    absBadge = '<span class="bg-orange-100 text-orange-900 border border-orange-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>🚨</span><span>3 مرات (3)</span></span>';
+                    absBadge = '<span class="bg-orange-100 text-orange-900 border border-orange-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span></span><span>3 مرات (3)</span></span>';
                 } else {
-                    absBadge = `<span class="bg-red-600 text-white font-black px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse shadow-xs"><span>🔥</span><span>${abs} غيابات (إنذار أحمر)</span></span>`;
+                    absBadge = `<span class="bg-red-600 text-white font-black px-2.5 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse shadow-xs"><span></span><span>${abs} غيابات (إنذار أحمر)</span></span>`;
                 }
 
                 const cleanPhone = (s.parent_phone && s.parent_phone !== '—' ? s.parent_phone : (s.phone || '')).replace(/[^0-9]/g, '');
                 const waPhone = cleanPhone.startsWith('0') ? '20' + cleanPhone.substring(1) : cleanPhone;
-                const waMsg = encodeURIComponent(`السلام عليكم ورحمة الله وبركاته، تحياتنا لكم من إدارة منصة منير أكاديمي 🌿\n\nنود المتابعة والاطمئنان بخصوص غياب الطالب/ة الكريم (${s.name}) المتكرر عن حصص القرآن الكريم (${abs} مرات غياب مسجلة).\n\nحرصاً منا على استمرار الطالب في رحلته القرآنية، نرجو التكرم بالتواصل معنا للإفادة والاطمئنان وتنظيم المواعيد.\nبارك الله فيكم وحفظكم.`);
+                const waMsg = encodeURIComponent(`السلام عليكم ورحمة الله وبركاته، تحياتنا لكم من إدارة منصة منير أكاديمي \n\nنود المتابعة والاطمئنان بخصوص غياب الطالب/ة الكريم (${s.name}) المتكرر عن حصص القرآن الكريم (${abs} مرات غياب مسجلة).\n\nحرصاً منا على استمرار الطالب في رحلته القرآنية، نرجو التكرم بالتواصل معنا للإفادة والاطمئنان وتنظيم المواعيد.\nبارك الله فيكم وحفظكم.`);
                 const waLink = cleanPhone ? `https://wa.me/${waPhone}?text=${waMsg}` : null;
 
                 const creditColor = (s.remaining_credits || 0) <= 0 ? 'text-red-600 bg-red-50 border-red-200' : (s.remaining_credits <= 2 ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200');
@@ -4780,7 +4780,7 @@
                 // If records are empty, load first
                 if (!dailyMatchingRawRecords || dailyMatchingRawRecords.length === 0) {
                     if (window.MonirPopup && window.MonirPopup.toast) {
-                        window.MonirPopup.toast('جاري تجهيز كشف الحضور للتصدير... ⏳', 'info');
+                        window.MonirPopup.toast('جاري تجهيز كشف الحضور للتصدير... ', 'info');
                     }
                     await loadDailyAttendanceMatchingData();
                 }
@@ -5474,7 +5474,7 @@
             container.innerHTML = '';
 
             if (!tickets || tickets.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs"><div class="text-2xl mb-1">📭</div><p class="font-bold">لا توجد تذاكر دعم في هذا التصنيف حالياً.</p></div>';
+                container.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs"><div class="text-2xl mb-1"></div><p class="font-bold">لا توجد تذاكر دعم في هذا التصنيف حالياً.</p></div>';
                 return;
             }
 
@@ -5488,11 +5488,11 @@
                 
                 const roleBadge = isTeacher 
                     ? `<span class="bg-indigo-100 text-indigo-950 font-black px-2 py-0.5 rounded-md text-[10px] border border-indigo-200"> تذكرة معلم</span>`
-                    : `<span class="bg-blue-100 text-blue-950 font-bold px-2 py-0.5 rounded-md text-[10px] border border-blue-200">🎓 تذكرة طالب</span>`;
+                    : `<span class="bg-blue-100 text-blue-950 font-bold px-2 py-0.5 rounded-md text-[10px] border border-blue-200"> تذكرة طالب</span>`;
 
                 const statusBadge = isOpen
-                    ? `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px] border border-amber-200">🟡 بانتظار الرد</span>`
-                    : `<span class="bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded text-[10px] border border-emerald-200">🟢 تم الرد من الإشراف</span>`;
+                    ? `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10px] border border-amber-200"> بانتظار الرد</span>`
+                    : `<span class="bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded text-[10px] border border-emerald-200"> تم الرد من الإشراف</span>`;
 
                 const dateStr = t.created_at ? t.created_at.slice(0, 16).replace('T', ' ') : '—';
 
@@ -5514,7 +5514,7 @@
                         ${t.admin_reply ? `
                             <div class="text-xs text-indigo-950 bg-indigo-50/90 border border-indigo-200 p-2.5 rounded-xl mt-1.5 space-y-1">
                                 <div class="font-black flex items-center gap-1 text-indigo-900 text-[11px]">
-                                    <span>💬 رد الإشراف الرسمي:</span>
+                                    <span> رد الإشراف الرسمي:</span>
                                 </div>
                                 <div class="whitespace-pre-wrap font-medium">${t.admin_reply}</div>
                             </div>
@@ -5524,7 +5524,7 @@
                         <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
                         <button onclick="openReplyModal(${t.id}, '${(t.student_name || '').replace(/'/g, "\\'")}', '${(t.subject || '').replace(/'/g, "\\'")}', '${(t.message || '').replace(/'/g, "\\'").replace(/\n/g, ' ')}')" 
                             class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition whitespace-nowrap">
-                            ${isOpen ? 'الرد الآن ✍️' : 'تعديل الرد ✏️'}
+                            ${isOpen ? 'الرد الآن ️' : 'تعديل الرد ️'}
                         </button>
                     </div>
                 `;
@@ -5610,7 +5610,7 @@
                 }
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast('تم إرسال الرد بنجاح ووصل للمرسل ✅', 'success');
+                    MonirPopup.toast('تم إرسال الرد بنجاح ووصل للمرسل ', 'success');
                 } else {
                     alert('تم إرسال الرد بنجاح.');
                 }
@@ -5750,7 +5750,7 @@
             if (tickets.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12 text-slate-400">
-                        <div class="text-3xl mb-2">📭</div>
+                        <div class="text-3xl mb-2"></div>
                         <p class="font-bold text-xs">لا توجد رسائل مطابقة في هذا القسم</p>
                         <p class="text-[11px] text-slate-400 mt-1">جرّب تغيير التبويب أو تصفية البحث</p>
                     </div>
@@ -5759,7 +5759,7 @@
                 if (threadContent) {
                     threadContent.innerHTML = `
                         <div class="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-                            <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-2xl mb-2">💬</div>
+                            <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-2xl mb-2"></div>
                             <h4 class="font-black text-xs text-slate-600">لا توجد محادثات محددة</h4>
                         </div>
                     `;
@@ -5776,8 +5776,8 @@
                 const isOpen = (t.status === 'open');
                 const isTeacher = isTeacherTicket(t);
 
-                const avatar = isTeacher ? '' : '🎓';
-                const nameClean = (t.student_name || 'مستخدم').replace(' المعلم: ', '').replace('🎓 ', '');
+                const avatar = isTeacher ? '' : '';
+                const nameClean = (t.student_name || 'مستخدم').replace(' المعلم: ', '').replace(' ', '');
                 
                 let dateFormatted = '—';
                 if (t.created_at) {
@@ -5806,8 +5806,8 @@
                                 </div>
                                 <div class="flex items-center gap-1.5 mb-1 flex-wrap">
                                     ${isOpen 
-                                        ? `<span class="bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded text-[9px] border border-amber-300 animate-pulse">⏳ بانتظار الرد</span>`
-                                        : `<span class="bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.2 rounded text-[9px] border border-emerald-300">✓ تم الرد</span>`
+                                        ? `<span class="bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded text-[9px] border border-amber-300 animate-pulse"> بانتظار الرد</span>`
+                                        : `<span class="bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.2 rounded text-[9px] border border-emerald-300"> تم الرد</span>`
                                     }
                                     ${t.course_name ? `<span class="bg-slate-100 text-slate-600 font-mono text-[9px] px-1.5 py-0.2 rounded">${t.course_name}</span>` : ''}
                                     <span class="bg-slate-100 text-slate-600 text-[9px] px-1.5 py-0.2 rounded">${t.category || 'عام'}</span>
@@ -5857,8 +5857,8 @@
 
             const isOpen = (t.status === 'open');
             const isTeacher = isTeacherTicket(t);
-            const roleLabel = isTeacher ? ' معلم / مدرب' : '🎓 طالب / ولي أمر';
-            const nameClean = (t.student_name || 'مستخدم').replace(' المعلم: ', '').replace('🎓 ', '');
+            const roleLabel = isTeacher ? ' معلم / مدرب' : ' طالب / ولي أمر';
+            const nameClean = (t.student_name || 'مستخدم').replace(' المعلم: ', '').replace(' ', '');
 
             let dateFormatted = '—';
             if (t.created_at) {
@@ -5876,7 +5876,7 @@
                             ← القائمة
                         </button>
                         <div class="w-10 h-10 rounded-2xl ${isTeacher ? 'bg-indigo-600' : 'bg-[#41519C]'} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
-                            ${isTeacher ? '' : '🎓'}
+                            ${isTeacher ? '' : ''}
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center gap-1.5 flex-wrap">
@@ -5895,7 +5895,7 @@
                                 ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300' 
                                 : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
                         }">
-                            <span>${isOpen ? '✓ تحديد كمكتمل' : '⏳ إعادة فتح'}</span>
+                            <span>${isOpen ? ' تحديد كمكتمل' : ' إعادة فتح'}</span>
                         </button>
                     </div>
                 </div>
@@ -5905,11 +5905,11 @@
                     <!-- Incoming Message from User -->
                     <div class="flex items-start gap-3 max-w-[90%] sm:max-w-[80%]">
                         <div class="w-8 h-8 rounded-full ${isTeacher ? 'bg-indigo-100 text-indigo-800' : 'bg-blue-100 text-blue-800'} flex items-center justify-center font-bold text-sm shrink-0 mt-1 shadow-xs">
-                            ${isTeacher ? '' : '🎓'}
+                            ${isTeacher ? '' : ''}
                         </div>
                         <div class="bg-white border border-slate-200 rounded-2xl rounded-tr-none p-3.5 shadow-xs space-y-1.5 flex-1">
                             <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
-                                <span class="font-extrabold text-xs text-slate-900">📌 الموضوع: ${t.subject || 'استفسار'}</span>
+                                <span class="font-extrabold text-xs text-slate-900"> الموضوع: ${t.subject || 'استفسار'}</span>
                                 <span class="text-[10px] text-slate-400 font-mono">${dateFormatted}</span>
                             </div>
                             <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">
@@ -5922,12 +5922,12 @@
                     ${t.admin_reply ? `
                         <div class="flex items-start gap-3 max-w-[90%] sm:max-w-[80%] mr-auto flex-row-reverse">
                             <div class="w-8 h-8 rounded-full bg-[#1F274B] text-[#57BA9E] flex items-center justify-center font-bold text-sm shrink-0 mt-1 shadow-xs">
-                                🛡️
+                                ️
                             </div>
                             <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl rounded-tl-none p-3.5 shadow-xs space-y-1.5 flex-1">
                                 <div class="flex items-center justify-between gap-2 border-b border-emerald-100 pb-1.5">
                                     <span class="font-black text-xs text-emerald-950 flex items-center gap-1">
-                                        <span>💬</span>
+                                        <span></span>
                                         <span>رد وتوجيه الإشراف الرسمي</span>
                                     </span>
                                     <span class="text-[10px] text-emerald-700 font-mono">${t.updated_at ? new Date(t.updated_at).toLocaleDateString('ar-EG', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
@@ -5939,7 +5939,7 @@
                         </div>
                     ` : `
                         <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-center gap-2 max-w-md mx-auto justify-center">
-                            <span class="text-base">⏳</span>
+                            <span class="text-base"></span>
                             <span class="font-bold">هذه الرسالة بانتظار رد وتوجيه فريق الإشراف.</span>
                         </div>
                     `}
@@ -5948,11 +5948,11 @@
                 <!-- Quick Response Shortcuts -->
                 <div class="px-4 py-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5 overflow-x-auto shrink-0 no-scrollbar">
                     <span class="text-[10px] font-black text-slate-400 whitespace-nowrap">ردود سريعة:</span>
-                    <button type="button" onclick="quickInsertReply('✅ تم حل المشكلة والمتابعة بنجاح.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">✅ تم حل المشكلة</button>
-                    <button type="button" onclick="quickInsertReply('📅 تم تعديل موعد الحلقة على السيستم بنجاح.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">📅 تم تعديل الموعد</button>
-                    <button type="button" onclick="quickInsertReply('📞 تم التواصل هاتفياً مع ولي الأمر وتنسيق الأمر.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">📞 تم التواصل هاتفياً</button>
-                    <button type="button" onclick="quickInsertReply('⏳ تم استلام طلبك وجاري التنسيق والمتابعة الفورية مع الإدارة.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">⏳ جاري المتابعة</button>
-                    <button type="button" onclick="quickInsertReply('🙏 نشكركم على حسن تعاونكم واهتمامكم الكريم.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs">🙏 شكر وتقدير</button>
+                    <button type="button" onclick="quickInsertReply(' تم حل المشكلة والمتابعة بنجاح.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs"> تم حل المشكلة</button>
+                    <button type="button" onclick="quickInsertReply(' تم تعديل موعد الحلقة على السيستم بنجاح.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs"> تم تعديل الموعد</button>
+                    <button type="button" onclick="quickInsertReply(' تم التواصل هاتفياً مع ولي الأمر وتنسيق الأمر.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs"> تم التواصل هاتفياً</button>
+                    <button type="button" onclick="quickInsertReply(' تم استلام طلبك وجاري التنسيق والمتابعة الفورية مع الإدارة.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs"> جاري المتابعة</button>
+                    <button type="button" onclick="quickInsertReply(' نشكركم على حسن تعاونكم واهتمامكم الكريم.')" class="text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-lg transition whitespace-nowrap shadow-2xs"> شكر وتقدير</button>
                 </div>
 
                 <!-- Chat Reply Composer -->
@@ -5963,10 +5963,10 @@
                         </div>
                         <div class="flex items-center justify-between gap-2">
                             <div class="text-[11px] text-slate-400">
-                                💡 بالضغط على إرسال، يتم حفظ الرد وتحويل الحالة تلقائيًا إلى «تم الرد».
+                                 بالضغط على إرسال، يتم حفظ الرد وتحويل الحالة تلقائيًا إلى «تم الرد».
                             </div>
                             <button type="submit" id="btnSubmitLiveChatReply" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-black text-xs px-5 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 whitespace-nowrap">
-                                <span>📤</span>
+                                <span></span>
                                 <span>إرسال الرد والتوجيه</span>
                             </button>
                         </div>
@@ -6040,9 +6040,9 @@
                 }
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast('تم إرسال الرد وتحديث التذكرة بنجاح ✅', 'success');
+                    MonirPopup.toast('تم إرسال الرد وتحديث التذكرة بنجاح ', 'success');
                 } else {
-                    alert('تم إرسال الرد بنجاح ووصل للمرسل. ✓');
+                    alert('تم إرسال الرد بنجاح ووصل للمرسل. ');
                 }
 
                 updateLiveChatData();
@@ -6058,7 +6058,7 @@
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<span>📤</span><span>إرسال الرد والتوجيه</span>';
+                    btn.innerHTML = '<span></span><span>إرسال الرد والتوجيه</span>';
                 }
             }
         }
@@ -6091,7 +6091,7 @@
                 if (t) renderLiveChatThread(t);
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast(`تم تحديث حالة التذكرة إلى: ${newStatus === 'resolved' ? 'تم الحل ✓' : 'قيد المتابعة ⏳'}`, 'success');
+                    MonirPopup.toast(`تم تحديث حالة التذكرة إلى: ${newStatus === 'resolved' ? 'تم الحل ' : 'قيد المتابعة '}`, 'success');
                 }
             } catch(err) {
                 console.error('Error toggling status:', err);
@@ -6299,7 +6299,7 @@
         }
 
         // ══════════════════════════════════════════════════════════════════
-        // ⚡ BULK STUDENT MANAGER — Complete Engine
+        //  BULK STUDENT MANAGER — Complete Engine
         // ══════════════════════════════════════════════════════════════════
 
         let bsAllStudents = [];          // raw data from Supabase/mock
@@ -6473,13 +6473,13 @@
                     hintEl.classList.remove('hidden');
                     hintEl.innerHTML = `
                         <div class="flex items-start gap-1.5 text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-2 rounded-xl text-xs font-bold mt-1.5 shadow-xs">
-                            <span class="text-emerald-600 text-sm mt-0.5">⚡</span>
+                            <span class="text-emerald-600 text-sm mt-0.5"></span>
                             <div class="flex-1 leading-snug">
                                 <span class="text-emerald-900 font-black">تم التعرف على بيانات المجموعة (${meta.group_id || cleanG}):</span>
                                 <div class="text-[11px] text-slate-700 font-semibold mt-0.5">
                                     ${meta.teacher_name ? ' <strong>المعلم:</strong> ' + meta.teacher_name : ''}
-                                    ${meta.subscription_days ? ' | 📅 <strong>الأيام:</strong> ' + meta.subscription_days : ''}
-                                    ${meta.lecture_time ? ' | ⏰ <strong>الموعد:</strong> ' + meta.lecture_time : ''}
+                                    ${meta.subscription_days ? ' |  <strong>الأيام:</strong> ' + meta.subscription_days : ''}
+                                    ${meta.lecture_time ? ' |  <strong>الموعد:</strong> ' + meta.lecture_time : ''}
                                 </div>
                             </div>
                         </div>
@@ -6498,7 +6498,7 @@
                 hintEl.classList.remove('hidden');
                 hintEl.innerHTML = `
                     <div class="text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-xl text-[11px] font-bold mt-1.5 flex items-center gap-1.5">
-                        <span class="inline-block animate-spin">⏳</span>
+                        <span class="inline-block animate-spin"></span>
                         <span>جاري البحث عن بيانات المجموعة (${cleanG})...</span>
                     </div>
                 `;
@@ -6542,7 +6542,7 @@
                 box.classList.remove('hidden');
                 details.innerHTML = `
                     <div> <strong>المعلم:</strong> <span class="text-emerald-950 font-bold">${meta.teacher_name || 'غير محدد'}</span></div>
-                    <div>📅 <strong>الأيام:</strong> <span class="text-emerald-950 font-bold">${meta.subscription_days || 'غير محددة'}</span> | ⏰ <strong>الموعد:</strong> <span class="text-emerald-950 font-bold">${meta.lecture_time || 'غير محدد'}</span> (${meta.session_duration || '20 دقيقة'})</div>
+                    <div> <strong>الأيام:</strong> <span class="text-emerald-950 font-bold">${meta.subscription_days || 'غير محددة'}</span> |  <strong>الموعد:</strong> <span class="text-emerald-950 font-bold">${meta.lecture_time || 'غير محدد'}</span> (${meta.session_duration || '20 دقيقة'})</div>
                 `;
                 return true;
             };
@@ -6613,7 +6613,7 @@
                 </td></tr>`;
             };
 
-            showStatus('⚙️', 'جاري تحميل بيانات الطلاب...', 'يتصل بـ Supabase...');
+            showStatus('️', 'جاري تحميل بيانات الطلاب...', 'يتصل بـ Supabase...');
 
             let students = [];
             let teachers = [];
@@ -6625,35 +6625,35 @@
                 // ══════════════════════════════════
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
-                    debugLog.push('✔ MonirDB configured');
+                    debugLog.push(' MonirDB configured');
 
                     // Teachers
                     const { data: tData, error: tErr } = await client
                         .from('teachers').select('id, name').order('name');
                     if (tData && tData.length > 0) {
                         teachers = tData;
-                        debugLog.push(`✔ Teachers: ${teachers.length}`);
+                        debugLog.push(` Teachers: ${teachers.length}`);
                     }
-                    if (tErr) debugLog.push(`✘ Teachers error: ${tErr.message}`);
+                    if (tErr) debugLog.push(` Teachers error: ${tErr.message}`);
 
                     // Students — SELECT * to get all columns regardless of schema
-                    showStatus('⚙️', 'جاري تحميل الطلاب...', 'يقرأ بيانات students من Supabase...');
+                    showStatus('️', 'جاري تحميل الطلاب...', 'يقرأ بيانات students من Supabase...');
                     const { data: sData, error: sErr } = await client
                         .from('students')
                         .select('*')
                         .order('student_code', { ascending: true });
 
                     if (sErr) {
-                        debugLog.push(`✘ Students error: ${sErr.message}`);
-                        showStatus('⚠️',
+                        debugLog.push(` Students error: ${sErr.message}`);
+                        showStatus('️',
                             `خطأ في قاعدة البيانات: ${sErr.message}`,
                             'تحقق من صلاحيات Supabase RLS أو اسم الجدول');
                         console.error('[BulkStudents] Supabase error:', sErr);
                     }
 
                     if (sData && sData.length > 0) {
-                        debugLog.push(`✔ Students raw: ${sData.length}`);
-                        showStatus('⚙️', `تم جلب ${sData.length} طالب...`, 'يجلب بيانات التسجيل...');
+                        debugLog.push(` Students raw: ${sData.length}`);
+                        showStatus('️', `تم جلب ${sData.length} طالب...`, 'يجلب بيانات التسجيل...');
 
                         // Build ID list in chunks of 400 (Supabase .in() limit)
                         const allIds = sData.map(s => s.id);
@@ -6667,7 +6667,7 @@
                             if (chunkEnr) enrData = enrData.concat(chunkEnr);
                             if (chunkErr) console.warn('[BulkStudents] chunk error:', chunkErr.message);
                         }
-                        debugLog.push(`✔ Enrollments: ${enrData.length}`);
+                        debugLog.push(` Enrollments: ${enrData.length}`);
 
                         // Map enrollments by student_id (both first and full list)
                         const enrMap = {};
@@ -6726,13 +6726,13 @@
                                 enrollments:      enrList
                             };
                         });
-                        debugLog.push(`✔ Mapped: ${students.length} students`);
+                        debugLog.push(` Mapped: ${students.length} students`);
 
                     } else if (!sErr) {
-                        debugLog.push('⚠ Supabase students table is empty (0 rows)');
+                        debugLog.push(' Supabase students table is empty (0 rows)');
                     }
                 } else {
-                    debugLog.push('✘ MonirDB not configured — skipping Supabase');
+                    debugLog.push(' MonirDB not configured — skipping Supabase');
                 }
 
                 // ══════════════════════════════════
@@ -6742,7 +6742,7 @@
                     debugLog.push('⟳ Trying allAdminGroups fallback...');
                     // Try to trigger loadAdminGroups if not yet loaded
                     if ((!window.allAdminGroups || allAdminGroups.length === 0) && typeof loadAdminGroups === 'function') {
-                        showStatus('⚙️', 'يحاول تحميل المجموعات أولاً...', 'لم يتم العثور على بيانات Supabase');
+                        showStatus('️', 'يحاول تحميل المجموعات أولاً...', 'لم يتم العثور على بيانات Supabase');
                         await loadAdminGroups();
                     }
                     if (window.allAdminGroups && allAdminGroups.length > 0) {
@@ -6765,7 +6765,7 @@
                                 });
                             });
                         });
-                        debugLog.push(`✔ allAdminGroups fallback: ${students.length} students`);
+                        debugLog.push(` allAdminGroups fallback: ${students.length} students`);
                     }
                 }
 
@@ -6801,10 +6801,10 @@
                                     enrollment_id:    null
                                 };
                             });
-                            debugLog.push(`✔ Mock API: ${students.length} students`);
+                            debugLog.push(` Mock API: ${students.length} students`);
                         }
                     } catch(e) {
-                        debugLog.push(`✘ Mock API failed: ${e.message}`);
+                        debugLog.push(` Mock API failed: ${e.message}`);
                     }
                 }
 
@@ -6825,7 +6825,7 @@
                 console.log('[BulkStudents] Debug log:\n' + debugLog.join('\n'));
 
                 if (students.length === 0) {
-                    showStatus('📭',
+                    showStatus('',
                         'لم يتم العثور على طلاب مسجلين',
                         `تأكد من الاتصال بقاعدة البيانات أو تحميل البيانات التجريبية.`);
                     console.warn('[BulkStudents] Debug log:\n' + debugLog.join('\n'));
@@ -6843,12 +6843,12 @@
                 loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast(`✅ تم تحميل ${students.length} طالب بنجاح`, 'success');
+                    MonirPopup.toast(` تم تحميل ${students.length} طالب بنجاح`, 'success');
                 }
 
             } catch(err) {
                 console.error('[BulkStudents] Fatal error:', err);
-                showStatus('❌', `خطأ غير متوقع: ${err.message}`, 'افتح Developer Console لمزيد من التفاصيل');
+                showStatus('', `خطأ غير متوقع: ${err.message}`, 'افتح Developer Console لمزيد من التفاصيل');
                 if (window.MonirPopup) MonirPopup.error(`خطأ: ${err.message}`);
             }
         }
@@ -6976,19 +6976,19 @@
                 const addBtnHtml = curGroup ? `
                     <div class="mt-3">
                         <button type="button" onclick="openAddStudentsToGroupModal('${curGroup}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition inline-flex items-center gap-1.5">
-                            <span>➕</span>
+                            <span></span>
                             <span>إضافة وتسكين طلاب في المجموعة (${curGroup})</span>
                         </button>
                     </div>` : `
                     <div class="mt-3">
                         <button type="button" onclick="openAddStudentsToGroupModal()" class="bg-[#41519C] hover:bg-[#2D396E] text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition inline-flex items-center gap-1.5">
-                            <span>➕</span>
+                            <span></span>
                             <span>إضافة طلاب لمجموعة</span>
                         </button>
                     </div>`;
 
                 tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10 text-slate-400 font-bold">
-                    <div class="text-2xl mb-1">📭</div>
+                    <div class="text-2xl mb-1"></div>
                     <div>لا يوجد طلاب بهذه المعايير — جرّب تعديل الفلترة</div>
                     ${addBtnHtml}
                 </td></tr>`;
@@ -7005,7 +7005,7 @@
                 const statusBadge = s.status === 'active'
                     ? '<span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full text-[10px]">نشط</span>'
                     : '<span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف</span>';
-                const genderEmoji = s.gender === 'f' ? '👧' : '👦';
+                const genderEmoji = s.gender === 'f' ? '' : '';
 
                 return `<tr class="hover:bg-blue-50/50 transition ${isChecked ? 'bg-[#41519C]/5 border-r-2 border-[#41519C]' : ''}" data-sid="${s.id}">
                     <td class="p-2.5">
@@ -7039,7 +7039,7 @@
                     <td class="p-2.5 text-[11px] text-slate-600">
                         <div class="font-bold">${s.subscription_days || '—'}</div>
                         <div class="text-slate-400">${s.lecture_time || ''}</div>
-                        <div class="mt-1"><span class="inline-flex items-center gap-1 bg-teal-50 text-teal-800 border border-teal-200 px-1.5 py-0.5 rounded-md text-[10px] font-black">⏱️ ${s.session_duration || '20 دقيقة'}</span></div>
+                        <div class="mt-1"><span class="inline-flex items-center gap-1 bg-teal-50 text-teal-800 border border-teal-200 px-1.5 py-0.5 rounded-md text-[10px] font-black">️ ${s.session_duration || '20 دقيقة'}</span></div>
                     </td>
                     <td class="p-2.5">${statusBadge}</td>
                     <td class="p-2.5 text-center">
@@ -7171,7 +7171,7 @@
                         <span>${titleLabel}</span>
                     </span>
                     <button type="button" onclick="removeBulkScheduleSlot(this)" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
-                        <span>🗑️</span>
+                        <span>️</span>
                         <span>حذف</span>
                     </button>
                 </div>
@@ -7252,7 +7252,7 @@
                             <span>${titleLabel}</span>
                         </span>
                         <button type="button" onclick="removeBulkScheduleSlot(this)" class="${days.length === 1 ? 'hidden' : ''} text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
-                            <span>🗑️</span>
+                            <span>️</span>
                             <span>حذف</span>
                         </button>
                     </div>
@@ -7301,7 +7301,7 @@
             let title = '', bodyHTML = '';
 
             if (action === 'group') {
-                title = '🏠 تعيين مجموعة جماعياً';
+                title = ' تعيين مجموعة جماعياً';
                 const groups = [...new Set(bsAllStudents.map(s => s.group_id).filter(g => g && g !== '—'))].sort();
                 bodyHTML = `
                     <div>
@@ -7315,7 +7315,7 @@
                         <!-- Auto-link banner for bulk group -->
                         <div id="bulkGroupAutoBox" class="mt-3 hidden p-3.5 rounded-2xl border border-emerald-300 bg-emerald-50 text-slate-700">
                             <div class="flex items-center gap-2 mb-1.5">
-                                <span class="text-base">⚡</span>
+                                <span class="text-base"></span>
                                 <span class="font-extrabold text-xs text-emerald-900">بيانات المجموعة المتصلة تلقائياً:</span>
                             </div>
                             <div class="text-[11px] font-semibold text-slate-700 space-y-0.5 mr-5" id="bulkGroupAutoDetails"></div>
@@ -7338,7 +7338,7 @@
                     </div>`;
 
             } else if (action === 'credits') {
-                title = '💰 تعديل رصيد الحصص جماعياً';
+                title = ' تعديل رصيد الحصص جماعياً';
                 bodyHTML = `
                     <div class="space-y-3">
                         <div>
@@ -7357,11 +7357,11 @@
                     </div>`;
 
             } else if (action === 'schedule') {
-                title = '🕐 تعديل اليوم والوقت جماعياً (موعد أو أكثر)';
+                title = ' تعديل اليوم والوقت جماعياً (موعد أو أكثر)';
                 bodyHTML = `
                     <div class="space-y-4">
                         <div class="p-3 bg-blue-50/80 border border-blue-200 rounded-2xl text-xs text-blue-950 flex items-start gap-2">
-                            <span class="text-base leading-none">💡</span>
+                            <span class="text-base leading-none"></span>
                             <div class="leading-relaxed">
                                 يمكنك تحديد <strong>موعد واحد</strong> أو <strong>عدة مواعيد في الأسبوع</strong> (للمجموعات التي تدرس مرتين أو أكثر أسبوعياً).
                             </div>
@@ -7369,7 +7369,7 @@
 
                         <!-- Presets -->
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
-                            <span class="block text-[11px] font-extrabold text-slate-600">⚡ اختصارات سريعة للأيام المزدوجة:</span>
+                            <span class="block text-[11px] font-extrabold text-slate-600"> اختصارات سريعة للأيام المزدوجة:</span>
                             <div class="flex flex-wrap gap-1.5">
                                 <button type="button" onclick="setSchedulePreset('السبت', 'الثلاثاء')" class="text-[11px] bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm transition">السبت والثلاثاء</button>
                                 <button type="button" onclick="setSchedulePreset('الأحد', 'الأربعاء')" class="text-[11px] bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 text-slate-700 font-bold px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm transition">الأحد والأربعاء</button>
@@ -7412,17 +7412,17 @@
 
                         <!-- Add Slot Button -->
                         <button type="button" onclick="addBulkScheduleSlot()" class="w-full flex items-center justify-center gap-1.5 bg-blue-50/60 hover:bg-blue-50 border border-dashed border-[#41519C]/60 text-[#41519C] py-2.5 rounded-xl text-xs font-extrabold transition">
-                            <span>➕</span>
+                            <span></span>
                             <span>إضافة موعد آخر في الأسبوع</span>
                         </button>
                     </div>`;
 
             } else if (action === 'duration') {
-                title = '⏱️ تعديل مدة الحلقة جماعياً';
+                title = '️ تعديل مدة الحلقة جماعياً';
                 bodyHTML = `
                     <div class="space-y-4">
                         <div class="p-3 bg-teal-50/80 border border-teal-200 rounded-2xl text-xs text-teal-950 flex items-start gap-2">
-                            <span class="text-base leading-none">⏱️</span>
+                            <span class="text-base leading-none">️</span>
                             <div class="leading-relaxed">
                                 حدد المدة الزمنية لكل حلقة للطلاب المحددين (ستظهر في جدول حصص الطالب كمدة السيشن).
                             </div>
@@ -7431,22 +7431,22 @@
                         <!-- Presets -->
                         <div class="grid grid-cols-2 gap-2.5">
                             <button type="button" onclick="setBulkDurationPreset('20 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
-                                <span class="block text-base mb-0.5">⚡</span>
+                                <span class="block text-base mb-0.5"></span>
                                 <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">20 دقيقة</span>
                                 <span class="block text-[10px] text-slate-400 font-normal">جلسة فردية سريعة</span>
                             </button>
                             <button type="button" onclick="setBulkDurationPreset('30 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
-                                <span class="block text-base mb-0.5">⭐</span>
+                                <span class="block text-base mb-0.5"></span>
                                 <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">30 دقيقة</span>
                                 <span class="block text-[10px] text-slate-400 font-normal">نصف ساعة</span>
                             </button>
                             <button type="button" onclick="setBulkDurationPreset('45 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
-                                <span class="block text-base mb-0.5">🔥</span>
+                                <span class="block text-base mb-0.5"></span>
                                 <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">45 دقيقة</span>
                                 <span class="block text-[10px] text-slate-400 font-normal">حصة مكثفة</span>
                             </button>
                             <button type="button" onclick="setBulkDurationPreset('60 دقيقة')" class="p-3 bg-white hover:bg-teal-50 hover:border-teal-400 border border-slate-200 rounded-2xl font-bold text-slate-800 transition text-center shadow-sm group">
-                                <span class="block text-base mb-0.5">🏆</span>
+                                <span class="block text-base mb-0.5"></span>
                                 <span class="block text-sm font-black text-slate-900 group-hover:text-teal-700">60 دقيقة</span>
                                 <span class="block text-[10px] text-slate-400 font-normal">ساعة كاملة</span>
                             </button>
@@ -7460,17 +7460,17 @@
                     </div>`;
 
             } else if (action === 'status_active') {
-                title = '✅ تفعيل الحسابات جماعياً';
+                title = ' تفعيل الحسابات جماعياً';
                 bodyHTML = `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
-                    <div class="text-3xl mb-2">✅</div>
+                    <div class="text-3xl mb-2"></div>
                     <p class="font-black text-emerald-800">سيتم تفعيل <strong>${count}</strong> حساب طالب</p>
                     <p class="text-[11px] text-emerald-600 mt-1">سيتمكن الطلاب من الدخول للمنصة بعد التفعيل</p>
                 </div>`;
 
             } else if (action === 'status_inactive') {
-                title = '🚫 إيقاف الحسابات جماعياً';
+                title = ' إيقاف الحسابات جماعياً';
                 bodyHTML = `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-                    <div class="text-3xl mb-2">🚫</div>
+                    <div class="text-3xl mb-2"></div>
                     <p class="font-black text-red-800">سيتم إيقاف <strong>${count}</strong> حساب طالب</p>
                     <p class="text-[11px] text-red-600 mt-1">لن يتمكن الطلاب من الدخول حتى إعادة التفعيل</p>
                 </div>`;
@@ -7529,13 +7529,13 @@
                     if (meta.session_duration) enrollPayload.session_duration = meta.session_duration;
                 }
 
-                successMsg = `تم تعيين مجموعة "${val}" ${meta ? 'وربط المعلم والمواعيد تلقائياً ' : ''}على ${ids.length} طالب ✅`;
+                successMsg = `تم تعيين مجموعة "${val}" ${meta ? 'وربط المعلم والمواعيد تلقائياً ' : ''}على ${ids.length} طالب `;
 
             } else if (action === 'teacher') {
                 const val = document.getElementById('bulkTeacherInput').value;
                 enrollPayload.teacher_id = val ? parseInt(val) : null;
                 const tName = val ? (bsTeachersList.find(t => String(t.id) === val) || {}).name || '—' : 'بلا معلم';
-                successMsg = `تم تعيين المعلم "${tName}" على ${ids.length} طالب ✅`;
+                successMsg = `تم تعيين المعلم "${tName}" على ${ids.length} طالب `;
 
             } else if (action === 'credits') {
                 const mode = document.getElementById('bulkCreditsMode').value;
@@ -7550,7 +7550,7 @@
                     updatePayload._credits_mode = mode;
                     updatePayload._credits_amount = amount;
                 }
-                successMsg = `تم تعديل رصيد الحصص لـ ${ids.length} طالب ✅`;
+                successMsg = `تم تعديل رصيد الحصص لـ ${ids.length} طالب `;
 
             } else if (action === 'schedule') {
                 const slotEls = document.querySelectorAll('#bulkScheduleSlotsContainer .schedule-slot');
@@ -7594,27 +7594,27 @@
                 if (combinedTimes) {
                     enrollPayload.lecture_time = combinedTimes;
                 }
-                successMsg = `تم تعديل الجدول (${combinedDays}) لـ ${ids.length} طالب ✅`;
+                successMsg = `تم تعديل الجدول (${combinedDays}) لـ ${ids.length} طالب `;
 
             } else if (action === 'duration') {
                 const dur = (document.getElementById('bulkDurationInput')?.value || '').trim();
                 if (!dur) { MonirPopup ? MonirPopup.error('يرجى كتابة أو تحديد مدة الحلقة') : alert('يرجى تحديد مدة الحلقة'); return; }
                 enrollPayload.session_duration = dur;
-                successMsg = `تم تعديل مدة الحلقة إلى (${dur}) لـ ${ids.length} طالب ✅`;
+                successMsg = `تم تعديل مدة الحلقة إلى (${dur}) لـ ${ids.length} طالب `;
 
             } else if (action === 'status_active') {
                 updatePayload.status = 'active';
-                successMsg = `تم تفعيل ${ids.length} حساب ✅`;
+                successMsg = `تم تفعيل ${ids.length} حساب `;
 
             } else if (action === 'status_inactive') {
                 updatePayload.status = 'inactive';
-                successMsg = `تم إيقاف ${ids.length} حساب ✅`;
+                successMsg = `تم إيقاف ${ids.length} حساب `;
             }
 
             // Disable button during save
             const btn = document.getElementById('bulkModalSubmitBtn');
             btn.disabled = true;
-            btn.innerText = '⏳ جاري الحفظ...';
+            btn.innerText = ' جاري الحفظ...';
 
             try {
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
@@ -7790,7 +7790,7 @@
                                         studentCode: st.code,
                                         groupId: st.group_id,
                                         type: 'student_paused',
-                                        title: 'إيقاف مؤقت لطالب ⏸️',
+                                        title: 'إيقاف مؤقت لطالب ️',
                                         message: `تم إيقاف حساب الطالب (${st.name}) من قِبل الإدارة.`
                                     });
                                 }
@@ -7805,7 +7805,7 @@
                                         studentCode: st.code,
                                         groupId: st.group_id,
                                         type: 'student_removed',
-                                        title: 'نقل طالب من مجموعتك 🔄',
+                                        title: 'نقل طالب من مجموعتك ',
                                         message: `تم نقل الطالب (${st.name}) من مجموعتك إلى معلم آخر.`
                                     });
                                 }
@@ -7816,7 +7816,7 @@
                                         studentCode: st.code,
                                         groupId: st.group_id,
                                         type: 'student_added',
-                                        title: 'طالب جديد في مجموعتك ➕',
+                                        title: 'طالب جديد في مجموعتك ',
                                         message: `تم تعيين وإضافة الطالب (${st.name}) إلى مجموعتك.`
                                     });
                                 }
@@ -7841,7 +7841,7 @@
                                         studentCode: st.code,
                                         groupId: st.group_id,
                                         type: 'student_removed',
-                                        title: 'نقل طالب من مجموعتك 🔄',
+                                        title: 'نقل طالب من مجموعتك ',
                                         message: `تم نقل الطالب (${st.name}) من مجموعتك إلى المجموعة (${newGroupId}).`
                                     });
                                     // New teacher gets student_added notification
@@ -7851,7 +7851,7 @@
                                         studentCode: st.code,
                                         groupId: newGroupId,
                                         type: 'student_added',
-                                        title: 'طالب جديد في مجموعتك ➕',
+                                        title: 'طالب جديد في مجموعتك ',
                                         message: `تم تحويل الطالب (${st.name}) إلى مجموعتك (${newGroupId}).`
                                     });
                                 } else {
@@ -7863,7 +7863,7 @@
                                             studentCode: st.code,
                                             groupId: newGroupId,
                                             type: 'student_transferred',
-                                            title: 'تحويل طالب لمجموعة جديدة 🔄',
+                                            title: 'تحويل طالب لمجموعة جديدة ',
                                             message: `تم نقل الطالب (${st.name}) إلى المجموعة (${newGroupId}).`
                                         });
                                     }
@@ -7890,7 +7890,7 @@
                 }
             } finally {
                 btn.disabled = false;
-                btn.innerText = '✅ تطبيق التعديل الجماعي';
+                btn.innerText = ' تطبيق التعديل الجماعي';
             }
         }
 
@@ -8102,7 +8102,7 @@
                             <span class="font-mono font-black text-xs px-2.5 py-1 rounded-lg border ${addedColor}">
                                 ${sign} حصص
                             </span>
-                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">معتمد ✓</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">معتمد </span>
                         </div>
                     </div>
                 `;
@@ -8186,7 +8186,7 @@
 
                 // Success feedback
                 if (btn) {
-                    btn.innerHTML = `<span>تمت إضافة +${added} حصص بنجاح ✓ (الرصيد: ${newCredits})</span>`;
+                    btn.innerHTML = `<span>تمت إضافة +${added} حصص بنجاح  (الرصيد: ${newCredits})</span>`;
                     btn.className = 'w-full bg-slate-900 text-emerald-400 font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm';
                 }
 
@@ -8302,7 +8302,7 @@
             }
 
             renderBulkTable();
-            const label = newGender === 'f' ? 'طالبة (بنت 👧)' : 'طالب (ولد 👦)';
+            const label = newGender === 'f' ? 'طالبة (بنت )' : 'طالب (ولد )';
             if (typeof showToast === 'function') {
                 showToast(`تم تغيير جنس الطالب (${s.name || code}) إلى ${label}`, 'success');
             }
@@ -8321,7 +8321,7 @@
             const saveBtn = document.getElementById('inlineSaveBtn');
             if (saveBtn) {
                 saveBtn.disabled = true;
-                saveBtn.innerHTML = '<span>⏳ جاري حفظ التعديلات...</span>';
+                saveBtn.innerHTML = '<span> جاري حفظ التعديلات...</span>';
             }
 
             try {
@@ -8552,7 +8552,7 @@
                                     studentCode: sCode,
                                     groupId: group || prevGroup,
                                     type: 'student_paused',
-                                    title: 'إيقاف مؤقت لطالب ⏸️',
+                                    title: 'إيقاف مؤقت لطالب ️',
                                     message: `تم إيقاف الطالب (${studentName}) من قِبل الإدارة.`
                                 });
                             }
@@ -8567,7 +8567,7 @@
                                 studentCode: sCode,
                                 groupId: prevGroup,
                                 type: 'student_removed',
-                                title: 'نقل طالب من مجموعتك 🔄',
+                                title: 'نقل طالب من مجموعتك ',
                                 message: `تم نقل الطالب (${studentName}) من مجموعتك إلى المجموعة (${group || '—'}).`
                             });
                             await TeacherNotifications.create({
@@ -8576,7 +8576,7 @@
                                 studentCode: sCode,
                                 groupId: group || prevGroup,
                                 type: 'student_added',
-                                title: 'طالب جديد في مجموعتك ➕',
+                                title: 'طالب جديد في مجموعتك ',
                                 message: `تم تحويل وإضافة الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
                             });
                         } else if (!prevTeacherId && finalNewTeacherId) {
@@ -8586,7 +8586,7 @@
                                 studentCode: sCode,
                                 groupId: group || prevGroup,
                                 type: 'student_added',
-                                title: 'طالب جديد في مجموعتك ➕',
+                                title: 'طالب جديد في مجموعتك ',
                                 message: `تم تعيين الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
                             });
                         } else if (prevTeacherId && !finalNewTeacherId) {
@@ -8596,7 +8596,7 @@
                                 studentCode: sCode,
                                 groupId: prevGroup,
                                 type: 'student_removed',
-                                title: 'إلغاء تعيين طالب 🔄',
+                                title: 'إلغاء تعيين طالب ',
                                 message: `تم إلغاء تعيين الطالب (${studentName}) من مجموعتك.`
                             });
                         } else if (prevTeacherId && group && prevGroup && group !== prevGroup) {
@@ -8606,7 +8606,7 @@
                                 studentCode: sCode,
                                 groupId: group,
                                 type: 'student_transferred',
-                                title: 'تحويل طالب لمجموعة جديدة 🔄',
+                                title: 'تحويل طالب لمجموعة جديدة ',
                                 message: `تم نقل الطالب (${studentName}) من المجموعة (${prevGroup}) إلى (${group}).`
                             });
                         }
@@ -8622,9 +8622,9 @@
                 if (typeof loadStudentsStatusSummary === 'function') loadStudentsStatusSummary();
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast(`✅ تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`, 'success');
+                    MonirPopup.toast(` تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`, 'success');
                 } else {
-                    alert(`✅ تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`);
+                    alert(` تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`);
                 }
             } catch(err) {
                 console.error('[InlineEdit] Error saving student:', err);
@@ -8633,7 +8633,7 @@
             } finally {
                 if (saveBtn) {
                     saveBtn.disabled = false;
-                    saveBtn.innerHTML = '<span>💾 حفظ التعديلات الكاملة</span>';
+                    saveBtn.innerHTML = '<span> حفظ التعديلات الكاملة</span>';
                 }
             }
         }
@@ -8863,7 +8863,7 @@
                         if (meta && (meta.teacher_id || meta.subscription_days)) {
                             infoBox.classList.remove('hidden');
                             infoText.innerHTML = `
-                                <span class="text-emerald-600 text-sm">⚡</span>
+                                <span class="text-emerald-600 text-sm"></span>
                                 <span>بيانات المجموعة (${meta.group_id || targetGroup}): المعلم: <strong class="text-emerald-950 font-black">${meta.teacher_name || '—'}</strong> | الأيام: <strong class="text-emerald-950 font-black">${meta.subscription_days || '—'}</strong> | الموعد: <strong class="text-emerald-950 font-black">${meta.lecture_time || '—'}</strong> (${meta.session_duration || '20 دقيقة'})</span>
                             `;
                         } else {
@@ -8927,7 +8927,7 @@
             const submitBtn = document.getElementById('asgSubmitBtn');
             if (submitBtn) {
                 const groupDisplay = targetGroup ? `(${targetGroup})` : '';
-                submitBtn.innerHTML = `<span>✅ إضافة وتسكين الطلاب المحددين (${asgSelectedStudentIds.size}) في المجموعة ${groupDisplay}</span>`;
+                submitBtn.innerHTML = `<span> إضافة وتسكين الطلاب المحددين (${asgSelectedStudentIds.size}) في المجموعة ${groupDisplay}</span>`;
             }
 
             if (list.length === 0) {
@@ -9030,7 +9030,7 @@
 
             const btn = document.getElementById('asgSubmitBtn');
             btn.disabled = true;
-            btn.innerHTML = '⏳ جاري إضافة الطلاب إلى المجموعة...';
+            btn.innerHTML = ' جاري إضافة الطلاب إلى المجموعة...';
 
             const keepExisting = document.getElementById('asgKeepExistingGroups')?.checked ?? true;
 
@@ -9205,7 +9205,7 @@
                                         studentCode: st.code,
                                         groupId: targetGroup,
                                         type: 'student_added',
-                                        title: 'طالب جديد في مجموعتك ➕',
+                                        title: 'طالب جديد في مجموعتك ',
                                         message: `تمت إضافة وتسجيل الطالب (${st.name}) إلى مجموعتك (${targetGroup}).`
                                     });
                                 }
@@ -9218,7 +9218,7 @@
                                         studentCode: st.code,
                                         groupId: st.group_id,
                                         type: 'student_removed',
-                                        title: 'نقل طالب من مجموعتك 🔄',
+                                        title: 'نقل طالب من مجموعتك ',
                                         message: `تم نقل الطالب (${st.name}) من مجموعتك إلى (${targetGroup}).`
                                     });
                                     await TeacherNotifications.create({
@@ -9227,7 +9227,7 @@
                                         studentCode: st.code,
                                         groupId: targetGroup,
                                         type: 'student_added',
-                                        title: 'طالب جديد في مجموعتك ➕',
+                                        title: 'طالب جديد في مجموعتك ',
                                         message: `تم تحويل الطالب (${st.name}) إلى مجموعتك (${targetGroup}).`
                                     });
                                 } else if (newTid) {
@@ -9237,7 +9237,7 @@
                                         studentCode: st.code,
                                         groupId: targetGroup,
                                         type: 'student_transferred',
-                                        title: 'تحويل طالب لمجموعة جديدة 🔄',
+                                        title: 'تحويل طالب لمجموعة جديدة ',
                                         message: `تم نقل الطالب (${st.name}) إلى المجموعة (${targetGroup}).`
                                     });
                                 }
@@ -9251,9 +9251,9 @@
                 closeAddStudentsToGroupModal();
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast(`✅ تمت إضافة وتسكين ${sids.length} طالب في المجموعة (${targetGroup}) بنجاح!`, 'success');
+                    MonirPopup.toast(` تمت إضافة وتسكين ${sids.length} طالب في المجموعة (${targetGroup}) بنجاح!`, 'success');
                 } else {
-                    alert(`✅ تمت إضافة وتسكين ${sids.length} طالب في المجموعة (${targetGroup}) بنجاح!`);
+                    alert(` تمت إضافة وتسكين ${sids.length} طالب في المجموعة (${targetGroup}) بنجاح!`);
                 }
 
             } catch(err) {
@@ -9265,7 +9265,7 @@
                 }
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span>✅ إضافة وتسكين الطلاب المحددين في المجموعة</span>';
+                btn.innerHTML = '<span> إضافة وتسكين الطلاب المحددين في المجموعة</span>';
             }
         };
 
@@ -9303,7 +9303,7 @@
 
             const btn = document.getElementById('asgNewSubmitBtn');
             btn.disabled = true;
-            btn.innerHTML = '⏳ جاري إنشاء وإضافة الطالب...';
+            btn.innerHTML = ' جاري إنشاء وإضافة الطالب...';
 
             try {
                 let newStudentId = Date.now();
@@ -9492,7 +9492,7 @@
                             studentCode: code,
                             groupId: targetGroup,
                             type: 'student_added',
-                            title: 'طالب جديد في مجموعتك ➕',
+                            title: 'طالب جديد في مجموعتك ',
                             message: `تم إنشاء الطالب (${name}) وإضافته إلى مجموعتك (${targetGroup}) بنجاح.`
                         });
                     } catch(notifErr) {
@@ -9507,9 +9507,9 @@
                 document.getElementById('asgNewPhone').value = '';
 
                 if (window.MonirPopup) {
-                    MonirPopup.toast(`✅ تم إنشاء الطالب (${name} - ${code}) وإضافته للمجموعة (${targetGroup}) بنجاح! 🎉`, 'success');
+                    MonirPopup.toast(` تم إنشاء الطالب (${name} - ${code}) وإضافته للمجموعة (${targetGroup}) بنجاح! `, 'success');
                 } else {
-                    alert(`✅ تم إنشاء الطالب (${name}) وإضافته للمجموعة (${targetGroup}) بنجاح!`);
+                    alert(` تم إنشاء الطالب (${name}) وإضافته للمجموعة (${targetGroup}) بنجاح!`);
                 }
 
             } catch(err) {
@@ -9521,7 +9521,7 @@
                 }
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span>✅ حفظ وإنشاء الطالب بالمجموعة</span>';
+                btn.innerHTML = '<span> حفظ وإنشاء الطالب بالمجموعة</span>';
             }
         };
 
@@ -9630,7 +9630,7 @@
                     <span class="bg-[#57BA9E] text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg">Cloud PostgreSQL</span>
                     <h3 class="text-base font-black text-slate-900">ربط قاعدة بيانات Supabase السحابية</h3>
                 </div>
-                <button onclick="closeSupabaseModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+                <button onclick="closeSupabaseModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg"></button>
             </div>
             
             <p class="text-xs text-slate-600 leading-relaxed">
@@ -9649,7 +9649,7 @@
             </div>
 
             <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 space-y-1">
-                <strong>💡 أين أجد هذه البيانات؟</strong>
+                <strong> أين أجد هذه البيانات؟</strong>
                 <p>من داخل حسابك في <a href="https://supabase.com" target="_blank" class="text-blue-600 underline font-bold">Supabase.com</a> ← اختر مشروعك ← Project Settings ← API ← انسخ Project URL و anon public key.</p>
                 <p>وقم بلصق كود ملف <code class="bg-amber-100 px-1 rounded">supabase_schema.sql</code> في SQL Editor هناك لتجهيز كافة الجداول بضغطة زر واحدة!</p>
             </div>
@@ -9703,7 +9703,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 const btnText = document.getElementById('supabaseConnBtnText');
-                if (btnText) btnText.innerText = 'Supabase متصل سحابياً 🟢';
+                if (btnText) btnText.innerText = 'Supabase متصل سحابياً ';
             }
         });
     </script>
@@ -9776,18 +9776,18 @@
             <!-- Search & Actions -->
             <div class="py-3 space-y-2 flex-shrink-0">
                 <div class="relative">
-                    <input type="text" id="quickTeacherSearchInput" oninput="filterQuickTeachersList(this.value)" placeholder="🔍 ابحث باسم المعلم، التخصص، أو الهاتف..." class="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition">
+                    <input type="text" id="quickTeacherSearchInput" oninput="filterQuickTeachersList(this.value)" placeholder=" ابحث باسم المعلم، التخصص، أو الهاتف..." class="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition">
                 </div>
                 <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
                     <span id="quickTeacherCountLabel" class="font-bold">المعلمون المسجلون: جاري التحميل...</span>
-                    <a href="teacher.html" target="_blank" class="text-emerald-700 hover:text-emerald-800 font-bold hover:underline">فتح البوابة العامة للمعلمين (الافتراضية) ➔</a>
+                    <a href="teacher.html" target="_blank" class="text-emerald-700 hover:text-emerald-800 font-bold hover:underline">فتح البوابة العامة للمعلمين (الافتراضية) </a>
                 </div>
             </div>
 
             <!-- Teachers List Container -->
             <div id="quickTeachersListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[260px] max-h-[50vh]">
                 <div class="text-center py-10 text-slate-400 animate-pulse">
-                    <div class="text-3xl mb-2">⏳</div>
+                    <div class="text-3xl mb-2"></div>
                     <p class="font-bold">جاري تحميل قائمة المعلمين...</p>
                 </div>
             </div>
@@ -9807,7 +9807,7 @@
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center gap-2.5">
                     <span class="w-9 h-9 rounded-xl bg-indigo-100 text-[#41519C] flex items-center justify-center text-lg font-black shrink-0">
-                        👤
+                        
                     </span>
                     <div>
                         <h3 class="font-black text-sm sm:text-base text-slate-900">استعراض بروفايل الطلاب</h3>
@@ -9820,11 +9820,11 @@
             <!-- Search & Actions -->
             <div class="py-3 space-y-2 flex-shrink-0">
                 <div class="relative">
-                    <input type="text" id="quickStudentSearchInput" oninput="filterQuickStudentsList(this.value)" placeholder="🔍 ابحث باسم الطالب، كود الطالب (مثل ST1085)، أو كود المجموعة (مثل G022)..." class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition">
+                    <input type="text" id="quickStudentSearchInput" oninput="filterQuickStudentsList(this.value)" placeholder=" ابحث باسم الطالب، كود الطالب (مثل ST1085)، أو كود المجموعة (مثل G022)..." class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition">
                 </div>
                 <div class="flex items-center justify-between text-[11px] text-slate-500 px-1">
                     <span id="quickStudentCountLabel" class="font-bold">الطلاب المسجلون: جاري التحميل...</span>
-                    <a href="student.html" target="_blank" class="text-indigo-700 hover:text-indigo-800 font-bold hover:underline">فتح بروفايل الطالب الافتراضي ➔</a>
+                    <a href="student.html" target="_blank" class="text-indigo-700 hover:text-indigo-800 font-bold hover:underline">فتح بروفايل الطالب الافتراضي </a>
                 </div>
                 <!-- Filters Row (Gender & Age) -->
                 <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200 space-y-2">
@@ -9877,7 +9877,7 @@
             <!-- Students List Container -->
             <div id="quickStudentsListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[260px] max-h-[50vh]">
                 <div class="text-center py-10 text-slate-400 animate-pulse">
-                    <div class="text-3xl mb-2">⏳</div>
+                    <div class="text-3xl mb-2"></div>
                     <p class="font-bold">جاري تحميل قائمة الطلاب...</p>
                 </div>
             </div>
@@ -9911,7 +9911,7 @@
             }
 
             const container = document.getElementById('quickTeachersListContainer');
-            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-3xl mb-2">⏳</div><p class="font-bold">جاري تحميل قائمة المعلمين...</p></div>';
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-3xl mb-2"></div><p class="font-bold">جاري تحميل قائمة المعلمين...</p></div>';
 
             try {
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
@@ -9959,7 +9959,7 @@
             if (countLabel) countLabel.innerText = `المعلمون (${list.length} من إجمالي ${__allQuickTeachers.length})`;
 
             if (!list || list.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="text-2xl mb-1">🔍</div><p class="font-bold">لا يوجد معلمين مطابقين للبحث</p></div>';
+                container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="text-2xl mb-1"></div><p class="font-bold">لا يوجد معلمين مطابقين للبحث</p></div>';
                 return;
             }
 
@@ -9981,7 +9981,7 @@
                         </div>
                         <a href="teacher.html?id=${t.id}" target="_blank" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1 shrink-0">
                             <span>دخول البوابة</span>
-                            <span>➔</span>
+                            <span></span>
                         </a>
                     </div>
                 `;
@@ -10001,7 +10001,7 @@
             }
 
             const container = document.getElementById('quickStudentsListContainer');
-            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-3xl mb-2">⏳</div><p class="font-bold">جاري تحميل قائمة الطلاب (771 طالباً)...</p></div>';
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 animate-pulse"><div class="text-3xl mb-2"></div><p class="font-bold">جاري تحميل قائمة الطلاب (771 طالباً)...</p></div>';
 
             try {
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
@@ -10148,7 +10148,7 @@
             if (countLabel) countLabel.innerText = `الطلاب المعروضون: ${Math.min(list.length, 50)} من ${list.length} (إجمالي ${__allQuickStudents.length})`;
 
             if (!list || list.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="text-2xl mb-1">🔍</div><p class="font-bold">لا يوجد طلاب مطابقين للبحث أو الفلتر المختار</p></div>';
+                container.innerHTML = '<div class="text-center py-8 text-slate-400"><div class="text-2xl mb-1"></div><p class="font-bold">لا يوجد طلاب مطابقين للبحث أو الفلتر المختار</p></div>';
                 return;
             }
 
@@ -10195,7 +10195,7 @@
                         </div>
                         <a href="student.html?id=${s.id || s.student_code}" target="_blank" class="bg-[#41519C] hover:bg-[#2D396E] text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1 shrink-0">
                             <span>عرض البروفايل</span>
-                            <span>➔</span>
+                            <span></span>
                         </a>
                     </div>
                 `;
@@ -10211,7 +10211,7 @@
         }
 
         // ========================================================
-        // 🏆 GENERAL LECTURES & QUIZZES ADMIN CONTROLLER
+        //  GENERAL LECTURES & QUIZZES ADMIN CONTROLLER
         // ========================================================
         let __allAdminQuizzes = [];
         let __allAdminQuizSubmissions = [];
@@ -10490,7 +10490,7 @@
                     meta = { summary_text: q.description || '' };
                 }
 
-                const trackName = meta.track === 'tajweed' ? '🌟 أحكام التجويد' : (meta.track === 'tafsir' ? '📖 التفسير والتدبر' : (meta.track === 'hadith' ? '📜 الحديث الشريف' : 'مسار عام'));
+                const trackName = meta.track === 'tajweed' ? ' أحكام التجويد' : (meta.track === 'tafsir' ? ' التفسير والتدبر' : (meta.track === 'hadith' ? ' الحديث الشريف' : 'مسار عام'));
 
                 return `
                     <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5 shadow-xs">
@@ -10504,8 +10504,8 @@
                         </div>
                         <p class="text-slate-600 text-xs leading-relaxed">${meta.summary_text || 'لا يوجد ملخص نصي مضاف.'}</p>
                         <div class="flex items-center gap-2 flex-wrap text-xs pt-1">
-                            ${meta.live_url ? `<a href="${meta.live_url}" target="_blank" class="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span>🔴 Meet:</span><span class="font-mono truncate max-w-[150px]">${meta.live_url}</span></a>` : ''}
-                            ${meta.audio_url ? `<a href="${meta.audio_url}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span>🎧 صوت الملخص</span></a>` : ''}
+                            ${meta.live_url ? `<a href="${meta.live_url}" target="_blank" class="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span> Meet:</span><span class="font-mono truncate max-w-[150px]">${meta.live_url}</span></a>` : ''}
+                            ${meta.audio_url ? `<a href="${meta.audio_url}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span> صوت الملخص</span></a>` : ''}
                             ${meta.pdf_url ? `<a href="${meta.pdf_url}" target="_blank" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 text-[11px]"><span> ملخص PDF</span></a>` : ''}
                             <span class="text-slate-500 text-[11px] font-bold">الأطفال: ${meta.schedule_kids || 'الجمعة 2:00 م'} • الكبار: ${meta.schedule_adults || 'الجمعة 2:30 م'}</span>
                         </div>
@@ -10702,7 +10702,7 @@
             const oldTxt = btn ? btn.innerHTML : '';
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = 'جاري الحفظ والنشر السحابي... ⏳';
+                btn.innerHTML = 'جاري الحفظ والنشر السحابي... ';
             }
 
             try {
@@ -10919,7 +10919,7 @@
         <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-4">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl font-black shrink-0">➕</span>
+                    <span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl font-black shrink-0"></span>
                     <div>
                         <h3 class="font-black text-base text-slate-900">إضافة محاضرة عامة واختبار أسبوعي جديد</h3>
                         <p class="text-[11px] text-slate-500">إعداد روابط المحاضرة والملخص الصوتي وPDF و3 أسئلة تفاعلية فورية</p>
@@ -10933,9 +10933,9 @@
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">المسار التدريبي العام:</label>
                         <select id="modalNewQuizTrack" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none font-bold" required>
-                            <option value="tajweed">🌟 أحكام التجويد ومخارج الحروف</option>
-                            <option value="tafsir">📖 التفسير وتدبر آيات القرآن</option>
-                            <option value="hadith">📜 الحديث الشريف والسنة النبوية</option>
+                            <option value="tajweed"> أحكام التجويد ومخارج الحروف</option>
+                            <option value="tafsir"> التفسير وتدبر آيات القرآن</option>
+                            <option value="hadith"> الحديث الشريف والسنة النبوية</option>
                         </select>
                     </div>
                     <div>
@@ -11531,7 +11531,7 @@ async function confirmAndSaveQuranGrades() {
 
     const btn = document.getElementById('btnConfirmUploadQuranGrades');
     btn.disabled = true;
-    btn.innerHTML = 'جاري حفظ واعتماد الدرجات على المنصة... ⏳';
+    btn.innerHTML = 'جاري حفظ واعتماد الدرجات على المنصة... ';
 
     try {
         if (!window.MonirDB || !window.MonirDB.isConfigured()) {
@@ -11626,7 +11626,7 @@ async function confirmAndSaveQuranGrades() {
             } catch(e) {}
         }
 
-        alert(`تم بحمد الله اعتماد ورفع درجات (${submissionsToUpsert.length}) طالباً بنجاح على المنصة وتحديث حساباتهم وسجلاتهم فوراً! 🎉`);
+        alert(`تم بحمد الله اعتماد ورفع درجات (${submissionsToUpsert.length}) طالباً بنجاح على المنصة وتحديث حساباتهم وسجلاتهم فوراً! `);
         closeUploadQuranGradesModal();
 
         // Refresh admin views if open

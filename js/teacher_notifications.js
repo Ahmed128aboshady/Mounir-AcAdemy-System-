@@ -205,7 +205,7 @@
                         badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
                         bgClass: 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-400',
                         iconBg: 'bg-emerald-500 text-white',
-                        icon: '👤➕'
+                        icon: ''
                     };
                 case 'student_removed':
                     return {
@@ -213,7 +213,7 @@
                         badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
                         bgClass: 'bg-amber-50/80 border-amber-200 hover:border-amber-400',
                         iconBg: 'bg-amber-500 text-slate-950',
-                        icon: '🔄'
+                        icon: ''
                     };
                 case 'student_transferred':
                     return {
@@ -221,7 +221,7 @@
                         badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
                         bgClass: 'bg-blue-50/80 border-blue-200 hover:border-blue-400',
                         iconBg: 'bg-blue-600 text-white',
-                        icon: '🔁'
+                        icon: ''
                     };
                 case 'student_paused':
                     return {
@@ -229,7 +229,7 @@
                         badgeClass: 'bg-rose-100 text-rose-900 border-rose-300',
                         bgClass: 'bg-rose-50/80 border-rose-200 hover:border-rose-400',
                         iconBg: 'bg-rose-600 text-white',
-                        icon: '⏸️'
+                        icon: '️'
                     };
                 default:
                     return {
@@ -237,7 +237,7 @@
                         badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
                         bgClass: 'bg-slate-50 border-slate-200 hover:border-slate-300',
                         iconBg: 'bg-indigo-600 text-white',
-                        icon: '📢'
+                        icon: ''
                     };
             }
         }

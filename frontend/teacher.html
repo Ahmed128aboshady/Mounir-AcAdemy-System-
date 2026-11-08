@@ -329,11 +329,11 @@
             <div class="text-center space-y-4">
                 <p class="text-xs text-slate-600">الطالب: <strong id="rateStudentName" class="font-black text-slate-900 text-sm">—</strong> <span id="rateStudentCode" class="text-slate-400 font-mono text-[11px] block mt-0.5"></span></p>
                 <div class="flex justify-center gap-2" id="ratingStars">
-                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(1)">★</span>
-                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(2)">★</span>
-                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(3)">★</span>
-                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(4)">★</span>
-                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(5)">★</span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(1)"></span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(2)"></span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(3)"></span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(4)"></span>
+                    <span class="rating-star text-2xl text-amber-400 cursor-pointer" onclick="setRating(5)"></span>
                 </div>
                 <p class="text-sm font-black text-slate-700" id="ratingLabel">اختر التقييم</p>
                 <button onclick="saveRating()" class="w-full bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold py-2.5 rounded-xl transition">حفظ التقييم</button>
@@ -417,7 +417,7 @@
         <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[88vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-9 h-9 rounded-2xl bg-indigo-100 text-indigo-900 flex items-center justify-center text-lg font-black shadow-xs">🔔</span>
+                    <span class="w-9 h-9 rounded-2xl bg-indigo-100 text-indigo-900 flex items-center justify-center text-lg font-black shadow-xs"></span>
                     <div>
                         <h3 class="font-black text-sm sm:text-base text-slate-900">إشعارات وتحديثات الطلاب</h3>
                         <p class="text-[11px] text-slate-500">متابعة فورية للطلاب المضافين والمنقولين والمتوقفين في مجموعاتك</p>
@@ -430,7 +430,7 @@
             <div class="pt-3 pb-2 flex justify-between items-center shrink-0">
                 <span class="text-[11px] font-bold text-slate-500" id="teacherNotifCountHeader">0 إشعار</span>
                 <button type="button" onclick="markAllTeacherNotifsRead()" class="text-indigo-600 hover:text-indigo-800 font-extrabold text-[11px] hover:underline cursor-pointer flex items-center gap-1">
-                    <span>✓</span><span>تحديد الكل كمقروء</span>
+                    <span></span><span>تحديد الكل كمقروء</span>
                 </button>
             </div>
 
@@ -1555,7 +1555,7 @@
                 excuseBadge = `
                     <div class="inline-flex flex-col items-start gap-0.5">
                         <span class="badge-excuse font-bold px-2 py-0.5 rounded-md text-[10px] inline-flex items-center gap-1" title="عذر متاح لاشتراك الحصص الحالي">
-                            <span>✓</span><span>متاح</span>
+                            <span></span><span>متاح</span>
                         </span>
                         <span class="text-[9px] text-emerald-700 font-bold whitespace-nowrap">عذر/${cycleText}</span>
                     </div>
@@ -1650,7 +1650,7 @@
             const absent = s.absent_count || 0;
 
             const ratingDisplay = s.rating 
-                ? `<span class="text-amber-400">${'★'.repeat(s.rating)}</span>` 
+                ? `<span class="text-amber-400">${''.repeat(s.rating)}</span>` 
                 : `<span class="text-slate-300 text-[11px]">—</span>`;
 
             const sDays = (s.subscription_days && s.subscription_days !== '—') ? s.subscription_days : '';
@@ -1694,13 +1694,13 @@
                     if (isBySupervisorLock) {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-purple-100 text-purple-900 border border-purple-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم رصد (${statusLabel}) لهذا الطالب بواسطة الإشراف ولا يمكن التكرار منعاً للخصم المزدوج">
-                                <span>🔒</span><span>تم الرصد (إشراف)</span>
+                                <span></span><span>تم الرصد (إشراف)</span>
                             </button>
                         `;
                     } else if (todayRecordedStatus === 'present') {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل حضور الطالب اليوم بنجاح وخصم حصة">
-                                <span>✓</span><span>تم الحضور</span>
+                                <span></span><span>تم الحضور</span>
                             </button>
                             <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل حضور اليوم وإعادة الحصة لرصيد الطالب">
                                 تراجع
@@ -1709,7 +1709,7 @@
                     } else if (todayRecordedStatus === 'absent') {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل غياب الطالب اليوم">
-                                <span>✗</span><span>تم الغياب</span>
+                                <span></span><span>تم الغياب</span>
                             </button>
                             <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'absent')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل غياب اليوم وإعادة الحصة لرصيد الطالب">
                                 تراجع
@@ -1727,7 +1727,7 @@
                     } else if (todayRecordedStatus === 'postponed') {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2.5 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تأجيل هذه الجلسة دون أي خصم من رصيد الحصص أو الأعذار">
-                                <span>⏱</span><span>مؤجلة</span>
+                                <span></span><span>مؤجلة</span>
                             </button>
                             <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'postponed')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تأجيل الجلسة وإعادة خيارات التسجيل">
                                 تراجع
@@ -1803,8 +1803,8 @@
                     <td class="p-3">${excuseBadge}</td>
                     <td class="p-3">
                         <div class="flex items-center gap-1.5">
-                            <span class="badge-present px-1.5 py-0.5 rounded font-bold text-[10px]">✓ ${present}</span>
-                            <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]">✗ ${absent}</span>
+                            <span class="badge-present px-1.5 py-0.5 rounded font-bold text-[10px]"> ${present}</span>
+                            <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]"> ${absent}</span>
                         </div>
                         ${lastAttInfo ? `
                             <div class="text-[10px] text-slate-500 font-medium mt-1 cursor-pointer hover:underline" onclick="openStudentLedgerModal(${s.id})" title="انقر لعرض سجل الحضور">
@@ -1967,17 +1967,17 @@
                 if (sessionStatus === 'present') {
                     confirmTitle = (curCredits <= 0) ? 'تنبيه: رصيد الطالب 0 حصص' : 'تأكيد تسجيل حضور الطالب';
                     confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهل تود تأكيد تسجيل حضور الطالب الآن؟`;
-                    confirmBtn = (curCredits <= 0) ? 'نعم، تسجيل حضور استثنائي' : '✓ تأكيد الحضور';
+                    confirmBtn = (curCredits <= 0) ? 'نعم، تسجيل حضور استثنائي' : ' تأكيد الحضور';
                     modalType = (curCredits <= 0) ? 'warning' : 'question';
                 } else if (sessionStatus === 'excused') {
                     confirmTitle = 'تأكيد تسجيل عذر للطالب';
                     confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهذا هو العذر المسموح به لاشتراك الطالب الحالي (عذر واحد لكل ${cycleDesc}).\n\nهل تود تأكيد تسجيل العذر للطالب؟\n(سيتم قفل خيار العذر تلقائياً حتى إتمام دورة الـ ${excuseInfo.cycleSize} حصص).`;
-                    confirmBtn = '✓ تأكيد العذر';
+                    confirmBtn = ' تأكيد العذر';
                     modalType = (curCredits <= 0) ? 'warning' : 'question';
                 } else if (sessionStatus === 'absent') {
                     confirmTitle = 'تأكيد تسجيل غياب بدون عذر';
                     confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}${zeroCreditWarning}\n\nهل تود تأكيد تسجيل غياب الطالب؟`;
-                    confirmBtn = '✗ تأكيد الغياب';
+                    confirmBtn = ' تأكيد الغياب';
                     modalType = 'warning';
                 }
 
@@ -2081,7 +2081,7 @@
                                 updates.remaining_credits = Math.max(0, rc - 1);
                                 if (hasExtendedCols) updates.present_count = (enrData.present_count || 0) + 1;
                                 const isSubToday = (foundStudent && foundStudent.is_substitute) || (window.currentActiveSubGroup === foundStudent?.group_id);
-                                resultMsg = `تم تسجيل حضور (${stName}) بنجاح ✓\nتم خصم حصة من رصيد الطالب (المتبقي: ${updates.remaining_credits}) وإضافتها لرصيد حصص المعلم${isSubToday ? ' البديل' : ''} المنجزة.`;
+                                resultMsg = `تم تسجيل حضور (${stName}) بنجاح \nتم خصم حصة من رصيد الطالب (المتبقي: ${updates.remaining_credits}) وإضافتها لرصيد حصص المعلم${isSubToday ? ' البديل' : ''} المنجزة.`;
                             } else if (sessionStatus === 'excused') {
                                 updates.excuse_count = excuseCount + 1;
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
@@ -2089,11 +2089,11 @@
                                 try {
                                     localStorage.setItem('monir_last_excuse_cycle_' + studentId, excuseInfo.currentCycle);
                                 } catch(e) {}
-                                resultMsg = `تم تسجيل عذر الطالب (${stName}) بنجاح ✓\nلم يتم خصم أي حصة • تم استهلاك عذر هذا الاشتراك • يتجدد العذر بعد إتمام دورة الـ (${excuseInfo.cycleSize}) حصص • الرصيد: ${rc} حصة`;
+                                resultMsg = `تم تسجيل عذر الطالب (${stName}) بنجاح \nلم يتم خصم أي حصة • تم استهلاك عذر هذا الاشتراك • يتجدد العذر بعد إتمام دورة الـ (${excuseInfo.cycleSize}) حصص • الرصيد: ${rc} حصة`;
                             } else if (sessionStatus === 'absent') {
                                 if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
                                 updates.remaining_credits = Math.max(0, rc - 1);
-                                resultMsg = `تم تسجيل غياب (${stName}) ✗\nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
+                                resultMsg = `تم تسجيل غياب (${stName}) \nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
                             }
 
                             await client.from('enrollments').update(updates).eq('id', enrData.id);
@@ -2266,8 +2266,8 @@
                     localStorage.removeItem('monir_last_att_info_' + studentId);
                 } catch(e) {}
                 const toastMsg = (status === 'postponed')
-                    ? 'تم إلغاء التأجيل وإعادة خيارات التسجيل بنجاح ✓'
-                    : 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ✓';
+                    ? 'تم إلغاء التأجيل وإعادة خيارات التسجيل بنجاح '
+                    : 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ';
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
                     window.MonirPopup.toast(toastMsg, 'success');
                 } else {
@@ -2354,11 +2354,11 @@
                 }
 
                 const confirmTitle = 'تأكيد تأجيل الجلسة للطالب';
-                const confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تأجيل جلسة اليوم للطالب؟\n\n📌 المزايا والضمانات:\n• لن يتم خصم أي حصة من رصيد الطالب (${curCredits} حصة متبقية).\n• لن يتم استهلاك رصيد الأعذار الشهري للطالب.\n• سيتم إرسال إشعار فوري لولي الأمر بتأجيل الجلسة.`;
+                const confirmMsg = `الطالب: ${stName} ${stCode ? '(' + stCode + ')' : ''}\n\nهل تود تأكيد تأجيل جلسة اليوم للطالب؟\n\n المزايا والضمانات:\n• لن يتم خصم أي حصة من رصيد الطالب (${curCredits} حصة متبقية).\n• لن يتم استهلاك رصيد الأعذار الشهري للطالب.\n• سيتم إرسال إشعار فوري لولي الأمر بتأجيل الجلسة.`;
 
                 let confirmed = false;
                 if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, 'question', '✓ تأكيد التأجيل', 'تراجع وإلغاء');
+                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, 'question', ' تأكيد التأجيل', 'تراجع وإلغاء');
                 } else {
                     confirmed = confirm(confirmTitle + '\n\n' + confirmMsg);
                 }
@@ -2428,7 +2428,7 @@
                     localStorage.setItem('monir_att_postponed_' + studentId, '1');
                 } catch(e) {}
 
-                const toastMsg = 'تم تأجيل الجلسة للطالب بنجاح مع الحفاظ على رصيده وأعذاره بالكامل ✓';
+                const toastMsg = 'تم تأجيل الجلسة للطالب بنجاح مع الحفاظ على رصيده وأعذاره بالكامل ';
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
                     window.MonirPopup.toast(toastMsg, 'success');
                 } else {
@@ -2496,11 +2496,11 @@
                 }
 
                 const confirmTitle = `تأكيد تأجيل جلسة المجموعة (${groupId})`;
-                const confirmMsg = `مجموعة: ${groupId}\nعدد الطلاب المستهدفين بالتأجيل: ${eligibleStudents.length} طالب\n\nهل تود تأكيد تأجيل جلسة اليوم للمجموعة بالكامل؟\n\n📌 المزايا والضمانات:\n• لن يتم خصم أي حصص من رصيد الطلاب.\n• لن يتم استهلاك رصيد الأعذار الشهري لأي طالب.\n• سيتم إرسال إشعار فوري لجميع الطلاب وأولياء الأمور بتأجيل الجلسة.`;
+                const confirmMsg = `مجموعة: ${groupId}\nعدد الطلاب المستهدفين بالتأجيل: ${eligibleStudents.length} طالب\n\nهل تود تأكيد تأجيل جلسة اليوم للمجموعة بالكامل؟\n\n المزايا والضمانات:\n• لن يتم خصم أي حصص من رصيد الطلاب.\n• لن يتم استهلاك رصيد الأعذار الشهري لأي طالب.\n• سيتم إرسال إشعار فوري لجميع الطلاب وأولياء الأمور بتأجيل الجلسة.`;
 
                 let confirmed = false;
                 if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, 'question', `✓ تأجيل جلسة الـ ${eligibleStudents.length} طالب`, 'إلغاء');
+                    confirmed = await window.MonirPopup.confirm(confirmMsg, confirmTitle, 'question', ` تأجيل جلسة الـ ${eligibleStudents.length} طالب`, 'إلغاء');
                 } else {
                     confirmed = confirm(confirmTitle + '\n\n' + confirmMsg);
                 }
@@ -2576,7 +2576,7 @@
                     btn.innerHTML = origBtnHtml;
                 }
 
-                const successMsg = `تم تأجيل جلسة المجموعة لـ (${eligibleStudents.length}) طالب بنجاح مع الحفاظ على كامل رصيدهم وأعذارهم ✓`;
+                const successMsg = `تم تأجيل جلسة المجموعة لـ (${eligibleStudents.length}) طالب بنجاح مع الحفاظ على كامل رصيدهم وأعذارهم `;
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
                     window.MonirPopup.toast(successMsg, 'success');
                 } else {
@@ -2842,7 +2842,7 @@
 
                 closeModal('updateSurahModal');
                 
-                const msg = '✓ تم اعتماد خطة الحفظ والمراجعة بنجاح!\nتم إرسال الإشعار لولي الأمر وستظهر الخطة في صفحة الطالب لكل المحاضرات.';
+                const msg = ' تم اعتماد خطة الحفظ والمراجعة بنجاح!\nتم إرسال الإشعار لولي الأمر وستظهر الخطة في صفحة الطالب لكل المحاضرات.';
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
                     window.MonirPopup.toast(msg, 'success');
                 } else {
@@ -2903,7 +2903,7 @@
                     });
                 }
                 closeModal('rateStudentModal');
-                alert('تم حفظ التقييم بنجاح! ✓');
+                alert('تم حفظ التقييم بنجاح! ');
                 await loadTeacherGroups();
             } catch(e) {
                 alert('حدث خطأ أثناء الحفظ.');
@@ -3009,7 +3009,7 @@
             container.innerHTML = tickets.map(t => {
                 const isResolved = (t.status === 'resolved') || (t.admin_reply && t.admin_reply.trim().length > 0);
                 const statusBadge = isResolved
-                    ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1"><span>✓</span><span>تم الرد من الإشراف</span></span>`
+                    ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1"><span></span><span>تم الرد من الإشراف</span></span>`
                     : `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 animate-pulse"><span></span><span>قيد المتابعة لدى الإشراف</span></span>`;
 
                 let formattedDate = '—';
@@ -3166,7 +3166,7 @@
                 }
 
                 if (success) {
-                    alert('تم إرسال تذكرتك للإشراف بنجاح! سيتم إشعارك فور وصول الرد. ✓');
+                    alert('تم إرسال تذكرتك للإشراف بنجاح! سيتم إشعارك فور وصول الرد. ');
                     document.getElementById('teacherTicketSubject').value = '';
                     document.getElementById('teacherTicketMessage').value = '';
                     switchTeacherSupportTab('list');
@@ -3220,7 +3220,7 @@
                 if (list.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-10 text-slate-400">
-                            <div class="text-3xl mb-2">🔕</div>
+                            <div class="text-3xl mb-2"></div>
                             <p class="font-bold text-xs text-slate-700">لا توجد إشعارات أو تحديثات حالياً.</p>
                             <p class="text-[11px] text-slate-400 mt-1">ستصلك هنا تنبيهات فورية عند إضافة أو نقل أو إيقاف أي طالب في مجموعاتك.</p>
                         </div>
@@ -3250,7 +3250,7 @@
                             ${!n.is_read ? `
                                 <div class="mt-1.5 flex justify-end">
                                     <button type="button" onclick="markSingleTeacherNotifRead('${n.id}', this)" class="text-[10px] text-indigo-700 hover:text-indigo-900 font-bold bg-white/80 hover:bg-white px-2 py-0.5 rounded border border-indigo-200 transition cursor-pointer">
-                                        ✓ تحديد كمقروء
+                                         تحديد كمقروء
                                     </button>
                                 </div>
                             ` : ''}
@@ -3267,7 +3267,7 @@
             } else if (container) {
                 container.innerHTML = `
                     <div class="text-center py-10 text-slate-400">
-                        <div class="animate-spin text-2xl mb-2">⏳</div>
+                        <div class="animate-spin text-2xl mb-2"></div>
                         <p class="text-xs font-bold text-slate-600">جاري فحص وتحديث الإشعارات...</p>
                     </div>
                 `;

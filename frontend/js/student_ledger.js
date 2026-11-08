@@ -492,7 +492,7 @@
             console.error('Error generating student ledger:', err);
             content.innerHTML = `
                 <div class="p-8 text-center space-y-4">
-                    <div class="text-3xl text-red-500">❌</div>
+                    <div class="text-3xl text-red-500"></div>
                     <h4 class="text-base font-black text-slate-900">حدث خطأ أثناء تحميل كشف الحساب</h4>
                     <p class="text-xs text-slate-500">${err.message || err}</p>
                     <button onclick="closeStudentLedgerModal()" class="bg-slate-800 text-white font-bold px-5 py-2 rounded-xl text-xs">إغلاق</button>
@@ -887,7 +887,7 @@
                     <td class="p-2.5 font-black text-emerald-700 font-mono text-xs">+${initialCredits} حصص</td>
                     <td class="p-2.5 text-slate-600 text-[11px]">تسجيل والتحاق بالدورة الأكاديمية</td>
                     <td class="p-2.5 font-mono text-slate-500 text-[10px]">INIT-REG-01</td>
-                    <td class="p-2.5 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">✓ مفعل</span></td>
+                    <td class="p-2.5 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]"> مفعل</span></td>
                 </tr>
             `;
         }
@@ -916,7 +916,7 @@
                             ${p.amount ? `<span class="text-[10px] text-slate-400">المبلغ: ${pAmount}</span>` : ''}
                         </td>
                         <td class="p-2.5 font-mono text-slate-600 text-[10px]">${pRef}</td>
-                        <td class="p-2.5 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">✓ معتمد ومضاف</span></td>
+                        <td class="p-2.5 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]"> معتمد ومضاف</span></td>
                     </tr>
                 `;
             });
@@ -1077,7 +1077,7 @@
             return `
                 <div class="relative flex items-start gap-3 pb-4">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${isAdd ? 'bg-emerald-100 text-emerald-800' : (isZero ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')}">
-                        ${isAdd ? '➕' : (isZero ? '⚠️' : '➖')}
+                        ${isAdd ? '' : (isZero ? '️' : '')}
                     </div>
                     <div class="flex-1 bg-white border border-slate-200 rounded-2xl p-3 shadow-2xs hover:border-indigo-200 transition">
                         <div class="flex justify-between items-start gap-2 flex-wrap">
@@ -1234,21 +1234,21 @@
                             <span class="text-[10px] text-emerald-800 font-bold block">إجمالي حصص التسميع المنجزة</span>
                             <strong class="text-lg font-black text-emerald-950 mt-0.5 block">${totalHifzCount} حصة</strong>
                         </div>
-                        <span class="text-2xl font-black text-emerald-600">✓</span>
+                        <span class="text-2xl font-black text-emerald-600"></span>
                     </div>
                     <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-2xl flex items-center justify-between">
                         <div>
                             <span class="text-[10px] text-indigo-800 font-bold block">آخر موضع تم تسميعه</span>
                             <strong class="text-xs font-black text-indigo-950 mt-0.5 block truncate max-w-[170px]">${lastHifz}</strong>
                         </div>
-                        <span class="text-2xl font-black text-indigo-600">📖</span>
+                        <span class="text-2xl font-black text-indigo-600"></span>
                     </div>
                     <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-center justify-between">
                         <div>
                             <span class="text-[10px] text-amber-800 font-bold block">تاريخ بداية السجل</span>
                             <strong class="text-xs font-black text-amber-950 mt-0.5 block">${formatArabicDate(enrolledDate)}</strong>
                         </div>
-                        <span class="text-2xl font-black text-amber-600">📅</span>
+                        <span class="text-2xl font-black text-amber-600"></span>
                     </div>
                 </div>
 
@@ -1362,7 +1362,7 @@
 
                 <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
                     <div>إدارة شؤون الطلاب والتعليم الإلكتروني</div>
-                    <div class="font-bold text-slate-800">ختم الاعتماد الأكاديمي ✓</div>
+                    <div class="font-bold text-slate-800">ختم الاعتماد الأكاديمي </div>
                 </div>
 
                 <script>

@@ -949,7 +949,7 @@
 
     // Link copying disabled for security and classroom privacy
     window.copyMeetLink = function(url, btnElement) {
-        const msg = '🔒 عذراً، تم إيقاف ميزة نسخ الروابط لحماية خصوصية الحصص وحسابات الطلاب ومنع تداول الروابط خارج المنصة.\nيرجى الدخول مباشرة عبر زر (بدء الحصة / دخول الحصة) من داخل المنصة.';
+        const msg = ' عذراً، تم إيقاف ميزة نسخ الروابط لحماية خصوصية الحصص وحسابات الطلاب ومنع تداول الروابط خارج المنصة.\nيرجى الدخول مباشرة عبر زر (بدء الحصة / دخول الحصة) من داخل المنصة.';
         if (window.MonirPopup && window.MonirPopup.alert) {
             window.MonirPopup.alert(msg, 'ميزة نسخ الروابط متوقفة', 'warning');
         } else {
