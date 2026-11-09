@@ -484,6 +484,108 @@
             </div>
         </section>
 
+        <!-- Supervisor Teachers Payroll & Payouts Engine (كشف مستحقات ورواتب المعلمين - خاص بالإشراف) -->
+        <section class="bg-white rounded-2xl sm:rounded-3xl border-2 border-amber-300 p-4 sm:p-6 shadow-sm space-y-4" id="sectionSupervisorPayroll">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleDashboardSection('supervisorPayrollContent', 'supervisorPayrollToggleBtn', 'supervisorPayrollStateBadge')">
+                <div class="flex items-center gap-3">
+                    <button type="button" id="supervisorPayrollToggleBtn" class="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-amber-100 text-amber-700 flex items-center justify-center transition shadow-sm shrink-0">
+                        <svg class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div>
+                        <div class="flex items-center flex-wrap gap-2 mb-1">
+                            <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-900 transition">مستحقات ورواتب المعلمين (حسابات الإشراف)</h2>
+                            <span class="text-[10px] font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">خاص بالإشراف فقط</span>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="supervisorPayrollStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500">احتساب مالي آلي للحصص المنجزة حسب مدة كل حصة: 15د=25ج | 20د=33ج | 30د=50ج | 60د=100ج</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap" onclick="event.stopPropagation()">
+                    <button type="button" onclick="exportPayrollExcel()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                        <span>تصدير كشف الرواتب (Excel)</span>
+                    </button>
+                    <button type="button" onclick="ensureOpenAndLoadPayroll()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl transition cursor-pointer">
+                        تحديث الحسابات
+                    </button>
+                </div>
+            </div>
+
+            <!-- Payroll Content (Collapsible) -->
+            <div id="supervisorPayrollContent" class="space-y-4 pt-1">
+                <!-- Rates Legend Banner -->
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3 sm:p-4 text-xs">
+                    <div class="font-black text-amber-950 mb-1.5 text-xs sm:text-sm">تعرفة الحصص المعتمدة للإشراف:</div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
+                            <span class="block text-slate-500 text-[11px] font-bold">حصة 15 دقيقة</span>
+                            <strong class="text-sm font-black text-slate-900">25 ج.م</strong>
+                        </div>
+                        <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
+                            <span class="block text-slate-500 text-[11px] font-bold">حصة 20 دقيقة</span>
+                            <strong class="text-sm font-black text-slate-900">33 ج.م</strong>
+                        </div>
+                        <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
+                            <span class="block text-slate-500 text-[11px] font-bold">حصة 30 دقيقة</span>
+                            <strong class="text-sm font-black text-slate-900">50 ج.م</strong>
+                        </div>
+                        <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
+                            <span class="block text-slate-500 text-[11px] font-bold">حصة 60 دقيقة</span>
+                            <strong class="text-sm font-black text-slate-900">100 ج.م</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Summary Chips -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                    <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-blue-900">إجمالي الحصص المنجزة</div>
+                        <div class="text-lg font-black text-blue-900 font-mono" id="payrollStatTotalSessions">0</div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-slate-700">إجمالي المستحقات</div>
+                        <div class="text-lg font-black text-slate-900 font-mono" id="payrollStatTotalEarned">0 ج.م</div>
+                    </div>
+                    <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-emerald-900">إجمالي المسدد</div>
+                        <div class="text-lg font-black text-emerald-800 font-mono" id="payrollStatTotalPaid">0 ج.م</div>
+                    </div>
+                    <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-amber-900">الرصيد المتبقي للمعلمين</div>
+                        <div class="text-lg font-black text-amber-900 font-mono" id="totalPayrollBalance">0 ج.م</div>
+                    </div>
+                </div>
+
+                <!-- Quick Search -->
+                <div>
+                    <input type="text" id="payrollSearchInput" oninput="filterPayrollTable()" placeholder="بحث سريع باسم المعلم أو رقم الهاتف..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <!-- Payroll Table -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-right text-xs min-w-[880px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[11px]">
+                                <th class="p-3">#</th>
+                                <th class="p-3">المعلم</th>
+                                <th class="p-3 text-center">15 د (25ج)</th>
+                                <th class="p-3 text-center">20 د (33ج)</th>
+                                <th class="p-3 text-center">30 د (50ج)</th>
+                                <th class="p-3 text-center">60 د (100ج)</th>
+                                <th class="p-3 text-center">إجمالي الحصص</th>
+                                <th class="p-3 text-center">إجمالي المستحق</th>
+                                <th class="p-3 text-center">المسدد</th>
+                                <th class="p-3 text-center">المتبقي</th>
+                                <th class="p-3 text-center">الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payrollTableBody" class="divide-y divide-slate-100">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
         <!-- 3a-0. Daily Attendance Matching & Excel Export Tool (أداة مطابقة الحضور اليومي الفعلي واستخراج Excel للإشراف) -->
         <section class="bg-white rounded-2xl sm:rounded-3xl border-2 border-emerald-300 p-4 sm:p-6 shadow-sm space-y-4" id="sectionDailyAttendanceMatching">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleDashboardSection('dailyMatchingContent', 'dailyMatchingToggleBtn', 'dailyMatchingStateBadge')">
@@ -3363,68 +3465,159 @@
 
 
         // ---------------- 2. Teacher Payroll Engine ----------------
+        // ---------------- 2. Supervisor Teacher Payroll Engine ----------------
+        let rawSupervisorPayrollData = [];
+        let filteredSupervisorPayrollData = [];
+
+        function ensureOpenAndLoadPayroll() {
+            const content = document.getElementById('supervisorPayrollContent');
+            const btn = document.getElementById('supervisorPayrollToggleBtn');
+            const badge = document.getElementById('supervisorPayrollStateBadge');
+            if (content && content.classList.contains('hidden')) {
+                toggleDashboardSection('supervisorPayrollContent', 'supervisorPayrollToggleBtn', 'supervisorPayrollStateBadge');
+            }
+            loadPayrollData();
+        }
+
         async function loadPayrollData() {
             try {
                 const tbody = document.getElementById('payrollTableBody');
-                if (!tbody) return;
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-bold">جاري تحميل وتحديث حسابات ومستحقات المعلمين...</td></tr>';
+                }
+
                 const res = await fetch('/api/admin/teachers/payroll');
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
                 const data = await res.json();
                 
-                const bal = document.getElementById('totalPayrollBalance');
-                if (bal && data.summary) bal.innerText = data.summary.total_balance_due + ' ج.م';
-                
-                tbody.innerHTML = '';
+                rawSupervisorPayrollData = data.teachers_payroll || [];
+                filteredSupervisorPayrollData = [...rawSupervisorPayrollData];
 
-                data.teachers_payroll.forEach(t => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition';
+                // Update summary stats
+                const summary = data.summary || {};
+                const balEl = document.getElementById('totalPayrollBalance');
+                const earnEl = document.getElementById('payrollStatTotalEarned');
+                const paidEl = document.getElementById('payrollStatTotalPaid');
+                const sessEl = document.getElementById('payrollStatTotalSessions');
 
-                    tr.innerHTML = `
-                        <td class="p-3">
-                            <strong class="text-slate-900 block">${t.name}</strong>
-                            <span class="text-slate-400 font-mono text-[10px]">${t.phone}</span>
-                        </td>
-                        <td class="p-3 font-medium text-slate-700">${t.courses_supervised.join('، ') || 'مسار عام'}</td>
-                        <td class="p-3 font-bold text-slate-800">${t.rate_per_session} ج.م</td>
-                        <td class="p-3 font-black text-blue-900">${t.completed_sessions} حصة</td>
-                        <td class="p-3 font-bold text-slate-900">${t.total_earned} ج.م</td>
-                        <td class="p-3 text-slate-600">${t.total_paid} ج.م</td>
-                        <td class="p-3 font-black text-emerald-700">${t.balance_due} ج.م</td>
-                        <td class="p-3 text-center">
-                            <button onclick="openSettleModal(${t.teacher_id}, '${t.name}', ${t.balance_due}, ${t.completed_sessions})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2.5 py-1 rounded-lg text-[11px] transition">
-                                تسوية المستحقات
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                if (balEl) balEl.innerText = (summary.total_balance_due || 0).toLocaleString() + ' ج.م';
+                if (earnEl) earnEl.innerText = (summary.total_earned || 0).toLocaleString() + ' ج.م';
+                if (paidEl) paidEl.innerText = (summary.total_paid || 0).toLocaleString() + ' ج.م';
+                if (sessEl) sessEl.innerText = (summary.total_sessions || 0).toLocaleString() + ' حصة';
+
+                renderPayrollTable(filteredSupervisorPayrollData);
             } catch (err) {
                 console.error("Error loading payroll:", err);
+                const tbody = document.getElementById('payrollTableBody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-red-500 font-bold">فشل في تحميل بيانات الرواتب والمستحقات. يرجى المحاولة لاحقاً.</td></tr>';
+                }
             }
+        }
+
+        function filterPayrollTable() {
+            const query = (document.getElementById('payrollSearchInput')?.value || '').trim().toLowerCase();
+            if (!query) {
+                filteredSupervisorPayrollData = [...rawSupervisorPayrollData];
+            } else {
+                filteredSupervisorPayrollData = rawSupervisorPayrollData.filter(t => {
+                    const matchName = (t.name || '').toLowerCase().includes(query);
+                    const matchPhone = (t.phone || '').includes(query);
+                    return matchName || matchPhone;
+                });
+            }
+            renderPayrollTable(filteredSupervisorPayrollData);
+        }
+
+        function renderPayrollTable(list) {
+            const tbody = document.getElementById('payrollTableBody');
+            if (!tbody) return;
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-slate-400 font-bold">لا توجد بيانات مطابقة للبحث المحدد.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = list.map((t, idx) => {
+                const s15 = t.sessions_15 || 0;
+                const s20 = t.sessions_20 || 0;
+                const s30 = t.sessions_30 || 0;
+                const s60 = t.sessions_60 || 0;
+                const totalSessions = t.completed_sessions || 0;
+                const earned = t.total_earned || 0;
+                const paid = t.total_paid || 0;
+                const bal = t.balance_due || 0;
+
+                const balBadgeClass = bal > 0 
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300 font-black' 
+                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
+
+                const safeName = (t.name || '').replace(/'/g, "\\'");
+
+                return `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-3 text-slate-400 font-mono font-bold text-center">${idx + 1}</td>
+                        <td class="p-3">
+                            <strong class="text-slate-900 block font-bold text-xs sm:text-sm">${t.name}</strong>
+                            <span class="text-slate-400 font-mono text-[11px]">${t.phone || '—'}</span>
+                        </td>
+                        <td class="p-3 text-center font-mono font-bold ${s15 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s15}</td>
+                        <td class="p-3 text-center font-mono font-bold ${s20 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s20}</td>
+                        <td class="p-3 text-center font-mono font-bold ${s30 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s30}</td>
+                        <td class="p-3 text-center font-mono font-bold ${s60 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s60}</td>
+                        <td class="p-3 text-center font-mono font-black text-blue-900 text-xs sm:text-sm">${totalSessions}</td>
+                        <td class="p-3 text-center font-mono font-bold text-slate-900">${earned.toLocaleString()} ج.م</td>
+                        <td class="p-3 text-center font-mono text-slate-600">${paid.toLocaleString()} ج.م</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono inline-block ${balBadgeClass}">
+                                ${bal.toLocaleString()} ج.م
+                            </span>
+                        </td>
+                        <td class="p-3 text-center">
+                            <button type="button" onclick="openSettleModal(${t.teacher_id}, '${safeName}', ${bal}, ${totalSessions})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2.5 py-1 rounded-lg text-[11px] transition cursor-pointer shadow-2xs">
+                                تسوية دفعة
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function openSettleModal(teacherId, teacherName, balanceDue, sessionsCount) {
             activeSettleTeacherId = teacherId;
-            document.getElementById('settleTeacherName').innerText = teacherName;
-            document.getElementById('settleBalanceDue').innerText = balanceDue + ' ج.م';
-            document.getElementById('settleAmountInput').value = balanceDue;
-            document.getElementById('settleRefInput').value = 'PAY-' + Math.floor(100000 + Math.random() * 900000);
-            document.getElementById('settlePayoutModal').classList.remove('hidden');
+            const nameEl = document.getElementById('settleTeacherName');
+            const balEl = document.getElementById('settleBalanceDue');
+            const amtEl = document.getElementById('settleAmountInput');
+            const refEl = document.getElementById('settleRefInput');
+            const monthEl = document.getElementById('settleMonthInput');
+
+            if (nameEl) nameEl.innerText = teacherName;
+            if (balEl) balEl.innerText = (balanceDue || 0).toLocaleString() + ' ج.م';
+            if (amtEl) amtEl.value = balanceDue || 0;
+            if (refEl) refEl.value = 'PAY-' + Math.floor(100000 + Math.random() * 900000);
+            if (monthEl) monthEl.value = new Date().toISOString().substring(0, 7);
+
+            const modal = document.getElementById('settlePayoutModal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function closeSettlePayoutModal() {
-            document.getElementById('settlePayoutModal').classList.add('hidden');
+            const modal = document.getElementById('settlePayoutModal');
+            if (modal) modal.classList.add('hidden');
+            activeSettleTeacherId = null;
         }
 
         async function submitTeacherSettlement() {
             if (!activeSettleTeacherId) return;
-            const amt = parseFloat(document.getElementById('settleAmountInput').value);
-            const period = document.getElementById('settleMonthInput').value.trim();
-            const method = document.getElementById('settleMethodSelect').value;
-            const ref = document.getElementById('settleRefInput').value.trim();
+            const amt = parseFloat(document.getElementById('settleAmountInput')?.value || 0);
+            const period = (document.getElementById('settleMonthInput')?.value || '').trim();
+            const method = document.getElementById('settleMethodSelect')?.value || 'manual';
+            const ref = (document.getElementById('settleRefInput')?.value || '').trim();
 
             if (!amt || amt <= 0) {
-                alert("يرجى إدخال مبلغ صحيح للصرف.");
+                alert("يرجى إدخال مبلغ تسوية صالح.");
                 return;
             }
 
@@ -3433,19 +3626,128 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        teacher_id: activeSettleTeacherId,
                         amount: amt,
-                        sessions_count: 1,
                         period_month: period,
                         payment_method: method,
                         reference_number: ref
                     })
                 });
                 const data = await res.json();
-                alert(data.message);
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(data.message || 'تم تسجيل التسوية بنجاح', 'success');
+                } else {
+                    alert(data.message || 'تم تسجيل التسوية بنجاح');
+                }
                 closeSettlePayoutModal();
                 loadPayrollData();
-            } catch (err) {
-                console.error("Error settling payout:", err);
+            } catch(err) {
+                console.error("Error submitting settlement:", err);
+                alert("تعذر تسجيل التسوية: " + err.message);
+            }
+        }
+
+        function exportPayrollExcel() {
+            if (!rawSupervisorPayrollData || rawSupervisorPayrollData.length === 0) {
+                alert("لا توجد بيانات مستحقات معلمين جاهزة للتصدير حالياً.");
+                return;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            let rowsHtml = '';
+            rawSupervisorPayrollData.forEach((t, idx) => {
+                const s15 = t.sessions_15 || 0;
+                const s20 = t.sessions_20 || 0;
+                const s30 = t.sessions_30 || 0;
+                const s60 = t.sessions_60 || 0;
+                const total = t.completed_sessions || 0;
+                const earned = t.total_earned || 0;
+                const paid = t.total_paid || 0;
+                const bal = t.balance_due || 0;
+
+                rowsHtml += `
+                    <tr>
+                        <td style="text-align:center;mso-number-format:'\@';">${idx + 1}</td>
+                        <td style="text-align:right;font-weight:bold;">${t.name}</td>
+                        <td style="text-align:center;mso-number-format:'\@';">${t.phone || '—'}</td>
+                        <td style="text-align:center;">${s15}</td>
+                        <td style="text-align:center;">${s20}</td>
+                        <td style="text-align:center;">${s30}</td>
+                        <td style="text-align:center;">${s60}</td>
+                        <td style="text-align:center;font-weight:bold;">${total}</td>
+                        <td style="text-align:center;font-weight:bold;color:#1e3a8a;">${earned}</td>
+                        <td style="text-align:center;color:#047857;">${paid}</td>
+                        <td style="text-align:center;font-weight:bold;color:#b45309;">${bal}</td>
+                        <td style="text-align:center;">${bal > 0 ? 'مستحق للصرف' : 'خالص المسدد'}</td>
+                    </tr>
+                `;
+            });
+
+            const excelHtml = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>كشف مستحقات المعلمين</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:DisplayRightToLeft/>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        table { border-collapse: collapse; width: 100%; font-family: Calibri, 'Segoe UI', Tahoma, sans-serif; font-size: 11pt; }
+                        th { background-color: #f59e0b; color: #ffffff; font-weight: bold; border: 1px solid #d97706; padding: 10px; text-align: center; }
+                        td { border: 1px solid #e2e8f0; padding: 8px; vertical-align: middle; }
+                        .title-row { font-size: 16pt; font-weight: bold; text-align: center; background-color: #fef3c7; color: #78350f; }
+                        .subtitle-row { font-size: 10pt; text-align: center; background-color: #fffbeb; color: #92400e; }
+                    </style>
+                </head>
+                <body dir="rtl">
+                    <table>
+                        <tr>
+                            <td colspan="12" class="title-row" style="padding:14px;">أكاديمية منير — كشف مستحقات ورواتب المعلمين (حسابات الإشراف)</td>
+                        </tr>
+                        <tr>
+                            <td colspan="12" class="subtitle-row" style="padding:8px;">تعرفة الحصص المعتمدة: 15 دقيقة = 25 ج.م | 20 دقيقة = 33 ج.م | 30 دقيقة = 50 ج.م | 60 دقيقة = 100 ج.م — تاريخ الاستخراج: ${todayStr}</td>
+                        </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم المعلم</th>
+                            <th>رقم الهاتف</th>
+                            <th>حصص 15د (25ج)</th>
+                            <th>حصص 20د (33ج)</th>
+                            <th>حصص 30د (50ج)</th>
+                            <th>حصص 60د (100ج)</th>
+                            <th>إجمالي الحصص</th>
+                            <th>إجمالي المستحق (ج.م)</th>
+                            <th>المسدد (ج.م)</th>
+                            <th>المتبقي (ج.م)</th>
+                            <th>حالة الحساب</th>
+                        </tr>
+                        ${rowsHtml}
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\uFEFF' + excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            if (typeof triggerBlobDownload === 'function') {
+                triggerBlobDownload(blob, `كشف_مستحقات_ورواتب_المعلمين_أكاديمية_منير_${todayStr}.xls`);
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `كشف_مستحقات_ورواتب_المعلمين_أكاديمية_منير_${todayStr}.xls`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
         }
 

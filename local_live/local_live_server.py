@@ -169,18 +169,97 @@ def group_data(user):
     for g in grouped.values():g['student_count']=len(g['students']);g['total_students']=len(g['students'])
     return list(grouped.values())
 
+RATES_BY_DURATION = {
+    15: 25.0,
+    20: 33.0,
+    30: 50.0,
+    60: 100.0,
+    45: 75.0
+}
+
 def payroll(user):
-    ts=rows('teachers',{'id':'eq.'+identifier(related(user))}) if user['role']=='teacher' else rows('teachers')
-    es=rows('enrollments');pays=rows('teacher_payouts');lectures=rows('lectures');result=[]
+    role = user.get('role')
+    ts = rows('teachers', {'id': 'eq.' + identifier(related(user))}) if role == 'teacher' else rows('teachers')
+    es = rows('enrollments')
+    pays = rows('teacher_payouts')
+    attendance = rows('attendance')
+
+    st_to_teacher = {e['student_id']: e['teacher_id'] for e in es if e.get('student_id') and e.get('teacher_id')}
+    st_duration = {}
+    for e in es:
+        dur_str = str(e.get('session_duration') or '')
+        d = 20
+        for cand in [60, 45, 30, 20, 15]:
+            if str(cand) in dur_str:
+                d = cand
+                break
+        st_duration[e['student_id']] = d
+
+    teacher_att = {}
+    for a in attendance:
+        if a.get('status') != 'present':
+            continue
+        sid = a.get('student_id')
+        tid = st_to_teacher.get(sid)
+        if not tid:
+            continue
+        dur = a.get('duration_minutes') or st_duration.get(sid, 20)
+        dur = int(dur) if str(dur).isdigit() else 20
+        if dur not in RATES_BY_DURATION:
+            dur = 20
+        if tid not in teacher_att:
+            teacher_att[tid] = {15: 0, 20: 0, 30: 0, 60: 0, 45: 0, 'total': 0, 'earned': 0.0}
+        teacher_att[tid][dur] += 1
+        teacher_att[tid]['total'] += 1
+        teacher_att[tid]['earned'] += RATES_BY_DURATION.get(dur, 33.0)
+
+    result = []
     for t in ts:
-        own=[e for e in es if e.get('teacher_id')==t['id']]
-        courses={e['course_name'] for e in own}
-        # Same accounting basis as the existing backend, not student attendance totals.
-        completed=sum(l.get('status')=='completed' and l.get('course_name') in courses for l in lectures)
-        rate=float(t.get('rate_per_session') or 0);earned=round(completed*rate,2)
-        paid=round(sum(float(p.get('amount') or 0) for p in pays if p.get('teacher_id')==t['id']),2)
-        result.append({'teacher_id':t['id'],'name':t['name'],'phone':t.get('phone',''),'courses_supervised':list(courses),'rate_per_session':rate,'completed_sessions':completed,'total_earned':earned,'total_paid':paid,'balance_due':max(0,earned-paid),'payouts_history':[p for p in pays if p.get('teacher_id')==t['id']]})
-    return {'teachers_payroll':result,'summary':{'total_balance_due':sum(t['balance_due'] for t in result)},'basis':'وفق الحساب الحالي: المحاضرات المكتملة في مسارات المعلم × سعر الحصة. لا تمثل سجلات حضور الطلاب عدداً مستقلاً لحصص المعلم.'}
+        tid = t['id']
+        own = [e for e in es if e.get('teacher_id') == tid]
+        courses = {e['course_name'] for e in own if e.get('course_name')}
+        stats = teacher_att.get(tid, {15: 0, 20: 0, 30: 0, 60: 0, 45: 0, 'total': 0, 'earned': 0.0})
+        paid = round(sum(float(p.get('amount') or 0) for p in pays if p.get('teacher_id') == tid), 2)
+        earned = round(stats['earned'], 2)
+        balance = max(0.0, round(earned - paid, 2))
+        
+        result.append({
+            'teacher_id': tid,
+            'name': t['name'],
+            'phone': t.get('phone', ''),
+            'courses_supervised': list(courses),
+            'rate_per_session': float(t.get('rate_per_session') or 33.0),
+            'sessions_15': stats[15],
+            'sessions_20': stats[20],
+            'sessions_30': stats[30],
+            'sessions_60': stats[60],
+            'sessions_45': stats[45],
+            'completed_sessions': stats['total'],
+            'total_earned': earned,
+            'total_paid': paid,
+            'balance_due': balance,
+            'payouts_history': [p for p in pays if p.get('teacher_id') == tid]
+        })
+
+    result.sort(key=lambda x: (x['completed_sessions'], x['total_earned']), reverse=True)
+
+    summary = {
+        'total_balance_due': round(sum(t['balance_due'] for t in result), 2),
+        'total_earned': round(sum(t['total_earned'] for t in result), 2),
+        'total_paid': round(sum(t['total_paid'] for t in result), 2),
+        'total_sessions': sum(t['completed_sessions'] for t in result),
+        'total_sessions_15': sum(t['sessions_15'] for t in result),
+        'total_sessions_20': sum(t['sessions_20'] for t in result),
+        'total_sessions_30': sum(t['sessions_30'] for t in result),
+        'total_sessions_60': sum(t['sessions_60'] for t in result)
+    }
+
+    return {
+        'teachers_payroll': result,
+        'summary': summary,
+        'rates_schedule': RATES_BY_DURATION,
+        'basis': 'تسعير الحصص حسب المدة: 15د=25ج، 20د=33ج، 30د=50ج، 60د=100ج'
+    }
 
 def day_of(value):
     try:return dt.datetime.fromisoformat(value.replace('Z','+00:00')).astimezone(ZoneInfo('Africa/Cairo')).date().isoformat()
@@ -336,7 +415,7 @@ class Handler(BaseHTTPRequestHandler):
             g=group_data(user if role=='teacher' else {**user,'role':'teacher','related_id':int(match[1])})
             return self.send(200,{'groups':clean(g,role),'total_groups':len(g),'total_students':sum(len(x['students']) for x in g)})
         if path in {'/api/admin/teachers/payroll','/api/live/payroll'}:
-            if role not in {'admin','teacher'}:raise APIError(403,'غير مصرح')
+            if role!='admin': raise APIError(403,'كشف الرواتب والمستحقات مخصص للإشراف فقط')
             return self.send(200,clean(payroll(user),role))
         if path=='/api/admin/overview':
             students=read('students');tickets=read('support_tickets');courses=read('courses')
@@ -437,18 +516,22 @@ class Handler(BaseHTTPRequestHandler):
                 audit_event(user,'شحن رصيد',{'student_id':int(sid),'enrollment_id':int(eid),'before':before,'after':after,'amount':amount})
                 return {'success':True,'before':before,'after':after,'enrollment_id':int(eid)}
             return self.send(200,operation(user,b,'topup',topup))
-        if path=='/api/live/settle' and method=='POST':
+        if (path=='/api/live/settle' or (path.startswith('/api/admin/teachers/') and path.endswith('/settle'))) and method=='POST':
             if role!='admin':raise APIError(403,'غير مصرح')
-            b=self.body() or {};tid=int(identifier(b.get('teacher_id')));amount=b.get('amount')
-            if type(amount) not in {int,float} or not math.isfinite(amount) or amount<=0 or not str(b.get('reference','')).strip():raise APIError(400,'راجع المبلغ ومرجع السداد')
+            b=self.body() or {}
+            tid_from_path=path.split('/')[4] if path.startswith('/api/admin/teachers/') else None
+            tid=int(identifier(tid_from_path or b.get('teacher_id')));amount=float(b.get('amount') or 0)
+            ref=str(b.get('reference_number') or b.get('reference') or '').strip()
+            if not math.isfinite(amount) or amount<=0 or not ref:raise APIError(400,'بيانات التسوية غير صالحة')
+            period=str(b.get('period_month') or dt.datetime.now().strftime('%Y-%m'))
+            pay_method=str(b.get('payment_method') or 'manual')
             def settle():
                 p=next((x for x in payroll(user)['teachers_payroll'] if x['teacher_id']==tid),None)
-                if not p or amount>p['balance_due']:raise APIError(409,'المبلغ يتجاوز المستحق؛ حدّث الحساب أولاً')
-                cloud('teacher_payouts',method='POST',payload={'teacher_id':tid,'amount':amount,'sessions_count':p['completed_sessions'],'period_month':dt.datetime.now().strftime('%Y-%m'),'payment_method':'manual','reference_number':b['reference'],'notes':'تسجيل تسوية بواسطة '+user['username'],'created_at':dt.datetime.now(dt.timezone.utc).isoformat()})
-                audit_event(user,'تسوية معلم',{'teacher_id':tid,'amount':amount,'reference':b['reference']})
-                return {'success':True,'remaining':p['balance_due']-amount}
+                if not p:raise APIError(404,'المعلم غير موجود')
+                cloud('teacher_payouts',method='POST',payload={'teacher_id':tid,'amount':amount,'sessions_count':p['completed_sessions'],'period_month':period,'payment_method':pay_method,'reference_number':ref,'notes':'تسوية إشراف بواسطة '+user['username'],'created_at':dt.datetime.now(dt.timezone.utc).isoformat()})
+                audit_event(user,'تسوية مستحقات معلم',{'teacher_id':tid,'amount':amount,'reference':ref})
+                return {'success':True,'message':f'تم تسجيل سداد {amount} ج.م للمعلم بنجاح','remaining':max(0.0, p['balance_due']-amount)}
             return self.send(200,operation(user,b,'settle',settle))
-        # Fail closed rather than silently mutate a stale SQLite copy or return mock success.
         raise APIError(501,'هذه العملية تحتاج ربطاً إضافياً بالخدمة السحابية؛ لم يتم تنفيذ أي تغيير')
     def manage(self,path,user):
         role=user['role'];method=self.command;q=dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(self.path).query));b=self.body() or {} if method!='GET' else {}
