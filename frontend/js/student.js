@@ -2747,9 +2747,114 @@ function updateBottomMeetButtonState(rc) {
     }
 }
 
+
+// ═══════════════════════════════════════════════════════════
+// SMART CLASSROOM ENTRY AUDIT SYSTEM (توثيق دخول القاعة الذكية)
+// ═══════════════════════════════════════════════════════════
+let pendingClassroomTarget = null;
+
+function requestClassroomJoin(targetUrl, courseName, lectureId) {
+    pendingClassroomTarget = {
+        url: targetUrl,
+        courseName: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة القرآن الكريم والتدبر'),
+        lectureId: lectureId || null
+    };
+
+    const modal = document.getElementById('confirmClassroomEntryModal');
+    if (!modal) {
+        executeClassroomJoin(targetUrl, pendingClassroomTarget.courseName, lectureId);
+        return;
+    }
+
+    const cNameEl = document.getElementById('confirmClassroomCourseName');
+    const sNameEl = document.getElementById('confirmClassroomStudentName');
+    const sData = window.currentStudentData || {};
+    const stObj = sData.student || sData;
+    let sName = stObj.name;
+    if (!sName) {
+        try {
+            const u = JSON.parse(localStorage.getItem('monir_current_user') || '{}');
+            sName = u.full_name || u.name;
+        } catch(e) {}
+    }
+    sName = sName || 'طالب الأكاديمية';
+
+    if (cNameEl) cNameEl.innerText = pendingClassroomTarget.courseName;
+    if (sNameEl) sNameEl.innerText = 'الطالب: ' + sName;
+
+    modal.classList.remove('hidden');
+}
+
+function closeConfirmClassroomEntryModal() {
+    const modal = document.getElementById('confirmClassroomEntryModal');
+    if (modal) modal.classList.add('hidden');
+    pendingClassroomTarget = null;
+}
+
+async function proceedClassroomEntry() {
+    if (!pendingClassroomTarget) return;
+    const { url, courseName, lectureId } = pendingClassroomTarget;
+    closeConfirmClassroomEntryModal();
+    await executeClassroomJoin(url, courseName, lectureId);
+}
+
+async function executeClassroomJoin(url, courseName, lectureId) {
+    if (!url) return;
+    
+    // 1. Open classroom immediately in new tab
+    try {
+        window.open(url, '_blank');
+    } catch(e) {
+        window.location.href = url;
+    }
+
+    // 2. Background audit recording (NO credit deduction)
+    const sId = (typeof currentStudentId !== 'undefined' && currentStudentId) ? currentStudentId : null;
+    if (sId) {
+        const todayDate = new Date().toISOString().split('T')[0];
+        const localKey = 'monir_classroom_entry_' + sId + '_' + todayDate;
+        const nowTimeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+        localStorage.setItem(localKey, JSON.stringify({
+            date: todayDate,
+            time: nowTimeStr,
+            course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : ''),
+            url: url
+        }));
+
+        try {
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                const client = window.MonirDB.getClient();
+                client.from('notifications').insert([{
+                    student_id: sId,
+                    course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة مباشرة'),
+                    title: 'دخول القاعة الذكية',
+                    message: 'تأكيد حضور ودخول القاعة الساعة ' + nowTimeStr,
+                    type: 'classroom_entry',
+                    action_url: url,
+                    is_read: 0
+                }]).then(() => {}).catch(() => {});
+            }
+        } catch(err) {}
+    }
+
+    // 3. Existing lecture join hook
+    try {
+        if (lectureId) {
+            fetch('/api/lectures/' + lectureId + '/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: currentStudentId, duration_minutes: 60 })
+            }).catch(() => {});
+        }
+    } catch(e) {}
+}
+
 function joinMeet(lectureId, meetUrl) {
     // If meetUrl is an official Google Meet link, ALWAYS respect it directly! (Quran circles)
     if (meetUrl && meetUrl.includes('meet.google.com')) {
+        requestClassroomJoin(meetUrl, typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة القرآن الكريم', lectureId);
+        return;
         window.open(meetUrl, '_blank');
         try {
             if (lectureId) {
@@ -2785,6 +2890,8 @@ function joinMeet(lectureId, meetUrl) {
                 compTarget = 'https://zoom.us/j/98264506630';
             }
         }
+        requestClassroomJoin(compTarget, typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'المسار التنافسي', lectureId);
+        return;
         window.open(compTarget, '_blank');
         try {
             if (lectureId) {
@@ -2853,6 +2960,8 @@ function joinMeet(lectureId, meetUrl) {
                 : 'https://zoom.us/j/98264506630';
         }
     }
+    requestClassroomJoin(targetUrl, typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة القرآن الكريم', lectureId);
+    return;
     window.open(targetUrl, '_blank');
     try {
         if (lectureId) {

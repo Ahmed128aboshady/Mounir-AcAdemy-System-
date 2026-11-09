@@ -580,6 +580,8 @@
                                 <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الحضور:</label>
                                 <select id="dailyMatchingStatusFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
                                     <option value="">الكل (حاضر + غائب + بعذر + مؤجلة + لم يُرصد)</option>
+                                    <option value="entered_unrecorded">تنبيهات: دخل القاعة ولم يرصده المعلم بعد</option>
+                                    <option value="entered_all">الطلاب الذين دخلوا القاعة اليوم (الكل)</option>
                                     <option value="present">حاضر فقط</option>
                                     <option value="absent">غائب فقط</option>
                                     <option value="excused">بعذر فقط</option>
@@ -595,23 +597,31 @@
                         </div>
                     </div>
 
-                    <!-- KPI Summary Chips -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
-                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 sm:p-3">
-                            <div class="text-base sm:text-xl font-black text-emerald-900" id="dailyMatchingStatPresent">0</div>
-                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الحاضرون على المنصة</div>
+                    <!-- KPI Summary Chips (مع رادار الدخول الفعلي وتنبيهات المعلمين) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
+                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2 sm:p-2.5">
+                            <div class="text-sm sm:text-lg font-black text-emerald-900" id="dailyMatchingStatPresent">0</div>
+                            <div class="text-slate-500 font-bold text-[10px]">الحاضرون بالمنصة</div>
                         </div>
-                        <div class="bg-red-50/70 border border-red-200 rounded-xl p-2.5 sm:p-3">
-                            <div class="text-base sm:text-xl font-black text-red-900" id="dailyMatchingStatAbsent">0</div>
-                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الغائبون (بدون عذر)</div>
+                        <div class="bg-red-50/70 border border-red-200 rounded-xl p-2 sm:p-2.5">
+                            <div class="text-sm sm:text-lg font-black text-red-900" id="dailyMatchingStatAbsent">0</div>
+                            <div class="text-slate-500 font-bold text-[10px]">الغائبون</div>
                         </div>
-                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5 sm:p-3">
-                            <div class="text-base sm:text-xl font-black text-amber-900" id="dailyMatchingStatExcused">0</div>
-                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">الأعذار المقبولة</div>
+                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2 sm:p-2.5">
+                            <div class="text-sm sm:text-lg font-black text-amber-900" id="dailyMatchingStatExcused">0</div>
+                            <div class="text-slate-500 font-bold text-[10px]">الأعذار</div>
                         </div>
-                        <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-2.5 sm:p-3">
-                            <div class="text-base sm:text-xl font-black text-blue-900" id="dailyMatchingStatTotal">0</div>
-                            <div class="text-slate-500 font-bold text-[10px] sm:text-[11px]">إجمالي سجلات اليوم</div>
+                        <div class="bg-teal-50 border border-teal-200 rounded-xl p-2 sm:p-2.5">
+                            <div class="text-sm sm:text-lg font-black text-teal-900" id="dailyMatchingStatEnteredMeet">0</div>
+                            <div class="text-teal-700 font-bold text-[10px]">دخلوا القاعة فعلياً</div>
+                        </div>
+                        <div class="bg-amber-100/80 border border-amber-300 rounded-xl p-2 sm:p-2.5">
+                            <div class="text-sm sm:text-lg font-black text-amber-900 animate-pulse" id="dailyMatchingStatAlerts">0</div>
+                            <div class="text-amber-800 font-bold text-[10px]">دخلوا ولم يرصدهم المعلم</div>
+                        </div>
+                        <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-2 sm:p-2.5">
+                            <div class="text-sm sm:text-lg font-black text-blue-900" id="dailyMatchingStatTotal">0</div>
+                            <div class="text-slate-500 font-bold text-[10px]">إجمالي السجلات</div>
                         </div>
                     </div>
 
@@ -3733,17 +3743,33 @@
                     const dObj = new Date(dailyMatchingSelectedDate + 'T00:00:00');
                     const startIso = new Date(dObj.getTime() - 4 * 3600 * 1000).toISOString();
                     const endIso = new Date(dObj.getTime() + 32 * 3600 * 1000).toISOString();
-                    const { data: attData } = await client
-                        .from('attendance')
-                        .select('*')
-                        .gte('joined_at', startIso)
-                        .lte('joined_at', endIso)
-                        .order('joined_at', { ascending: false });
+                    const [{ data: attData }, { data: entryData }] = await Promise.all([
+                        client.from('attendance')
+                            .select('*')
+                            .gte('joined_at', startIso)
+                            .lte('joined_at', endIso)
+                            .order('joined_at', { ascending: false }),
+                        client.from('notifications')
+                            .select('*')
+                            .eq('type', 'classroom_entry')
+                            .gte('created_at', startIso)
+                            .lte('created_at', endIso)
+                            .order('created_at', { ascending: false })
+                    ]);
 
                     if (Array.isArray(attData)) {
                         attData.forEach(a => {
                             if (a.student_id && !supabaseAttMap[a.student_id]) {
                                 supabaseAttMap[a.student_id] = a;
+                            }
+                        });
+                    }
+
+                    const studentEnteredMeetMap = {};
+                    if (Array.isArray(entryData)) {
+                        entryData.forEach(e => {
+                            if (e.student_id && !studentEnteredMeetMap[e.student_id]) {
+                                studentEnteredMeetMap[e.student_id] = e;
                             }
                         });
                     }
@@ -3765,7 +3791,23 @@
 
                 // Do not schedule inactive students with 0 balance unless they have actual attendance/logs today
                 const isInactiveAndZero = s.is_inactive && (s.remaining_credits <= 0);
-                if (((isScheduledToday && !isInactiveAndZero) || localStatus || supaRec)) {
+                const cloudEntry = (typeof studentEnteredMeetMap !== 'undefined') ? studentEnteredMeetMap[sid] : null;
+                const localEntryStr = localStorage.getItem('monir_classroom_entry_' + sid + '_' + dailyMatchingSelectedDate);
+                let studentEnteredAt = '';
+                if (cloudEntry && cloudEntry.created_at) {
+                    try {
+                        const dt = new Date(cloudEntry.created_at);
+                        studentEnteredAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                    } catch(e) {}
+                } else if (localEntryStr) {
+                    try {
+                        const p = JSON.parse(localEntryStr);
+                        studentEnteredAt = p.time || '';
+                    } catch(e) {}
+                }
+                const enteredMeet = !!studentEnteredAt;
+
+                if (((isScheduledToday && !isInactiveAndZero) || localStatus || supaRec || enteredMeet)) {
                     seenStudentIds.add(sid);
 
                     let status = 'not_recorded';
@@ -3818,6 +3860,8 @@
                         is_inactive: s.is_inactive || false,
                         remaining_credits: s.remaining_credits || 0,
                         absent_count: s.absent_count || 0,
+                        student_entered_at: studentEnteredAt,
+                        entered_meet: enteredMeet,
                         present_count: s.present_count || 0,
                         excuse_count: s.excuse_count || 0,
                         recorded_at: recordedAt,
@@ -3911,7 +3955,13 @@
 
             dailyMatchingFilteredRecords = dailyMatchingRawRecords.filter(r => {
                 if (teacherFilter && r.teacher_name !== teacherFilter) return false;
-                if (statusFilter && r.status !== statusFilter) return false;
+                if (statusFilter === 'entered_unrecorded') {
+                    if (!r.entered_meet || (r.status && r.status !== 'not_recorded')) return false;
+                } else if (statusFilter === 'entered_all') {
+                    if (!r.entered_meet) return false;
+                } else if (statusFilter && r.status !== statusFilter) {
+                    return false;
+                }
                 if (searchInput) {
                     const matchName = (r.name || '').toLowerCase().includes(searchInput);
                     const matchCode = (r.student_code || '').toLowerCase().includes(searchInput);
@@ -3926,21 +3976,33 @@
             let presentCount = 0;
             let absentCount = 0;
             let excusedCount = 0;
+            let enteredMeetCount = 0;
+            let alertsCount = 0;
+
             dailyMatchingRawRecords.forEach(r => {
                 if (r.status === 'present') presentCount++;
                 else if (r.status === 'absent') absentCount++;
                 else if (r.status === 'excused') excusedCount++;
+
+                if (r.entered_meet) {
+                    enteredMeetCount++;
+                    if (!r.status || r.status === 'not_recorded') alertsCount++;
+                }
             });
 
             const statPres = document.getElementById('dailyMatchingStatPresent');
             const statAbs = document.getElementById('dailyMatchingStatAbsent');
             const statExc = document.getElementById('dailyMatchingStatExcused');
             const statTot = document.getElementById('dailyMatchingStatTotal');
+            const statEntered = document.getElementById('dailyMatchingStatEnteredMeet');
+            const statAlerts = document.getElementById('dailyMatchingStatAlerts');
 
             if (statPres) statPres.innerText = presentCount;
             if (statAbs) statAbs.innerText = absentCount;
             if (statExc) statExc.innerText = excusedCount;
             if (statTot) statTot.innerText = dailyMatchingRawRecords.length;
+            if (statEntered) statEntered.innerText = enteredMeetCount;
+            if (statAlerts) statAlerts.innerText = alertsCount;
 
             const tbody = document.getElementById('dailyMatchingTableBody');
             if (!tbody) return;
@@ -4028,10 +4090,29 @@
                             <span class="bg-emerald-50/80 text-emerald-900 border border-emerald-200/60 px-1.5 py-0.5 rounded text-[10px] font-bold block truncate">${formatSurahForDisplay(r.surah, r.current_aya)}</span>
                         </td>
                         <td class="p-2.5 text-center">
+                            ${(() => {
+                                let badge = '';
+                                if (r.entered_meet) {
+                                    if (r.status === 'present') {
+                                        badge = `<div class="mb-1"><span class="bg-emerald-50 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">مطابق (دخل ${r.student_entered_at})</span></div>`;
+                                    } else if (r.status === 'absent') {
+                                        badge = `<div class="mb-1"><span class="bg-rose-100 text-rose-900 border border-rose-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">تعارض: دخل ${r.student_entered_at} ورُصد غائب</span></div>`;
+                                    } else if (r.status === 'excused') {
+                                        badge = `<div class="mb-1"><span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">دخل ${r.student_entered_at} (بعذر)</span></div>`;
+                                    } else {
+                                        badge = `<div class="mb-1"><span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse shadow-2xs">تنبيه: دخل ${r.student_entered_at} (المعلم لم يرصده)</span></div>`;
+                                    }
+                                } else {
+                                    if (r.status === 'present') {
+                                        badge = `<div class="mb-1"><span class="bg-slate-50 text-slate-600 border border-slate-200 font-bold px-2 py-0.5 rounded-full text-[10px]">حاضر برصد المعلم</span></div>`;
+                                    }
+                                }
+                                return badge;
+                            })()}
                             <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
-                                <option value="" ${matchSelected === '' ? 'selected' : ''}>— غير محدد —</option>
-                                <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}> مطابق فعلياً</option>
-                                <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}> به اختلاف</option>
+                                <option value="" ${matchSelected === '' ? 'selected' : ''}>— تدقيق يدوي —</option>
+                                <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}>مطابق فعلياً</option>
+                                <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}>به اختلاف</option>
                                 <option value="manual_excused" ${matchSelected === 'manual_excused' ? 'selected' : ''}>عذر معتمد</option>
                             </select>
                         </td>
