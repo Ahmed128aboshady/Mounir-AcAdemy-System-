@@ -3484,24 +3484,152 @@
             loadPayrollData();
         }
 
-        async function loadPayrollData() {
+                async function loadPayrollData() {
+            const tbody = document.getElementById('payrollTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-bold">جاري تحميل وتحديث حسابات ومستحقات المعلمين...</td></tr>';
+            }
+
             try {
-                const tbody = document.getElementById('payrollTableBody');
-                if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-bold">جاري تحميل وتحديث حسابات ومستحقات المعلمين...</td></tr>';
+                let payrollData = null;
+
+                // 1. Try Python live server API first if running on this host
+                try {
+                    const res = await fetch('/api/admin/teachers/payroll');
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json && json.teachers_payroll) {
+                            payrollData = json;
+                        }
+                    }
+                } catch(e) {
+                    // Python server not running locally, proceed to direct cloud fetch
                 }
 
-                const res = await fetch('/api/admin/teachers/payroll');
-                if (!res.ok) {
-                    throw new Error('HTTP ' + res.status);
+                // 2. Direct client-side calculation from Supabase Cloud
+                if (!payrollData) {
+                    const cfg = (window.MONIR_SUPABASE_CONFIG && window.MONIR_SUPABASE_CONFIG.url)
+                        ? window.MONIR_SUPABASE_CONFIG
+                        : { url: 'https://chwhrxquvaiskdsthips.supabase.co', anonKey: 'sb_publishable_EEpE3k9qqqWSpACYFD0wLw_77C-fYYP' };
+                    
+                    const headers = { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey };
+
+                    async function fetchSupabaseDirect(table, select, extra = '') {
+                        let rows = [];
+                        let page = 0;
+                        const pageSize = 1000;
+                        while (true) {
+                            const h = { ...headers, 'Range': (page * pageSize) + '-' + ((page + 1) * pageSize - 1) };
+                            const res = await fetch(cfg.url + '/rest/v1/' + table + '?select=' + select + (extra ? '&' + extra : ''), { headers: h });
+                            if (!res.ok) throw new Error('فشل جلب جدول ' + table + ' كود ' + res.status);
+                            const data = await res.json();
+                            if (Array.isArray(data) && data.length > 0) {
+                                rows.push(...data);
+                            }
+                            if (!data || data.length < pageSize) break;
+                            page++;
+                        }
+                        return rows;
+                    }
+
+                    const [teachers, enrollments, attendance, payouts] = await Promise.all([
+                        fetchSupabaseDirect('teachers', 'id,name,phone'),
+                        fetchSupabaseDirect('enrollments', 'student_id,teacher_id,session_duration'),
+                        fetchSupabaseDirect('attendance', 'student_id,duration_minutes', 'status=eq.present'),
+                        fetchSupabaseDirect('teacher_payouts', 'teacher_id,amount').catch(() => [])
+                    ]);
+
+                    const RATES = { 15: 25.0, 20: 33.0, 30: 50.0, 60: 100.0, 45: 75.0 };
+                    
+                    // Map student to teacher and standard duration
+                    const stToTeacher = {};
+                    const stDuration = {};
+                    for (const e of enrollments) {
+                        if (e.student_id && e.teacher_id) {
+                            stToTeacher[e.student_id] = e.teacher_id;
+                        }
+                        const durStr = String(e.session_duration || '');
+                        let d = 20;
+                        for (const cand of [60, 45, 30, 20, 15]) {
+                            if (durStr.includes(String(cand))) {
+                                d = cand;
+                                break;
+                            }
+                        }
+                        stDuration[e.student_id] = d;
+                    }
+
+                    // Count attendance sessions per teacher
+                    const teacherAtt = {};
+                    for (const a of attendance) {
+                        const sid = a.student_id;
+                        const tid = stToTeacher[sid];
+                        if (!tid) continue;
+                        let dur = parseInt(a.duration_minutes) || stDuration[sid] || 20;
+                        if (!RATES[dur]) dur = 20;
+                        if (!teacherAtt[tid]) {
+                            teacherAtt[tid] = { 15: 0, 20: 0, 30: 0, 60: 0, 45: 0, total: 0, earned: 0.0 };
+                        }
+                        teacherAtt[tid][dur] = (teacherAtt[tid][dur] || 0) + 1;
+                        teacherAtt[tid].total++;
+                        teacherAtt[tid].earned += RATES[dur] || 33.0;
+                    }
+
+                    // Map payouts per teacher
+                    const teacherPayouts = {};
+                    for (const p of payouts) {
+                        const tid = p.teacher_id;
+                        if (!tid) continue;
+                        teacherPayouts[tid] = (teacherPayouts[tid] || 0) + (parseFloat(p.amount) || 0);
+                    }
+
+                    // Build payroll rows
+                    const list = [];
+                    let totSessions = 0, totEarned = 0, totPaid = 0, totBal = 0;
+
+                    for (const t of teachers) {
+                        const tid = t.id;
+                        const stat = teacherAtt[tid] || { 15: 0, 20: 0, 30: 0, 60: 0, 45: 0, total: 0, earned: 0.0 };
+                        const paid = teacherPayouts[tid] || 0.0;
+                        const earned = stat.earned;
+                        const bal = earned - paid;
+
+                        totSessions += stat.total;
+                        totEarned += earned;
+                        totPaid += paid;
+                        totBal += bal;
+
+                        list.push({
+                            teacher_id: tid,
+                            name: t.name,
+                            phone: t.phone,
+                            sessions_15: stat[15] || 0,
+                            sessions_20: stat[20] || 0,
+                            sessions_30: stat[30] || 0,
+                            sessions_60: stat[60] || 0,
+                            completed_sessions: stat.total,
+                            total_earned: earned,
+                            total_paid: paid,
+                            balance_due: bal
+                        });
+                    }
+
+                    payrollData = {
+                        teachers_payroll: list,
+                        summary: {
+                            total_sessions: totSessions,
+                            total_earned: totEarned,
+                            total_paid: totPaid,
+                            total_balance_due: totBal
+                        }
+                    };
                 }
-                const data = await res.json();
-                
-                rawSupervisorPayrollData = data.teachers_payroll || [];
+
+                rawSupervisorPayrollData = payrollData.teachers_payroll || [];
                 filteredSupervisorPayrollData = [...rawSupervisorPayrollData];
 
                 // Update summary stats
-                const summary = data.summary || {};
+                const summary = payrollData.summary || {};
                 const balEl = document.getElementById('totalPayrollBalance');
                 const earnEl = document.getElementById('payrollStatTotalEarned');
                 const paidEl = document.getElementById('payrollStatTotalPaid');
@@ -3515,7 +3643,6 @@
                 renderPayrollTable(filteredSupervisorPayrollData);
             } catch (err) {
                 console.error("Error loading payroll:", err);
-                const tbody = document.getElementById('payrollTableBody');
                 if (tbody) {
                     tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-red-500 font-bold">فشل في تحميل بيانات الرواتب والمستحقات. يرجى المحاولة لاحقاً.</td></tr>';
                 }
@@ -3614,12 +3741,12 @@
             activeSettleTeacherId = null;
         }
 
-        async function submitTeacherSettlement() {
+                async function submitTeacherSettlement() {
             if (!activeSettleTeacherId) return;
             const amt = parseFloat(document.getElementById('settleAmountInput')?.value || 0);
-            const period = (document.getElementById('settleMonthInput')?.value || '').trim();
+            const period = (document.getElementById('settleMonthInput')?.value || '').trim() || new Date().toISOString().substring(0, 7);
             const method = document.getElementById('settleMethodSelect')?.value || 'manual';
-            const ref = (document.getElementById('settleRefInput')?.value || '').trim();
+            const ref = (document.getElementById('settleRefInput')?.value || '').trim() || ('PAY-' + Math.floor(100000 + Math.random() * 900000));
 
             if (!amt || amt <= 0) {
                 alert("يرجى إدخال مبلغ تسوية صالح.");
@@ -3627,22 +3754,57 @@
             }
 
             try {
-                const res = await fetch('/api/admin/teachers/' + activeSettleTeacherId + '/settle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        teacher_id: activeSettleTeacherId,
-                        amount: amt,
-                        period_month: period,
-                        payment_method: method,
-                        reference_number: ref
-                    })
-                });
-                const data = await res.json();
+                let saved = false;
+                // 1. Try Python API first
+                try {
+                    const res = await fetch('/api/admin/teachers/' + activeSettleTeacherId + '/settle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            teacher_id: activeSettleTeacherId,
+                            amount: amt,
+                            period_month: period,
+                            payment_method: method,
+                            reference_number: ref
+                        })
+                    });
+                    if (res.ok) saved = true;
+                } catch(e) {}
+
+                // 2. Direct Supabase fallback
+                if (!saved) {
+                    const cfg = (window.MONIR_SUPABASE_CONFIG && window.MONIR_SUPABASE_CONFIG.url)
+                        ? window.MONIR_SUPABASE_CONFIG
+                        : { url: 'https://chwhrxquvaiskdsthips.supabase.co', anonKey: 'sb_publishable_EEpE3k9qqqWSpACYFD0wLw_77C-fYYP' };
+                    
+                    const res = await fetch(cfg.url + '/rest/v1/teacher_payouts', {
+                        method: 'POST',
+                        headers: {
+                            'apikey': cfg.anonKey,
+                            'Authorization': 'Bearer ' + cfg.anonKey,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify({
+                            teacher_id: activeSettleTeacherId,
+                            amount: amt,
+                            period_month: period,
+                            payment_method: method,
+                            reference_number: ref,
+                            status: 'completed'
+                        })
+                    });
+                    if (!res.ok) {
+                        const errTxt = await res.text();
+                        throw new Error('Supabase error: ' + errTxt);
+                    }
+                    saved = true;
+                }
+
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast(data.message || 'تم تسجيل التسوية بنجاح', 'success');
+                    window.MonirPopup.toast('تم تسجيل التسوية بنجاح', 'success');
                 } else {
-                    alert(data.message || 'تم تسجيل التسوية بنجاح');
+                    alert('تم تسجيل التسوية بنجاح');
                 }
                 closeSettlePayoutModal();
                 loadPayrollData();
