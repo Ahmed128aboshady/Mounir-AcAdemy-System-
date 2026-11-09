@@ -194,6 +194,7 @@
                     <span>شات ورسائل الدعم</span>
                     <span id="liveChatGlobalBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-bounce border-2 border-[#1F274B]">0</span>
                 </button>
+                <button type="button" onclick="ensureOpenAndLoadPayroll()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="مستحقات ورواتب المعلمين (حسابات الإشراف)"><span>رواتب المعلمين</span></button>
                 <button type="button" onclick="openDailyAttendanceMatchingSection()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="تصدير ومطابقة الحضور اليومي الفعلي Excel">
                     <span>مطابقة الحضور اليومي</span>
                 </button>
@@ -3470,11 +3471,15 @@
         let filteredSupervisorPayrollData = [];
 
         function ensureOpenAndLoadPayroll() {
+            const sec = document.getElementById('sectionSupervisorPayroll');
             const content = document.getElementById('supervisorPayrollContent');
             const btn = document.getElementById('supervisorPayrollToggleBtn');
             const badge = document.getElementById('supervisorPayrollStateBadge');
             if (content && content.classList.contains('hidden')) {
                 toggleDashboardSection('supervisorPayrollContent', 'supervisorPayrollToggleBtn', 'supervisorPayrollStateBadge');
+            }
+            if (sec) {
+                sec.scrollIntoView({ behavior: 'smooth' });
             }
             loadPayrollData();
         }
