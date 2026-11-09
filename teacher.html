@@ -867,8 +867,8 @@
                                     if (!groupsMap[safeGid].lecture_time && lecTime) groupsMap[safeGid].lecture_time = lecTime;
                                     if (!groupsMap[safeGid].session_duration && sesDur) groupsMap[safeGid].session_duration = sesDur;
 
-                                    if (!groupsMap[safeGid].students.some(st => st.id === s.id && st.enrollment_id === e.id)) {
-                                        groupsMap[safeGid].students.push({
+                                    const existingIdx = groupsMap[safeGid].students.findIndex(st => st.id === s.id || (st.student_code && st.student_code === s.student_code));
+                                    const studentObj = {
                                             id: s.id,
                                             student_id: s.id,
                                             name: s.name,
@@ -892,7 +892,16 @@
                                             rating: e.rating || null,
                                             enrollment_id: e.id,
                                             last_attendance: latestAttendanceMap[s.id] || null,
-                                        });
+                                        };
+                                    if (existingIdx === -1) {
+                                        groupsMap[safeGid].students.push(studentObj);
+                                    } else {
+                                        const existing = groupsMap[safeGid].students[existingIdx];
+                                        const newActivity = (e.present_count || 0) + (e.absent_count || 0);
+                                        const oldActivity = (existing.present_count || 0) + (existing.absent_count || 0);
+                                        if (newActivity > oldActivity || (e.remaining_credits > 0 && existing.remaining_credits === 0)) {
+                                            groupsMap[safeGid].students[existingIdx] = studentObj;
+                                        }
                                     }
                                 });
                             });

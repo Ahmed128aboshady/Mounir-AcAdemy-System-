@@ -7005,7 +7005,10 @@
                 const statusBadge = s.status === 'active'
                     ? '<span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full text-[10px]">نشط</span>'
                     : '<span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف</span>';
-                const genderEmoji = s.gender === 'f' ? '' : '';
+                const isFemale = (s.gender === 'f' || s.gender === 'female' || s.parent_name === 'female');
+                const genderBadge = isFemale
+                    ? '<span class="inline-block bg-rose-50 text-rose-700 border border-rose-200 font-black px-2.5 py-0.5 rounded-full text-[10px]">بنت</span>'
+                    : '<span class="inline-block bg-sky-50 text-sky-700 border border-sky-200 font-black px-2.5 py-0.5 rounded-full text-[10px]">ولد</span>';
 
                 return `<tr class="hover:bg-blue-50/50 transition ${isChecked ? 'bg-[#41519C]/5 border-r-2 border-[#41519C]' : ''}" data-sid="${s.id}">
                     <td class="p-2.5">
@@ -7020,8 +7023,8 @@
                     </td>
                     <td class="p-2.5 text-slate-600">${s.age || '—'}</td>
                     <td class="p-2.5 text-center">
-                        <button onclick="toggleStudentGender(${s.id}, event)" title="انقر للتبديل السريع بين ولد وبنت" class="px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer text-sm">
-                            ${genderEmoji}
+                        <button type="button" onclick="toggleStudentGender(${s.id}, event)" title="انقر لتعديل النوع (ولد / بنت)" class="px-1 py-0.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                            ${genderBadge}
                         </button>
                     </td>
                     <td class="p-2.5">
