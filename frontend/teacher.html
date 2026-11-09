@@ -779,6 +779,37 @@
                             console.warn('Attendance map fetch notice:', attErr);
                         }
 
+                        // Real-time Cloud Detection for Smart Classroom Automated Entries
+                        window.todayClassroomEntryMap = {};
+                        try {
+                            const sids = enrData ? enrData.map(e => e.student_id).filter(Boolean) : [];
+                            if (sids.length > 0) {
+                                const { data: entries } = await client
+                                    .from('notifications')
+                                    .select('id, student_id, created_at, message, course_name')
+                                    .eq('type', 'classroom_entry')
+                                    .in('student_id', sids)
+                                    .gte('created_at', todayDateStr + 'T00:00:00.000Z')
+                                    .order('created_at', { ascending: false });
+                                if (entries && entries.length > 0) {
+                                    entries.forEach(ent => {
+                                        if (!window.todayClassroomEntryMap[ent.student_id]) {
+                                            const entDate = ent.created_at ? new Date(ent.created_at) : new Date();
+                                            const entTime = entDate.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                                            window.todayClassroomEntryMap[ent.student_id] = {
+                                                id: ent.id,
+                                                time: entTime,
+                                                created_at: ent.created_at,
+                                                course_name: ent.course_name
+                                            };
+                                        }
+                                    });
+                                }
+                            }
+                        } catch(entryErr) {
+                            console.warn('Classroom entry fetch notice:', entryErr);
+                        }
+
                         // Fallback to current_surah updated_at for students without raw attendance rows yet
                         if (enrData) {
                             enrData.forEach(e => {
@@ -1674,6 +1705,14 @@
             const supaToday = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[s.id]);
             const todayRecordedStatus = supaToday ? supaToday.status : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + s.id + '_' + todayUtcStr));
 
+            const autoEntry = (window.todayClassroomEntryMap && window.todayClassroomEntryMap[s.id])
+                || (() => {
+                    try {
+                        const raw = localStorage.getItem('monir_classroom_entry_' + s.id + '_' + todayDateStr);
+                        return raw ? JSON.parse(raw) : null;
+                    } catch(e) { return null; }
+                })();
+
             let actionsHtml = '';
             if (isInactive) {
                 actionsHtml = `
@@ -1698,7 +1737,16 @@
                 let recordButtonsHtml = '';
                 const isBySupervisorLock = (supaToday && supaToday.bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + s.id) === '1');
 
-                if (todayRecordedStatus) {
+                if (autoEntry && !todayRecordedStatus) {
+                    recordButtonsHtml = `
+                        <button type="button" onclick="showAlreadyRecordedAlert('${safeNameEsc}', '${autoEntry.time || ''}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-pointer" title="تم رصد الحضور آلياً لدخول القاعة الذكية الساعة ${autoEntry.time || ''} - اضغط للمعاينة">
+                            <span>تم الرصد بالفعل (رصد آلي)</span>
+                        </button>
+                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="إلغاء أو تعديل الحالة">
+                            تراجع
+                        </button>
+                    `;
+                } else if (todayRecordedStatus) {
                     const statusLabel = todayRecordedStatus === 'present' ? 'حضور' : todayRecordedStatus === 'absent' ? 'غياب' : 'عذر';
                     if (isBySupervisorLock) {
                         recordButtonsHtml = `
@@ -1929,6 +1977,26 @@
                 const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
                 const todayUtcStr = new Date().toISOString().split('T')[0];
                 const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
+                const autoEntry = (window.todayClassroomEntryMap && window.todayClassroomEntryMap[studentId])
+                    || (() => {
+                        try {
+                            const raw = localStorage.getItem('monir_classroom_entry_' + studentId + '_' + todayDateStr);
+                            return raw ? JSON.parse(raw) : null;
+                        } catch(e) { return null; }
+                    })();
+
+                if (autoEntry && sessionStatus === 'present' && !window.todaySupabaseAttMap?.[studentId]) {
+                    enableButtons();
+                    const timeTxt = autoEntry.time ? ` الساعة ${autoEntry.time}` : '';
+                    const alertMsg = `تم الرصد بالفعل!\n\nتم رصد حضور الطالب (${stName}) آلياً لدخوله القاعة الذكية${timeTxt} اليوم.\nلا حاجة لإعادة الرصد يدوياً.`;
+                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                        await window.MonirPopup.alert(alertMsg, 'تم الرصد بالفعل', 'info');
+                    } else {
+                        alert(alertMsg);
+                    }
+                    return;
+                }
+
                 const prevRecord = (window.todaySupabaseAttMap && (window.todaySupabaseAttMap[studentId]))
                     ? window.todaySupabaseAttMap[studentId].status
                     : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + studentId + '_' + todayUtcStr));
@@ -3334,7 +3402,17 @@
                 loadTeacherGroups(true);
             }
         });
-    </script>
+    
+        function showAlreadyRecordedAlert(studentName, timeStr) {
+            const timeTxt = timeStr ? ` الساعة ${timeStr}` : '';
+            const msg = `تم الرصد بالفعل!\n\nتم رصد حضور الطالب (${studentName}) آلياً لدخوله القاعة الذكية${timeTxt} اليوم.\nلا حاجة لإعادة الرصد يدوياً.`;
+            if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                window.MonirPopup.alert(msg, 'تم الرصد بالفعل', 'info');
+            } else {
+                alert(msg);
+            }
+        }
+</script>
 
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL: TAKE SUBSTITUTE SESSION (تولي حصة تعويضية للمعلم)            -->

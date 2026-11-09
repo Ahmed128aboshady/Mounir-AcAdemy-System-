@@ -4036,6 +4036,16 @@
                     statusBadge = `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span></span><span>مؤجلة</span> ${roleBadge}</span>`;
                 } else if (r.is_inactive || r.remaining_credits <= 0) {
                     statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
+                } else if (r.entered_meet) {
+                    statusBadge = `
+                        <div class="inline-flex flex-col items-center gap-1">
+                            <span class="bg-blue-100 text-blue-900 border border-blue-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">تم الرصد بالفعل (رصد آلي)</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.remaining_credits || 0})" class="bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-300 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="اعتماد رصد رسمي بالخصم نيابة عن المعلم">اعتماد رسمي</button>
+                                <button type="button" onclick="showSupervisorAutoRecordedModal('${encodeURIComponent(r.name)}', '${r.student_code}', '${r.student_entered_at}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تفاصيل الرصد الآلي">تفاصيل</button>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     // لم يُرصد بعد — إتاحة الرصد الرسمي الفوري للإشراف نيابة عن المعلم
                     statusBadge = `
@@ -4094,13 +4104,13 @@
                                 let badge = '';
                                 if (r.entered_meet) {
                                     if (r.status === 'present') {
-                                        badge = `<div class="mb-1"><span class="bg-emerald-50 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">مطابق (دخل ${r.student_entered_at})</span></div>`;
+                                        badge = `<div class="mb-1"><span class="bg-emerald-50 text-emerald-800 border border-emerald-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">تم الرصد بالفعل (مطابق - دخل ${r.student_entered_at})</span></div>`;
                                     } else if (r.status === 'absent') {
                                         badge = `<div class="mb-1"><span class="bg-rose-100 text-rose-900 border border-rose-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">تعارض: دخل ${r.student_entered_at} ورُصد غائب</span></div>`;
                                     } else if (r.status === 'excused') {
                                         badge = `<div class="mb-1"><span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">دخل ${r.student_entered_at} (بعذر)</span></div>`;
                                     } else {
-                                        badge = `<div class="mb-1"><span class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 animate-pulse shadow-2xs">تنبيه: دخل ${r.student_entered_at} (المعلم لم يرصده)</span></div>`;
+                                        badge = `<div class="mb-1"><span class="bg-blue-100 text-blue-900 border border-blue-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">تم الرصد بالفعل (رصد آلي ${r.student_entered_at})</span></div>`;
                                     }
                                 } else {
                                     if (r.status === 'present') {
@@ -4195,6 +4205,19 @@
                 }
 
                 // 2. Fetch current enrollment
+                // Auto-detection check: If student entered smart classroom today
+                const enteredMeet = (typeof studentEnteredMeetMap !== 'undefined' && studentEnteredMeetMap[studentId]);
+                if (enteredMeet && status === 'present') {
+                    const noticeMsg = `تنبيه رصد آلي مسبق:\n\n• الطالب: ${studentName} (${studentCode})\n• دخل القاعة الذكية الساعة: ${enteredMeet.time}\n\nالنظام يُعلم المعلم بأن الطالب مرصود بالفعل لمنع التكرار.\nهل تود مع ذلك تأكيد الاعتماد الرسمي من الإشراف وخصم حصة واحدة من الرصيد؟`;
+                    let proceed = false;
+                    if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
+                        proceed = await window.MonirPopup.confirm(noticeMsg, 'تم الرصد بالفعل (رصد آلي)', 'question', 'تأكيد الاعتماد والخصم', 'إلغاء');
+                    } else {
+                        proceed = confirm(noticeMsg);
+                    }
+                    if (!proceed) return;
+                }
+
                 const { data: enrList } = await client
                     .from('enrollments')
                     .select('*')
@@ -11724,6 +11747,17 @@ async function confirmAndSaveQuranGrades() {
         btn.innerHTML = 'اعتماد وحفظ الدرجات على المنصة فوراً ';
     }
 }
+
+        function showSupervisorAutoRecordedModal(encodedName, studentCode, entryTime) {
+            const studentName = decodeURIComponent(encodedName);
+            const timeTxt = entryTime ? ` الساعة ${entryTime}` : '';
+            const msg = `تم الرصد بالفعل!\n\nالطالب: ${studentName} (${studentCode})\nدخل القاعة الذكية${timeTxt} اليوم وتم توثيق حضوره آلياً في سجلات التدقيق.\nالنظام يُعلم المعلم بأن الطالب مرصود بالفعل ولا يحتاج لإعادة الرصد.`;
+            if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                window.MonirPopup.alert(msg, 'تم الرصد بالفعل (رصد آلي)', 'info');
+            } else {
+                alert(msg);
+            }
+        }
 </script>
 
 </body>
