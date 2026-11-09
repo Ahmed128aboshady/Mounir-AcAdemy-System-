@@ -122,7 +122,7 @@ def scoped(user,table,query,method,payload):
     if method=='GET': return query,payload
     # Explicit writes used by the existing UI. Scope is checked server-side.
     if role=='student':
-        allowed={'support_tickets':{'POST'},'notifications':{'POST','PATCH'}}
+        allowed={'support_tickets':{'POST'},'notifications':{'POST','PATCH'},'enrollments':{'PATCH'},'attendance':{'POST'}}
     else:
         allowed={'attendance':{'POST','DELETE'},'enrollments':{'PATCH'},'support_tickets':{'POST'},'notifications':{'POST','PATCH'}}
     if method not in allowed.get(table,set()): raise APIError(403,'هذه العملية غير مصرح بها لهذا الحساب')
@@ -138,7 +138,10 @@ def scoped(user,table,query,method,payload):
                 if role=='student':record['student_id']=int(sid);record['student_name']=user.get('full_name','')
                 else:record['student_id']=None;record['student_name']=f"المعلم: {user.get('full_name','')} [معلم #{sid}]"
                 record['status']='open';record.pop('admin_reply',None)
-            elif int(record.get('student_id') or -1) not in ids: raise APIError(403,'الطالب خارج نطاق حسابك')
+            elif table in {'attendance','notifications'}:
+                if role=='student':record['student_id']=int(sid)
+                elif ids and int(record.get('student_id') or -1) not in ids: raise APIError(403,'الطالب خارج نطاق حسابك')
+            elif ids and int(record.get('student_id') or -1) not in ids: raise APIError(403,'الطالب خارج نطاق حسابك')
     if method in {'PATCH','DELETE'} and not any(k not in {'select','order','limit','offset'} for k,v in query): raise APIError(400,'يلزم تحديد السجل')
     return query,payload
 

@@ -2808,34 +2808,91 @@ async function executeClassroomJoin(url, courseName, lectureId) {
         window.location.href = url;
     }
 
-    // 2. Background audit recording (NO credit deduction)
+    // 2. Automated Attendance & Credit Deduction
     const sId = (typeof currentStudentId !== 'undefined' && currentStudentId) ? currentStudentId : null;
     if (sId) {
         const todayDate = new Date().toISOString().split('T')[0];
         const localKey = 'monir_classroom_entry_' + sId + '_' + todayDate;
         const nowTimeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        const alreadyDone = localStorage.getItem(localKey);
 
         localStorage.setItem(localKey, JSON.stringify({
             date: todayDate,
             time: nowTimeStr,
             course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : ''),
-            url: url
+            url: url,
+            deducted: 1
         }));
+        localStorage.setItem('monir_att_' + sId + '_' + todayDate, 'present');
 
         try {
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 const client = window.MonirDB.getClient();
+
+                // 2.1 Deduct 1 credit from active enrollment (idempotent: only if not already done today)
+                if (!alreadyDone) {
+                    try {
+                        const { data: enrList } = await client
+                            .from('enrollments')
+                            .select('id, remaining_credits, present_count, course_name, session_duration')
+                            .eq('student_id', sId)
+                            .limit(1);
+
+                        if (enrList && enrList.length > 0) {
+                            const enr = enrList[0];
+                            const curRem = parseFloat(enr.remaining_credits || 0);
+                            const newRem = Math.max(0, curRem - 1);
+                            const newPresent = parseInt(enr.present_count || 0) + 1;
+
+                            await client
+                                .from('enrollments')
+                                .update({
+                                    remaining_credits: newRem,
+                                    present_count: newPresent
+                                })
+                                .eq('id', enr.id);
+
+                            // Insert official attendance record
+                            await client
+                                .from('attendance')
+                                .insert([{
+                                    student_id: sId,
+                                    lecture_id: null,
+                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + ' [رصد آلي - دخول القاعة]',
+                                    status: 'present',
+                                    joined_at: new Date().toISOString(),
+                                    duration_minutes: parseInt(enr.session_duration) || 20
+                                }]);
+
+                            // Update in-memory data and UI
+                            if (window.currentStudentData) {
+                                if (window.currentStudentData.student) {
+                                    window.currentStudentData.student.remaining_credits = newRem;
+                                }
+                                if (typeof renderStudentDashboard === 'function') {
+                                    renderStudentDashboard();
+                                }
+                            }
+                        }
+                    } catch(enrErr) {
+                        console.warn('Enrollment deduction error:', enrErr);
+                    }
+                }
+
+                // 2.2 Log entry audit notification
                 client.from('notifications').insert([{
                     student_id: sId,
-                    course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة مباشرة'),
-                    title: 'دخول القاعة الذكية',
-                    message: 'تأكيد حضور ودخول القاعة الساعة ' + nowTimeStr,
+                    course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة قرآن كريم'),
+                    title: 'تأكيد دخول القاعة الذكية',
+                    message: 'تم تسجيل الحضور وخصم حلقة واحدة آلياً الساعة ' + nowTimeStr,
                     type: 'classroom_entry',
                     action_url: url,
                     is_read: 0
                 }]).then(() => {}).catch(() => {});
             }
-        } catch(err) {}
+        } catch(err) {
+            console.warn('Classroom audit push error:', err);
+        }
     }
 
     // 3. Existing lecture join hook
