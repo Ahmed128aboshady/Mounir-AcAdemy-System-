@@ -1260,14 +1260,25 @@
             <!-- Smart Bulk Student Content (Collapsible Dropdown) -->
             <div id="bulkStudentsContent" class="hidden space-y-4 pt-1 transition-all duration-300">
 
-            <!-- Smart Filter Bar -->
+                        <!-- Smart Filter Bar -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-3">
-                <div class="flex items-center justify-between gap-2 mb-1">
-                    <div class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-[#41519C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                        <span class="text-xs font-black text-slate-700">فلترة ذكية</span>
+                <!-- Academic Track Filter (مسار القرآن vs مسار الكورسات) -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-slate-700">المسار الأكاديمي:</span>
+                        <div class="inline-flex rounded-xl p-1 bg-slate-200 text-xs font-bold" id="bsTrackFilterContainer">
+                            <button type="button" onclick="setBulkTrackFilter('all')" id="trackBtn_all" class="px-3 py-1.5 rounded-lg transition bg-white text-[#41519C] shadow-xs cursor-pointer">
+                                كافة المسارات
+                            </button>
+                            <button type="button" onclick="setBulkTrackFilter('quran')" id="trackBtn_quran" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 cursor-pointer">
+                                مسار القرآن الكريم
+                            </button>
+                            <button type="button" onclick="setBulkTrackFilter('courses')" id="trackBtn_courses" class="px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 cursor-pointer">
+                                مسار الكورسات والدورات (2000+)
+                            </button>
+                        </div>
                     </div>
-                    <button onclick="resetBulkFilters()" class="text-[11px] text-slate-400 hover:text-red-500 transition font-bold">مسح الفلترة </button>
+                    <button onclick="resetBulkFilters()" class="text-[11px] text-slate-400 hover:text-red-500 transition font-bold">مسح الفلترة</button>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
                     <!-- Search -->
@@ -1466,6 +1477,11 @@
 
             <!-- Scrollable Body -->
             <div class="overflow-y-auto flex-1 space-y-4 pr-1">
+                                <!-- Multi-Course Picker for Adding Credits -->
+                <div id="addCreditsCourseSelectorContainer" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+                    <label class="block text-xs font-black text-emerald-900 mb-1.5">اختر الكورس المراد شحن الرصيد له:</label>
+                    <div id="addCreditsCourseTabs" class="flex flex-wrap gap-2"></div>
+                </div>
                 <!-- Current Balance & Preview Summary -->
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
                     <div class="grid grid-cols-3 gap-2 text-center">
@@ -1559,7 +1575,7 @@
     <!-- Inline Edit Modal (Comprehensive student edit) -->
     <div id="inlineEditModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 text-xs max-h-[92vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div>
                     <h3 class="font-black text-base text-slate-900 flex items-center gap-1.5">
                         <span>️</span>
@@ -1568,6 +1584,14 @@
                     <p class="text-[11px] text-[#41519C] font-bold mt-0.5" id="inlineEditStudentName">—</p>
                 </div>
                 <button onclick="closeInlineEdit()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold p-1"></button>
+            </div>
+            <!-- Multi-Course Switcher for Dual Enrolled Students -->
+            <div id="inlineCourseSelectorContainer" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3 mb-2">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-black text-amber-900">اختر الكورس / المسار المراد تعديله:</span>
+                    <span class="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">طالب مشترك في أكثر من كورس</span>
+                </div>
+                <div id="inlineCourseTabs" class="flex flex-wrap gap-2"></div>
             </div>
             <div class="mb-3">
                 <button type="button" onclick="if (typeof bsInlineStudentId !== 'undefined' && bsInlineStudentId) openStudentLedgerModal(bsInlineStudentId);" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
@@ -6875,6 +6899,27 @@
         //  BULK STUDENT MANAGER — Complete Engine
         // ══════════════════════════════════════════════════════════════════
 
+                let bsActiveTrackFilter = 'all'; // 'all' | 'quran' | 'courses'
+        let activeInlineEnrollmentId = null;
+        let activeAddCreditEnrollmentId = null;
+
+        function setBulkTrackFilter(track) {
+            bsActiveTrackFilter = track || 'all';
+            const allBtn = document.getElementById('trackBtn_all');
+            const quranBtn = document.getElementById('trackBtn_quran');
+            const coursesBtn = document.getElementById('trackBtn_courses');
+
+            const activeClass = 'px-3 py-1.5 rounded-lg transition bg-white text-[#41519C] shadow-xs cursor-pointer font-black';
+            const inactiveClass = 'px-3 py-1.5 rounded-lg transition text-slate-600 hover:text-slate-900 cursor-pointer font-bold';
+
+            if (allBtn) allBtn.className = (bsActiveTrackFilter === 'all') ? activeClass : inactiveClass;
+            if (quranBtn) quranBtn.className = (bsActiveTrackFilter === 'quran') ? activeClass : inactiveClass;
+            if (coursesBtn) coursesBtn.className = (bsActiveTrackFilter === 'courses') ? activeClass : inactiveClass;
+
+            applyBulkFilters();
+        }
+        window.setBulkTrackFilter = setBulkTrackFilter;
+
         let bsAllStudents = [];          // raw data from Supabase/mock
         let bsFilteredStudents = [];     // after filters applied
         let bsSelectedIds = new Set();   // currently checked student IDs
@@ -7235,7 +7280,7 @@
                             const chunk = allIds.slice(i, i + 400);
                             const { data: chunkEnr, error: chunkErr } = await client
                                 .from('enrollments')
-                                .select('id, student_id, remaining_credits, teacher_id, subscription_days, lecture_time, session_duration, group_id, current_surah, current_aya, teachers(id, name)')
+                                .select('id, student_id, course_name, remaining_credits, teacher_id, subscription_days, lecture_time, session_duration, group_id, current_surah, current_aya, teachers(id, name)')
                                 .in('student_id', chunk);
                             if (chunkEnr) enrData = enrData.concat(chunkEnr);
                             if (chunkErr) console.warn('[BulkStudents] chunk error:', chunkErr.message);
@@ -7277,10 +7322,15 @@
                             if (['inactive', 'غير نشط', 'موقوف', 'frozen', 'paused', 'stopped', 'expired'].includes(rawSt)) {
                                 status = 'inactive';
                             }
+                            const hasQuran = enrList.some(e => !e.course_name || e.course_name.includes('قرآن') || (e.group_id && /^G\d+/i.test(e.group_id))) || !String(s.student_code || '').startsWith('ST20');
+                            const hasCourses = enrList.some(e => (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C\d+/i.test(e.group_id))) || String(s.student_code || '').startsWith('ST20');
+
                             return {
                                 id:               s.id,
                                 name:             s.name || '',
                                 student_code:     s.student_code || '',
+                                is_quran:         hasQuran,
+                                is_courses:       hasCourses,
                                 current_surah:    enr.current_surah || s.current_surah || '',
                                 current_aya:      enr.current_aya || s.current_aya || 1,
                                 phone:            s.phone || s.parent_phone || '',
@@ -7486,6 +7536,10 @@
                 if (groupText && !gid.includes(groupText)) return false;
                 if (groupSel && !sGroups.includes(groupSel)) return false;
                 // Other filters
+                // Track filter
+                if (bsActiveTrackFilter === 'quran' && !s.is_quran) return false;
+                if (bsActiveTrackFilter === 'courses' && !s.is_courses) return false;
+
                 if (teacherF && String(s.teacher_id) !== teacherF) return false;
                 if (status   && s.status !== status) return false;
                 if (gender   && s.gender !== gender) return false;
@@ -7589,7 +7643,14 @@
                             onchange="toggleBulkRow(${s.id}, this.checked)"
                             class="w-4 h-4 rounded accent-[#41519C] cursor-pointer">
                     </td>
-                    <td class="p-2.5 font-mono text-[#41519C] font-extrabold text-[11px]">${s.student_code}</td>
+                    <td class="p-2.5 font-mono text-[#41519C] font-extrabold text-[11px]">
+                        <div>${s.student_code}</div>
+                        ${s.is_quran && s.is_courses 
+                            ? '<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded block text-center mt-1">مسار مشترك</span>'
+                            : (s.is_courses 
+                                ? '<span class="bg-blue-100 text-blue-800 border border-blue-300 text-[9px] font-black px-1.5 py-0.5 rounded block text-center mt-1">كورس 2000+</span>'
+                                : '<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold px-1.5 py-0.5 rounded block text-center mt-1">قرآن</span>')}
+                    </td>
                     <td class="p-2.5 font-bold text-slate-900 max-w-[160px]">
                         <div class="truncate" title="${s.name}">${s.name || '—'}</div>
                         <div class="text-[10px] text-slate-400">${s.age || '—'} سنة</div>
@@ -7610,7 +7671,19 @@
                         <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold px-2 py-0.5 rounded-lg text-[11px] block max-w-[130px] truncate" title="${formatSurahForDisplay(s.current_surah, s.current_aya)}">${formatSurahForDisplay(s.current_surah, s.current_aya)}</span>
                     </td>
                     <td class="p-2.5">
-                        <span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openAddCreditsModal(${s.id})" title="الرصيد الحالي: ${s.remaining_credits} حصص — انقر لإضافة وشحن رصيد">${s.remaining_credits}</span>
+                        ${(s.enrollments && s.enrollments.length > 1) 
+                            ? `<div class="flex flex-col gap-1 cursor-pointer" onclick="openAddCreditsModal(${s.id})" title="انقر لشحن رصيد">
+                                ${s.enrollments.map(e => {
+                                    const isC = (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id));
+                                    const rc = e.remaining_credits ?? 0;
+                                    const clr = rc === 0 ? 'bg-slate-100 text-slate-500' : (rc <= 2 ? 'bg-red-100 text-red-800' : 'bg-blue-50 text-blue-800');
+                                    return `<span class="${clr} border border-slate-200 px-1.5 py-0.5 rounded text-[10px] font-black whitespace-nowrap">
+                                        ${isC ? 'صلاة' : 'قرآن'}: ${rc}
+                                    </span>`;
+                                }).join('')}
+                               </div>`
+                            : `<span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openAddCreditsModal(${s.id})" title="الرصيد الحالي: ${s.remaining_credits} حصص — انقر لإضافة وشحن رصيد">${s.remaining_credits}</span>`
+                        }
                     </td>
                     <td class="p-2.5 text-[11px] text-slate-600">
                         <div class="font-bold">${s.subscription_days || '—'}</div>
@@ -8498,18 +8571,35 @@
             }
         }
 
+                function selectAddCreditEnrollment(enrollmentId) {
+            activeAddCreditEnrollmentId = enrollmentId;
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(st => st.id === bsAddCreditStudentId);
+            if (!s || !s.enrollments) return;
+
+            const enr = s.enrollments.find(e => e.id === enrollmentId) || s.enrollments[0];
+            if (!enr) return;
+
+            document.querySelectorAll('.credit-course-tab').forEach(btn => {
+                btn.className = 'credit-course-tab px-3 py-1.5 rounded-xl font-bold text-xs transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer';
+            });
+            const activeBtn = document.getElementById('creditCourseTab_' + enrollmentId);
+            if (activeBtn) {
+                activeBtn.className = 'credit-course-tab px-3 py-1.5 rounded-xl font-black text-xs transition bg-emerald-600 text-white shadow-xs cursor-pointer';
+            }
+
+            const curBadge = document.getElementById('addCreditsCurrentBadge');
+            const totalBadge = document.getElementById('addCreditsTotalBadge');
+            const curCred = enr.remaining_credits ?? 0;
+            if (curBadge) curBadge.innerText = curCred;
+            if (totalBadge) totalBadge.innerText = curCred + (bsAddCreditCurrentAmount || 4);
+        }
+        window.selectAddCreditEnrollment = selectAddCreditEnrollment;
+
         async function openAddCreditsModal(studentId) {
             if (!studentId) return;
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             let s = allSts.find(st => st.id === studentId || st.student_code === studentId);
-
-            if (!s && window.MonirDB && window.MonirDB.isConfigured()) {
-                try {
-                    const client = window.MonirDB.getClient();
-                    const { data: stRow } = await client.from('students').select('*').eq('id', studentId).maybeSingle();
-                    if (stRow) s = stRow;
-                } catch(e) {}
-            }
             if (!s) return;
 
             bsAddCreditStudentId = s.id;
@@ -8517,286 +8607,147 @@
 
             const nameEl = document.getElementById('addCreditsStudentName');
             const metaEl = document.getElementById('addCreditsStudentMeta');
-            if (nameEl) nameEl.innerText = s.name || 'طالب الأكاديمية';
-            if (metaEl) metaEl.innerText = `الكود: ${s.student_code || s.id} • المجموعة: ${s.group_id || s.qr_code || 'بدون'} • المعلم: ${s.teacher_name || '—'}`;
+            if (nameEl) nameEl.innerText = s.name || 'بدون اسم';
+            if (metaEl) metaEl.innerText = `${s.student_code || ''} • مجموعة: ${s.group_id || '—'}`;
 
-            const curBadge = document.getElementById('addCreditsCurrentBadge');
-            const deltaBadge = document.getElementById('addCreditsDeltaBadge');
-            const newBadge = document.getElementById('addCreditsNewBadge');
-            const customInput = document.getElementById('addCreditsCustomInput');
-            const noteInput = document.getElementById('addCreditsNote');
-            const reasonSelect = document.getElementById('addCreditsReason');
+            // Multi-course tabs for adding credits
+            const enrList = s.enrollments || [];
+            const courseSelectorBox = document.getElementById('addCreditsCourseSelectorContainer');
+            const courseTabs = document.getElementById('addCreditsCourseTabs');
 
-            const curCredits = (s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
-            if (curBadge) curBadge.innerText = curCredits;
-            if (deltaBadge) deltaBadge.innerText = '+4';
-            if (newBadge) newBadge.innerText = (curCredits + 4);
-            if (customInput) customInput.value = 4;
-            if (noteInput) noteInput.value = '';
-            if (reasonSelect) reasonSelect.value = 'تجديد باقة شهرية';
-
-            [1, 4, 8, 12].forEach(val => {
-                const btn = document.getElementById('creditPresetBtn_' + val);
-                if (btn) {
-                    if (val === 4) {
-                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
-                    } else {
-                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
-                    }
+            if (enrList.length > 1) {
+                if (courseSelectorBox) courseSelectorBox.classList.remove('hidden');
+                if (courseTabs) {
+                    courseTabs.innerHTML = enrList.map((e, idx) => {
+                        const isCourse = (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id));
+                        const label = isCourse ? (e.course_name || 'كورس الصلاة') : 'مسار القرآن الكريم';
+                        return `<button type="button" onclick="selectAddCreditEnrollment(${e.id})" id="creditCourseTab_${e.id}" class="credit-course-tab px-3 py-1.5 rounded-xl font-bold text-xs transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer">
+                            ${label} (${e.group_id || '—'}) • ${e.remaining_credits ?? 0} ح
+                        </button>`;
+                    }).join('');
                 }
-            });
-
-            const submitBtn = document.getElementById('submitAddCreditsBtn');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
-                submitBtn.className = 'w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm';
+                selectAddCreditEnrollment(enrList[0].id);
+            } else {
+                if (courseSelectorBox) courseSelectorBox.classList.add('hidden');
+                activeAddCreditEnrollmentId = (enrList[0] && enrList[0].id) || s.enrollment_id || null;
+                const curCredits = (s && s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
+                const curBadge = document.getElementById('addCreditsCurrentBadge');
+                const deltaBadge = document.getElementById('addCreditsDeltaBadge');
+                const totalBadge = document.getElementById('addCreditsTotalBadge');
+                if (curBadge) curBadge.innerText = curCredits;
+                if (deltaBadge) deltaBadge.innerText = '+4';
+                if (totalBadge) totalBadge.innerText = curCredits + 4;
             }
 
             document.getElementById('addCreditsModal').classList.remove('hidden');
-
             loadStudentCreditHistory(s.id);
         }
         window.openAddCreditsModal = openAddCreditsModal;
-
-        function closeAddCreditsModal() {
-            const m = document.getElementById('addCreditsModal');
-            if (m) m.classList.add('hidden');
-            bsAddCreditStudentId = null;
-        }
-        window.closeAddCreditsModal = closeAddCreditsModal;
-
-        function setAddCreditPreset(amount) {
-            bsAddCreditCurrentAmount = parseInt(amount) || 1;
-            const customInput = document.getElementById('addCreditsCustomInput');
-            if (customInput) customInput.value = bsAddCreditCurrentAmount;
-
-            [1, 4, 8, 12].forEach(val => {
-                const btn = document.getElementById('creditPresetBtn_' + val);
-                if (btn) {
-                    if (val === bsAddCreditCurrentAmount) {
-                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
-                    } else {
-                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
-                    }
-                }
-            });
-
-            updateAddCreditsPreview();
-        }
-        window.setAddCreditPreset = setAddCreditPreset;
-
-        function onCustomCreditsInput(val) {
-            const amt = Math.max(1, parseInt(val) || 0);
-            bsAddCreditCurrentAmount = amt;
-
-            [1, 4, 8, 12].forEach(presetVal => {
-                const btn = document.getElementById('creditPresetBtn_' + presetVal);
-                if (btn) {
-                    if (presetVal === amt) {
-                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
-                    } else {
-                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
-                    }
-                }
-            });
-
-            updateAddCreditsPreview();
-        }
-        window.onCustomCreditsInput = onCustomCreditsInput;
-
-        function updateAddCreditsPreview() {
-            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
-            const s = allSts.find(st => st.id === bsAddCreditStudentId);
-            const curCredits = (s && s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
-            const delta = bsAddCreditCurrentAmount || 0;
-            const newTotal = curCredits + delta;
-
-            const deltaBadge = document.getElementById('addCreditsDeltaBadge');
-            const newBadge = document.getElementById('addCreditsNewBadge');
-            if (deltaBadge) deltaBadge.innerText = '+' + delta;
-            if (newBadge) newBadge.innerText = newTotal;
-        }
-
-        async function loadStudentCreditHistory(studentId) {
-            const container = document.getElementById('addCreditsHistoryList');
-            const countEl = document.getElementById('addCreditsHistoryCount');
-            if (!container) return;
-
-            container.innerHTML = '<div class="text-center py-4 text-slate-400 font-bold">جاري تحميل سجل الشحن والتجديدات...</div>';
-
-            let payments = [];
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
-                try {
-                    const client = window.MonirDB.getClient();
-                    const { data, error } = await client.from('payments')
-                        .select('*')
-                        .eq('student_id', studentId)
-                        .order('created_at', { ascending: false })
-                        .limit(50);
-                    if (!error && data) {
-                        payments = data;
-                    }
-                } catch(e) {
-                    console.warn('Error loading payments history:', e);
-                }
-            }
-
-            if (countEl) countEl.innerText = `${payments.length} عملية مسجلة`;
-
-            if (payments.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-5 text-slate-400">
-                        <div class="text-xs font-bold text-slate-500">لا توجد عمليات شحن سابقة مسجلة</div>
-                        <p class="text-[10px] text-slate-400 mt-0.5">عند إضافة أي رصيد، سيتم توثيق تاريخه ويومه وساعته هنا تلقائياً لضمان دقة الحسابات.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = payments.map((p, idx) => {
-                const added = parseInt(p.block_unlocked) || 0;
-                const sign = added >= 0 ? `+${added}` : `${added}`;
-                const addedColor = added >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200';
-                const method = p.payment_method || 'شحن رصيد - إشراف';
-                const formattedDate = formatAuditDateTime(p.created_at);
-                const note = p.whatsapp_message || '';
-
-                return `
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition text-[11px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                        <div class="space-y-0.5 min-w-0 flex-1">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-extrabold text-slate-900">${formattedDate}</span>
-                                <span class="text-slate-400 font-mono text-[10px]">(${p.receipt_number || p.transaction_id || ('REC-' + (idx + 1))})</span>
-                            </div>
-                            <div class="text-slate-600 flex items-center gap-1.5 flex-wrap">
-                                <span class="font-bold text-slate-800">${method}</span>
-                                ${note ? `<span class="text-slate-400">•</span><span class="text-slate-500 truncate max-w-xs" title="${note}">${note}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                            <span class="font-mono font-black text-xs px-2.5 py-1 rounded-lg border ${addedColor}">
-                                ${sign} حصص
-                            </span>
-                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">معتمد </span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
 
         async function submitAddCredits() {
             const sid = bsAddCreditStudentId;
             if (!sid) return;
 
             const added = Math.max(1, parseInt(bsAddCreditCurrentAmount) || 0);
-            if (added <= 0) {
-                alert('يرجى تحديد عدد حصص أكبر من صفر.');
-                return;
-            }
-
             const reason = document.getElementById('addCreditsReason')?.value || 'تجديد باقة شهرية';
             const note = (document.getElementById('addCreditsNote')?.value || '').trim();
 
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             const s = allSts.find(st => st.id === sid);
-            const curCredits = (s && s.remaining_credits !== undefined) ? (parseInt(s.remaining_credits) || 0) : 0;
+            const enrList = (s && s.enrollments) || [];
+            const targetEnr = enrList.find(e => e.id === activeAddCreditEnrollmentId) || enrList[0] || {};
+            const curCredits = targetEnr.remaining_credits ?? (s ? s.remaining_credits : 0) ?? 0;
             const newCredits = curCredits + added;
 
             const btn = document.getElementById('submitAddCreditsBtn');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<span>جاري إضافة الرصيد وتوثيق العملية...</span>';
+                btn.innerHTML = '<span>جاري إضافة الرصيد بدقة...</span>';
             }
 
             try {
-                const nowIso = new Date().toISOString();
-                const txId = 'TOPUP-' + sid + '-' + Date.now();
-                const recNo = 'REC-' + Math.floor(100000 + Math.random() * 900000);
-                const auditDetails = `إضافة رصيد: +${added} حصص (الرصيد من ${curCredits} إلى ${newCredits})${note ? ' • ملاحظة: ' + note : ''}`;
-
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
 
-                    // 1. Update enrollments table
-                    await client.from('enrollments')
-                        .update({ remaining_credits: newCredits, status: 'active' })
-                        .eq('student_id', sid);
+                    // Update ONLY the targeted enrollment by ID
+                    if (activeAddCreditEnrollmentId) {
+                        await client.from('enrollments')
+                            .update({ remaining_credits: newCredits, status: 'active' })
+                            .eq('id', activeAddCreditEnrollmentId);
+                    } else {
+                        await client.from('enrollments')
+                            .update({ remaining_credits: newCredits, status: 'active' })
+                            .eq('student_id', sid);
+                    }
 
-                    // 2. Reactivate student if was inactive
-                    await client.from('students')
-                        .update({ status: 'active' })
-                        .eq('id', sid);
+                    await client.from('students').update({ status: 'active' }).eq('id', sid);
 
-                    // 3. Insert audit log into payments table
+                    const courseName = targetEnr.course_name || (targetEnr.group_id && targetEnr.group_id.startsWith('C') ? 'كورس الصلاة' : 'مسار القرآن الكريم');
                     await client.from('payments').insert([{
                         student_id: sid,
-                        course_name: (s && s.course_name) || 'مسار القرآن الكريم والتدبر',
+                        course_name: courseName,
                         amount: added * 100,
                         currency: 'EGP',
                         block_unlocked: added,
-                        transaction_id: txId,
-                        receipt_number: recNo,
+                        transaction_id: 'TOPUP-' + sid + '-' + Date.now(),
+                        receipt_number: 'REC-' + Math.floor(100000 + Math.random() * 900000),
                         payment_method: reason,
                         status: 'completed',
-                        whatsapp_message: auditDetails,
-                        created_at: nowIso
+                        whatsapp_message: `شحن رصيد (${courseName}): +${added} حصص (الرصيد: ${curCredits} ← ${newCredits})`,
+                        created_at: new Date().toISOString()
                     }]);
                 }
 
-                // Update in-memory state
-                if (s) {
-                    s.remaining_credits = newCredits;
-                    s.status = 'active';
-                    s.account_status = 'نشط';
-                }
-
-                // Re-render admin tables & UI
-                if (typeof renderBulkTable === 'function') renderBulkTable();
-                if (typeof syncBulkBar === 'function') syncBulkBar();
-
-                // Update modal preview badges
-                const curBadge = document.getElementById('addCreditsCurrentBadge');
-                if (curBadge) curBadge.innerText = newCredits;
-                updateAddCreditsPreview();
-
-                // Success feedback
-                if (btn) {
-                    btn.innerHTML = `<span>تمت إضافة +${added} حصص بنجاح  (الرصيد: ${newCredits})</span>`;
-                    btn.className = 'w-full bg-slate-900 text-emerald-400 font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm';
-                }
-
-                if (typeof showToast === 'function') {
-                    showToast(`تم إضافة +${added} حصص بنجاح للطالب (${s ? s.name : sid}). الرصيد الجديد: ${newCredits} حصة.`, 'success');
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast(`تم شحن +${added} حصص بنجاح`, 'success');
                 } else {
-                    alert(`تم إضافة +${added} حصص بنجاح! الرصيد الجديد: ${newCredits} حصة.`);
+                    alert('تم إضافة الرصيد بنجاح');
                 }
 
-                // Refresh history list immediately
-                await loadStudentCreditHistory(sid);
-
-                // Auto reset button after 3 seconds
-                setTimeout(() => {
-                    if (btn && bsAddCreditStudentId === sid) {
-                        btn.disabled = false;
-                        btn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
-                        btn.className = 'w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm';
-                    }
-                }, 3000);
-
-            } catch(err) {
-                console.error('Error adding credits:', err);
+                closeAddCreditsModal();
+                if (typeof loadBulkStudents === 'function') loadBulkStudents();
+            } catch(e) {
+                console.error('Error submitting add credits:', e);
+                alert('حدث خطأ أثناء الشحن: ' + e.message);
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<span>فشلت العملية، أعد المحاولة</span>';
-                    btn.className = 'w-full bg-red-600 text-white font-black py-3 rounded-xl transition shadow-md text-xs sm:text-sm';
+                    btn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
                 }
-                alert('حدث خطأ أثناء إضافة الرصيد: ' + (err.message || err));
             }
         }
         window.submitAddCredits = submitAddCredits;
 
+        window.submitAddCredits = submitAddCredits;
+
         // ── Inline Edit (Comprehensive single student edit) ─────────
+                function selectInlineEnrollment(enrollmentId) {
+            activeInlineEnrollmentId = enrollmentId;
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(st => st.id === bsInlineStudentId);
+            if (!s || !s.enrollments) return;
+
+            const enr = s.enrollments.find(e => e.id === enrollmentId) || s.enrollments[0];
+            if (!enr) return;
+
+            // Highlight active tab
+            document.querySelectorAll('.inline-enr-btn').forEach(btn => {
+                btn.className = 'inline-enr-btn px-3 py-1.5 rounded-xl font-bold text-xs transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer';
+            });
+            const activeBtn = document.getElementById('inlineEnrBtn_' + enrollmentId);
+            if (activeBtn) {
+                activeBtn.className = 'inline-enr-btn px-3 py-1.5 rounded-xl font-black text-xs transition bg-amber-600 text-white shadow-xs cursor-pointer';
+            }
+
+            // Fill course-specific inputs
+            if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = enr.group_id || '';
+            if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = enr.remaining_credits ?? 0;
+            if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = enr.subscription_days || '';
+            if (document.getElementById('inlineTime')) document.getElementById('inlineTime').value = enr.lecture_time || '';
+            if (document.getElementById('inlineTeacher')) document.getElementById('inlineTeacher').value = enr.teacher_id ? String(enr.teacher_id) : '';
+            if (document.getElementById('inlineDuration')) document.getElementById('inlineDuration').value = enr.session_duration || '20 دقيقة';
+        }
+        window.selectInlineEnrollment = selectInlineEnrollment;
+
         function openInlineEdit(studentId) {
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             const s = allSts.find(s => s.id === studentId);
@@ -8813,11 +8764,6 @@
                 const currentG = s.gender || guessGender(s.name, s.parent_name, s.student_code || s.id);
                 document.getElementById('inlineGender').value = currentG || 'f';
             }
-            if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = (s.group_id && s.group_id !== '—') ? s.group_id : '';
-            if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = s.remaining_credits || 0;
-            if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = (s.subscription_days && s.subscription_days !== '—') ? s.subscription_days : '';
-            if (document.getElementById('inlineTime')) document.getElementById('inlineTime').value = (s.lecture_time && s.lecture_time !== '—') ? s.lecture_time : '';
-            if (document.getElementById('inlinePassword')) document.getElementById('inlinePassword').value = '';
 
             // Set teacher with rich list
             const teacherEl = document.getElementById('inlineTeacher');
@@ -8829,17 +8775,42 @@
                 else if (typeof allTeachers !== 'undefined' && Array.isArray(allTeachers) && allTeachers.length > 0) tList = allTeachers;
 
                 teacherEl.innerHTML = '<option value="">— بدون معلم —</option>' +
-                    tList.map(t => `<option value="${t.id}" ${String(t.id) === String(s.teacher_id) ? 'selected' : ''}>${t.name}</option>`).join('');
+                    tList.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             }
 
-            // Set status
+            // Setup multi-course tabs
+            const enrList = s.enrollments || [];
+            const courseSelectorBox = document.getElementById('inlineCourseSelectorContainer');
+            const courseTabs = document.getElementById('inlineCourseTabs');
+
+            if (enrList.length > 1) {
+                if (courseSelectorBox) courseSelectorBox.classList.remove('hidden');
+                if (courseTabs) {
+                    courseTabs.innerHTML = enrList.map((e, idx) => {
+                        const isCourse = (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id));
+                        const label = isCourse ? (e.course_name || 'كورس الصلاة') : 'مسار القرآن الكريم';
+                        return `<button type="button" onclick="selectInlineEnrollment(${e.id})" id="inlineEnrBtn_${e.id}" class="inline-enr-btn px-3 py-1.5 rounded-xl font-bold text-xs transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer">
+                            ${label} (${e.group_id || '—'}) • ${e.remaining_credits ?? 0} ح
+                        </button>`;
+                    }).join('');
+                }
+                selectInlineEnrollment(enrList[0].id);
+            } else {
+                if (courseSelectorBox) courseSelectorBox.classList.add('hidden');
+                activeInlineEnrollmentId = (enrList[0] && enrList[0].id) || s.enrollment_id || null;
+
+                const primaryEnr = enrList[0] || {};
+                if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = (primaryEnr.group_id && primaryEnr.group_id !== '—') ? primaryEnr.group_id : (s.group_id && s.group_id !== '—' ? s.group_id : '');
+                if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = primaryEnr.remaining_credits ?? s.remaining_credits ?? 0;
+                if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = primaryEnr.subscription_days || s.subscription_days || '';
+                if (document.getElementById('inlineTime')) document.getElementById('inlineTime').value = primaryEnr.lecture_time || s.lecture_time || '';
+                if (teacherEl) teacherEl.value = String(primaryEnr.teacher_id || s.teacher_id || '');
+                if (document.getElementById('inlineDuration')) document.getElementById('inlineDuration').value = primaryEnr.session_duration || s.session_duration || '20 دقيقة';
+            }
+
+            if (document.getElementById('inlinePassword')) document.getElementById('inlinePassword').value = '';
             if (document.getElementById('inlineStatus')) document.getElementById('inlineStatus').value = s.status || 'active';
 
-            // Set duration
-            const durEl = document.getElementById('inlineDuration');
-            if (durEl) durEl.value = s.session_duration || '20 دقيقة';
-
-            // Clear any previous auto-hint
             const hintEl = document.getElementById('inlineGroupAutoHint');
             if (hintEl) {
                 hintEl.classList.add('hidden');
@@ -8848,47 +8819,7 @@
 
             document.getElementById('inlineEditModal').classList.remove('hidden');
         }
-
-        async function toggleStudentGender(studentId, event) {
-            if (event) event.stopPropagation();
-            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
-            const s = allSts.find(st => st.id === studentId);
-            if (!s) return;
-
-            const newGender = (s.gender === 'f') ? 'm' : 'f';
-            s.gender = newGender;
-            s.parent_name = (newGender === 'f' ? 'female' : 'male');
-
-            const code = s.student_code || String(studentId);
-            ADMIN_GENDER_OVERRIDES[code] = newGender;
-
-            try {
-                const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
-                stored[code] = newGender;
-                stored[String(studentId)] = newGender;
-                localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
-            } catch(e) {}
-
-            // Update Supabase in background
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
-                try {
-                    const client = window.MonirDB.getClient();
-                    client.from('students').update({ parent_name: (newGender === 'f' ? 'female' : 'male') }).eq('id', studentId).then(() => {});
-                } catch(e) {}
-            }
-
-            renderBulkTable();
-            const label = newGender === 'f' ? 'طالبة (بنت )' : 'طالب (ولد )';
-            if (typeof showToast === 'function') {
-                showToast(`تم تغيير جنس الطالب (${s.name || code}) إلى ${label}`, 'success');
-            }
-        }
-        window.toggleStudentGender = toggleStudentGender;
-
-        function closeInlineEdit() {
-            document.getElementById('inlineEditModal').classList.add('hidden');
-            bsInlineStudentId = null;
-        }
+        window.openInlineEdit = openInlineEdit;
 
         async function saveInlineEdit() {
             const sid = bsInlineStudentId;
@@ -8897,7 +8828,7 @@
             const saveBtn = document.getElementById('inlineSaveBtn');
             if (saveBtn) {
                 saveBtn.disabled = true;
-                saveBtn.innerHTML = '<span> جاري حفظ التعديلات...</span>';
+                saveBtn.innerHTML = '<span>جاري حفظ التعديلات بدقة...</span>';
             }
 
             try {
@@ -8913,27 +8844,9 @@
                 let duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
                 let teacherId = document.getElementById('inlineTeacher')?.value || null;
                 const status = document.getElementById('inlineStatus')?.value || 'active';
-                const password = (document.getElementById('inlinePassword')?.value || '').trim();
 
-                // Auto-fallback: If group is set but teacher or schedule wasn't selected, resolve from metadata
-                if (group) {
-                    const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(group) : null;
-                    if (meta) {
-                        if (!teacherId && meta.teacher_id) teacherId = String(meta.teacher_id);
-                        if (!day && meta.subscription_days) day = meta.subscription_days;
-                        if (!time && meta.lecture_time) time = meta.lecture_time;
-                        if ((!duration || duration === '20 دقيقة') && meta.session_duration) duration = meta.session_duration;
-                    }
-                }
-
-                // Locate in-memory student safely
                 const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
                 const s = allSts.find(st => st.id === sid);
-
-                // Snapshot previous state for teacher notifications
-                const prevTeacherId = s ? (s.teacher_id ? parseInt(s.teacher_id) : null) : null;
-                const prevStatus = s ? (s.status || 'active') : 'active';
-                const prevGroup = s ? (s.group_id || s.qr_code || '') : '';
 
                 const studentUpdate = {
                     name: name,
@@ -8944,7 +8857,6 @@
                     age: age,
                     status: status
                 };
-                if (group) studentUpdate.qr_code = group;
 
                 const enrollUpdate = {
                     remaining_credits: credits,
@@ -8956,263 +8868,43 @@
                 };
                 if (group) enrollUpdate.group_id = group;
 
-                // Sync gender registry and localStorage
-                if (window.STUDENT_GENDER_MAP) {
-                    if (code) window.STUDENT_GENDER_MAP[code.toUpperCase()] = gender;
-                    if (sid) window.STUDENT_GENDER_MAP[String(sid)] = gender;
-                }
-                if (window.STUDENT_GENDER_BY_NAME && name) {
-                    window.STUDENT_GENDER_BY_NAME[name] = gender;
-                }
-                try {
-                    const stored = JSON.parse(localStorage.getItem('monir_students_gender_overrides') || '{}');
-                    if (code) stored[code] = gender;
-                    if (sid) stored[String(sid)] = gender;
-                    localStorage.setItem('monir_students_gender_overrides', JSON.stringify(stored));
-                } catch(e) {}
-
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
                     await client.from('students').update(studentUpdate).eq('id', sid);
-                    await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
 
-                    // Audit Ledger Log if credits were adjusted
-                    const oldCred = s ? (s.remaining_credits || 0) : 0;
-                    if (credits !== oldCred) {
-                        const delta = credits - oldCred;
-                        try {
-                            await client.from('payments').insert([{
-                                student_id: sid,
-                                course_name: enrollUpdate.course_name || (s && s.course_name) || 'مسار القرآن الكريم والتدبر',
-                                amount: (delta > 0 ? delta * 100 : 0),
-                                currency: 'EGP',
-                                block_unlocked: delta,
-                                transaction_id: 'EMERGENCY-' + sid + '-' + Date.now(),
-                                receipt_number: 'REC-' + Math.floor(100000 + Math.random() * 900000),
-                                payment_method: (delta > 0 ? `تعديل رصيد يدوي طارئ (+${delta} حصص)` : `تعديل رصيد يدوي طارئ (${delta} حصة)`),
-                                whatsapp_message: `تعديل رصيد طارئ: تم تعديل الرصيد يدوياً من ${oldCred} إلى ${credits} حصة بواسطة الإشراف`,
-                                status: 'completed',
-                                created_at: new Date().toISOString()
-                            }]);
-                        } catch(auditErr) {
-                            console.warn('Audit payment log error:', auditErr);
+                    // Update ONLY the selected enrollment by ID to completely avoid cross-course overwrites!
+                    if (activeInlineEnrollmentId) {
+                        await client.from('enrollments').update(enrollUpdate).eq('id', activeInlineEnrollmentId);
+                    } else {
+                        // Fallback: update first enrollment
+                        const { data: firstEnr } = await client.from('enrollments').select('id').eq('student_id', sid).limit(1).maybeSingle();
+                        if (firstEnr && firstEnr.id) {
+                            await client.from('enrollments').update(enrollUpdate).eq('id', firstEnr.id);
+                        } else {
+                            await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
                         }
-                    }
-
-                    // Update student user credentials safely (filter strictly by role: student)
-                    const userPayload = {
-                        full_name: name,
-                        phone: phone,
-                        status: status
-                    };
-                    if (code) userPayload.username = code.toUpperCase();
-                    if (password) userPayload.password_hash = password;
-
-                    const { data: existingUser } = await client.from('users')
-                        .select('id')
-                        .eq('role', 'student')
-                        .or(`related_id.eq.${sid},student_id.eq.${sid}`)
-                        .limit(1)
-                        .maybeSingle();
-
-                    if (existingUser) {
-                        await client.from('users').update(userPayload).eq('id', existingUser.id);
-                    } else if (code) {
-                        userPayload.role = 'student';
-                        userPayload.related_id = sid;
-                        userPayload.student_id = sid;
-                        userPayload.email = `${code.toLowerCase()}@student.monir.edu.eg`;
-                        if (!userPayload.password_hash) userPayload.password_hash = '123456';
-                        await client.from('users').insert([userPayload]);
                     }
                 }
 
-                // Update in-memory s
-                if (s) {
-                    s.name = name;
-                    s.student_code = code;
-                    s.phone = phone;
-                    s.parent_phone = phone;
-                    s.age = age;
-                    s.gender = gender;
-                    s.parent_name = (gender === 'f' ? 'female' : 'male');
-                    s.status = status;
-                    if (group) {
-                        s.group_id = group;
-                        s.qr_code = group;
-                        s.group_ids = group.split(/[,،\s]+/).map(x => x.trim()).filter(Boolean);
-                    }
-                    s.remaining_credits = credits;
-                    s.subscription_days = day;
-                    s.lecture_time = time;
-                    s.session_duration = duration;
-                    s.teacher_id = teacherId ? parseInt(teacherId) : null;
-
-                    let tList = window.bsTeachersList || (typeof bsTeachersList !== 'undefined' ? bsTeachersList : []) || [];
-                    const t = tList.find(t => String(t.id) === String(teacherId));
-                    s.teacher_name = t ? t.name : '—';
-                }
-
-                // Update quick students list if cached
-                if (Array.isArray(window.__allQuickStudents)) {
-                    const qs = window.__allQuickStudents.find(st => st.id === sid);
-                    if (qs) {
-                        qs.name = name;
-                        qs.student_code = code;
-                        qs.phone = phone;
-                        qs.parent_phone = phone;
-                        qs.age = age;
-                        qs.gender = gender;
-                        qs.parent_name = (gender === 'f' ? 'female' : 'male');
-                        qs.status = status;
-                        if (group) qs.qr_code = group;
-                    }
-                }
-
-                // Cache updated group metadata for fast lookup across the platform
-                if (group) {
-                    if (!window._groupMetadataCache) window._groupMetadataCache = {};
-                    window._groupMetadataCache[group.toUpperCase()] = {
-                        group_id: group.toUpperCase(),
-                        teacher_id: teacherId ? parseInt(teacherId) : null,
-                        teacher_name: (s && s.teacher_name) ? s.teacher_name : '',
-                        subscription_days: day,
-                        lecture_time: time,
-                        session_duration: duration
-                    };
-                }
-
-                // Sync to localStorage overrides
-                try {
-                    const groupScheds = JSON.parse(localStorage.getItem('monir_group_schedules') || '{}');
-                    const studentScheds = JSON.parse(localStorage.getItem('monir_student_schedules') || '{}');
-                    if (group) {
-                        if (!groupScheds[group]) groupScheds[group] = {};
-                        if (day) groupScheds[group].subscription_days = day;
-                        if (time) groupScheds[group].lecture_time = time;
-                        if (duration) groupScheds[group].session_duration = duration;
-                    }
-                    if (!studentScheds[sid]) studentScheds[sid] = {};
-                    if (day) studentScheds[sid].subscription_days = day;
-                    if (time) studentScheds[sid].lecture_time = time;
-                    if (duration) studentScheds[sid].session_duration = duration;
-                    localStorage.setItem('monir_group_schedules', JSON.stringify(groupScheds));
-                    localStorage.setItem('monir_student_schedules', JSON.stringify(studentScheds));
-                } catch(e) {}
-
-                // Notify teachers about changes
-                try {
-                    if (typeof TeacherNotifications !== 'undefined') {
-                        let newTeacherId = teacherId ? parseInt(teacherId) : null;
-                        const studentName = name || (s ? s.name : 'طالب');
-                        const sCode = code || (s ? s.student_code : '');
-
-                        // Check if new group has an assigned teacher
-                        let targetGroupTeacherId = newTeacherId;
-                        if (group) {
-                            const meta = typeof window.getGroupMetadata === 'function' ? window.getGroupMetadata(group) : null;
-                            if (meta && meta.teacher_id) targetGroupTeacherId = parseInt(meta.teacher_id);
-                            if (!targetGroupTeacherId && window.bsAllStudents) {
-                                const match = window.bsAllStudents.find(x => (x.group_id === group || (x.group_ids && x.group_ids.includes(group))) && x.teacher_id);
-                                if (match) targetGroupTeacherId = parseInt(match.teacher_id);
-                            }
-                        }
-
-                        // 1. If student paused (status changed to inactive)
-                        if (status === 'inactive' && prevStatus !== 'inactive') {
-                            const targetTid = newTeacherId || prevTeacherId;
-                            if (targetTid) {
-                                await TeacherNotifications.create({
-                                    teacherId: targetTid,
-                                    studentName: studentName,
-                                    studentCode: sCode,
-                                    groupId: group || prevGroup,
-                                    type: 'student_paused',
-                                    title: 'إيقاف مؤقت لطالب ️',
-                                    message: `تم إيقاف الطالب (${studentName}) من قِبل الإدارة.`
-                                });
-                            }
-                        }
-
-                        // 2. If teacher changed or group changed with different teacher
-                        const finalNewTeacherId = targetGroupTeacherId || newTeacherId;
-                        if (prevTeacherId && finalNewTeacherId && prevTeacherId !== finalNewTeacherId) {
-                            await TeacherNotifications.create({
-                                teacherId: prevTeacherId,
-                                studentName: studentName,
-                                studentCode: sCode,
-                                groupId: prevGroup,
-                                type: 'student_removed',
-                                title: 'نقل طالب من مجموعتك ',
-                                message: `تم نقل الطالب (${studentName}) من مجموعتك إلى المجموعة (${group || '—'}).`
-                            });
-                            await TeacherNotifications.create({
-                                teacherId: finalNewTeacherId,
-                                studentName: studentName,
-                                studentCode: sCode,
-                                groupId: group || prevGroup,
-                                type: 'student_added',
-                                title: 'طالب جديد في مجموعتك ',
-                                message: `تم تحويل وإضافة الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
-                            });
-                        } else if (!prevTeacherId && finalNewTeacherId) {
-                            await TeacherNotifications.create({
-                                teacherId: finalNewTeacherId,
-                                studentName: studentName,
-                                studentCode: sCode,
-                                groupId: group || prevGroup,
-                                type: 'student_added',
-                                title: 'طالب جديد في مجموعتك ',
-                                message: `تم تعيين الطالب (${studentName}) إلى مجموعتك (${group || '—'}).`
-                            });
-                        } else if (prevTeacherId && !finalNewTeacherId) {
-                            await TeacherNotifications.create({
-                                teacherId: prevTeacherId,
-                                studentName: studentName,
-                                studentCode: sCode,
-                                groupId: prevGroup,
-                                type: 'student_removed',
-                                title: 'إلغاء تعيين طالب ',
-                                message: `تم إلغاء تعيين الطالب (${studentName}) من مجموعتك.`
-                            });
-                        } else if (prevTeacherId && group && prevGroup && group !== prevGroup) {
-                            await TeacherNotifications.create({
-                                teacherId: prevTeacherId,
-                                studentName: studentName,
-                                studentCode: sCode,
-                                groupId: group,
-                                type: 'student_transferred',
-                                title: 'تحويل طالب لمجموعة جديدة ',
-                                message: `تم نقل الطالب (${studentName}) من المجموعة (${prevGroup}) إلى (${group}).`
-                            });
-                        }
-                    }
-                } catch(notifErr) {
-                    console.warn('[InlineEdit] Teacher notification error:', notifErr);
+                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                    window.MonirPopup.toast('تم حفظ التعديلات بنجاح دون أي تداخل في المسارات', 'success');
+                } else {
+                    alert('تم حفظ التعديلات بنجاح');
                 }
 
                 closeInlineEdit();
-                if (typeof applyBulkFilters === 'function') applyBulkFilters();
-                if (typeof renderBulkTable === 'function') renderBulkTable();
-                if (typeof syncStudentStats === 'function') syncStudentStats();
-                if (typeof loadStudentsStatusSummary === 'function') loadStudentsStatusSummary();
-
-                if (window.MonirPopup) {
-                    MonirPopup.toast(` تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`, 'success');
-                } else {
-                    alert(` تم تحديث وتعديل بيانات الطالب (${name || code}) بنجاح`);
-                }
-            } catch(err) {
-                console.error('[InlineEdit] Error saving student:', err);
-                if (window.MonirPopup) MonirPopup.error('حدث خطأ أثناء حفظ التعديل: ' + err.message);
-                else alert('خطأ: ' + err.message);
-            } finally {
+                if (typeof loadBulkStudents === 'function') loadBulkStudents();
+            } catch(e) {
+                console.error('Error saving inline edit:', e);
+                alert('حدث خطأ أثناء الحفظ: ' + e.message);
                 if (saveBtn) {
                     saveBtn.disabled = false;
-                    saveBtn.innerHTML = '<span> حفظ التعديلات الكاملة</span>';
+                    saveBtn.innerHTML = '<span>حفظ التعديلات الكاملة</span>';
                 }
             }
         }
+        window.saveInlineEdit = saveInlineEdit;
+
 
         // ══════════════════════════════════════════════════════════════════
         // ADD STUDENTS TO GROUP MODAL LOGIC
