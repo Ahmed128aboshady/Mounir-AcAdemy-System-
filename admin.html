@@ -8106,6 +8106,11 @@
 
         function closeBulkActionModal() {
             document.getElementById('bulkActionModal').classList.add('hidden');
+            const submitBtn = document.getElementById('bulkModalSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'تطبيق التعديل الجماعي';
+            }
             bsActiveBulkAction = null;
         }
 
@@ -8617,6 +8622,11 @@
         function closeAddCreditsModal() {
             const modal = document.getElementById('addCreditsModal');
             if (modal) modal.classList.add('hidden');
+            const btn = document.getElementById('submitAddCreditsBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
+            }
             bsAddCreditStudentId = null;
         }
         window.closeAddCreditsModal = closeAddCreditsModal;
@@ -8624,6 +8634,11 @@
         function closeInlineEdit() {
             const modal = document.getElementById('inlineEditModal');
             if (modal) modal.classList.add('hidden');
+            const saveBtn = document.getElementById('inlineSaveBtn');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span>حفظ التعديلات الكاملة</span>';
+            }
             bsInlineStudentId = null;
         }
         window.closeInlineEdit = closeInlineEdit;
@@ -8636,6 +8651,11 @@
 
         async function openAddCreditsModal(studentId, targetEnrollmentId = null) {
             if (!studentId) return;
+            const btn = document.getElementById('submitAddCreditsBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
+            }
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             let s = allSts.find(st => st.id === studentId || st.student_code === studentId);
             if (!s) return;
@@ -8744,6 +8764,10 @@
                     alert('تم إضافة الرصيد بنجاح');
                 }
 
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>تأكيد إضافة الرصيد وحفظ العملية</span>';
+                }
                 closeAddCreditsModal();
                 if (typeof loadBulkStudents === 'function') loadBulkStudents();
             } catch(e) {
@@ -8761,6 +8785,11 @@
 
         // ── Inline Edit (Comprehensive student edit with isolated course sections) ─────────
         function openInlineEdit(studentId) {
+            const saveBtn = document.getElementById('inlineSaveBtn');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span>حفظ التعديلات الكاملة</span>';
+            }
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             const s = allSts.find(s => s.id === studentId);
             if (!s) return;
@@ -8942,6 +8971,10 @@
                     alert('تم حفظ التعديلات بنجاح');
                 }
 
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<span>حفظ التعديلات الكاملة</span>';
+                }
                 closeInlineEdit();
                 if (typeof loadBulkStudents === 'function') loadBulkStudents();
             } catch(e) {
