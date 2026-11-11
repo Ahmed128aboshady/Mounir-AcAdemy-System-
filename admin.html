@@ -8606,7 +8606,7 @@
 
             const curBadge = document.getElementById('addCreditsCurrentBadge');
             const deltaBadge = document.getElementById('addCreditsDeltaBadge');
-            const totalBadge = document.getElementById('addCreditsTotalBadge');
+            const totalBadge = document.getElementById('addCreditsTotalBadge') || document.getElementById('addCreditsNewBadge');
 
             if (curBadge) curBadge.innerText = curCred;
             if (deltaBadge) deltaBadge.innerText = '+' + bsAddCreditCurrentAmount;
