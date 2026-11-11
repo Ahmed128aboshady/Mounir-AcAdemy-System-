@@ -1623,46 +1623,9 @@
                         <option value="m"> ذكر (ولد)</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">المجموعة (Group ID)</label>
-                    <input type="text" id="inlineGroup" list="bsGroupDatalist" placeholder="مثال: G022"
-                        oninput="onInlineGroupChanged(this.value)" onchange="onInlineGroupChanged(this.value)"
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono font-bold">
-                    <div id="inlineGroupAutoHint" class="hidden"></div>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">المعلم</label>
-                    <select id="inlineTeacher" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 outline-none focus:border-[#41519C]">
-                        <option value="">— بدون معلم —</option>
-                    </select>
-                </div>
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block font-bold text-slate-700">رصيد الحصص (تعديل طارئ)</label>
-                        <button type="button" onclick="closeInlineEdit(); openAddCreditsModal(bsInlineStudentId);" class="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold underline cursor-pointer">
-                            + شحن رصيد بدلاً من التعديل
-                        </button>
-                    </div>
-                    <input type="number" id="inlineCredits" min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-mono text-center font-bold">
-                    <span class="text-[9px] text-slate-400 block mt-0.5">متاح للحالات الطارئة فقط، لتوثيق اليوم والساعة يفضل استخدام (+ إضافة رصيد).</span>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">أيام المحاضرة</label>
-                    <input type="text" id="inlineDay" placeholder="مثال: السبت والثلاثاء" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">وقت الحصة</label>
-                    <input type="text" id="inlineTime" placeholder="مثال: 8:00 مساءً" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">️ مدة الحلقة</label>
-                    <select id="inlineDuration" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
-                        <option value="20 دقيقة">20 دقيقة (جلسة فردية سريعة)</option>
-                        <option value="30 دقيقة">30 دقيقة (نصف ساعة)</option>
-                        <option value="40 دقيقة">40 دقيقة</option>
-                        <option value="45 دقيقة">45 دقيقة (حصة مكثفة)</option>
-                        <option value="60 دقيقة">60 دقيقة (ساعة كاملة)</option>
-                    </select>
+                <!-- Dynamic Enrollments Cards (Separate for each course: Quran, Prayer, etc.) -->
+                <div id="inlineEnrollmentsContainer" class="sm:col-span-2 space-y-3">
+                    <!-- Populated dynamically per course in openInlineEdit() -->
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">حالة الحساب</label>
@@ -7672,17 +7635,20 @@
                     </td>
                     <td class="p-2.5">
                         ${(s.enrollments && s.enrollments.length > 1) 
-                            ? `<div class="flex flex-col gap-1 cursor-pointer" onclick="openAddCreditsModal(${s.id})" title="انقر لشحن رصيد">
+                            ? `<div class="flex flex-col gap-1">
                                 ${s.enrollments.map(e => {
                                     const isC = (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id));
                                     const rc = e.remaining_credits ?? 0;
                                     const clr = rc === 0 ? 'bg-slate-100 text-slate-500' : (rc <= 2 ? 'bg-red-100 text-red-800' : 'bg-blue-50 text-blue-800');
-                                    return `<span class="${clr} border border-slate-200 px-1.5 py-0.5 rounded text-[10px] font-black whitespace-nowrap">
-                                        ${isC ? 'صلاة' : 'قرآن'}: ${rc}
-                                    </span>`;
+                                    return `<button type="button" onclick="event.stopPropagation(); openAddCreditsModal(${s.id}, ${e.id})" title="شحن رصيد ${isC ? 'كورس الصلاة' : 'مسار القرآن الكريم'} (انقر لتحديد هذا المسار مباشرة)" class="${clr} border border-slate-200 px-2 py-0.5 rounded text-[10px] font-black whitespace-nowrap hover:ring-2 hover:ring-emerald-500 transition cursor-pointer text-right flex items-center justify-between gap-1.5 shadow-2xs">
+                                        <span>${isC ? 'الصلاة' : 'القرآن'}</span>
+                                        <span class="font-mono bg-white/70 px-1 rounded">${rc}</span>
+                                    </button>`;
                                 }).join('')}
                                </div>`
-                            : `<span class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block" onclick="openAddCreditsModal(${s.id})" title="الرصيد الحالي: ${s.remaining_credits} حصص — انقر لإضافة وشحن رصيد">${s.remaining_credits}</span>`
+                            : `<button type="button" onclick="openAddCreditsModal(${s.id})" title="الرصيد الحالي: ${s.remaining_credits} حصص — انقر لإضافة وشحن رصيد" class="${rcColor} font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer hover:opacity-80 transition inline-block">
+                                ${s.remaining_credits}
+                               </button>`
                         }
                     </td>
                     <td class="p-2.5 text-[11px] text-slate-600">
@@ -7991,6 +7957,14 @@
                 bodyHTML = `
                     <div class="space-y-3">
                         <div>
+                            <label class="block font-bold text-slate-700 mb-1.5">المسار / الكورس المستهدف للتعديل</label>
+                            <select id="bulkCreditsTargetTrack" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
+                                <option value="quran">مسار القرآن الكريم فقط (لا يؤثر على كورسات الصلاة)</option>
+                                <option value="courses">مسار الكورسات فقط (الصلاة وغيرها - لا يؤثر على القرآن)</option>
+                                <option value="all">كافة مسارات الطالب المشترك فيها</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block font-bold text-slate-700 mb-1.5">نوع التعديل</label>
                             <select id="bulkCreditsMode" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 outline-none focus:border-[#41519C] font-bold">
                                 <option value="set">تعيين رصيد ثابت (مثال: 12 حصة)</option>
@@ -8189,17 +8163,12 @@
             } else if (action === 'credits') {
                 const mode = document.getElementById('bulkCreditsMode').value;
                 const amount = parseInt(document.getElementById('bulkCreditsInput').value) || 0;
-                // For each student calculate new credit
-                if (mode === 'set') {
-                    enrollPayload.remaining_credits = amount;
-                    updatePayload._credits_mode = 'set';
-                    updatePayload._credits_amount = amount;
-                } else {
-                    // add/subtract — must be done per-student
-                    updatePayload._credits_mode = mode;
-                    updatePayload._credits_amount = amount;
-                }
-                successMsg = `تم تعديل رصيد الحصص لـ ${ids.length} طالب `;
+                const track = document.getElementById('bulkCreditsTargetTrack')?.value || 'quran';
+                updatePayload._credits_mode = mode;
+                updatePayload._credits_amount = amount;
+                updatePayload._credits_track = track;
+                enrollPayload.remaining_credits = amount;
+                successMsg = `تم تعديل رصيد الحصص لـ ${ids.length} طالب بنجاح `;
 
             } else if (action === 'schedule') {
                 const slotEls = document.querySelectorAll('#bulkScheduleSlotsContainer .schedule-slot');
@@ -8279,47 +8248,39 @@
                     }
 
                     // Update enrollments
-                    if (action === 'credits' && updatePayload._credits_mode !== 'set') {
-                        // Per-student update for add/subtract
+                    if (action === 'credits') {
                         const mode = updatePayload._credits_mode;
                         const amt = updatePayload._credits_amount;
+                        const track = updatePayload._credits_track || 'quran';
                         const enrolled = bsAllStudents.filter(s => ids.includes(s.id));
-                        for (const s of enrolled) {
-                            const newCred = mode === 'add'
-                                ? Math.max(0, s.remaining_credits + amt)
-                                : Math.max(0, s.remaining_credits - amt);
-                            await client.from('enrollments')
-                                .update({ remaining_credits: newCred, status: newCred > 0 ? 'active' : 'inactive' })
-                                .eq('student_id', s.id);
-                            if (newCred > 0) {
-                                await client.from('students').update({ status: 'active' }).eq('id', s.id);
-                            }
-                            s.remaining_credits = newCred;
 
-                            // Audit Ledger Log in payments
-                            try {
-                                const signAmt = mode === 'add' ? amt : -amt;
-                                await client.from('payments').insert([{
-                                    student_id: s.id,
-                                    course_name: s.course_name || 'مسار القرآن الكريم والتدبر',
-                                    amount: (mode === 'add' ? amt * 100 : 0),
-                                    currency: 'EGP',
-                                    block_unlocked: signAmt,
-                                    transaction_id: 'ADM-' + Date.now(),
-                                    receipt_number: 'REC-' + Math.floor(100000 + Math.random() * 900000),
-                                    payment_method: (mode === 'add' ? `شحن جماعي (+${amt} حصص) من الإدارة` : `خصم جماعي (${amt} حصص) من الإدارة`),
-                                    status: 'completed',
-                                    created_at: new Date().toISOString()
-                                }]);
-                            } catch(auditErr) {
-                                console.warn('Bulk audit payment log error:', auditErr);
+                        for (const s of enrolled) {
+                            const enrList = s.enrollments || [];
+                            let targets = enrList;
+                            if (track === 'quran') {
+                                targets = enrList.filter(e => !e.course_name || e.course_name.includes('قرآن') || (e.group_id && /^G/i.test(e.group_id)));
+                            } else if (track === 'courses') {
+                                targets = enrList.filter(e => (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id)));
                             }
+                            if (targets.length === 0) targets = enrList;
+
+                            for (const targetEnr of targets) {
+                                if (!targetEnr || !targetEnr.id) continue;
+                                const cur = targetEnr.remaining_credits ?? 0;
+                                const newCred = mode === 'set' ? Math.max(0, amt) : (mode === 'add' ? Math.max(0, cur + amt) : Math.max(0, cur - amt));
+                                await client.from('enrollments')
+                                    .update({ remaining_credits: newCred, status: newCred > 0 ? 'active' : 'inactive' })
+                                    .eq('id', targetEnr.id);
+                                targetEnr.remaining_credits = newCred;
+                            }
+                            if (s.remaining_credits !== undefined) {
+                                if (targets[0] && targets[0].remaining_credits !== undefined) {
+                                    s.remaining_credits = targets[0].remaining_credits;
+                                }
+                            }
+                            await client.from('students').update({ status: 'active' }).eq('id', s.id);
                         }
                     } else if (Object.keys(enrollPayload).length > 0) {
-                        if (enrollPayload.remaining_credits !== undefined && enrollPayload.remaining_credits > 0) {
-                            enrollPayload.status = 'active';
-                            await client.from('students').update({ status: 'active' }).in('id', ids);
-                        }
                         // Get enrollment IDs for these students
                         const { data: enrRows } = await client
                             .from('enrollments').select('id').in('student_id', ids);
@@ -8596,7 +8557,84 @@
         }
         window.selectAddCreditEnrollment = selectAddCreditEnrollment;
 
-        async function openAddCreditsModal(studentId) {
+        // Preset & Custom Credit Selection Helpers
+        function setAddCreditPreset(amount) {
+            bsAddCreditCurrentAmount = Math.max(1, parseInt(amount) || 1);
+            const customInput = document.getElementById('addCreditsCustomInput');
+            if (customInput) customInput.value = bsAddCreditCurrentAmount;
+            updateAddCreditPreviewBadges();
+
+            [1, 4, 8, 12].forEach(val => {
+                const btn = document.getElementById('creditPresetBtn_' + val);
+                if (btn) {
+                    if (val === bsAddCreditCurrentAmount) {
+                        btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
+                    } else {
+                        btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
+                    }
+                }
+            });
+        }
+        window.setAddCreditPreset = setAddCreditPreset;
+
+        function onCustomCreditsInput(val) {
+            const num = parseInt(val) || 0;
+            if (num > 0) {
+                bsAddCreditCurrentAmount = num;
+                updateAddCreditPreviewBadges();
+                [1, 4, 8, 12].forEach(v => {
+                    const btn = document.getElementById('creditPresetBtn_' + v);
+                    if (btn) {
+                        if (v === num) {
+                            btn.className = 'credit-preset-btn bg-emerald-600 text-white border border-emerald-600 font-black py-2.5 px-2 rounded-xl transition text-center shadow-xs cursor-pointer';
+                        } else {
+                            btn.className = 'credit-preset-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold py-2.5 px-2 rounded-xl transition text-center cursor-pointer';
+                        }
+                    }
+                });
+            }
+        }
+        window.onCustomCreditsInput = onCustomCreditsInput;
+
+        function updateAddCreditPreviewBadges() {
+            const sid = bsAddCreditStudentId;
+            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
+            const s = allSts.find(st => st.id === sid);
+            const enrList = (s && s.enrollments) || [];
+            const targetEnr = enrList.find(e => e.id === activeAddCreditEnrollmentId) || enrList[0] || {};
+            const curCred = targetEnr.remaining_credits ?? (s ? s.remaining_credits : 0) ?? 0;
+
+            const curBadge = document.getElementById('addCreditsCurrentBadge');
+            const deltaBadge = document.getElementById('addCreditsDeltaBadge');
+            const totalBadge = document.getElementById('addCreditsTotalBadge');
+
+            if (curBadge) curBadge.innerText = curCred;
+            if (deltaBadge) deltaBadge.innerText = '+' + bsAddCreditCurrentAmount;
+            if (totalBadge) totalBadge.innerText = curCred + bsAddCreditCurrentAmount;
+        }
+        window.updateAddCreditPreviewBadges = updateAddCreditPreviewBadges;
+
+        function closeAddCreditsModal() {
+            const modal = document.getElementById('addCreditsModal');
+            if (modal) modal.classList.add('hidden');
+            bsAddCreditStudentId = null;
+        }
+        window.closeAddCreditsModal = closeAddCreditsModal;
+
+        function closeInlineEdit() {
+            const modal = document.getElementById('inlineEditModal');
+            if (modal) modal.classList.add('hidden');
+            bsInlineStudentId = null;
+        }
+        window.closeInlineEdit = closeInlineEdit;
+
+        function loadStudentCreditHistory(studentId) {
+            // Optional credit audit history loader
+            console.log('[CreditModal] Opened for student:', studentId);
+        }
+        window.loadStudentCreditHistory = loadStudentCreditHistory;
+
+        async function openAddCreditsModal(studentId, targetEnrollmentId = null) {
             if (!studentId) return;
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             let s = allSts.find(st => st.id === studentId || st.student_code === studentId);
@@ -8626,7 +8664,8 @@
                         </button>`;
                     }).join('');
                 }
-                selectAddCreditEnrollment(enrList[0].id);
+                const chosenId = targetEnrollmentId || enrList[0].id;
+                selectAddCreditEnrollment(chosenId);
             } else {
                 if (courseSelectorBox) courseSelectorBox.classList.add('hidden');
                 activeAddCreditEnrollmentId = (enrList[0] && enrList[0].id) || s.enrollment_id || null;
@@ -8639,6 +8678,7 @@
                 if (totalBadge) totalBadge.innerText = curCredits + 4;
             }
 
+            setAddCreditPreset(4);
             document.getElementById('addCreditsModal').classList.remove('hidden');
             loadStudentCreditHistory(s.id);
         }
@@ -8719,42 +8759,15 @@
 
         window.submitAddCredits = submitAddCredits;
 
-        // ── Inline Edit (Comprehensive single student edit) ─────────
-                function selectInlineEnrollment(enrollmentId) {
-            activeInlineEnrollmentId = enrollmentId;
-            const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
-            const s = allSts.find(st => st.id === bsInlineStudentId);
-            if (!s || !s.enrollments) return;
-
-            const enr = s.enrollments.find(e => e.id === enrollmentId) || s.enrollments[0];
-            if (!enr) return;
-
-            // Highlight active tab
-            document.querySelectorAll('.inline-enr-btn').forEach(btn => {
-                btn.className = 'inline-enr-btn px-3 py-1.5 rounded-xl font-bold text-xs transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer';
-            });
-            const activeBtn = document.getElementById('inlineEnrBtn_' + enrollmentId);
-            if (activeBtn) {
-                activeBtn.className = 'inline-enr-btn px-3 py-1.5 rounded-xl font-black text-xs transition bg-amber-600 text-white shadow-xs cursor-pointer';
-            }
-
-            // Fill course-specific inputs
-            if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = enr.group_id || '';
-            if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = enr.remaining_credits ?? 0;
-            if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = enr.subscription_days || '';
-            if (document.getElementById('inlineTime')) document.getElementById('inlineTime').value = enr.lecture_time || '';
-            if (document.getElementById('inlineTeacher')) document.getElementById('inlineTeacher').value = enr.teacher_id ? String(enr.teacher_id) : '';
-            if (document.getElementById('inlineDuration')) document.getElementById('inlineDuration').value = enr.session_duration || '20 دقيقة';
-        }
-        window.selectInlineEnrollment = selectInlineEnrollment;
-
+        // ── Inline Edit (Comprehensive student edit with isolated course sections) ─────────
         function openInlineEdit(studentId) {
             const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
             const s = allSts.find(s => s.id === studentId);
             if (!s) return;
             bsInlineStudentId = studentId;
 
-            document.getElementById('inlineEditStudentName').innerText = `${s.name || 'بدون اسم'} — (${s.student_code || 'بدون كود'})`;
+            const nameEl = document.getElementById('inlineEditStudentName');
+            if (nameEl) nameEl.innerText = `${s.name || 'بدون اسم'} — (${s.student_code || 'بدون كود'})`;
 
             if (document.getElementById('inlineName')) document.getElementById('inlineName').value = s.name || '';
             if (document.getElementById('inlineCode')) document.getElementById('inlineCode').value = s.student_code || '';
@@ -8764,57 +8777,99 @@
                 const currentG = s.gender || guessGender(s.name, s.parent_name, s.student_code || s.id);
                 document.getElementById('inlineGender').value = currentG || 'f';
             }
-
-            // Set teacher with rich list
-            const teacherEl = document.getElementById('inlineTeacher');
-            if (teacherEl) {
-                let tList = [];
-                if (Array.isArray(window.bsTeachersList) && window.bsTeachersList.length > 0) tList = window.bsTeachersList;
-                else if (typeof bsTeachersList !== 'undefined' && Array.isArray(bsTeachersList) && bsTeachersList.length > 0) tList = bsTeachersList;
-                else if (Array.isArray(window.allTeachers) && window.allTeachers.length > 0) tList = window.allTeachers;
-                else if (typeof allTeachers !== 'undefined' && Array.isArray(allTeachers) && allTeachers.length > 0) tList = allTeachers;
-
-                teacherEl.innerHTML = '<option value="">— بدون معلم —</option>' +
-                    tList.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-            }
-
-            // Setup multi-course tabs
-            const enrList = s.enrollments || [];
-            const courseSelectorBox = document.getElementById('inlineCourseSelectorContainer');
-            const courseTabs = document.getElementById('inlineCourseTabs');
-
-            if (enrList.length > 1) {
-                if (courseSelectorBox) courseSelectorBox.classList.remove('hidden');
-                if (courseTabs) {
-                    courseTabs.innerHTML = enrList.map((e, idx) => {
-                        const isCourse = (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id));
-                        const label = isCourse ? (e.course_name || 'كورس الصلاة') : 'مسار القرآن الكريم';
-                        return `<button type="button" onclick="selectInlineEnrollment(${e.id})" id="inlineEnrBtn_${e.id}" class="inline-enr-btn px-3 py-1.5 rounded-xl font-bold text-xs transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer">
-                            ${label} (${e.group_id || '—'}) • ${e.remaining_credits ?? 0} ح
-                        </button>`;
-                    }).join('');
-                }
-                selectInlineEnrollment(enrList[0].id);
-            } else {
-                if (courseSelectorBox) courseSelectorBox.classList.add('hidden');
-                activeInlineEnrollmentId = (enrList[0] && enrList[0].id) || s.enrollment_id || null;
-
-                const primaryEnr = enrList[0] || {};
-                if (document.getElementById('inlineGroup')) document.getElementById('inlineGroup').value = (primaryEnr.group_id && primaryEnr.group_id !== '—') ? primaryEnr.group_id : (s.group_id && s.group_id !== '—' ? s.group_id : '');
-                if (document.getElementById('inlineCredits')) document.getElementById('inlineCredits').value = primaryEnr.remaining_credits ?? s.remaining_credits ?? 0;
-                if (document.getElementById('inlineDay')) document.getElementById('inlineDay').value = primaryEnr.subscription_days || s.subscription_days || '';
-                if (document.getElementById('inlineTime')) document.getElementById('inlineTime').value = primaryEnr.lecture_time || s.lecture_time || '';
-                if (teacherEl) teacherEl.value = String(primaryEnr.teacher_id || s.teacher_id || '');
-                if (document.getElementById('inlineDuration')) document.getElementById('inlineDuration').value = primaryEnr.session_duration || s.session_duration || '20 دقيقة';
-            }
-
             if (document.getElementById('inlinePassword')) document.getElementById('inlinePassword').value = '';
             if (document.getElementById('inlineStatus')) document.getElementById('inlineStatus').value = s.status || 'active';
 
-            const hintEl = document.getElementById('inlineGroupAutoHint');
-            if (hintEl) {
-                hintEl.classList.add('hidden');
-                hintEl.innerHTML = '';
+            // Teachers list
+            let tList = [];
+            if (Array.isArray(window.bsTeachersList) && window.bsTeachersList.length > 0) tList = window.bsTeachersList;
+            else if (typeof bsTeachersList !== 'undefined' && Array.isArray(bsTeachersList) && bsTeachersList.length > 0) tList = bsTeachersList;
+            else if (Array.isArray(window.allTeachers) && window.allTeachers.length > 0) tList = window.allTeachers;
+            else if (typeof allTeachers !== 'undefined' && Array.isArray(allTeachers) && allTeachers.length > 0) tList = allTeachers;
+
+            // Render enrollment cards into container (one card per course!)
+            const container = document.getElementById('inlineEnrollmentsContainer');
+            if (container) {
+                const enrList = (s.enrollments && s.enrollments.length > 0) ? s.enrollments : [{
+                    id: s.enrollment_id || ('synth_' + s.id),
+                    group_id: s.group_id,
+                    teacher_id: s.teacher_id,
+                    remaining_credits: s.remaining_credits,
+                    subscription_days: s.subscription_days,
+                    lecture_time: s.lecture_time,
+                    session_duration: s.session_duration,
+                    course_name: s.course_name || 'مسار القرآن الكريم والتدبر'
+                }];
+
+                container.innerHTML = `
+                    <div class="border-t border-slate-200 pt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                <span>مسارات وكورسات الطالب المسجلة:</span>
+                                <span class="bg-indigo-100 text-indigo-900 text-[10px] font-bold px-2 py-0.5 rounded-full">${enrList.length} مسار</span>
+                            </span>
+                            <span class="text-[10px] text-slate-500 font-bold">تعديل رصيد ومواعيد كل مسار منفصل تماماً</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${enrList.map((e, idx) => {
+                                const isCourse = (e.course_name && (e.course_name.includes('صلاة') || e.course_name.includes('دورة') || e.course_name.includes('كورس'))) || (e.group_id && /^C/i.test(e.group_id));
+                                const courseTitle = isCourse ? (e.course_name || 'كورس الصلاة العملية') : 'مسار القرآن الكريم والتدبر';
+                                const cardBorder = isCourse ? 'border-blue-300 bg-blue-50/40' : 'border-emerald-300 bg-emerald-50/40';
+                                const badgeCls = isCourse ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white';
+                                const curRc = e.remaining_credits ?? 0;
+
+                                return `
+                                <div class="rounded-2xl border p-3 sm:p-3.5 space-y-2.5 shadow-xs ${cardBorder}">
+                                    <div class="flex items-center justify-between border-b pb-1.5 ${isCourse ? 'border-blue-200' : 'border-emerald-200'}">
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${badgeCls}">${isCourse ? 'كورس' : 'قرآن'}</span>
+                                            <span class="font-extrabold text-xs text-slate-900">${courseTitle}</span>
+                                            <span class="font-mono text-[10px] bg-white/80 border border-slate-200 px-1.5 py-0.2 rounded font-bold">${e.group_id || '—'}</span>
+                                        </div>
+                                        <button type="button" onclick="closeInlineEdit(); openAddCreditsModal(${s.id}, ${e.id});" class="text-[10px] font-black text-emerald-800 bg-white hover:bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-lg transition cursor-pointer">
+                                            + شحن رصيد رسمي
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">المجموعة (Group ID)</label>
+                                            <input type="text" id="inlineEnrGroup_${e.id}" value="${e.group_id || ''}" placeholder="مثال: ${isCourse ? 'C01' : 'G182'}" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-mono font-bold text-xs outline-none focus:border-indigo-600">
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">المعلم</label>
+                                            <select id="inlineEnrTeacher_${e.id}" class="w-full bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-indigo-600">
+                                                <option value="">— بدون معلم —</option>
+                                                ${tList.map(t => `<option value="${t.id}" ${String(t.id) === String(e.teacher_id) ? 'selected' : ''}>${t.name}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block font-black text-slate-900 mb-1">رصيد الحصص المباشر (تعديل طارئ)</label>
+                                            <input type="number" id="inlineEnrCredits_${e.id}" value="${curRc}" min="0" max="999" class="w-full bg-white border-2 ${isCourse ? 'border-blue-500' : 'border-emerald-500'} rounded-xl px-2.5 py-1.5 font-mono font-black text-center text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">مدة الحلقة</label>
+                                            <select id="inlineEnrDuration_${e.id}" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600 font-bold">
+                                                <option value="20 دقيقة" ${(e.session_duration || '') === '20 دقيقة' ? 'selected' : ''}>20 دقيقة</option>
+                                                <option value="30 دقيقة" ${(e.session_duration || '') === '30 دقيقة' ? 'selected' : ''}>30 دقيقة</option>
+                                                <option value="40 دقيقة" ${(e.session_duration || '') === '40 دقيقة' ? 'selected' : ''}>40 دقيقة</option>
+                                                <option value="45 دقيقة" ${(e.session_duration || '') === '45 دقيقة' ? 'selected' : ''}>45 دقيقة</option>
+                                                <option value="60 دقيقة" ${(e.session_duration || '') === '60 دقيقة' ? 'selected' : ''}>60 دقيقة</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">أيام المحاضرة</label>
+                                            <input type="text" id="inlineEnrDay_${e.id}" value="${e.subscription_days || ''}" placeholder="مثال: السبت والثلاثاء" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600">
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">وقت الحصة</label>
+                                            <input type="text" id="inlineEnrTime_${e.id}" value="${e.lecture_time || ''}" placeholder="مثال: 8:00 مساءً" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs outline-none focus:border-indigo-600">
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
             }
 
             document.getElementById('inlineEditModal').classList.remove('hidden');
@@ -8828,7 +8883,7 @@
             const saveBtn = document.getElementById('inlineSaveBtn');
             if (saveBtn) {
                 saveBtn.disabled = true;
-                saveBtn.innerHTML = '<span>جاري حفظ التعديلات بدقة...</span>';
+                saveBtn.innerHTML = '<span>جاري حفظ التعديلات بدقة لكل مسار...</span>';
             }
 
             try {
@@ -8837,12 +8892,6 @@
                 const phone = (document.getElementById('inlinePhone')?.value || '').trim();
                 const age = parseInt(document.getElementById('inlineAge')?.value) || null;
                 const gender = document.getElementById('inlineGender')?.value || 'm';
-                const group = (document.getElementById('inlineGroup')?.value || '').trim();
-                const credits = parseInt(document.getElementById('inlineCredits')?.value) || 0;
-                let day = (document.getElementById('inlineDay')?.value || '').trim();
-                let time = (document.getElementById('inlineTime')?.value || '').trim();
-                let duration = (document.getElementById('inlineDuration')?.value || '20 دقيقة').trim();
-                let teacherId = document.getElementById('inlineTeacher')?.value || null;
                 const status = document.getElementById('inlineStatus')?.value || 'active';
 
                 const allSts = window.bsAllStudents || (typeof bsAllStudents !== 'undefined' ? bsAllStudents : []);
@@ -8858,36 +8907,37 @@
                     status: status
                 };
 
-                const enrollUpdate = {
-                    remaining_credits: credits,
-                    subscription_days: day,
-                    lecture_time: time,
-                    session_duration: duration,
-                    teacher_id: teacherId ? parseInt(teacherId) : null,
-                    status: status
-                };
-                if (group) enrollUpdate.group_id = group;
-
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
                     await client.from('students').update(studentUpdate).eq('id', sid);
 
-                    // Update ONLY the selected enrollment by ID to completely avoid cross-course overwrites!
-                    if (activeInlineEnrollmentId) {
-                        await client.from('enrollments').update(enrollUpdate).eq('id', activeInlineEnrollmentId);
-                    } else {
-                        // Fallback: update first enrollment
-                        const { data: firstEnr } = await client.from('enrollments').select('id').eq('student_id', sid).limit(1).maybeSingle();
-                        if (firstEnr && firstEnr.id) {
-                            await client.from('enrollments').update(enrollUpdate).eq('id', firstEnr.id);
-                        } else {
-                            await client.from('enrollments').update(enrollUpdate).eq('student_id', sid);
-                        }
+                    const enrList = (s && s.enrollments && s.enrollments.length > 0) ? s.enrollments : [{ id: s?.enrollment_id }];
+                    for (const enr of enrList) {
+                        if (!enr || !enr.id || String(enr.id).startsWith('synth_')) continue;
+                        const eid = enr.id;
+                        const grpEl = document.getElementById('inlineEnrGroup_' + eid);
+                        const credEl = document.getElementById('inlineEnrCredits_' + eid);
+                        const dayEl = document.getElementById('inlineEnrDay_' + eid);
+                        const timeEl = document.getElementById('inlineEnrTime_' + eid);
+                        const tEl = document.getElementById('inlineEnrTeacher_' + eid);
+                        const durEl = document.getElementById('inlineEnrDuration_' + eid);
+
+                        const enrollUpdate = {
+                            status: status
+                        };
+                        if (credEl && credEl.value !== '') enrollUpdate.remaining_credits = Math.max(0, parseInt(credEl.value) || 0);
+                        if (grpEl) enrollUpdate.group_id = grpEl.value.trim();
+                        if (dayEl) enrollUpdate.subscription_days = dayEl.value.trim();
+                        if (timeEl) enrollUpdate.lecture_time = timeEl.value.trim();
+                        if (tEl) enrollUpdate.teacher_id = tEl.value ? parseInt(tEl.value) : null;
+                        if (durEl) enrollUpdate.session_duration = durEl.value.trim();
+
+                        await client.from('enrollments').update(enrollUpdate).eq('id', eid);
                     }
                 }
 
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast('تم حفظ التعديلات بنجاح دون أي تداخل في المسارات', 'success');
+                    window.MonirPopup.toast('تم حفظ كافة التعديلات بنجاح لكل مسار بشكل مستقل تماماً', 'success');
                 } else {
                     alert('تم حفظ التعديلات بنجاح');
                 }
