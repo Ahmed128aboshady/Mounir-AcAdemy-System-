@@ -195,6 +195,11 @@
                     <span id="liveChatGlobalBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-bounce border-2 border-[#1F274B]">0</span>
                 </button>
                 <button type="button" onclick="ensureOpenAndLoadPayroll()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="مستحقات ورواتب المعلمين (حسابات الإشراف)"><span>رواتب المعلمين</span></button>
+                <button type="button" onclick="exportAllStudentBalancesExcel()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="تصدير كشف شامل بأرصدة جميع الطلاب Excel">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>كشف الأرصدة (Excel)</span>
+                </button>
+                
                 <button type="button" onclick="openDailyAttendanceMatchingSection()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="تصدير ومطابقة الحضور اليومي الفعلي Excel">
                     <span>مطابقة الحضور اليومي</span>
                 </button>
@@ -1244,6 +1249,10 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap" onclick="event.stopPropagation()">
+                    <button type="button" onclick="exportAllStudentBalancesExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-3.5 py-2.5 sm:py-2 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer" title="تصدير كشف شامل بأرصدة جميع طلاب الأكاديمية Excel">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>تصدير كشف الأرصدة الشامل (Excel)</span>
+                    </button>
                     <a href="students_courses_onboarding_template.xlsx" download="students_courses_onboarding_template.xlsx" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-3.5 py-2.5 sm:py-2 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="تحميل شيت إكسيل لتسجيل الطلاب الجدد والكورسات">
                         <span>شيت تسجيل الطلاب الجدد (Excel)</span>
                     </a>
@@ -3631,7 +3640,7 @@
             } catch (err) {
                 console.error("Error loading payroll:", err);
                 if (tbody) {
-                    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-red-500 font-bold">فشل في تحميل بيانات الرواتب والمستحقات. يرجى المحاولة لاحقاً.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8"><div class="text-red-500 font-bold mb-3">تعذر تحميل بيانات الرواتب حالياً (يرجى التحقق من الاتصال).</div><button type="button" onclick="loadPayrollData()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-sm transition cursor-pointer">إعادة المحاولة الآن</button></td></tr>';
                 }
             }
         }
@@ -4273,8 +4282,9 @@
                     if (supaRec) {
                         const isPostponed = !!(supaRec.course_name && supaRec.course_name.includes('[تأجيل'));
                         status = isPostponed ? 'postponed' : (supaRec.status || 'present');
+                        const isAuto = !!(supaRec.course_name && (supaRec.course_name.includes('رصد آلي') || supaRec.course_name.includes('دخول القاعة') || supaRec.course_name.includes('دخول الطالب')));
                         const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
-                        recordedRole = isSup ? 'إشراف' : 'معلم';
+                        recordedRole = isAuto ? 'رصد تلقائي (دخول الطالب)' : (isSup ? 'إشراف' : 'معلم');
                         if (supaRec.joined_at) {
                             try {
                                 const dt = new Date(supaRec.joined_at);
@@ -4335,9 +4345,10 @@
                     const supaRec = supabaseAttMap[sid];
                     const s = studentsList.find(st => st.id === sid) || {};
                     let recordedAt = '—';
+                    const isAuto = !!(supaRec.course_name && (supaRec.course_name.includes('رصد آلي') || supaRec.course_name.includes('دخول القاعة') || supaRec.course_name.includes('دخول الطالب')));
                     const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
                     const isPostponed = !!(supaRec.course_name && supaRec.course_name.includes('[تأجيل'));
-                    const extraRole = isSup ? 'إشراف' : 'معلم';
+                    const extraRole = isAuto ? 'رصد تلقائي (دخول الطالب)' : (isSup ? 'إشراف' : 'معلم');
                     const extraStatus = isPostponed ? 'postponed' : (supaRec.status || 'present');
                     if (supaRec.joined_at) {
                         try {
@@ -5328,6 +5339,233 @@
             }
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // SELF-SERVICE BALANCES EXPORT (تصدير كشف الأرصدة الشامل Excel)
+        // ═══════════════════════════════════════════════════════════
+        async function exportAllStudentBalancesExcel() {
+            if (window.MonirPopup && window.MonirPopup.toast) {
+                window.MonirPopup.toast('جاري تحضير كشف الأرصدة الشامل لجميع الطلاب...', 'info');
+            }
+
+            try {
+                const cfg = (window.MONIR_SUPABASE_CONFIG && window.MONIR_SUPABASE_CONFIG.url)
+                    ? window.MONIR_SUPABASE_CONFIG
+                    : { url: 'https://chwhrxquvaiskdsthips.supabase.co', anonKey: 'sb_publishable_EEpE3k9qqqWSpACYFD0wLw_77C-fYYP' };
+                
+                const headers = { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey };
+
+                async function fetchAll(table, select) {
+                    let rows = [];
+                    let page = 0;
+                    const pageSize = 1000;
+                    while (true) {
+                        const h = { ...headers, 'Range': (page * pageSize) + '-' + ((page + 1) * pageSize - 1) };
+                        let res;
+                        try {
+                            res = await fetch(cfg.url + '/rest/v1/' + table + '?select=' + select, { headers: h });
+                        } catch(e) { break; }
+                        if (!res || !res.ok) break;
+                        const data = await res.json();
+                        if (Array.isArray(data) && data.length > 0) rows.push(...data);
+                        if (!data || data.length < pageSize) break;
+                        page++;
+                    }
+                    return rows;
+                }
+
+                const [students, enrollments, teachers] = await Promise.all([
+                    fetchAll('students', 'id,name,student_code,phone,parent_phone,status'),
+                    fetchAll('enrollments', 'student_id,course_name,teacher_id,group_id,remaining_credits,session_duration,lecture_time,subscription_days,current_surah,status'),
+                    fetchAll('teachers', 'id,name')
+                ]);
+
+                if (!students || students.length === 0) {
+                    alert('تعذر جلب بيانات الطلاب حالياً. يرجى التأكد من الاتصال بالإنترنت والمحاولة ثانية.');
+                    return;
+                }
+
+                const tMap = {};
+                teachers.forEach(t => { if (t.id) tMap[t.id] = t.name; });
+
+                const stMap = {};
+                students.forEach(s => { stMap[s.id] = s; });
+
+                const enrBySt = {};
+                enrollments.forEach(e => {
+                    if (e.student_id) {
+                        if (!enrBySt[e.student_id]) enrBySt[e.student_id] = [];
+                        enrBySt[e.student_id].push(e);
+                    }
+                });
+
+                const rowsData = [];
+                const enrolledStudentIds = new Set();
+
+                enrollments.forEach(e => {
+                    const sid = e.student_id;
+                    enrolledStudentIds.add(sid);
+                    const st = stMap[sid] || {};
+                    const stCode = st.student_code || ('ST' + sid);
+                    const stName = st.name || 'طالب غير مسجل الاسم';
+                    const phone = st.phone || st.parent_phone || '—';
+                    const teacherName = tMap[e.teacher_id] || 'غير محدد';
+                    const groupId = e.group_id || 'بدون مجموعة';
+                    const courseName = e.course_name || 'مسار عام';
+                    const subDays = e.subscription_days || '—';
+                    const lecTime = e.lecture_time || '—';
+                    const sessionDur = e.session_duration || '20 دقيقة';
+                    const credits = parseFloat(e.remaining_credits || 0);
+
+                    const allEnrs = enrBySt[sid] || [];
+                    const isQuran = allEnrs.some(en => (en.course_name || '').includes('قرآن') || (en.group_id && String(en.group_id).startsWith('G'))) || !String(stCode).startsWith('ST20');
+                    const isCourse = allEnrs.some(en => (en.course_name || '').includes('صلاة') || (en.course_name || '').includes('كورس') || (en.group_id && String(en.group_id).startsWith('C'))) || String(stCode).startsWith('ST20');
+
+                    let trackName = 'مسار القرآن الكريم';
+                    if (isQuran && isCourse) trackName = 'مسار مشترك (قرآن + كورسات)';
+                    else if (isCourse) trackName = 'مسار الكورسات (2000+)';
+
+                    let surahText = e.current_surah || '—';
+                    if (typeof surahText === 'string' && surahText.startsWith('{')) {
+                        try {
+                            const parsed = JSON.parse(surahText);
+                            surahText = parsed.hifz || parsed.current_surah || parsed.notes || '—';
+                        } catch(ex) {}
+                    }
+
+                    const statusText = (st.status === 'active' && e.status === 'active') ? 'نشط' : 'موقوف / غير نشط';
+
+                    rowsData.push({
+                        code: stCode,
+                        name: stName,
+                        track: trackName,
+                        course: courseName,
+                        credits: credits,
+                        teacher: teacherName,
+                        group: groupId,
+                        schedule: (subDays !== '—' || lecTime !== '—') ? (subDays + ' · ' + lecTime) : '—',
+                        duration: sessionDur,
+                        surah: surahText,
+                        phone: phone,
+                        status: statusText
+                    });
+                });
+
+                students.forEach(s => {
+                    if (!enrolledStudentIds.has(s.id)) {
+                        const stCode = s.student_code || ('ST' + s.id);
+                        rowsData.push({
+                            code: stCode,
+                            name: s.name || 'طالب بدون اشتراك',
+                            track: String(stCode).startsWith('ST20') ? 'مسار الكورسات (2000+)' : 'مسار القرآن الكريم',
+                            course: '—',
+                            credits: 0,
+                            teacher: '—',
+                            group: '—',
+                            schedule: '—',
+                            duration: '—',
+                            surah: '—',
+                            phone: s.phone || s.parent_phone || '—',
+                            status: 'غير نشط (بدون اشتراك)'
+                        });
+                    }
+                });
+
+                rowsData.sort((a, b) => {
+                    const na = parseInt((a.code || '').replace(/\D/g, '')) || 999999;
+                    const nb = parseInt((b.code || '').replace(/\D/g, '')) || 999999;
+                    return na - nb;
+                });
+
+                const todayStr = new Date().toISOString().split('T')[0];
+                const escapeXml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+                const trs = rowsData.map((r, idx) => `
+                    <tr>
+                        <td style="text-align:center; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${idx + 1}</td>
+                        <td style="text-align:center; font-family:Consolas,monospace; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(r.code)}</td>
+                        <td style="font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(r.name)}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(r.track)}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(r.course)}</td>
+                        <td style="text-align:center; font-weight:bold; font-size:11pt; color:#047857; background-color:#ecfdf5; border:1px solid #cbd5e1; padding:6px 8px;">${r.credits}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(r.teacher)}</td>
+                        <td style="text-align:center; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(r.group)}</td>
+                        <td style="text-align:center; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(r.schedule)}</td>
+                        <td style="text-align:center; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(r.duration)}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right;">${escapeXml(r.surah)}</td>
+                        <td style="mso-number-format:'\\@'; text-align:center; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(r.phone)}</td>
+                        <td style="text-align:center; font-weight:bold; border:1px solid #cbd5e1; padding:6px 8px;">${escapeXml(r.status)}</td>
+                    </tr>
+                `).join('');
+
+                const totalCredits = rowsData.reduce((acc, r) => acc + (parseFloat(r.credits) || 0), 0);
+
+                const html = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                        <!--[if gte mso 9]>
+                        <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                            <x:ExcelWorksheet>
+                                <x:Name>كشف أرصدة الطلاب</x:Name>
+                                <x:WorksheetOptions>
+                                <x:DisplayRightToLeft/>
+                                </x:WorksheetOptions>
+                            </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                        </xml>
+                        <![endif]-->
+                        <style>
+                            body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; direction: rtl; }
+                            .header-title { background-color: #1f274b; color: #ffffff; font-size: 16pt; font-weight: bold; text-align: center; }
+                            .header-sub { background-color: #f8fafc; color: #475569; font-size: 11pt; font-weight: bold; text-align: center; }
+                            .th-col { background-color: #1f274b; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; padding: 8px; }
+                        </style>
+                    </head>
+                    <body>
+                        <table border="1" style="border-collapse:collapse; width:100%;">
+                            <tr>
+                                <td colspan="13" class="header-title" style="padding:14px;">أكاديمية منير الذكية · كشف الأرصدة الشامل لجميع الطلاب</td>
+                            </tr>
+                            <tr>
+                                <td colspan="13" class="header-sub" style="padding:8px;">تاريخ استخراج الكشف: ${todayStr} · إجمالي عدد الطلاب: ${rowsData.length} · إجمالي الأرصدة المتبقية: ${totalCredits.toLocaleString()} حلقة</td>
+                            </tr>
+                            <tr style="height:10px;"><td colspan="13" style="background:#f1f5f9; border:none;"></td></tr>
+                            <tr>
+                                <th class="th-col" style="width:40px;">م</th>
+                                <th class="th-col" style="width:90px;">كود الطالب</th>
+                                <th class="th-col" style="width:180px;">اسم الطالب</th>
+                                <th class="th-col" style="width:140px;">المسار الأكاديمي</th>
+                                <th class="th-col" style="width:140px;">اسم الكورس / الحلقة</th>
+                                <th class="th-col" style="width:110px; background-color:#047857;">الرصيد المتبقي</th>
+                                <th class="th-col" style="width:140px;">المعلم المعتمد</th>
+                                <th class="th-col" style="width:90px;">المجموعة</th>
+                                <th class="th-col" style="width:140px;">المواعيد والأيام</th>
+                                <th class="th-col" style="width:80px;">المدة</th>
+                                <th class="th-col" style="width:140px;">الورد القرآني</th>
+                                <th class="th-col" style="width:120px;">هاتف التواصل</th>
+                                <th class="th-col" style="width:100px;">حالة الطالب</th>
+                            </tr>
+                            ${trs}
+                        </table>
+                    </body>
+                    </html>
+                `;
+
+                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+                triggerBlobDownload(blob, `كشف_أرصدة_طلاب_أكاديمية_منير_${todayStr}.xls`);
+
+                if (window.MonirPopup && window.MonirPopup.toast) {
+                    window.MonirPopup.toast('تم تصدير كشف الأرصدة بنجاح!', 'success');
+                }
+            } catch(err) {
+                console.error('Error exporting balances:', err);
+                alert('حدث خطأ أثناء تصدير كشف الأرصدة: ' + (err.message || err));
+            }
+        }
+    
         async function exportDailyAttendanceMatchingExcel(format = 'xls') {
             const exportBtn = document.getElementById('dailyMatchingExportExcelBtn');
             const origBtnHtml = exportBtn ? exportBtn.innerHTML : '';
