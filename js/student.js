@@ -5472,7 +5472,7 @@ function renderGeneralTrackView() {
                 const mSub = (cachedStudentSubmissions || []).find(s => s.quiz_id === mInfo.id || (s.quiz_title || '').includes(mInfo.title));
                 const now = new Date();
                 const startWindow = new Date('2026-10-16T00:00:00');
-                const endWindow = new Date('2026-10-24T00:59:59+02:00');
+                const endWindow = new Date('2026-11-30T23:59:59+02:00');
 
                 return `
                     <div class="bg-gradient-to-r from-[#171D3B] via-[#1F274B] to-[#2B3564] text-white p-4 sm:p-4.5 rounded-2xl shadow-md border border-indigo-900/60 mt-3 space-y-3">
@@ -5752,7 +5752,22 @@ const TAJWEED_SUMMARY_VIDEO = {
 };
 
 window.getStudentTajweedVideoInfo = function() {
-    return { ...TAJWEED_SUMMARY_VIDEO };
+    try {
+        const stored = localStorage.getItem('monir_tajweed_active_video');
+        if (stored) {
+            const p = JSON.parse(stored);
+            if (p && p.url) {
+                return {
+                    title: p.title || (typeof TAJWEED_SUMMARY_VIDEO !== 'undefined' ? TAJWEED_SUMMARY_VIDEO.title : 'المرئي لأحكام التجويد'),
+                    url: p.url
+                };
+            }
+        }
+    } catch(e) {}
+    return (typeof TAJWEED_SUMMARY_VIDEO !== 'undefined') ? { ...TAJWEED_SUMMARY_VIDEO } : {
+        title: 'المرئي لأحكام التجويد - ملخص شهر نوفمبر 2026',
+        url: 'https://drive.google.com/file/d/1_8McctJtMxwIX3UrsGBSvom7r0GsQjGv/preview'
+    };
 };
 
 window.updateTajweedVideoCardUI = function() {
@@ -7770,10 +7785,36 @@ async function startQuiz(quizId) {
 
     try {
         let questions = [];
-        // 1. Direct local fallback for monthly exams for instant zero-latency loading
-        const qKey = String(quizId);
-        if (window.MONTHLY_EXAMS_QUESTIONS && (window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId])) {
-            questions = window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId];
+        // 1. Check Supabase Cloud first for live published questions (e.g. from Admin Excel upload)
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            try {
+                const client = window.MonirDB.getClient();
+                const { data: dbRows } = await client
+                    .from('quiz_questions')
+                    .select('*')
+                    .eq('quiz_id', quizId)
+                    .order('id', { ascending: true });
+                if (dbRows && dbRows.length > 0) {
+                    questions = dbRows.map(row => ({
+                        id: row.id,
+                        quiz_id: row.quiz_id,
+                        question_text: row.question_text,
+                        options: [row.option_a, row.option_b, row.option_c, row.option_d].filter(Boolean),
+                        correct_option_index: (row.correct_option === 'B' ? 1 : row.correct_option === 'C' ? 2 : row.correct_option === 'D' ? 3 : 0),
+                        points: row.points || 2
+                    }));
+                }
+            } catch(dbErr) {
+                console.warn('[Quiz Questions Live Fetch]:', dbErr);
+            }
+        }
+
+        // 2. Direct local fallback for monthly exams
+        if (questions.length === 0) {
+            const qKey = String(quizId);
+            if (window.MONTHLY_EXAMS_QUESTIONS && (window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId])) {
+                questions = window.MONTHLY_EXAMS_QUESTIONS[qKey] || window.MONTHLY_EXAMS_QUESTIONS[quizId];
+            }
         }
         if (questions.length === 0 && window.MONTHLY_EXAMS_DATA && window.MONTHLY_EXAMS_DATA.questions) {
             questions = window.MONTHLY_EXAMS_DATA.questions.filter(q => Number(q.quiz_id) === Number(quizId));

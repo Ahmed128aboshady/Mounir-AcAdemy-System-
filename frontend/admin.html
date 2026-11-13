@@ -199,6 +199,11 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>كشف الأرصدة (Excel)</span>
                 </button>
+                <button type="button" onclick="openTajweedAdminModal()" class="bg-purple-700 hover:bg-purple-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="إدارة ونشر فيديو وأسئلة التجويد الشهرية لجميع الطلاب">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    <span>مرئي واختبار التجويد</span>
+                </button>
+                
                 
                 <button type="button" onclick="openDailyAttendanceMatchingSection()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="تصدير ومطابقة الحضور اليومي الفعلي Excel">
                     <span>مطابقة الحضور اليومي</span>
@@ -3896,7 +3901,10 @@
                         </tr>
                         ${rowsHtml}
                     </table>
-                </body>
+                
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    </body>
                 </html>
             `;
 
@@ -5342,6 +5350,415 @@
         // ═══════════════════════════════════════════════════════════
         // SELF-SERVICE BALANCES EXPORT (تصدير كشف الأرصدة الشامل Excel)
         // ═══════════════════════════════════════════════════════════
+        
+        // ═══════════════════════════════════════════════════════════
+        // TAJWEED VIDEO & 20 QUESTIONS EXAM ENGINE (إدارة مرئي وأسئلة التجويد)
+        // ═══════════════════════════════════════════════════════════
+        let tajweedParsedQuestions = [];
+
+        function openTajweedAdminModal() {
+            const m = document.getElementById('tajweedAdminModal');
+            if (m) m.classList.remove('hidden');
+            loadTajweedCurrentState();
+        }
+
+        function closeTajweedAdminModal() {
+            const m = document.getElementById('tajweedAdminModal');
+            if (m) m.classList.add('hidden');
+        }
+
+        async function loadTajweedCurrentState() {
+            const badge = document.getElementById('tajweedCurrentVideoBadge');
+            const titleInput = document.getElementById('tajweedVideoTitleInput');
+            const urlInput = document.getElementById('tajweedVideoUrlInput');
+
+            // 1. Try local storage override
+            let currentVid = null;
+            try {
+                const s = localStorage.getItem('monir_tajweed_active_video');
+                if (s) currentVid = JSON.parse(s);
+            } catch(e) {}
+
+            // 2. Try Supabase Cloud
+            if (window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const { data: qData } = await client.from('quizzes').select('title, description').eq('id', 1003).maybeSingle();
+                    if (qData && qData.description) {
+                        try {
+                            const descObj = (typeof qData.description === 'string') ? JSON.parse(qData.description) : qData.description;
+                            if (descObj && descObj.video_url) {
+                                currentVid = {
+                                    title: descObj.video_title || qData.title || 'المرئي لأحكام التجويد - ملخص الشهر',
+                                    url: descObj.video_url
+                                };
+                            }
+                        } catch(ex) {}
+                    }
+                } catch(err) {}
+            }
+
+            if (!currentVid) {
+                currentVid = {
+                    title: 'المرئي لأحكام التجويد - ملخص شهر نوفمبر 2026',
+                    url: 'https://drive.google.com/file/d/1_8McctJtMxwIX3UrsGBSvom7r0GsQjGv/preview'
+                };
+            }
+
+            if (titleInput && !titleInput.value) titleInput.value = currentVid.title || '';
+            if (urlInput && !urlInput.value) urlInput.value = currentVid.url || '';
+            if (badge) badge.innerText = 'المرئي نشط حالياً للطلاب';
+
+            // Also load current question count from Supabase if preview is empty
+            if (tajweedParsedQuestions.length === 0 && window.MonirDB && window.MonirDB.isConfigured()) {
+                try {
+                    const client = window.MonirDB.getClient();
+                    const { data: questions } = await client.from('quiz_questions').select('*').eq('quiz_id', 1003).order('id');
+                    if (questions && questions.length > 0) {
+                        tajweedParsedQuestions = questions.map((q, idx) => ({
+                            num: idx + 1,
+                            question_text: q.question_text,
+                            option_a: q.option_a,
+                            option_b: q.option_b,
+                            option_c: q.option_c,
+                            option_d: q.option_d,
+                            correct_option: q.correct_option || 'A',
+                            points: q.points || 2
+                        }));
+                        renderTajweedQuestionsPreview();
+                    }
+                } catch(e) {}
+            }
+        }
+
+        function normalizeVideoEmbedUrl(rawUrl) {
+            let u = String(rawUrl || '').trim();
+            if (!u) return '';
+            // Google Drive preview normalization
+            if (u.includes('drive.google.com')) {
+                const m = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (m && m[1]) {
+                    return `https://drive.google.com/file/d/${m[1]}/preview`;
+                }
+            }
+            // YouTube embed normalization
+            if (u.includes('youtube.com/watch')) {
+                const m = u.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+                if (m && m[1]) return `https://www.youtube.com/embed/${m[1]}`;
+            }
+            if (u.includes('youtu.be/')) {
+                const m = u.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+                if (m && m[1]) return `https://www.youtube.com/embed/${m[1]}`;
+            }
+            return u;
+        }
+
+        async function saveTajweedVideoAdmin() {
+            const titleInput = document.getElementById('tajweedVideoTitleInput');
+            const urlInput = document.getElementById('tajweedVideoUrlInput');
+            const btn = document.getElementById('btnSaveTajweedVideo');
+
+            const title = (titleInput?.value || '').trim() || 'المرئي لأحكام التجويد - ملخص شهر نوفمبر 2026';
+            const rawUrl = (urlInput?.value || '').trim();
+
+            if (!rawUrl) {
+                alert('يرجى إدخال رابط الفيديو.');
+                return;
+            }
+
+            const cleanUrl = normalizeVideoEmbedUrl(rawUrl);
+            const nowIso = new Date().toISOString();
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'جاري الحفظ والنشر السحابي...';
+            }
+
+            try {
+                const payload = {
+                    title: title,
+                    url: cleanUrl,
+                    updated_at: nowIso
+                };
+
+                localStorage.setItem('monir_tajweed_active_video', JSON.stringify(payload));
+
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+                    // Update quiz 1003 description with active video
+                    const { data: curQ } = await client.from('quizzes').select('description').eq('id', 1003).maybeSingle();
+                    let descObj = { is_active: true, is_monthly_exam: true };
+                    if (curQ && curQ.description) {
+                        try {
+                            descObj = (typeof curQ.description === 'string') ? JSON.parse(curQ.description) : curQ.description;
+                        } catch(e) {}
+                    }
+                    descObj.video_url = cleanUrl;
+                    descObj.video_title = title;
+                    descObj.updated_at = nowIso;
+
+                    await client.from('quizzes').update({
+                        description: JSON.stringify(descObj)
+                    }).eq('id', 1003);
+                }
+
+                if (window.MonirPopup && window.MonirPopup.toast) {
+                    window.MonirPopup.toast('تم بنجاح اعتماد ونشر فيديو التجويد لجميع الطلاب!', 'success');
+                } else {
+                    alert('تم بنجاح اعتماد ونشر فيديو التجويد لجميع الطلاب!');
+                }
+
+                const badge = document.getElementById('tajweedCurrentVideoBadge');
+                if (badge) badge.innerText = 'تم التحديث والنشر بنجاح الآن';
+            } catch(err) {
+                console.error('Error saving Tajweed video:', err);
+                alert('حدث خطأ أثناء حفظ الفيديو: ' + (err.message || err));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'اعتماد ونشر الفيديو للطلاب فوراً';
+                }
+            }
+        }
+
+        function handleTajweedExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    if (typeof XLSX === 'undefined') {
+                        alert('مكتبة Excel غير جاهزة، يرجى إعادة تحميل الصفحة.');
+                        return;
+                    }
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const sheetName = wb.SheetNames[0];
+                    const sheet = wb.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    if (!rows || rows.length < 2) {
+                        alert('ملف الإكسيل فارغ أو لا يحتوي على صفوف بيانات.');
+                        return;
+                    }
+
+                    // Locate header row or start reading from data rows
+                    let startRowIdx = 1;
+                    for (let i = 0; i < Math.min(6, rows.length); i++) {
+                        const rowStr = (rows[i] || []).join(' ');
+                        if (rowStr.includes('نص السؤال') || rowStr.includes('السؤال') || rowStr.includes('الاختيار')) {
+                            startRowIdx = i + 1;
+                            break;
+                        }
+                    }
+
+                    const parsed = [];
+                    for (let i = startRowIdx; i < rows.length; i++) {
+                        const r = rows[i];
+                        if (!r || r.length === 0) continue;
+
+                        const qText = String(r[1] || r[0] || '').trim();
+                        if (!qText || qText.includes('تعليمات')) continue;
+
+                        const optA = String(r[2] || '').trim();
+                        const optB = String(r[3] || '').trim();
+                        const optC = String(r[4] || '').trim();
+                        const optD = String(r[5] || '').trim();
+
+                        let rawCorrect = String(r[6] || '1').trim().toUpperCase();
+                        let correctCode = 'A';
+                        if (rawCorrect === '2' || rawCorrect === 'B' || rawCorrect === 'ب') correctCode = 'B';
+                        else if (rawCorrect === '3' || rawCorrect === 'C' || rawCorrect === 'ج') correctCode = 'C';
+                        else if (rawCorrect === '4' || rawCorrect === 'D' || rawCorrect === 'د') correctCode = 'D';
+
+                        const pts = parseInt(r[7]) || 2;
+
+                        parsed.push({
+                            num: parsed.length + 1,
+                            question_text: qText,
+                            option_a: optA,
+                            option_b: optB,
+                            option_c: optC,
+                            option_d: optD,
+                            correct_option: correctCode,
+                            points: pts
+                        });
+                    }
+
+                    if (parsed.length === 0) {
+                        alert('لم يتم العثور على أسئلة صالحة في الملف، يرجى التأكد من تعبئة القالب بالشكل الصحيح.');
+                        return;
+                    }
+
+                    tajweedParsedQuestions = parsed;
+                    renderTajweedQuestionsPreview();
+
+                    if (window.MonirPopup && window.MonirPopup.toast) {
+                        window.MonirPopup.toast(`تمت قراءة ${parsed.length} سؤالاً بنجاح من الشيت!`, 'success');
+                    }
+                } catch(err) {
+                    console.error('Error parsing Tajweed Excel:', err);
+                    alert('تعذر قراءة ملف الإكسيل: ' + (err.message || err));
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        
+        function escapeTajweedHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    
+        function renderTajweedQuestionsPreview() {
+            const container = document.getElementById('tajweedQuestionsPreviewContainer');
+            const publishBar = document.getElementById('tajweedPublishBar');
+            const countEl = document.getElementById('tajweedParsedQuestionsCount');
+
+            if (!container) return;
+
+            if (tajweedParsedQuestions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-slate-400 font-bold bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+                        لم يتم رفع شيت أسئلة بعد. اضغط "تحميل قالب الإكسيل" لتعبئة الأسئلة، ثم اضغط "رفع شيت الأسئلة (Excel)".
+                    </div>
+                `;
+                if (publishBar) publishBar.classList.add('hidden');
+                return;
+            }
+
+            if (publishBar) publishBar.classList.remove('hidden');
+            if (countEl) countEl.innerText = tajweedParsedQuestions.length;
+
+            const rowsHtml = tajweedParsedQuestions.map((q, idx) => {
+                const getOptClass = (code) => (q.correct_option === code)
+                    ? 'bg-emerald-100 text-emerald-900 border-emerald-400 font-black'
+                    : 'bg-slate-50 text-slate-700 border-slate-200';
+
+                return `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/50">
+                        <td class="text-center font-bold text-slate-500 py-2.5 px-2">${idx + 1}</td>
+                        <td class="font-extrabold text-slate-900 py-2.5 px-3">${escapeTajweedHtml(q.question_text)}</td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('A')}">${escapeTajweedHtml(q.option_a || '—')}</span></td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('B')}">${escapeTajweedHtml(q.option_b || '—')}</span></td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('C')}">${escapeTajweedHtml(q.option_c || '—')}</span></td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('D')}">${escapeTajweedHtml(q.option_d || '—')}</span></td>
+                        <td class="text-center font-black py-2.5 px-2 text-emerald-700 bg-emerald-50/50">${q.correct_option}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-96">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 shadow-2xs">
+                            <tr>
+                                <th class="py-2 px-2 text-center w-10">م</th>
+                                <th class="py-2 px-3">نص السؤال</th>
+                                <th class="py-2 px-2 w-36">الخيار (1 / A)</th>
+                                <th class="py-2 px-2 w-36">الخيار (2 / B)</th>
+                                <th class="py-2 px-2 w-36">الخيار (3 / C)</th>
+                                <th class="py-2 px-2 w-36">الخيار (4 / D)</th>
+                                <th class="py-2 px-2 text-center w-16">الصحيح</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function publishTajweedQuestionsToSupabase() {
+            if (!tajweedParsedQuestions || tajweedParsedQuestions.length === 0) {
+                alert('لا توجد أسئلة لاعتمادها.');
+                return;
+            }
+
+            if (!confirm(`هل تود بالتأكيد اعتماد ونشر (${tajweedParsedQuestions.length}) سؤالاً لاختبار التجويد الشهري لجميع طلاب الأكاديمية؟`)) {
+                return;
+            }
+
+            const btn = document.getElementById('btnPublishTajweedQuestions');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'جاري النشر السحابي...';
+            }
+
+            try {
+                if (window.MonirDB && window.MonirDB.isConfigured()) {
+                    const client = window.MonirDB.getClient();
+
+                    // 1. Delete existing questions for Quiz 1003
+                    await client.from('quiz_questions').delete().eq('quiz_id', 1003);
+
+                    // 2. Determine next primary key ID safely
+                    const { data: maxRows } = await client.from('quiz_questions').select('id').order('id', { ascending: false }).limit(1);
+                    let curMaxId = (maxRows && maxRows[0] && maxRows[0].id) ? maxRows[0].id : 1000;
+
+                    // 3. Insert new questions in bulk with explicit IDs
+                    const payload = tajweedParsedQuestions.map((q, idx) => ({
+                        id: ++curMaxId,
+                        quiz_id: 1003,
+                        question_text: q.question_text,
+                        option_a: q.option_a,
+                        option_b: q.option_b,
+                        option_c: q.option_c,
+                        option_d: q.option_d,
+                        correct_option: q.correct_option,
+                        points: q.points || 2
+                    }));
+
+                    const { error: insErr } = await client.from('quiz_questions').insert(payload);
+                    if (insErr) throw insErr;
+
+                    // 3. Update Quiz 1003 metadata
+                    const nowIso = new Date().toISOString();
+                    const descObj = {
+                        is_active: true,
+                        is_monthly_exam: true,
+                        open_date: '2026-11-01T00:00:00+02:00',
+                        close_date: '2026-11-30T23:59:59+02:00',
+                        questions_count: payload.length,
+                        updated_at: nowIso
+                    };
+
+                    await client.from('quizzes').update({
+                        title: 'امتحان أحكام التجويد والإتقان — ملخص شهر نوفمبر 2026',
+                        total_score: payload.length * 2,
+                        description: JSON.stringify(descObj)
+                    }).eq('id', 1003);
+
+                    // Local storage cache for offline / fallback
+                    localStorage.setItem('monir_cached_tajweed_questions_1003', JSON.stringify(payload));
+                }
+
+                if (window.MonirPopup && window.MonirPopup.toast) {
+                    window.MonirPopup.toast('تم بنجاح اعتماد ونشر أسئلة اختبار التجويد الشهري لجميع الطلاب!', 'success');
+                } else {
+                    alert('تم بنجاح اعتماد ونشر أسئلة اختبار التجويد الشهري لجميع الطلاب!');
+                }
+
+                closeTajweedAdminModal();
+            } catch(err) {
+                console.error('Error publishing Tajweed questions:', err);
+                alert('حدث خطأ أثناء نشر الأسئلة: ' + (err.message || err));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'اعتماد ونشر الـ 20 سؤال للاختبار الآن';
+                }
+            }
+        }
+
+
         async function exportAllStudentBalancesExcel() {
             if (window.MonirPopup && window.MonirPopup.toast) {
                 window.MonirPopup.toast('جاري تحضير كشف الأرصدة الشامل لجميع الطلاب...', 'info');
@@ -12241,6 +12658,117 @@ async function confirmAndSaveQuranGrades() {
             }
         }
 </script>
+
+
+    <!-- ============================================================== -->
+    <!-- TAJWEED VIDEO & EXAM MANAGER MODAL (إدارة المرئي واختبار التجويد الشهري) -->
+    <!-- ============================================================== -->
+    <div id="tajweedAdminModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-2xl sm:rounded-3xl border border-purple-200 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden text-slate-800">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-amber-300">إدارة المرئي واختبار التجويد الشهري</h3>
+                        <p class="text-[11px] sm:text-xs text-purple-200/80 font-medium">تحديث الفيديو التفاعلي ورفع بنك الـ 20 سؤالاً للاختبار العام لجميع الطلاب</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTajweedAdminModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer text-sm font-bold">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-5 overflow-y-auto space-y-6 text-xs sm:text-sm">
+
+                <!-- SECTION 1: VIDEO LINK MANAGER -->
+                <div class="bg-purple-50/60 border border-purple-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-purple-950 font-black text-sm sm:text-base">
+                            <span class="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs">1</span>
+                            <span>الفيديو المرئي الشهري لشرح التجويد</span>
+                        </div>
+                        <span id="tajweedCurrentVideoBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-300">
+                            جاري فحص الفيديو الحالي...
+                        </span>
+                    </div>
+                    <p class="text-slate-600 leading-relaxed text-[11px] sm:text-xs">
+                        ضع هنا رابط فيديو التجويد لشهر نوفمبر (يدعم روابط Google Drive ورابط YouTube وروابط الفيديو المباشرة mp4). سيظهر الفيديو مباشرة في لوحة كل طالب لمشاهدته.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-slate-700 font-bold mb-1 text-[11px]">عنوان الفيديو / ملخص الشهر</label>
+                            <input type="text" id="tajweedVideoTitleInput" placeholder="مثال: المرئي لأحكام التجويد - شهر نوفمبر 2026" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-slate-700 font-bold mb-1 text-[11px]">رابط الفيديو (Google Drive أو YouTube)</label>
+                            <input type="text" id="tajweedVideoUrlInput" placeholder="https://drive.google.com/file/d/.../view أو YouTube" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 text-xs text-left" dir="ltr">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="button" onclick="saveTajweedVideoAdmin()" id="btnSaveTajweedVideo" class="bg-purple-700 hover:bg-purple-800 text-white font-black text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+                            <span>حفظ واعتماد رابط الفيديو في المنصة</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: EXCEL 20 QUESTIONS UPLOADER -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 text-slate-900 font-black text-sm sm:text-base">
+                            <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">2</span>
+                            <span>رفع بنك أسئلة اختبار التجويد (20 سؤالاً عبر Excel)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="downloadTajweedExcelTemplate()" class="bg-white hover:bg-slate-100 text-purple-700 border border-purple-300 font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 cursor-pointer">
+                                <span>تحميل قالب الإكسيل (جاهز)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-600 leading-relaxed text-[11px] sm:text-xs">
+                        يمكن للإشراف تعبئة أسئلة التجويد في ملف Excel ورفعه هنا مباشرة. سيقوم النظام بقراءة الـ 20 سؤالاً بالخيارات والإجابة الصحيحة وتحديث بنك الأسئلة في المنصة آلياً دون الحاجة لمبرمج أو AI شهرياً.
+                    </p>
+
+                    <!-- Dropzone / File Picker -->
+                    <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/30 rounded-2xl p-5 text-center transition cursor-pointer" onclick="document.getElementById('tajweedExcelFileInput').click()">
+                        <input type="file" id="tajweedExcelFileInput" accept=".xlsx, .xls" class="hidden" onchange="handleTajweedExcelUpload(event)">
+                        <div class="flex flex-col items-center justify-center gap-2">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            </div>
+                            <div class="font-black text-slate-800 text-xs sm:text-sm">اضغط هنا لاختيار ملف Excel للأسئلة أو اسحبه هنا</div>
+                            <div class="text-[11px] text-slate-500">الملف يحتوي على الأعمدة: نص السؤال، الخيار أ، الخيار ب، الخيار ج، الخيار د، رمز الإجابة الصحيحة (A/B/C/D)</div>
+                        </div>
+                    </div>
+
+                    <!-- Questions Live Preview Area -->
+                    <div id="tajweedQuestionsPreviewContainer" class="space-y-3">
+                        <div class="text-center py-6 text-slate-400 font-bold bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+                            لم يتم رفع شيت أسئلة بعد. اضغط "تحميل قالب الإكسيل" لتعبئة الأسئلة، ثم اضغط "رفع شيت الأسئلة (Excel)".
+                        </div>
+                    </div>
+
+                    <!-- Publish Action Footer -->
+                    <div id="tajweedPublishBar" class="hidden flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                        <div class="text-emerald-900 font-bold">
+                            تمت قراءة <span id="tajweedParsedQuestionsCount" class="font-black text-emerald-700 text-sm">0</span> سؤالاً بنجاح وجاهزة للاعتماد والنشر الفوري.
+                        </div>
+                        <button type="button" onclick="publishTajweedQuestionsToSupabase()" id="btnPublishTajweedQuestions" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl transition shadow-sm cursor-pointer">
+                            اعتماد ونشر الـ 20 سؤال للاختبار الآن
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
 </body>
 </html>

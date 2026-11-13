@@ -727,6 +727,13 @@
                                     .order('joined_at', { ascending: false });
                                 if (attList && attList.length > 0) {
                                     const nowMs = Date.now();
+                                    window.studentMonthlyExcusesMap = {};
+                                    const curYearMonth = todayDateStr.substring(0, 7);
+                                    attList.forEach(a => {
+                                        if (a.status === 'excused' && a.joined_at && a.joined_at.substring(0, 7) === curYearMonth) {
+                                            window.studentMonthlyExcusesMap[a.student_id] = (window.studentMonthlyExcusesMap[a.student_id] || 0) + 1;
+                                        }
+                                    });
                                     attList.forEach(a => {
                                         if (!latestAttendanceMap[a.student_id]) {
                                             latestAttendanceMap[a.student_id] = {
@@ -1411,7 +1418,9 @@
             // 2. excuseCount >= currentCycle
             // OR
             // 3. Student is inactive or has zero balance (no active excuses apply)
-            const isLocked = isInactive || isZeroBalance || (excuseCount > 0 && (
+            const curYearMonth = (typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0]).substring(0, 7);
+            const hasMonthlyExcuse = !!(window.studentMonthlyExcusesMap && (window.studentMonthlyExcusesMap[s.id] || 0) >= 1);
+            const isLocked = isInactive || isZeroBalance || hasMonthlyExcuse || (excuseCount > 0 && (
                 storedLastCycle === currentCycle ||
                 dbMaxExcuses === currentCycle ||
                 excuseCount >= currentCycle
@@ -1742,9 +1751,7 @@
                         <button type="button" onclick="showAlreadyRecordedAlert('${safeNameEsc}', '${autoEntry.time || ''}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-pointer" title="تم رصد الحضور آلياً لدخول القاعة الذكية الساعة ${autoEntry.time || ''} - اضغط للمعاينة">
                             <span>تم الرصد بالفعل (رصد آلي)</span>
                         </button>
-                        <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="إلغاء أو تعديل الحالة">
-                            تراجع
-                        </button>
+                        
                     `;
                 } else if (todayRecordedStatus) {
                     const statusLabel = todayRecordedStatus === 'present' ? 'حضور' : todayRecordedStatus === 'absent' ? 'غياب' : 'عذر';
@@ -1759,36 +1766,28 @@
                             <button type="button" disabled class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل حضور الطالب اليوم بنجاح وخصم حصة">
                                 <span></span><span>تم الحضور</span>
                             </button>
-                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'present')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل حضور اليوم وإعادة الحصة لرصيد الطالب">
-                                تراجع
-                            </button>
+                            
                         `;
                     } else if (todayRecordedStatus === 'absent') {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-red-100 text-red-900 border border-red-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل غياب الطالب اليوم">
                                 <span></span><span>تم الغياب</span>
                             </button>
-                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'absent')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل غياب اليوم وإعادة الحصة لرصيد الطالب">
-                                تراجع
-                            </button>
+                            
                         `;
                     } else if (todayRecordedStatus === 'excused') {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-amber-100 text-amber-900 border border-amber-300 font-black px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تسجيل عذر الطالب اليوم">
                                 <span>تم العذر</span>
                             </button>
-                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'excused')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تسجيل عذر اليوم">
-                                تراجع
-                            </button>
+                            
                         `;
                     } else if (todayRecordedStatus === 'postponed') {
                         recordButtonsHtml = `
                             <button type="button" disabled class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2.5 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs cursor-default" title="تم تأجيل هذه الجلسة دون أي خصم من رصيد الحصص أو الأعذار">
                                 <span></span><span>مؤجلة</span>
                             </button>
-                            <button type="button" onclick="undoTodayAttendance(${s.id}, ${s.enrollment_id || 'null'}, 'postponed')" class="text-[10px] text-slate-400 hover:text-red-600 underline font-bold px-1 transition cursor-pointer" title="تراجع عن تأجيل الجلسة وإعادة خيارات التسجيل">
-                                تراجع
-                            </button>
+                            
                         `;
                     }
                 } else {
@@ -2258,6 +2257,13 @@
         }
 
         async function undoTodayAttendance(studentId, enrollmentId, status) {
+            const blockTeacherUndoMsg = 'تنبيه أمان: خاصية التراجع وإلغاء الحضور مسندة حصرياً لإدارة الأكاديمية من خلال لوحة تحكم الإشراف.';
+            if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                await window.MonirPopup.alert(blockTeacherUndoMsg, 'خاص بالإشراف', 'info');
+            } else {
+                alert(blockTeacherUndoMsg);
+            }
+            return;
             const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
             const todayUtcStr = new Date().toISOString().split('T')[0];
             const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
