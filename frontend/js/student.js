@@ -2829,9 +2829,23 @@ async function executeClassroomJoin(url, courseName, lectureId) {
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 const client = window.MonirDB.getClient();
 
-                // 2.1 Deduct 1 credit from active enrollment (idempotent: only if not already done today)
+                // 2.1 Deduct 1 credit from active enrollment (idempotent: checked in local storage AND cloud DB)
                 if (!alreadyDone) {
                     try {
+                        // Cloud DB check: ensure no attendance was already recorded today from any device or source
+                        const todayStartIso = todayDate + 'T00:00:00';
+                        const { data: existingToday } = await client
+                            .from('attendance')
+                            .select('id')
+                            .eq('student_id', sId)
+                            .gte('joined_at', todayStartIso)
+                            .limit(1);
+
+                        if (existingToday && existingToday.length > 0) {
+                            console.log('[AutoRecord] Attendance already recorded today in database, skipping duplicate deduction.');
+                            return;
+                        }
+
                         const { data: enrList } = await client
                             .from('enrollments')
                             .select('id, remaining_credits, present_count, course_name, session_duration')

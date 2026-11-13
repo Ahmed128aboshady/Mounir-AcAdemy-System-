@@ -2829,102 +2829,80 @@ async function executeClassroomJoin(url, courseName, lectureId) {
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 const client = window.MonirDB.getClient();
 
-                // 2.0 Resolve Numeric Student ID (PostgreSQL integer column)
-                let numericStudentId = null;
-                if (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.id) {
-                    numericStudentId = parseInt(window.currentStudentData.student.id);
-                } else if (window.curStudent && window.curStudent.id) {
-                    numericStudentId = parseInt(window.curStudent.id);
-                } else if (!isNaN(Number(sId))) {
-                    numericStudentId = parseInt(sId);
-                }
-
-                if (!numericStudentId) {
+                // 2.1 Deduct 1 credit from active enrollment (idempotent: checked in local storage AND cloud DB)
+                if (!alreadyDone) {
                     try {
-                        const { data: stRow } = await client
-                            .from('students')
+                        // Cloud DB check: ensure no attendance was already recorded today from any device or source
+                        const todayStartIso = todayDate + 'T00:00:00';
+                        const { data: existingToday } = await client
+                            .from('attendance')
                             .select('id')
-                            .eq('student_code', String(sId))
-                            .maybeSingle();
-                        if (stRow && stRow.id) {
-                            numericStudentId = parseInt(stRow.id);
+                            .eq('student_id', sId)
+                            .gte('joined_at', todayStartIso)
+                            .limit(1);
+
+                        if (existingToday && existingToday.length > 0) {
+                            console.log('[AutoRecord] Attendance already recorded today in database, skipping duplicate deduction.');
+                            return;
                         }
-                    } catch(e) {
-                        console.warn('Could not resolve numeric student id from code:', e);
-                    }
-                }
 
-                if (numericStudentId) {
-                    // 2.1 Deduct 1 credit from active enrollment (idempotent: only if not already done today)
-                    if (!alreadyDone) {
-                        try {
-                            const { data: enrList } = await client
+                        const { data: enrList } = await client
+                            .from('enrollments')
+                            .select('id, remaining_credits, present_count, course_name, session_duration')
+                            .eq('student_id', sId)
+                            .limit(1);
+
+                        if (enrList && enrList.length > 0) {
+                            const enr = enrList[0];
+                            const curRem = parseFloat(enr.remaining_credits || 0);
+                            const newRem = Math.max(0, curRem - 1);
+                            const newPresent = parseInt(enr.present_count || 0) + 1;
+
+                            await client
                                 .from('enrollments')
-                                .select('id, remaining_credits, present_count, course_name, session_duration')
-                                .eq('student_id', numericStudentId);
+                                .update({
+                                    remaining_credits: newRem,
+                                    present_count: newPresent
+                                })
+                                .eq('id', enr.id);
 
-                            if (enrList && enrList.length > 0) {
-                                // Match appropriate course (Prayer vs Quran vs default)
-                                let chosenEnr = enrList[0];
-                                const targetCourse = (courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : '') || '').toLowerCase();
-                                if (targetCourse.includes('صلاة') || targetCourse.includes('prayer')) {
-                                    const match = enrList.find(e => (e.course_name || '').includes('صلاة') || (e.course_name || '').includes('prayer'));
-                                    if (match) chosenEnr = match;
-                                } else if (targetCourse.includes('قرآن') || targetCourse.includes('quran')) {
-                                    const match = enrList.find(e => (e.course_name || '').includes('قرآن') || (e.course_name || '').includes('quran'));
-                                    if (match) chosenEnr = match;
+                            // Insert official attendance record
+                            await client
+                                .from('attendance')
+                                .insert([{
+                                    student_id: sId,
+                                    lecture_id: null,
+                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + ' [رصد آلي - دخول القاعة]',
+                                    status: 'present',
+                                    joined_at: new Date().toISOString(),
+                                    duration_minutes: parseInt(enr.session_duration) || 20
+                                }]);
+
+                            // Update in-memory data and UI
+                            if (window.currentStudentData) {
+                                if (window.currentStudentData.student) {
+                                    window.currentStudentData.student.remaining_credits = newRem;
                                 }
-
-                                const curRem = parseFloat(chosenEnr.remaining_credits || 0);
-                                const newRem = Math.max(0, curRem - 1);
-                                const newPresent = parseInt(chosenEnr.present_count || 0) + 1;
-
-                                await client
-                                    .from('enrollments')
-                                    .update({
-                                        remaining_credits: newRem,
-                                        present_count: newPresent
-                                    })
-                                    .eq('id', chosenEnr.id);
-
-                                // Insert official attendance record with distinct auto-tag
-                                await client
-                                    .from('attendance')
-                                    .insert([{
-                                        student_id: numericStudentId,
-                                        lecture_id: lectureId || null,
-                                        course_name: (chosenEnr.course_name || courseName || 'حلقة قرآن كريم') + ' [رصد آلي - دخول الطالب]',
-                                        status: 'present',
-                                        joined_at: new Date().toISOString(),
-                                        duration_minutes: parseInt(chosenEnr.session_duration) || 20
-                                    }]);
-
-                                // Update in-memory data and UI
-                                if (window.currentStudentData) {
-                                    if (window.currentStudentData.student) {
-                                        window.currentStudentData.student.remaining_credits = newRem;
-                                    }
-                                    if (typeof renderStudentDashboard === 'function') {
-                                        renderStudentDashboard();
-                                    }
+                                if (typeof renderStudentDashboard === 'function') {
+                                    renderStudentDashboard();
                                 }
                             }
-                        } catch(enrErr) {
-                            console.warn('Enrollment deduction error:', enrErr);
                         }
+                    } catch(enrErr) {
+                        console.warn('Enrollment deduction error:', enrErr);
                     }
-
-                    // 2.2 Log entry audit notification
-                    client.from('notifications').insert([{
-                        student_id: numericStudentId,
-                        course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة قرآن كريم'),
-                        title: 'تأكيد دخول القاعة الذكية',
-                        message: 'تم تسجيل الحضور وخصم حلقة واحدة آلياً الساعة ' + nowTimeStr,
-                        type: 'classroom_entry',
-                        action_url: url,
-                        is_read: 0
-                    }]).then(() => {}).catch(() => {});
                 }
+
+                // 2.2 Log entry audit notification
+                client.from('notifications').insert([{
+                    student_id: sId,
+                    course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة قرآن كريم'),
+                    title: 'تأكيد دخول القاعة الذكية',
+                    message: 'تم تسجيل الحضور وخصم حلقة واحدة آلياً الساعة ' + nowTimeStr,
+                    type: 'classroom_entry',
+                    action_url: url,
+                    is_read: 0
+                }]).then(() => {}).catch(() => {});
             }
         } catch(err) {
             console.warn('Classroom audit push error:', err);

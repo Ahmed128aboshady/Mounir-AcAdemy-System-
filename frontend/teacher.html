@@ -1798,7 +1798,7 @@
                         `;
                     } else {
                         recordButtonsHtml = `
-                            <button onclick="recordSession(${s.id}, 'present', ${s.enrollment_id || 'null'}, this)" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تسجيل حضور وخصم حصة">حضور</button>
+                            <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold px-2 py-1 rounded-lg text-[11px] select-none inline-flex items-center gap-1 shadow-2xs" title="يتم رصد الحضور آلياً فور دخول الطالب للقاعة الذكية دون حاجة لتدخل المعلم"><span>رصد آلي عند الدخول</span></span>
                             ${excuseButtonHtml}
                             <button onclick="recordSession(${s.id}, 'absent', ${s.enrollment_id || 'null'}, this)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="غياب بدون عذر">غياب</button>
                             <button onclick="postponeStudentSession(${s.id}, ${s.enrollment_id || 'null'}, this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="تأجيل حصة الطالب لليوم دون خصم أي رصيد ودون استهلاك عذر">تأجيل</button>
@@ -1901,6 +1901,17 @@
         }
 
         async function recordSession(studentId, sessionStatus, enrollmentId = null, btn = null) {
+            // Guard: Teacher manual presence is locked because student presence is automated upon classroom entry
+            if (sessionStatus === 'present') {
+                const lockMsg = 'عذراً، تم قفل تسجيل الحضور اليدوي للمعلم نظراً لتفعيل الرصد الآلي للحضور بمجرد دخول الطالب للقاعة الذكية.\n\nيمكن للمعلم تسجيل العذر أو الغياب فقط في حال عدم حضور الطالب.';
+                if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
+                    await window.MonirPopup.alert(lockMsg, 'الرصد الآلي مفعل', 'info');
+                } else {
+                    alert(lockMsg);
+                }
+                return;
+            }
+
             // 1. Strict Synchronous Double-Click Lock
             window._inFlightSessionLocks = window._inFlightSessionLocks || {};
             if (window._inFlightSessionLocks[studentId]) {
