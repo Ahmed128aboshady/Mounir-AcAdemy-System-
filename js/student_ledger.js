@@ -18,15 +18,19 @@
             // Prevent V8 Date parsing bug where numbers produce year 2001
             if (d.getFullYear() < 2024) return '—';
 
+            // Fixed Cairo timezone (UTC+2)
+            const cairoMs = d.getTime() + (2 * 3600000);
+            const cd = new Date(cairoMs);
+
             const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-            const dayName = days[d.getDay()];
-            const day = d.getDate();
+            const dayName = days[cd.getUTCDay()];
+            const day = cd.getUTCDate();
             const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            const monthName = months[d.getMonth()];
-            const year = d.getFullYear();
+            const monthName = months[cd.getUTCMonth()];
+            const year = cd.getUTCFullYear();
             
-            let hours = d.getHours();
-            const minutes = String(d.getMinutes()).padStart(2, '0');
+            let hours = cd.getUTCHours();
+            const minutes = String(cd.getUTCMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'م' : 'ص';
             hours = hours % 12 || 12;
             
@@ -47,12 +51,16 @@
             if (isNaN(d.getTime())) return dateStr;
             if (d.getFullYear() < 2024) return '—';
 
+            // Fixed Cairo timezone (UTC+2)
+            const cairoMs = d.getTime() + (2 * 3600000);
+            const cd = new Date(cairoMs);
+
             const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-            const dayName = days[d.getDay()];
-            const day = d.getDate();
+            const dayName = days[cd.getUTCDay()];
+            const day = cd.getUTCDate();
             const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            const monthName = months[d.getMonth()];
-            const year = d.getFullYear();
+            const monthName = months[cd.getUTCMonth()];
+            const year = cd.getUTCFullYear();
             return `${dayName} ${day} ${monthName} ${year}`;
         } catch(e) {
             return dateStr;
@@ -741,27 +749,8 @@
     function renderAttendanceTableHtml(records, presentCount, absentCount, excuseCount, enrolledDate, courseName, enrollment, sessionNotifs = []) {
         const totalAttended = (presentCount || 0) + (absentCount || 0);
 
-        // Merge raw attendance table logs with session evaluation notifications
+        // Attendance table logs represent strictly recorded attendance sessions (no synthetic plan notifications)
         let resolvedRecords = [...(records || [])];
-        const existingDates = new Set();
-        resolvedRecords.forEach(r => {
-            const d = (r.joined_at || r.created_at || '').substring(0, 10);
-            if (d) existingDates.add(d);
-        });
-
-        (sessionNotifs || []).forEach(sn => {
-            const d = (sn.created_at || '').substring(0, 10);
-            if (d && !existingDates.has(d)) {
-                existingDates.add(d);
-                resolvedRecords.push({
-                    joined_at: sn.created_at,
-                    status: 'present',
-                    course_name: courseName,
-                    notes: sn.message || '',
-                    duration_minutes: parseInt(enrollment && enrollment.session_duration) || 20
-                });
-            }
-        });
 
         // Sort descending by date
         resolvedRecords.sort((a, b) => new Date(b.joined_at || b.created_at || 0) - new Date(a.joined_at || a.created_at || 0));
