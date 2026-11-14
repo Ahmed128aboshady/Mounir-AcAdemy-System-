@@ -2829,6 +2829,33 @@ async function executeClassroomJoin(url, courseName, lectureId) {
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 const client = window.MonirDB.getClient();
 
+                // 2.0 Resolve Numeric Student ID (PostgreSQL integer column)
+                let numericStudentId = null;
+                if (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.id) {
+                    numericStudentId = parseInt(window.currentStudentData.student.id, 10);
+                } else if (window.curStudent && window.curStudent.id) {
+                    numericStudentId = parseInt(window.curStudent.id, 10);
+                } else if (typeof sId === 'number' || (typeof sId === 'string' && !isNaN(Number(sId)) && !sId.startsWith('ST'))) {
+                    numericStudentId = parseInt(sId, 10);
+                }
+
+                if (!numericStudentId) {
+                    try {
+                        const { data: stRow } = await client
+                            .from('students')
+                            .select('id')
+                            .eq('student_code', String(sId))
+                            .maybeSingle();
+                        if (stRow && stRow.id) {
+                            numericStudentId = parseInt(stRow.id, 10);
+                        }
+                    } catch(e) {
+                        console.warn('Could not resolve numeric student id from code:', e);
+                    }
+                }
+
+                const targetQueryId = numericStudentId || sId;
+
                 // 2.1 Deduct 1 credit from active enrollment (idempotent: checked in local storage AND cloud DB)
                 if (!alreadyDone) {
                     try {
@@ -2837,7 +2864,7 @@ async function executeClassroomJoin(url, courseName, lectureId) {
                         const { data: existingToday } = await client
                             .from('attendance')
                             .select('id')
-                            .eq('student_id', sId)
+                            .eq('student_id', targetQueryId)
                             .gte('joined_at', todayStartIso)
                             .limit(1);
 
@@ -2848,12 +2875,26 @@ async function executeClassroomJoin(url, courseName, lectureId) {
 
                         const { data: enrList } = await client
                             .from('enrollments')
-                            .select('id, remaining_credits, present_count, course_name, session_duration')
-                            .eq('student_id', sId)
+                            .select('id, remaining_credits, present_count, course_name, session_duration, subscription_days')
+                            .eq('student_id', targetQueryId)
                             .limit(1);
 
                         if (enrList && enrList.length > 0) {
                             const enr = enrList[0];
+
+                            // 2.2 Scheduled Day Verification: Only deduct if today matches student subscription days
+                            if (enr.subscription_days) {
+                                const dayNamesArabic = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                                const todayArabicDay = dayNamesArabic[new Date().getDay()];
+                                const cleanSub = String(enr.subscription_days).replace(/[أإآ]/g, 'ا');
+                                const cleanToday = todayArabicDay.replace(/[أإآ]/g, 'ا');
+
+                                if (!cleanSub.includes(cleanToday)) {
+                                    console.log(`[AutoRecord] Skipping attendance record: today (${todayArabicDay}) is not among scheduled days (${enr.subscription_days}).`);
+                                    return;
+                                }
+                            }
+
                             const curRem = parseFloat(enr.remaining_credits || 0);
                             const newRem = Math.max(0, curRem - 1);
                             const newPresent = parseInt(enr.present_count || 0) + 1;
@@ -2870,9 +2911,9 @@ async function executeClassroomJoin(url, courseName, lectureId) {
                             await client
                                 .from('attendance')
                                 .insert([{
-                                    student_id: sId,
+                                    student_id: targetQueryId,
                                     lecture_id: null,
-                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + ' [رصد آلي - دخول القاعة]',
+                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + ' [رصد آلي - دخول الطالب]',
                                     status: 'present',
                                     joined_at: new Date().toISOString(),
                                     duration_minutes: parseInt(enr.session_duration) || 20
@@ -2888,37 +2929,15 @@ async function executeClassroomJoin(url, courseName, lectureId) {
                                 }
                             }
                         }
-                    } catch(enrErr) {
-                        console.warn('Enrollment deduction error:', enrErr);
+                    } catch(dbErr) {
+                        console.warn('[AutoRecord] DB Error during automated attendance:', dbErr);
                     }
                 }
-
-                // 2.2 Log entry audit notification
-                client.from('notifications').insert([{
-                    student_id: sId,
-                    course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : 'حلقة قرآن كريم'),
-                    title: 'تأكيد دخول القاعة الذكية',
-                    message: 'تم تسجيل الحضور وخصم حلقة واحدة آلياً الساعة ' + nowTimeStr,
-                    type: 'classroom_entry',
-                    action_url: url,
-                    is_read: 0
-                }]).then(() => {}).catch(() => {});
             }
-        } catch(err) {
-            console.warn('Classroom audit push error:', err);
+        } catch(e) {
+            console.warn('[AutoRecord] General Error in executeClassroomJoin:', e);
         }
     }
-
-    // 3. Existing lecture join hook
-    try {
-        if (lectureId) {
-            fetch('/api/lectures/' + lectureId + '/join', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ student_id: currentStudentId, duration_minutes: 60 })
-            }).catch(() => {});
-        }
-    } catch(e) {}
 }
 
 function joinMeet(lectureId, meetUrl) {
