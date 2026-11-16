@@ -2873,16 +2873,22 @@ async function executeClassroomJoin(url, courseName, lectureId) {
                             return;
                         }
 
+                        // Fetch student active enrollments
                         const { data: enrList } = await client
                             .from('enrollments')
                             .select('id, remaining_credits, present_count, course_name, session_duration, subscription_days')
-                            .eq('student_id', targetQueryId)
-                            .limit(1);
+                            .eq('student_id', targetQueryId);
 
                         if (enrList && enrList.length > 0) {
-                            const enr = enrList[0];
+                            // Smart course matching if student is enrolled in multiple courses (e.g. Prayer & Quran)
+                            let enr = null;
+                            if (courseName && courseName !== 'حلقة قرآن كريم') {
+                                enr = enrList.find(e => e.course_name && (e.course_name.includes(courseName) || courseName.includes(e.course_name)));
+                            }
+                            if (!enr) enr = enrList[0];
 
-                            // 2.2 Scheduled Day Verification: Only deduct if today matches student subscription days
+                            // Support both regular scheduled days and confirmed make-up / compensation sessions
+                            let isCompensationSession = false;
                             if (enr.subscription_days) {
                                 const dayNamesArabic = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
                                 const todayArabicDay = dayNamesArabic[new Date().getDay()];
@@ -2890,8 +2896,8 @@ async function executeClassroomJoin(url, courseName, lectureId) {
                                 const cleanToday = todayArabicDay.replace(/[أإآ]/g, 'ا');
 
                                 if (!cleanSub.includes(cleanToday)) {
-                                    console.log(`[AutoRecord] Skipping attendance record: today (${todayArabicDay}) is not among scheduled days (${enr.subscription_days}).`);
-                                    return;
+                                    isCompensationSession = true;
+                                    console.log(`[AutoRecord] Recorded as confirmed make-up/compensation session: today is ${todayArabicDay}, scheduled days: ${enr.subscription_days}`);
                                 }
                             }
 
@@ -2913,7 +2919,7 @@ async function executeClassroomJoin(url, courseName, lectureId) {
                                 .insert([{
                                     student_id: targetQueryId,
                                     lecture_id: null,
-                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + ' [رصد آلي - دخول الطالب]',
+                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + (typeof isCompensationSession !== 'undefined' && isCompensationSession ? ' [رصد آلي - تعويض]' : ' [رصد آلي - دخول الطالب]'),
                                     status: 'present',
                                     joined_at: new Date().toISOString(),
                                     duration_minutes: parseInt(enr.session_duration) || 20
