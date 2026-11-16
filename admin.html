@@ -705,8 +705,14 @@
                         </div>
 
                         <!-- Quick Search Row -->
-                        <div>
-                            <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder=" بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                            <div class="flex-1 w-full">
+                                <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder=" بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+                            </div>
+                            <button type="button" onclick="openCompensationModal()" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black px-3.5 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition cursor-pointer flex-shrink-0">
+                                <span class="text-sm font-black">+</span>
+                                <span>تسجيل جلسة تعويضية</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1469,6 +1475,76 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- ================================================================ -->
+    <!-- MODAL: تسجيل حضور تعويضي لطالب (إشراف)                          -->
+    <!-- ================================================================ -->
+    <div id="compensationModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 text-xs max-h-[92vh] flex flex-col space-y-4">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 flex-shrink-0">
+                <div>
+                    <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-black">+</span>
+                        <span>تسجيل جلسة تعويضية لطالب</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">رصد حضور تعويضي معتمد وخصم حصة واحدة للطلاب المعوضين في أيام غير أيامهم المعتادة</p>
+                </div>
+                <button type="button" onclick="closeCompensationModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center font-bold text-sm cursor-pointer">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="space-y-3 overflow-y-auto pr-1">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">ابحث عن الطالب (بالكود ST.. أو الاسم أو رقم الهاتف):</label>
+                    <input type="text" id="compModalSearchInput" oninput="handleCompModalSearch()" placeholder="اكتب كود الطالب مثل ST1067 أو الاسم..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+                    <div id="compModalSearchResults" class="mt-1 max-h-40 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl hidden bg-white shadow-lg"></div>
+                </div>
+
+                <!-- Selected Student Card -->
+                <div id="compModalStudentCard" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 id="compCardStudentName" class="font-black text-slate-900 text-sm">—</h4>
+                            <span id="compCardStudentCode" class="font-mono text-emerald-800 text-[11px] font-bold">—</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-500 block font-bold">الرصيد المتبقي</span>
+                            <span id="compCardCredits" class="font-black text-emerald-700 text-sm">— حصة</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200">
+                        <div><strong class="text-slate-500">المعلم:</strong> <span id="compCardTeacher" class="text-slate-800 font-bold">—</span></div>
+                        <div><strong class="text-slate-500">المجموعة:</strong> <span id="compCardGroup" class="text-slate-800 font-bold">—</span></div>
+                        <div><strong class="text-slate-500">الأيام المعتادة:</strong> <span id="compCardDays" class="text-slate-800 font-bold">—</span></div>
+                        <div><strong class="text-slate-500">وقت الحصة:</strong> <span id="compCardTime" class="text-slate-800 font-bold">—</span></div>
+                    </div>
+                </div>
+
+                <!-- Session Date -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">تاريخ الجلسة التعويضية:</label>
+                    <input type="date" id="compModalSessionDate" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+                </div>
+
+                <!-- Status Selection -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الجلسة التعويضية:</label>
+                    <select id="compModalStatus" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+                        <option value="present">حضور تعويضي (خصم حصة واحدة وإضافة حضور [إشراف - تعويض])</option>
+                        <option value="absent">غياب تعويضي (خصم حصة)</option>
+                        <option value="excused">عذر تعويضي (لا يخصم حصة)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 flex-shrink-0">
+                <button type="button" onclick="closeCompensationModal()" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">إلغاء</button>
+                <button type="button" id="compModalSubmitBtn" onclick="submitCompensationAttendance()" disabled class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black cursor-pointer shadow-md">تأكيد تسجيل الجلسة التعويضية</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ADD CREDITS MODAL (Supervision Balance Top-up with Audit History) -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <div id="addCreditsModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
@@ -4133,10 +4209,27 @@
             if (studentsList.length === 0 && window.MonirDB && window.MonirDB.isConfigured()) {
                 try {
                     const client = window.MonirDB.getClient();
-                    const [{ data: sData }, { data: eData }, { data: tData }] = await Promise.all([
-                        client.from('students').select('*'),
-                        client.from('enrollments').select('*'),
-                        client.from('teachers').select('id, name')
+                    // Paginated fetch to guarantee retrieving all records beyond 1000 limit
+                    async function fetchAllRowsFromDb(tableName, selectFields = '*') {
+                        let all = [];
+                        let page = 0;
+                        const pageSize = 1000;
+                        while (true) {
+                            const from = page * pageSize;
+                            const to = from + pageSize - 1;
+                            const { data, error } = await client.from(tableName).select(selectFields).range(from, to);
+                            if (error || !data || data.length === 0) break;
+                            all.push(...data);
+                            if (data.length < pageSize) break;
+                            page++;
+                        }
+                        return all;
+                    }
+
+                    const [sData, eData, tData] = await Promise.all([
+                        fetchAllRowsFromDb('students', '*'),
+                        fetchAllRowsFromDb('enrollments', '*'),
+                        fetchAllRowsFromDb('teachers', 'id, name')
                     ]);
 
                     if (Array.isArray(tData)) {
@@ -4149,7 +4242,13 @@
                         (allTeachersList || []).forEach(t => { if (t.id) tMap[t.id] = t.name; });
 
                         const eMap = {};
-                        (eData || []).forEach(e => { if (e.student_id) eMap[e.student_id] = e; });
+                        (eData || []).forEach(e => {
+                            if (e.student_id) {
+                                if (!eMap[e.student_id] || e.status === 'active') {
+                                    eMap[e.student_id] = e;
+                                }
+                            }
+                        });
 
                         studentsList = sData.map(s => {
                             const enr = eMap[s.id] || {};
@@ -4440,13 +4539,60 @@
                 if (searchInput) {
                     const matchName = (r.name || '').toLowerCase().includes(searchInput);
                     const matchCode = (r.student_code || '').toLowerCase().includes(searchInput);
-                    const matchPhone = (r.phone || '').includes(searchInput);
+                    const matchPhone = (r.phone || '').includes(searchInput) || (r.parent_phone || '').includes(searchInput);
                     const matchTeacher = (r.teacher_name || '').toLowerCase().includes(searchInput);
                     const matchGroup = (r.group_id || '').toLowerCase().includes(searchInput);
                     if (!matchName && !matchCode && !matchPhone && !matchTeacher && !matchGroup) return false;
                 }
                 return true;
             });
+
+            // Dynamic search inclusion: If searching by code/name, include matching unscheduled students as compensation candidates
+            if (searchInput && searchInput.length >= 2) {
+                const existingSids = new Set(dailyMatchingFilteredRecords.map(r => r.student_id));
+                const allPool = window.bsAllStudents || window._monirDailyStudentsCache || [];
+                allPool.forEach(s => {
+                    if (!existingSids.has(s.id)) {
+                        const matchName = (s.name || '').toLowerCase().includes(searchInput);
+                        const matchCode = (s.student_code || '').toLowerCase().includes(searchInput);
+                        const matchPhone = (s.phone || '').includes(searchInput) || (s.parent_phone || '').includes(searchInput);
+                        const matchTeacher = (s.teacher_name || '').toLowerCase().includes(searchInput);
+                        const matchGroup = (s.group_id || '').toLowerCase().includes(searchInput);
+                        if (matchName || matchCode || matchPhone || matchTeacher || matchGroup) {
+                            if (!teacherFilter || s.teacher_name === teacherFilter) {
+                                existingSids.add(s.id);
+                                dailyMatchingFilteredRecords.push({
+                                    student_id: s.id,
+                                    name: s.name,
+                                    student_code: s.student_code,
+                                    phone: s.phone,
+                                    parent_phone: s.parent_phone,
+                                    group_id: s.group_id,
+                                    course_name: s.course_name || 'مسار القرآن الكريم والتدبر',
+                                    subscription_days: s.subscription_days,
+                                    lecture_time: s.lecture_time,
+                                    teacher_name: s.teacher_name,
+                                    teacher_id: s.teacher_id,
+                                    current_surah: s.current_surah,
+                                    status: 'not_recorded',
+                                    recorded_at: 'غير مسجل (متاح تعويض)',
+                                    recorded_role: '',
+                                    manual_match: '',
+                                    remaining_credits: s.remaining_credits,
+                                    absent_count: s.absent_count,
+                                    present_count: s.present_count,
+                                    excuse_count: s.excuse_count,
+                                    is_inactive: s.is_inactive,
+                                    is_scheduled: false,
+                                    is_compensation_candidate: true,
+                                    entered_meet: false,
+                                    student_entered_at: ''
+                                });
+                            }
+                        }
+                    }
+                });
+            }
 
             let presentCount = 0;
             let absentCount = 0;
@@ -4509,6 +4655,17 @@
                     statusBadge = `<span class="bg-amber-100 text-amber-800 border border-amber-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span>عذر</span> ${roleBadge}</span>`;
                 } else if (r.status === 'postponed') {
                     statusBadge = `<span class="bg-indigo-100 text-indigo-900 border border-indigo-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1"><span></span><span>مؤجلة</span> ${roleBadge}</span>`;
+                } else if (r.is_compensation_candidate) {
+                    statusBadge = `
+                        <div class="inline-flex flex-col items-center gap-1">
+                            <span class="bg-amber-50 text-amber-900 border border-amber-300 font-extrabold px-2 py-0.5 rounded-full text-[10px]">غير مجدول اليوم (متاح تعويض)</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.remaining_credits || 0}, true)" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2 py-0.5 rounded text-[10px] transition cursor-pointer shadow-xs" title="تسجيل حضور تعويضي وخصم حصة">حضور تعويضي</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'absent', ${r.remaining_credits || 0}, true)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تسجيل غياب">غياب</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'excused', ${r.remaining_credits || 0}, true)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تسجيل عذر">عذر</button>
+                            </div>
+                        </div>
+                    `;
                 } else if (r.is_inactive || r.remaining_credits <= 0) {
                     statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
                 } else if (r.entered_meet) {
@@ -4613,7 +4770,7 @@
             }).join('');
         }
 
-        async function recordOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, status, currentCredits) {
+        async function recordOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, status, currentCredits, isCompensation = false) {
             const studentName = decodeURIComponent(encodedName);
             const statusLabels = { present: 'حضور رسمي وخصم حصة واحدة', absent: 'غياب رسمي وخصم حصة واحدة', excused: 'عذر رسمي دون خصم' };
             const statusLabel = statusLabels[status] || status;
@@ -4661,7 +4818,11 @@
                         const attDate = att.joined_at.split('T')[0];
                         const attMs = new Date(att.joined_at).getTime();
                         const hoursDiff = Math.abs(selMs - attMs) / (1000 * 3600);
-                        if (attDate === dateStr || hoursDiff < 36) {
+                        if (attDate === dateStr) {
+                            isDuplicate = true;
+                            dupAtt = att;
+                            break;
+                        } else if (!isCompensation && hoursDiff < 18) {
                             isDuplicate = true;
                             dupAtt = att;
                             break;
@@ -4724,7 +4885,7 @@
                 // Check for substitute teacher on this session
                 const activeSub = (typeof getGroupSubstitution === 'function') ? getGroupSubstitution(enr.group_id, dateStr) : null;
                 const effectiveTeacherName = activeSub ? activeSub.substitute_teacher_name : (enr.teachers ? enr.teachers.name : 'الإشراف');
-                const subTag = activeSub ? ` [بديل: ${activeSub.substitute_teacher_name}]` : ' [إشراف]';
+                const subTag = isCompensation ? ' [إشراف - تعويض]' : (activeSub ? ` [بديل: ${activeSub.substitute_teacher_name}]` : ' [إشراف]');
 
                 // Insert official attendance record with teacher/substitute attribution
                 const todayStr = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
@@ -12657,6 +12818,127 @@ async function confirmAndSaveQuranGrades() {
                 alert(msg);
             }
         }
+
+// ================================================================
+// COMPENSATION SESSION MODAL HELPERS (تسجيل جلسة تعويضية)
+// ================================================================
+let selectedCompStudent = null;
+
+function openCompensationModal(preselectedStudent = null) {
+    const modal = document.getElementById('compensationModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const datePicker = document.getElementById('dailyMatchingDatePicker');
+    const compDateInput = document.getElementById('compModalSessionDate');
+    if (compDateInput) {
+        compDateInput.value = (datePicker && datePicker.value) ? datePicker.value : new Date().toISOString().split('T')[0];
+    }
+
+    const searchInput = document.getElementById('compModalSearchInput');
+    const resultsBox = document.getElementById('compModalSearchResults');
+    if (searchInput) searchInput.value = '';
+    if (resultsBox) {
+        resultsBox.innerHTML = '';
+        resultsBox.classList.add('hidden');
+    }
+
+    if (preselectedStudent) {
+        selectCompModalStudent(preselectedStudent);
+    } else {
+        selectedCompStudent = null;
+        document.getElementById('compModalStudentCard')?.classList.add('hidden');
+        document.getElementById('compModalSubmitBtn')?.setAttribute('disabled', 'true');
+    }
+}
+
+function closeCompensationModal() {
+    document.getElementById('compensationModal')?.classList.add('hidden');
+    selectedCompStudent = null;
+}
+
+function handleCompModalSearch() {
+    const q = (document.getElementById('compModalSearchInput')?.value || '').trim().toLowerCase();
+    const resultsBox = document.getElementById('compModalSearchResults');
+    if (!resultsBox) return;
+
+    if (!q || q.length < 2) {
+        resultsBox.innerHTML = '';
+        resultsBox.classList.add('hidden');
+        return;
+    }
+
+    const pool = window.bsAllStudents || window._monirDailyStudentsCache || [];
+    const matches = pool.filter(s => {
+        const name = (s.name || '').toLowerCase();
+        const code = (s.student_code || '').toLowerCase();
+        const phone = (s.phone || '') + ' ' + (s.parent_phone || '');
+        const group = (s.group_id || '').toLowerCase();
+        return name.includes(q) || code.includes(q) || phone.includes(q) || group.includes(q);
+    }).slice(0, 8);
+
+    if (matches.length === 0) {
+        resultsBox.innerHTML = '<div class="p-3 text-center text-slate-400 font-bold">لا يوجد طلاب مطابقين للبحث</div>';
+        resultsBox.classList.remove('hidden');
+        return;
+    }
+
+    resultsBox.innerHTML = matches.map(s => `
+        <div onclick='selectCompModalStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="p-2.5 hover:bg-emerald-50 cursor-pointer flex items-center justify-between transition">
+            <div>
+                <span class="font-black text-slate-900 block">${s.name}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${s.student_code} • ${s.group_id || 'بدون مجموعة'} • مع: ${s.teacher_name || 'غير محدد'}</span>
+            </div>
+            <div class="text-right">
+                <span class="text-emerald-700 font-extrabold text-[11px]">${s.remaining_credits || 0} حصة</span>
+            </div>
+        </div>
+    `).join('');
+    resultsBox.classList.remove('hidden');
+}
+
+function selectCompModalStudent(student) {
+    selectedCompStudent = student;
+    const resultsBox = document.getElementById('compModalSearchResults');
+    if (resultsBox) resultsBox.classList.add('hidden');
+
+    const searchInput = document.getElementById('compModalSearchInput');
+    if (searchInput) searchInput.value = `${student.name} (${student.student_code})`;
+
+    const card = document.getElementById('compModalStudentCard');
+    if (card) {
+        card.classList.remove('hidden');
+        document.getElementById('compCardStudentName').innerText = student.name || '—';
+        document.getElementById('compCardStudentCode').innerText = student.student_code || '—';
+        document.getElementById('compCardCredits').innerText = (student.remaining_credits || 0) + ' حصة';
+        document.getElementById('compCardTeacher').innerText = student.teacher_name || 'غير محدد';
+        document.getElementById('compCardGroup').innerText = student.group_id || 'غير محدد';
+        document.getElementById('compCardDays').innerText = student.subscription_days || 'غير محدد';
+        document.getElementById('compCardTime').innerText = student.lecture_time || 'غير محدد';
+    }
+
+    document.getElementById('compModalSubmitBtn')?.removeAttribute('disabled');
+}
+
+async function submitCompensationAttendance() {
+    if (!selectedCompStudent) {
+        alert('يرجى اختيار طالب أولاً');
+        return;
+    }
+
+    const sessionDate = document.getElementById('compModalSessionDate')?.value;
+    if (!sessionDate) {
+        alert('يرجى تحديد تاريخ الجلسة التعويضية');
+        return;
+    }
+
+    const status = document.getElementById('compModalStatus')?.value || 'present';
+    const student = selectedCompStudent;
+
+    closeCompensationModal();
+    await recordOfficialAttendanceFromAdmin(student.id, student.student_code, encodeURIComponent(student.name), sessionDate, status, student.remaining_credits || 0, true);
+}
+
 </script>
 
 

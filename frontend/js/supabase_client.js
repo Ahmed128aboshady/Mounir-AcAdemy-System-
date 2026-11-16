@@ -72,6 +72,26 @@
         },
 
         // Silent background sync from Supabase into client memory
+        fetchAll: async function(tableName, selectFields = '*', filterFn = null) {
+            const client = this.getClient();
+            if (!client) return [];
+            let all = [];
+            let page = 0;
+            const pageSize = 1000;
+            while (true) {
+                const from = page * pageSize;
+                const to = from + pageSize - 1;
+                let q = client.from(tableName).select(selectFields).range(from, to);
+                if (typeof filterFn === 'function') q = filterFn(q);
+                const { data, error } = await q;
+                if (error || !data || data.length === 0) break;
+                all.push(...data);
+                if (data.length < pageSize) break;
+                page++;
+            }
+            return all;
+        },
+
         syncFromCloud: async function() {
             const client = this.getClient();
             if (!client) return;
