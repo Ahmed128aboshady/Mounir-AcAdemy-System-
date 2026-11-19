@@ -1298,6 +1298,9 @@
         if (activeBtn) {
             activeBtn.classList.add('bg-[#1F274B]', 'text-white', 'shadow-xs');
             activeBtn.classList.remove('text-slate-600');
+            try {
+                activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            } catch(e) {}
         }
 
         const activeContent = document.getElementById('ledgerTabContent_' + tabId);
