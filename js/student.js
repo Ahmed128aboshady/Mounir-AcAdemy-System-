@@ -297,6 +297,56 @@ async function loadStudentProfile() {
             loadedAge = parseInt(pageParams.get('sim_age'), 10);
         }
         window.currentStudentAge = loadedAge;
+
+        // Check active session pass for today (until midnight 12:00 AM)
+        let hasAttendedToday = false;
+        let todayPassCourse = '';
+        const todayDateStr = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
+        const targetSid = s.id || s.student_code || lookupKey;
+        const localEntryKey = 'monir_classroom_entry_' + targetSid + '_' + todayDateStr;
+        const localEntry = localStorage.getItem(localEntryKey);
+        if (localEntry || localStorage.getItem('monir_att_' + targetSid + '_' + todayDateStr) === 'present') {
+            hasAttendedToday = true;
+            try {
+                const parsed = JSON.parse(localEntry);
+                if (parsed && parsed.course_name) todayPassCourse = parsed.course_name;
+            } catch(e) {}
+        }
+
+        if (window.MonirDB && window.MonirDB.isConfigured()) {
+            const sbClient = window.MonirDB.getClient();
+            const numId = s.id ? parseInt(s.id, 10) : (typeof lookupKey === 'number' ? lookupKey : null);
+            if (sbClient && numId) {
+                try {
+                    const todayStartIso = todayDateStr + 'T00:00:00';
+                    const { data: todayAtt } = await sbClient
+                        .from('attendance')
+                        .select('id, course_name, status, joined_at')
+                        .eq('student_id', numId)
+                        .gte('joined_at', todayStartIso)
+                        .limit(5);
+
+                    if (todayAtt && todayAtt.length > 0) {
+                        hasAttendedToday = true;
+                        todayPassCourse = todayAtt[0].course_name || '';
+                        window.todayAttendanceRecords = todayAtt;
+                        try {
+                            localStorage.setItem(localEntryKey, JSON.stringify({
+                                date: todayDateStr,
+                                time: todayAtt[0].joined_at,
+                                course_name: todayPassCourse,
+                                deducted: 1
+                            }));
+                            localStorage.setItem('monir_att_' + targetSid + '_' + todayDateStr, 'present');
+                        } catch(e) {}
+                    }
+                } catch(attErr) {
+                    console.warn('[CheckTodayAttendance] Query error:', attErr);
+                }
+            }
+        }
+        window.studentHasActivePassToday = hasAttendedToday;
+        window.todayActivePassCourseName = todayPassCourse;
         if (typeof updateFridayScheduleNoticeByAge === 'function') {
             updateFridayScheduleNoticeByAge(loadedAge);
         }
@@ -617,13 +667,22 @@ function renderUpcomingScheduleList() {
                 <p class="text-slate-500 text-[11px] mt-0.5">المعلم: أ. ${teacher} • مدة الحصة: ${dur}</p>
                 <div class="flex items-center justify-between text-[11px] mt-2 pt-1 border-t border-slate-100 flex-wrap gap-2">
                     <span class="font-bold text-slate-700">${timeVal}</span>
-                    ${rc <= 0
-                        ? `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`
-                        : `<button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="text-emerald-700 hover:text-emerald-800 font-black flex items-center gap-1 cursor-pointer">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>دخول القاعة الذكية ←</span>
-                           </button>`
-                    }
+                    ${(() => {
+                        const hasPass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(cName) : false;
+                        if (rc <= 0 && !hasPass) {
+                            return `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`;
+                        } else if (rc <= 0 && hasPass) {
+                            return `<button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-500 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-xs">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                                <span>إعادة الدخول (مجاني حتى 12:00) ←</span>
+                               </button>`;
+                        } else {
+                            return `<button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="text-emerald-700 hover:text-emerald-800 font-black flex items-center gap-1 cursor-pointer">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>دخول القاعة الذكية ←</span>
+                               </button>`;
+                        }
+                    })()}
                 </div>
             </div>
         `;
@@ -1802,16 +1861,29 @@ function renderEnrolledCoursesTabs(courses) {
 
                 <!-- Action Toolbar Buttons -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 pt-1">
-                    ${(remCredits <= 0 || isStudentAdminPaused)
-                        ? `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
-                            <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
-                            <span>${isStudentAdminPaused ? 'الحساب موقوف إدارياً' : 'رصيدك منتهي (0) — تجديد الآن'}</span>
-                           </button>`
-                        : `<button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
-                            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                            <span>دخول القاعة الذكية</span>
-                           </button>`
-                    }
+                    ${(() => {
+                        const hasPass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(cName) : false;
+                        if (isStudentAdminPaused) {
+                            return `<button type="button" class="w-full sm:flex-1 bg-slate-500 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs opacity-60 cursor-not-allowed flex items-center justify-center gap-1.5">
+                                <span>الحساب موقوف إدارياً</span>
+                            </button>`;
+                        } else if (remCredits <= 0 && !hasPass) {
+                            return `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                                <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
+                                <span>رصيدك منتهي (0) — تجديد الآن</span>
+                            </button>`;
+                        } else if (remCredits <= 0 && hasPass) {
+                            return `<button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer ring-2 ring-emerald-400">
+                                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                <span>إعادة دخول القاعة الذكية (ساري اليوم)</span>
+                            </button>`;
+                        } else {
+                            return `<button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}');" class="w-full sm:flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                <span>دخول القاعة الذكية</span>
+                            </button>`;
+                        }
+                    })()}
                     <div class="flex items-center gap-1.5 w-full sm:w-auto sm:flex-1">
                         <button type="button" onclick="event.stopPropagation(); selectCourseTab('${cName}'); scrollToLectures();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 text-center">
                             <span>المنهج والمحاضرات</span>
@@ -2314,9 +2386,22 @@ async function loadSelectedCourseLectures() {
 
         // Show/hide renewal banner
         const renBannerEl = document.getElementById('renewalBanner');
+        const renTitle = document.getElementById('renewalBannerTitle');
+        const renSub = document.getElementById('renewalBannerSubtitle');
+        const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(selectedCourseName) : false;
+
         if (renBannerEl) {
-            if (rc <= 1) renBannerEl.classList.remove('hidden');
-            else renBannerEl.classList.add('hidden');
+            if (rc <= 0 && hasActivePass) {
+                renBannerEl.classList.remove('hidden');
+                if (renTitle) renTitle.innerText = 'رصيدك الحالي (0) • جلسة اليوم نشطة ومتاحة حتى 12:00 منتصف الليل';
+                if (renSub) renSub.innerText = 'يمكنك متابعة حصة اليوم والدخول مجاناً، ويُرجى تجديد الاشتراك لضمان استمرار الحصص القادمة.';
+            } else if (rc <= 1) {
+                renBannerEl.classList.remove('hidden');
+                if (renTitle) renTitle.innerText = 'رصيدك على وشك الانتهاء — جدد الآن!';
+                if (renSub) renSub.innerText = 'اختر الباقة المناسبة بضغطة زر وسيتم شحن الرصيد وفتح المحاضرات فوراً.';
+            } else {
+                renBannerEl.classList.add('hidden');
+            }
         }
 
         // Clear old static blocks and render new dynamic blocks
@@ -2591,11 +2676,12 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
         </div>
     `;
     
-    const isLockedForZeroOrUnl = (!l.is_unlocked || rc <= 0 || isStopped) && (l.status !== 'completed');
+    const hasPassForLec = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(currentCourseInfo.course_name) : false;
+    const isLockedForZeroOrUnl = (!l.is_unlocked || (rc <= 0 && !hasPassForLec) || isStopped) && (l.status !== 'completed');
 
     if (isLockedForZeroOrUnl) {
         cardClass += ' locked bg-slate-50/70 border-slate-200 opacity-80';
-        statusBadge = (rc <= 0) 
+        statusBadge = (rc <= 0 && !hasPassForLec) 
             ? '<span class="badge-status bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold">مغلقة • الرصيد (0) حصص</span>'
             : '<span class="badge-status badge-locked">مغلقة • تتطلب تجديد الاشتراك</span>';
         actionBtn = `
@@ -2604,6 +2690,9 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             </button>
         `;
     } else {
+        if (rc <= 0 && hasPassForLec) {
+            statusBadge = '<span class="badge-status bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold">جلسة اليوم نشطة • إعادة الدخول متاحة حتى 12:00</span>';
+        }
         cardClass += ' unlocked';
         
         if (l.status === 'completed') {
@@ -2772,21 +2861,93 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     return div;
 }
 
-function updateBottomMeetButtonState(rc) {
+function getMonirLocalDateStr() {
+    try {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' });
+        return formatter.format(now);
+    } catch(e) {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+}
+
+function hasActiveSessionPassToday(courseName) {
+    const todayDate = getMonirLocalDateStr();
+
+    // 1. Check in-memory flag set by profile loader or recent join
+    if (window.studentHasActivePassToday) {
+        if (!courseName || !window.todayActivePassCourseName) return true;
+        const cClean = String(courseName).trim();
+        const pClean = String(window.todayActivePassCourseName).trim();
+        if (cClean.includes(pClean) || pClean.includes(cClean) || pClean.includes('حلقة') || cClean.includes('حلقة')) return true;
+    }
+
+    // 2. Resolve student ID variations
+    const sData = window.currentStudentData || {};
+    const s = sData.student || window.curStudent || {};
+    const sId = s.id || window.currentStudentId || '';
+    const stCode = s.student_code || '';
+
+    const idList = [sId, stCode].filter(Boolean);
+    try {
+        const u = JSON.parse(localStorage.getItem('monir_current_user') || '{}');
+        if (u.student_code) idList.push(u.student_code);
+        if (u.id) idList.push(u.id);
+    } catch(e) {}
+
+    for (const id of idList) {
+        // Check classroom entry marker for today
+        const entryKey = 'monir_classroom_entry_' + id + '_' + todayDate;
+        const entryRaw = localStorage.getItem(entryKey);
+        if (entryRaw) {
+            try {
+                const parsed = JSON.parse(entryRaw);
+                if (parsed && (parsed.date === todayDate || parsed.deducted)) {
+                    return true;
+                }
+            } catch(e) {
+                return true;
+            }
+        }
+
+        // Check attendance marker for today
+        const attKey = 'monir_att_' + id + '_' + todayDate;
+        const attVal = localStorage.getItem(attKey);
+        if (attVal === 'present' || attVal === 'attended') {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function updateBottomMeetButtonState(rc, courseName) {
     const btn = document.getElementById('bottomNavMeetBtn');
     const icon = document.getElementById('bottomNavMeetIcon');
     const label = document.getElementById('bottomNavMeetLabel');
     if (!btn) return;
-    if (rc <= 0) {
+
+    const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(courseName) : false;
+
+    if (rc <= 0 && !hasActivePass) {
         btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-amber-700 active:scale-95 py-1 px-1 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { if (typeof openPaymobModal === 'function') openPaymobModal(); };
         if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#award"/></svg>';
         if (label) label.innerText = 'رصيد 0 • تجديد';
+        btn.removeAttribute('title');
+    } else if (rc <= 0 && hasActivePass) {
+        btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-900 active:scale-95 py-1 px-1 bg-emerald-100 border-2 border-emerald-500 rounded-xl transition shadow-xs cursor-pointer ring-2 ring-emerald-300/60";
+        btn.onclick = () => { joinNextDueMeet(); };
+        if (icon) icon.innerHTML = '<svg class="w-4 h-4 text-emerald-700 animate-pulse"><use href="#clock"/></svg>';
+        if (label) label.innerHTML = '<span class="font-black text-emerald-950">إعادة الدخول (ساري)</span>';
+        btn.title = "تم خصم الحصة مسبقاً لهذا اليوم • إعادة الدخول متاحة بدون خصم حتى 12:00 منتصف الليل";
     } else {
         btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { joinNextDueMeet(); };
         if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#clock"/></svg>';
         if (label) label.innerText = 'دخول الحصة';
+        btn.removeAttribute('title');
     }
 }
 
@@ -2825,6 +2986,30 @@ function requestClassroomJoin(targetUrl, courseName, lectureId) {
     if (cNameEl) cNameEl.innerText = pendingClassroomTarget.courseName;
     if (sNameEl) sNameEl.innerText = 'الطالب: ' + sName;
 
+    // Check if re-entry pass is active for today
+    const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(pendingClassroomTarget.courseName) : false;
+    let passNoticeEl = document.getElementById('confirmClassroomActivePassNotice');
+    const proceedBtn = document.getElementById('confirmClassroomProceedBtn');
+
+    if (hasActivePass) {
+        if (!passNoticeEl) {
+            passNoticeEl = document.createElement('div');
+            passNoticeEl.id = 'confirmClassroomActivePassNotice';
+            passNoticeEl.className = 'bg-emerald-100 border-2 border-emerald-500 rounded-xl p-3 text-xs text-emerald-950 font-bold mb-3 shadow-xs flex items-center gap-2';
+            const modalBody = modal.querySelector('.space-y-3') || modal.querySelector('.mb-5');
+            if (modalBody) modalBody.insertBefore(passNoticeEl, modalBody.firstChild);
+        }
+        passNoticeEl.innerHTML = `
+            <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>تنبيه: تم رصد حضورك وخصم الحصة مسبقاً لهذا اليوم. إعادة الدخول متاحة مجاناً وبدون أي خصم إضافي حتى الساعة 12:00 منتصف الليل.</span>
+        `;
+        passNoticeEl.style.display = 'flex';
+        if (proceedBtn) proceedBtn.innerHTML = '<span>نعم، إعادة دخول الحلقة الآن (بدون خصم)</span>';
+    } else {
+        if (passNoticeEl) passNoticeEl.style.display = 'none';
+        if (proceedBtn) proceedBtn.innerHTML = '<span>نعم، دخول الحلقة الآن</span>';
+    }
+
     modal.classList.remove('hidden');
 }
 
@@ -2854,10 +3039,16 @@ async function executeClassroomJoin(url, courseName, lectureId) {
     // 2. Automated Attendance & Credit Deduction
     const sId = (typeof currentStudentId !== 'undefined' && currentStudentId) ? currentStudentId : null;
     if (sId) {
-        const todayDate = new Date().toISOString().split('T')[0];
+        const todayDate = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
         const localKey = 'monir_classroom_entry_' + sId + '_' + todayDate;
         const nowTimeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-        const alreadyDone = localStorage.getItem(localKey);
+        const alreadyDone = localStorage.getItem(localKey) || window.studentHasActivePassToday;
+
+        if (alreadyDone) {
+            console.log('[AutoRecord] Session already deducted/attended today. Re-entry allowed without deduction until 12:00 midnight.');
+            window.studentHasActivePassToday = true;
+            return;
+        }
 
         localStorage.setItem(localKey, JSON.stringify({
             date: todayDate,
@@ -3050,9 +3241,20 @@ function joinMeet(lectureId, meetUrl) {
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
     const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
-    const isStopped = isStudentAdminPaused || (rc <= 0);
+    const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(curCourse.course_name) : false;
+    const isStopped = isStudentAdminPaused || (rc <= 0 && !hasActivePass);
 
-    if (rc <= 0 || isStopped) {
+    if (isStudentAdminPaused) {
+        const pausedMsg = 'عفواً، حساب الطالب موقوف حالياً من قبل الإدارة. يرجى التواصل مع إدارة الأكاديمية لإعادة تفعيل الحساب.';
+        if (window.MonirPopup && window.MonirPopup.alert) {
+            window.MonirPopup.alert(pausedMsg, 'الحساب موقوف');
+        } else {
+            alert(pausedMsg);
+        }
+        return;
+    }
+
+    if (rc <= 0 && !hasActivePass) {
         if (isStudentAdminPaused) {
             const pausedMsg = 'عفواً، حساب الطالب موقوف حالياً من قبل الإدارة. يرجى التواصل مع إدارة الأكاديمية لإعادة تفعيل الحساب.';
             if (window.MonirPopup && window.MonirPopup.alert) {
@@ -3139,9 +3341,20 @@ function joinNextDueMeet() {
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
     const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
-    const isStopped = isStudentAdminPaused || (rc <= 0);
+    const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(curCourse.course_name) : false;
+    const isStopped = isStudentAdminPaused || (rc <= 0 && !hasActivePass);
 
-    if (rc <= 0 || isStopped) {
+    if (isStudentAdminPaused) {
+        const pausedMsg = 'عفواً، حساب الطالب موقوف حالياً من قبل الإدارة. يرجى التواصل مع إدارة الأكاديمية لإعادة تفعيل الحساب.';
+        if (window.MonirPopup && window.MonirPopup.alert) {
+            window.MonirPopup.alert(pausedMsg, 'الحساب موقوف');
+        } else {
+            alert(pausedMsg);
+        }
+        return;
+    }
+
+    if (rc <= 0 && !hasActivePass) {
         if (isStudentAdminPaused) {
             const pausedMsg = 'عفواً، حساب الطالب موقوف حالياً من قبل الإدارة. يرجى التواصل مع إدارة الأكاديمية لإعادة تفعيل الحساب.';
             if (window.MonirPopup && window.MonirPopup.alert) {
