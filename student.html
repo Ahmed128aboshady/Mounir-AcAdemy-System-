@@ -387,7 +387,6 @@
                                 <span>محاضرات المسابقة</span>
                                 <span id="badgeCountCompetitionTrack" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">3</span>
                             </button>
-                            <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="shrink-0 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold inline-flex items-center justify-center whitespace-nowrap" style="min-height:44px">روابط المسابقة</a>
                             <button type="button" id="tabBtnMonthlyExams" onclick="openQuizzesModal()" class="shrink-0 py-2 px-4 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-xs cursor-pointer select-none whitespace-nowrap">
                                 <span>الامتحانات الشهرية (40د)</span>
                                 <span class="bg-slate-950 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold">مفتوح حتى منتصف الليل</span>
@@ -1305,6 +1304,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Floating Competition Links Button for Students & Parents -->
+    <aside id="floatingCompetitionLinksContainer" class="fixed z-40 left-3 sm:left-6 bottom-20 sm:bottom-6 print:hidden">
+        <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all border border-emerald-500/40 cursor-pointer" title="اختصارات وروابط محاضرات المسابقة">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-200 group-hover:rotate-12 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            <span class="whitespace-nowrap">روابط المسابقة</span>
+        </a>
+    </aside>
 
     <!-- Mobile Fixed Bottom Navigation Bar (App-like Quick Actions for Parents) -->
     <nav id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-between sm:hidden shadow-2xl safe-bottom">
