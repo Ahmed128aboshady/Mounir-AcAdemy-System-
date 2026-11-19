@@ -167,57 +167,64 @@
 <body class="bg-slate-100 text-slate-800 pb-20 overflow-x-hidden min-h-screen">
 
     <!-- Header -->
-    <header class="bg-[#1F274B] text-white py-3 px-3 sm:px-6 sticky top-0 z-40 shadow-md border-b border-[#2D396E]">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 sm:gap-4">
-            <div class="flex items-center justify-between sm:justify-start gap-2.5">
+    <header class="bg-[#1F274B] text-white sticky top-0 z-40 shadow-md border-b border-[#2D396E]">
+        <!-- Row 1: Brand, Title, Supervisor Badge, Chat & Logout -->
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
                 <a href="index.html" class="flex items-center flex-shrink-0">
                     <img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-8 sm:h-9 w-auto object-contain">
                 </a>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <h1 class="font-extrabold text-xs sm:text-base leading-tight truncate">لوحة تحكم الإدارة الشاملة</h1>
-                        <span class="bg-[#57BA9E]/20 text-[#57BA9E] border border-[#57BA9E]/40 text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap">صلاحية كاملة</span>
+                        <span class="bg-[#57BA9E]/20 text-[#57BA9E] border border-[#57BA9E]/40 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">صلاحية كاملة</span>
                     </div>
-                    <p class="text-[10px] sm:text-xs text-slate-400 truncate hidden sm:block">إدارة المسارات، توزيع المعلمين، تصدير Excel، ومحاسبة الرواتب</p>
+                    <p class="text-[10px] sm:text-xs text-slate-400 truncate hidden md:block">إدارة المسارات، توزيع المعلمين، متابعة الحضور والرواتب، وتصدير Excel</p>
                 </div>
             </div>
-            <div class="flex items-center justify-end gap-1.5 sm:gap-2 text-xs">
-                <div class="hidden lg:flex items-center gap-2 text-xs bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-                    <span class="text-slate-400">المشرف:</span>
-                    <strong class="text-white" id="adminHeaderName">إدارة الأكاديمية</strong>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="hidden sm:flex items-center gap-1.5 text-xs bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700">
+                    <span class="text-slate-400 text-[11px]">المشرف:</span>
+                    <strong class="text-white text-xs" id="adminHeaderName">إدارة الأكاديمية</strong>
                 </div>
-                <button type="button" onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="لوحة شرف الأوائل ورصد المحاضرات العامة">
-                    <span></span>
+                <button type="button" onclick="openLiveChatModal()" class="relative bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black px-3 py-1.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <span>شات ورسائل الدعم</span>
+                    <span id="liveChatGlobalBadge" class="hidden absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-bounce border border-[#1F274B]">0</span>
+                </button>
+                <button type="button" onclick="handleAdminLogout()" class="bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700/80 text-xs font-bold px-3 py-1.5 rounded-xl transition whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0">
+                    <span>خروج</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Row 2: Quick Navigation Actions Strip -->
+        <div class="bg-[#161C36] border-t border-[#2D396E]/60 px-3 sm:px-6 py-1.5">
+            <div class="max-w-[1600px] mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none text-xs">
+                <button type="button" onclick="openDailyAttendanceMatchingSection()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="تصدير ومطابقة الحضور اليومي الفعلي Excel">
+                    <span>مطابقة الحضور اليومي</span>
+                </button>
+                <button type="button" onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="لوحة شرف الأوائل ورصد المحاضرات العامة">
                     <span>المحاضرات والأوائل</span>
                 </button>
-                <button onclick="openLiveChatModal()" class="relative bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer">
-                    <span>شات ورسائل الدعم</span>
-                    <span id="liveChatGlobalBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-bounce border-2 border-[#1F274B]">0</span>
+                <button type="button" onclick="ensureOpenAndLoadPayroll()" class="bg-amber-700 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="مستحقات ورواتب المعلمين (حسابات الإشراف)">
+                    <span>رواتب المعلمين</span>
                 </button>
-                <button type="button" onclick="ensureOpenAndLoadPayroll()" class="bg-amber-600 hover:bg-amber-700 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="مستحقات ورواتب المعلمين (حسابات الإشراف)"><span>رواتب المعلمين</span></button>
-                <button type="button" onclick="exportAllStudentBalancesExcel()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="تصدير كشف شامل بأرصدة جميع الطلاب Excel">
+                <button type="button" onclick="exportAllStudentBalancesExcel()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer flex-shrink-0" title="تصدير كشف شامل بأرصدة جميع الطلاب Excel">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>كشف الأرصدة (Excel)</span>
                 </button>
-                <button type="button" onclick="openTajweedAdminModal()" class="bg-purple-700 hover:bg-purple-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1 cursor-pointer" title="إدارة ونشر فيديو وأسئلة التجويد الشهرية لجميع الطلاب">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <button type="button" onclick="openTajweedAdminModal()" class="bg-purple-700 hover:bg-purple-600 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="إدارة ونشر فيديو وأسئلة التجويد الشهرية لجميع الطلاب">
                     <span>مرئي واختبار التجويد</span>
                 </button>
-                
-                
-                <button type="button" onclick="openDailyAttendanceMatchingSection()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center cursor-pointer" title="تصدير ومطابقة الحضور اليومي الفعلي Excel">
-                    <span>مطابقة الحضور اليومي</span>
-                </button>
-                <button type="button" onclick="openQuickTeacherSelectorModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1.5 cursor-pointer" title="استعراض ودخول بوابات جميع المعلمين">
+                <button type="button" onclick="openQuickTeacherSelectorModal()" class="bg-teal-700 hover:bg-teal-600 text-white text-[11px] font-bold px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer flex-shrink-0" title="استعراض ودخول بوابات جميع المعلمين">
                     <span>بوابة المعلمين</span>
-                    <span class="text-[10px] bg-emerald-800/90 text-emerald-100 px-1.5 py-0.5 rounded-md font-mono font-bold">77</span>
+                    <span class="text-[10px] bg-teal-900/90 text-teal-100 px-1.5 py-0.2 rounded font-mono font-bold">77</span>
                 </button>
-                <button type="button" onclick="openQuickStudentSelectorModal()" class="bg-[#41519C] hover:bg-[#2D396E] text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-sm whitespace-nowrap flex items-center gap-1.5 cursor-pointer" title="استعراض بروفايلات جميع الطلاب">
+                <button type="button" onclick="openQuickStudentSelectorModal()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer flex-shrink-0" title="استعراض بروفايلات جميع الطلاب">
                     <span>بروفايل الطالب</span>
-                    <span class="text-[10px] bg-[#1F274B]/90 text-blue-100 px-1.5 py-0.5 rounded-md font-mono font-bold">771</span>
-                </button>
-                <button onclick="handleAdminLogout()" class="bg-red-900/70 hover:bg-red-800 text-red-200 border border-red-700 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition whitespace-nowrap">
-                    خروج
+                    <span class="text-[10px] bg-indigo-950 text-indigo-200 px-1.5 py-0.2 rounded font-mono font-bold">771</span>
                 </button>
             </div>
         </div>
