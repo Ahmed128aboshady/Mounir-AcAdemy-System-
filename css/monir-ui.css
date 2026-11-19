@@ -165,3 +165,22 @@ body[data-monir-page="login"] main .mt-6.border-t { border-color: #dce5e9; flex-
   body[data-monir-page] { background: white; }
   body[data-monir-page] :is(.profile-card,.group-card,.kpi-stat-card,main > section.bg-white) { box-shadow: none; }
 }
+
+/* Student Ledger Modal Tabs & Responsive Adjustments */
+body[data-monir-page] .ledger-tab-btn {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 38px !important;
+}
+
+body[data-monir-page] #studentLedgerModal .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+body[data-monir-page] #studentLedgerModal .overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}

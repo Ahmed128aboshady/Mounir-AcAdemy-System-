@@ -677,34 +677,34 @@
                 </div>
 
                 <!-- Equation Transparency Banner -->
-                <div class="bg-slate-100/80 border border-slate-200/90 rounded-xl p-2.5 px-3 text-[11px] text-slate-700 flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-black text-slate-900">معادلة انضباط الرصيد:</span>
-                        <span class="bg-white px-2 py-0.5 rounded border font-mono">المشحون (${totalChargedCredits})</span>
-                        <span>=</span>
-                        <span class="bg-white px-2 py-0.5 rounded border font-mono text-emerald-800">حضور (${presentCount})</span>
-                        <span>+</span>
-                        <span class="bg-white px-2 py-0.5 rounded border font-mono text-red-800">غياب (${absentCount})</span>
-                        <span>+</span>
-                        <span class="bg-white px-2 py-0.5 rounded border font-mono font-black text-indigo-900">المتبقي (${remainingCredits})</span>
+                <div class="bg-slate-100/90 border border-slate-200 rounded-xl p-2.5 px-3 text-[11px] text-slate-700 flex flex-col sm:flex-row items-center sm:justify-between gap-2 text-center sm:text-right">
+                    <div class="flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 flex-wrap">
+                        <span class="font-black text-slate-900 whitespace-nowrap">معادلة انضباط الرصيد:</span>
+                        <span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-mono shadow-2xs whitespace-nowrap">المشحون (${totalChargedCredits})</span>
+                        <span class="text-slate-400 font-bold">=</span>
+                        <span class="bg-white px-2 py-0.5 rounded-lg border border-emerald-200 font-mono text-emerald-800 shadow-2xs whitespace-nowrap">حضور (${presentCount})</span>
+                        <span class="text-slate-400 font-bold">+</span>
+                        <span class="bg-white px-2 py-0.5 rounded-lg border border-red-200 font-mono text-red-800 shadow-2xs whitespace-nowrap">غياب (${absentCount})</span>
+                        <span class="text-slate-400 font-bold">+</span>
+                        <span class="bg-white px-2 py-0.5 rounded-lg border border-indigo-200 font-mono font-black text-indigo-900 shadow-2xs whitespace-nowrap">المتبقي (${remainingCredits})</span>
                     </div>
-                    <span class="text-[10px] text-slate-500 font-bold">معادلة الحسابات متطابقة 100%</span>
+                    <span class="text-[10px] text-slate-500 font-bold whitespace-nowrap bg-white/80 px-2 py-0.5 rounded-md border border-slate-200/60 shadow-2xs">معادلة الحسابات متطابقة 100%</span>
                 </div>
 
                 <!-- 3. Navigation Tabs -->
-                <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
-                    <button type="button" onclick="switchLedgerTab('attendance')" id="ledgerTabBtn_attendance" class="ledger-tab-btn active px-3.5 py-2 rounded-xl font-black text-xs transition cursor-pointer bg-[#1F274B] text-white shadow-xs">
+                <div class="flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none max-w-full touch-pan-x -mx-1 px-1">
+                    <button type="button" onclick="switchLedgerTab('attendance')" id="ledgerTabBtn_attendance" class="ledger-tab-btn active shrink-0 whitespace-nowrap px-3 sm:px-3.5 py-2 rounded-xl font-black text-xs transition cursor-pointer bg-[#1F274B] text-white shadow-xs">
                         <span>سجل الحضور والغياب</span>
                         <span class="bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px] mr-1">${attendanceRecords.length || presentCount + absentCount}</span>
                     </button>
-                    <button type="button" onclick="switchLedgerTab('renewals')" id="ledgerTabBtn_renewals" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
+                    <button type="button" onclick="switchLedgerTab('renewals')" id="ledgerTabBtn_renewals" class="ledger-tab-btn shrink-0 whitespace-nowrap px-3 sm:px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
                         <span>سجل التجديدات والشحن</span>
                         <span class="bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full text-[10px] mr-1">${paymentRecords.length || (totalRenewedCredits > 0 ? 1 : 1)}</span>
                     </button>
-                    <button type="button" onclick="switchLedgerTab('timeline')" id="ledgerTabBtn_timeline" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
+                    <button type="button" onclick="switchLedgerTab('timeline')" id="ledgerTabBtn_timeline" class="ledger-tab-btn shrink-0 whitespace-nowrap px-3 sm:px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
                         <span>كشف الحساب التراكمي (Timeline)</span>
                     </button>
-                    <button type="button" onclick="switchLedgerTab('hifz')" id="ledgerTabBtn_hifz" class="ledger-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
+                    <button type="button" onclick="switchLedgerTab('hifz')" id="ledgerTabBtn_hifz" class="ledger-tab-btn shrink-0 whitespace-nowrap px-3 sm:px-3.5 py-2 rounded-xl font-bold text-xs transition cursor-pointer text-slate-600 hover:bg-slate-100">
                         <span>سجل الحفظ التاريخي</span>
                         <span class="bg-indigo-100 text-indigo-900 px-1.5 py-0.2 rounded-full text-[10px] mr-1">${(sessionNotifs && sessionNotifs.length) || (presentCount + absentCount)}</span>
                     </button>
