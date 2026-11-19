@@ -1,0 +1,167 @@
+/* Monir UI refresh. Scoped to the five portals; no behavior or state classes replaced. */
+body[data-monir-page] {
+  --primary: #0f766e; --primary-dark: #115e59; --primary-light: #14968a;
+  --primary-soft: #ecfdf5; --secondary: #34d399; --secondary-dark: #059669;
+  --secondary-light: #ecfdf5; --accent: #b7791f; --dark: #14263d;
+  --border: #dce5e9; --bg-main: #f3f7f8; --card-bg: #fff;
+  --monir-navy: #14263d; --monir-muted: #526579;
+  background: var(--bg-main); color: #24364b;
+  font-family: 'Cairo', sans-serif; font-size: 1rem; line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+body[data-monir-page] *, body[data-monir-page] *::before, body[data-monir-page] *::after { box-sizing: border-box; }
+body[data-monir-page] ::selection { background: #a7f3d0; color: #14263d; }
+body[data-monir-page] :is(button, input, select, textarea) { font-family: inherit; }
+body[data-monir-page] :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #0d9488 !important; outline-offset: 3px; scroll-margin-block: 10rem;
+}
+body[data-monir-page] :is(button, a.button, label.cursor-pointer) { min-height: 44px; }
+body[data-monir-page] button { transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+body[data-monir-page] button:disabled { cursor: not-allowed; opacity: .55; box-shadow: none; }
+body[data-monir-page] :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]), select, textarea) {
+  min-height: 44px; max-width: 100%; border-radius: .75rem; line-height: 1.6;
+}
+body[data-monir-page] :is(input, textarea)::placeholder { opacity: 1; color: #64748b; font-weight: 400; }
+body[data-monir-page] :is(input[type=checkbox], input[type=radio]) { accent-color: #0f766e; }
+body[data-monir-page] select:not([multiple]) {
+  appearance: none; padding-inline-end: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='1.8' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: left .75rem center; background-repeat: no-repeat;
+}
+body[data-monir-page] :is(main, section, .grid > *, .flex-1) { min-width: 0; }
+body[data-monir-page] main { padding-block: 1.75rem; }
+body[data-monir-page] :is(h1,h2,h3,h4) { line-height: 1.65; text-wrap: pretty; }
+body[data-monir-page] .text-xs { font-size: .875rem; line-height: 1.7; }
+body[data-monir-page] :is([class~="text-[9px]"], [class~="text-[10px]"], [class~="text-[11px]"]) { font-size: .75rem; line-height: 1.65; }
+body[data-monir-page] :is(button, label, th).text-xs { font-size: .875rem; }
+body[data-monir-page] .text-slate-500 { color: var(--monir-muted); }
+body[data-monir-page] :is(.profile-body,.kpi-stat-card,form) .text-slate-400 { color: var(--monir-muted); }
+body[data-monir-page] :is(header, .privacy-shield, .profile-cover) :is(.text-slate-300,.text-slate-400) { color: #cbd5e1; }
+body[data-monir-page] [class~="text-[#41519C]"] { color: #115e59; }
+body[data-monir-page] [class~="text-[#57BA9E]"] { color: #087f67; }
+body[data-monir-page] :is(header,.profile-cover,.privacy-shield,[class~="bg-[#1F274B]"]) [class~="text-[#57BA9E]"] { color: #6ee7b7; }
+body[data-monir-page] [class~="bg-[#41519C]"] { background-color: #0f766e; }
+body[data-monir-page] [class~="bg-[#1F274B]"] { background-color: var(--monir-navy); }
+body[data-monir-page] [class~="bg-[#2D396E]"] { background-color: #243d57; }
+body[data-monir-page] [class~="bg-[#57BA9E]"] { background-color: #6ee7b7; }
+body[data-monir-page] [class~="hover:bg-[#2D396E]"]:hover { background-color: #115e59; }
+body[data-monir-page] [class~="hover:bg-[#43A68A]"]:hover { background-color: #34d399; }
+body[data-monir-page] [class~="bg-[#1F274B]"][class~="text-[#57BA9E]"] { color: #6ee7b7; }
+body[data-monir-page] button:is(.bg-blue-600,.bg-indigo-600,.bg-indigo-700,.bg-purple-700).text-white { background-color: #0f766e; }
+body[data-monir-page] button:is(.bg-blue-600,.bg-indigo-600,.bg-indigo-700,.bg-purple-700).text-white:hover { background-color: #115e59; }
+body[data-monir-page] .profile-body { align-items: flex-start; }
+body[data-monir-page] .profile-body .grid > div { min-width: 0; }
+body[data-monir-page] .profile-body :is(#parentName,#enrolledCoursesCount,#studentCode) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+/* Cards keep their existing layout, visibility and semantic status colors. */
+body[data-monir-page] :is(.glass-card,.profile-card,.group-card,.lecture-card,.kpi-stat-card,main > section.bg-white) {
+  border-color: var(--border); border-width: 1px; border-radius: 1.125rem;
+  box-shadow: 0 4px 18px -10px #14263d26;
+}
+body[data-monir-page] main > section.bg-white { padding: clamp(1rem, 2vw, 1.75rem); }
+body[data-monir-page] .lecture-card.locked { background: #f1f5f9; opacity: .8; }
+body[data-monir-page] .lecture-card.unlocked { border-color: #a7dcca; }
+body[data-monir-page] .lecture-card.live-now { border: 2px solid #059669; background: #ecfdf5; }
+body[data-monir-page] .profile-cover { background: linear-gradient(120deg, #14263d, #164e4b); height: 132px; }
+body[data-monir-page] .profile-cover-text { font-size: .875rem; color: #e2e8f0; }
+body[data-monir-page] .profile-body { padding-bottom: 1.5rem; }
+body[data-monir-page] .profile-tab { font-size: .875rem; min-height: 52px; color: #526579; }
+body[data-monir-page] .profile-tab.active { color: #0f766e; border-bottom-color: #0f766e; background: #f0fdf9; }
+body[data-monir-page] .kpi-stat-card { padding: 1.125rem; gap: .875rem; }
+body[data-monir-page] .kpi-stat-icon { background: #e5f5ef; color: #0f766e; }
+body[data-monir-page] .privacy-shield { background: linear-gradient(110deg,#14263d,#164e4b); }
+body[data-monir-page] .goal-card { background: #edf9f3; border-color: #b9ddcb; }
+/* Keep horizontal scrolling local to tables and tab strips. */
+body[data-monir-page] :is(.overflow-x-auto,.profile-tabs,.horizontal-scroll-row,#trackSwitcherTabsRow) {
+  max-width: 100%; overscroll-behavior-inline: contain; scrollbar-width: thin;
+  scrollbar-color: #94b6ad #eef4f2; touch-action: pan-x pan-y;
+}
+body[data-monir-page] :is(.profile-tabs,.horizontal-scroll-row,#trackSwitcherTabsRow)::-webkit-scrollbar { display: block; height: 5px; }
+body[data-monir-page] .overflow-x-auto { border-radius: .875rem; }
+body[data-monir-page] table { border-collapse: separate; border-spacing: 0; font-size: .875rem; line-height: 1.7; width: 100%; }
+body[data-monir-page] :is(th,td) { padding: .875rem 1rem; text-align: start; vertical-align: middle; border-bottom: 1px solid #e6edef; }
+body[data-monir-page] th { color: #344a60; background: #edf3f4; font-weight: 800; white-space: nowrap; }
+body[data-monir-page] tbody tr:last-child td { border-bottom: 0; }
+body[data-monir-page] tbody tr:hover > td, body[data-monir-page] tbody tr:focus-within > td { background-color: #eefaf5; }
+body[data-monir-page] :is(.modal-overlay,.fixed.inset-0):not(.video-modal-overlay):not(.video-rotate-landscape) { overscroll-behavior: contain; }
+body[data-monir-page] :is(.modal-overlay,.fixed.inset-0):not(.video-modal-overlay):not(.video-rotate-landscape) > div {
+  max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain;
+}
+body[data-monir-page] :is(section[id],#lecturesSection,#groupsContainer) { scroll-margin-top: 11rem; }
+/* Admin: calm navigation and a wider working area for dense tables. */
+body[data-monir-page="admin"] > header { background: var(--monir-navy); border-color: #294158; }
+body[data-monir-page="admin"] > main { max-width: 1440px; }
+body[data-monir-page="admin"] > header > div:last-child { background: #102035; border-color: #294158; }
+body[data-monir-page="admin"] > header > div:last-child button {
+  background: #20364c; border: 1px solid #3c5367; color: #e2e8f0;
+  font-size: .8125rem; min-height: 42px; padding-inline: 1rem; box-shadow: none;
+}
+body[data-monir-page="admin"] > header > div:last-child button:hover { background: #115e59; border-color: #34d399; }
+body[data-monir-page="admin"] > header > div:last-child button:first-child { background: #0f766e; border-color: #26978b; color: white; }
+body[data-monir-page="admin"] > main > section:first-child { border-inline-start: 4px solid #0f766e; }
+body[data-monir-page="admin"] > main > section.grid > .bg-white { border-top: 3px solid #d5b06b; }
+/* Login: navy surround, high contrast form and restrained gold accent. */
+body[data-monir-page$="login"] { background: radial-gradient(ellipse at 15% 30%, #1c514e 0, transparent 50%), #102238; color: #dbe7ed; min-height: 100dvh; }
+body[data-monir-page$="login"] > header { background: #102238b3; border-color: #36505e; }
+body[data-monir-page$="login"] > header > div { max-width: 1200px; gap: 1rem; }
+body[data-monir-page$="login"] > header a { min-height: 44px; display: inline-flex; align-items: center; }
+body[data-monir-page$="login"] > main { max-width: 520px; padding-block: 3rem; }
+body[data-monir-page$="login"] > main > div:first-child { background: #fff; border: 1px solid #d9e5e4; border-top: 4px solid #c6a25b; border-radius: 1.5rem; padding: clamp(1.25rem,4vw,2.5rem); box-shadow: 0 24px 64px #0004; color: #24364b; }
+body[data-monir-page$="login"] main > div:first-child .text-slate-400 { color: #526579; }
+body[data-monir-page$="login"] main h2 { color: #14263d; font-size: 1.75rem; }
+body[data-monir-page$="login"] main form label { color: #344a60; font-size: .875rem; }
+body[data-monir-page$="login"] main form input { background: #f7fafb; color: #14263d; border-color: #c8d7dc; min-height: 52px; font-size: 1rem; font-weight: 600; padding: .75rem 1rem; }
+body[data-monir-page$="login"] main form > div + div { margin-top: 1.25rem; }
+body[data-monir-page$="login"] :is(#submitBtn,#adminSubmitBtn) { background: #0f766e; color: #fff; min-height: 52px; box-shadow: 0 5px 14px #0f766e26; font-size: 1rem; }
+body[data-monir-page$="login"] :is(#submitBtn,#adminSubmitBtn):hover { background: #115e59; }
+body[data-monir-page="admin-login"] #adminSubmitBtn { background: #14263d; }
+body[data-monir-page="admin-login"] #adminSubmitBtn:hover { background: #243d57; }
+body[data-monir-page="login"] main .grid.grid-cols-2 { background: #edf3f4; border-color: #dce5e9; padding: .375rem; }
+body[data-monir-page="login"] :is(#tabStudent,#tabTeacher) { font-size: .875rem; color: #526579; }
+body[data-monir-page="login"] :is(#tabStudent,#tabTeacher):is(.bg-blue-600,[class~="bg-[#41519C]"],[class~="bg-[#57BA9E]"]) { background: #0f766e; color: #fff; box-shadow: 0 2px 6px #0f766e26; }
+body[data-monir-page="login"] #registerPromptBox { background: #f2f8f6; border-color: #dce9e3; }
+body[data-monir-page$="login"] main > div + div { color: #cbd5e1; }
+body[data-monir-page$="login"] > footer { padding-inline: 1rem; border-color: #36505e; }
+body[data-monir-page$="login"] > :is(header,footer) :is(.text-slate-400,.text-slate-500,.text-slate-600) { color: #cbd5e1; }
+body[data-monir-page$="login"] footer [class~="text-[#57BA9E]"] { color: #6ee7b7; }
+body[data-monir-page="login"] main .mt-6.border-t { border-color: #dce5e9; flex-wrap: wrap; gap: .5rem; }
+/* Mobile: wrap toolbars, preserve table columns, and keep all actions reachable. */
+@media (max-width: 767px) {
+  body[data-monir-page] > header { position: relative; }
+  body[data-monir-page] > header > div:first-child { flex-wrap: wrap; gap: .75rem; }
+  body[data-monir-page] > header > div:first-child > div { min-width: 0; max-width: 100%; }
+  body[data-monir-page] > header > div:first-child > div:last-child { flex-wrap: wrap; }
+  body[data-monir-page] :is(#adminTeacherSupervisorBar,#adminStudentSupervisorBar) { position: relative; top: auto; }
+  body[data-monir-page] > main { padding-block: 1rem; }
+  body[data-monir-page] .profile-cover { height: 108px; }
+  body[data-monir-page] .profile-cover-text { white-space: normal; font-size: .8125rem; max-width: 80%; }
+  body[data-monir-page] .profile-body { display: block; padding-inline: 1rem; }
+  body[data-monir-page] .profile-avatar { margin-bottom: .75rem; }
+  body[data-monir-page] .profile-tabs { gap: .875rem; padding-inline: 1rem; }
+  body[data-monir-page] .kpi-stats-grid { gap: .625rem; }
+  body[data-monir-page] .kpi-stat-card { padding: .875rem; flex-wrap: wrap; gap: .5rem; }
+  body[data-monir-page] :is(input,select,textarea) { font-size: 1rem !important; }
+  body[data-monir-page] .overflow-x-auto > table { min-width: 640px; }
+  body[data-monir-page] :is(th,td) { padding: .75rem; }
+  body[data-monir-page="teacher"] main > .flex > .flex-1 { flex-wrap: wrap; }
+  body[data-monir-page="teacher"] #searchInput { flex-basis: 100%; }
+  body[data-monir-page="teacher"] main > .flex > .flex-1 > button { flex: 1 1 auto; justify-content: center; }
+  body[data-monir-page] :is(.modal-overlay,.fixed.inset-0):not(.video-modal-overlay):not(.video-rotate-landscape) { padding: .5rem !important; }
+  body[data-monir-page] :is(.modal-overlay,.fixed.inset-0):not(.video-modal-overlay):not(.video-rotate-landscape) > div { max-height: calc(100dvh - 1rem); }
+  body[data-monir-page="student"] #mobileBottomNav { padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); }
+  body[data-monir-page="student"] #mobileBottomNav :is(button,a) { min-height: 48px; }
+  body[data-monir-page="student"] #mobileBottomNav :is([class~="text-[10px]"],[class~="text-[11px]"]) { font-size: .6875rem; }
+  body[data-monir-page="admin"] #floatingChatBtnContainer { bottom: 1rem; left: .75rem; }
+  body[data-monir-page$="login"] > main { padding-block: 1.5rem; }
+  body[data-monir-page$="login"] > header { padding: 1rem; }
+  body[data-monir-page$="login"] > header > div { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-monir-page] *, body[data-monir-page] *::before, body[data-monir-page] *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+}
+@media print {
+  body[data-monir-page] { background: white; }
+  body[data-monir-page] :is(.profile-card,.group-card,.kpi-stat-card,main > section.bg-white) { box-shadow: none; }
+}

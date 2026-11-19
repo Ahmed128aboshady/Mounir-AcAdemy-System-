@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الإدارة الشاملة أكاديمية منير الذكية</title>
     <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="shortcut icon" href="favicon.ico">
@@ -163,8 +163,9 @@
         }, true);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
 </head>
-<body class="bg-slate-100 text-slate-800 pb-20 overflow-x-hidden min-h-screen">
+<body data-monir-page="admin" class="bg-slate-100 text-slate-800 pb-20 overflow-x-hidden min-h-screen">
 
     <!-- Header -->
     <header class="bg-[#1F274B] text-white sticky top-0 z-40 shadow-md border-b border-[#2D396E]">
@@ -202,6 +203,7 @@
         <!-- Row 2: Quick Navigation Actions Strip -->
         <div class="bg-[#161C36] border-t border-[#2D396E]/60 px-3 sm:px-6 py-1.5">
             <div class="max-w-[1600px] mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none text-xs">
+                <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="shrink-0 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold inline-flex items-center justify-center whitespace-nowrap" style="min-height:44px">روابط المسابقة</a>
                 <button type="button" onclick="openDailyAttendanceMatchingSection()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="تصدير ومطابقة الحضور اليومي الفعلي Excel">
                     <span>مطابقة الحضور اليومي</span>
                 </button>
@@ -430,7 +432,7 @@
                     </div>
 
                     <!-- Submissions Table -->
-                    <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                    <div class="overflow-x-auto border border-slate-200 rounded-2xl" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                         <table class="w-full text-right text-xs min-w-[700px]">
                             <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200">
                                 <tr>
@@ -482,7 +484,7 @@
             </div>
 
             <!-- Performance Table (Collapsible Dropdown Content) -->
-            <div id="teacherPerformanceContent" class="hidden overflow-x-auto transition-all duration-300 pt-1">
+            <div id="teacherPerformanceContent" class="hidden overflow-x-auto transition-all duration-300 pt-1" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                 <table class="w-full text-right text-xs min-w-[650px]">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
@@ -579,7 +581,7 @@
                 </div>
 
                 <!-- Payroll Table -->
-                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <div class="overflow-x-auto rounded-xl border border-slate-200" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                     <table class="w-full text-right text-xs min-w-[880px]">
                         <thead>
                             <tr class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[11px]">
@@ -752,7 +754,7 @@
                     </div>
 
                     <!-- Matching Table Area -->
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                         <table class="w-full text-right text-xs">
                             <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
                                 <tr>
@@ -894,7 +896,7 @@
                     </div>
 
                     <!-- Frequent Absence Table -->
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                         <table class="w-full text-right text-xs">
                             <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
                                 <tr>
@@ -1112,7 +1114,7 @@
                     </div>
 
                     <!-- Table Responsive Wrapper -->
-                    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                         <table class="w-full text-right text-xs">
                             <thead class="bg-slate-100 text-slate-700 font-black border-b border-slate-200 text-[11px]">
                                 <tr>
@@ -1207,7 +1209,7 @@
             </div>
 
             <!-- Paused Students Table (Collapsible Dropdown Content) -->
-            <div id="pausedStudentsContent" class="hidden overflow-x-auto transition-all duration-300 pt-1">
+            <div id="pausedStudentsContent" class="hidden overflow-x-auto transition-all duration-300 pt-1" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                 <table class="w-full text-right text-xs min-w-[650px]">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
@@ -1286,7 +1288,7 @@
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                 <table class="w-full text-right text-xs min-w-[700px]">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 font-extrabold border-b border-slate-200">
@@ -1470,7 +1472,7 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+            <div class="overflow-x-auto rounded-2xl border border-slate-200" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
                 <table class="w-full text-right text-xs min-w-[900px]">
                     <thead>
                         <tr class="bg-[#1F274B] text-white font-extrabold">

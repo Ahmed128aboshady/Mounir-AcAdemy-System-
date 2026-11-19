@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>بوابة الطالب وولي الأمر | أكاديمية منير</title>
     <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="shortcut icon" href="favicon.ico">
@@ -37,8 +37,9 @@
     <script src="js/student_genders.js?v=20260922_v1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260923_v1"></script>
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
 </head>
-<body class="bg-slate-50 text-slate-800 pb-28 sm:pb-20">
+<body data-monir-page="student" class="bg-slate-50 text-slate-800 pb-28 sm:pb-20">
 
     <!-- Global SVG Symbol Icons (No decorative emojis, clean modern EdTech lines) -->
     <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
@@ -386,6 +387,7 @@
                                 <span>محاضرات المسابقة</span>
                                 <span id="badgeCountCompetitionTrack" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">3</span>
                             </button>
+                            <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="shrink-0 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold inline-flex items-center justify-center whitespace-nowrap" style="min-height:44px">روابط المسابقة</a>
                             <button type="button" id="tabBtnMonthlyExams" onclick="openQuizzesModal()" class="shrink-0 py-2 px-4 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-xs cursor-pointer select-none whitespace-nowrap">
                                 <span>الامتحانات الشهرية (40د)</span>
                                 <span class="bg-slate-950 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold">مفتوح حتى منتصف الليل</span>

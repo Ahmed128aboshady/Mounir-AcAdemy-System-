@@ -12,8 +12,9 @@
     <script src="js/popup.js"></script>
     <script src="js/supabase_client.js"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+<body data-monir-page="login" class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
     <!-- Top Simple Bar -->
     <header class="py-4 px-6 border-b border-[#2D396E] bg-[#1F274B]">
@@ -53,22 +54,22 @@
             </div>
 
             <!-- Alert Box -->
-            <div id="loginAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-bold border"></div>
+            <div id="loginAlert" role="alert" aria-live="polite" class="hidden mb-4 p-3 rounded-xl text-xs font-bold border"></div>
 
             <!-- Login Form -->
             <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs">
                 
                 <div>
-                    <label id="usernameLabel" class="block font-bold text-slate-300 mb-1.5">اسم المستخدم أو كود الطالب:</label>
-                    <input type="text" id="loginUsername" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none transition" placeholder="مثال: abdelrahman أو MNR-2026-1042">
+                    <label for="loginUsername" id="usernameLabel" class="block font-bold text-slate-300 mb-1.5">اسم المستخدم أو كود الطالب:</label>
+                    <input type="text" id="loginUsername" autocomplete="username" autocapitalize="none" spellcheck="false" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none transition" placeholder="مثال: abdelrahman أو MNR-2026-1042">
                 </div>
 
                 <div>
                     <div class="flex justify-between items-center mb-1.5">
-                        <label class="block font-bold text-slate-300">كلمة المرور:</label>
+                        <label for="loginPassword" class="block font-bold text-slate-300">كلمة المرور:</label>
                         <span class="text-[10px] text-slate-500">الافتراضية: 123456</span>
                     </div>
-                    <input type="password" id="loginPassword" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none transition" placeholder="أدخل كلمة المرور (أو اتركها فارغة للدخول التلقائي)">
+                    <input type="password" id="loginPassword" autocomplete="current-password" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold outline-none transition" placeholder="أدخل كلمة المرور (أو اتركها فارغة للدخول التلقائي)">
                 </div>
 
                 <div class="pt-2">
