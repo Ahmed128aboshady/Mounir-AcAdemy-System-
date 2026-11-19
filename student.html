@@ -1071,12 +1071,12 @@
             </div>
 
             <!-- Student & Course Context Bar -->
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-4 flex items-center justify-between text-xs">
-                <div class="flex items-center gap-2">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-slate-400 font-medium">المسار:</span>
                     <strong class="text-slate-800 font-bold" id="paymobCourseNameBadge">المسار المختار</strong>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-slate-400 font-medium">الطالب:</span>
                     <strong class="text-slate-800 font-bold" id="paymobStudentInfo">طالب الأكاديمية</strong>
                 </div>
@@ -1146,32 +1146,32 @@
             <!-- Transfer Account Details Display -->
             <!-- 1. InstaPay Details Box -->
             <div id="instapayDetailsBox" class="bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5 mb-3.5 text-xs space-y-2.5">
-                <div class="flex items-center justify-between">
-                    <span class="font-black text-indigo-950 flex items-center gap-1.5 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="font-black text-indigo-950 flex items-center gap-1.5 text-xs min-w-0">
                         بيانات التحويل عبر إنستا باي (InstaPay):
                     </span>
-                    <span class="bg-indigo-700 text-white font-black text-[10px] px-2 py-0.5 rounded-full">حساب معتمد</span>
+                    <span class="bg-indigo-700 text-white font-black text-[10px] px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap shadow-2xs">حساب معتمد</span>
                 </div>
-                <div class="bg-white p-3 rounded-xl border border-indigo-100 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500 font-medium">رقم الحساب:</span>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-black text-slate-900 text-sm tracking-wider" id="instapayAccNum">009348060001</span>
-                            <button type="button" onclick="copyTransferText('009348060001', this)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 space-y-2.5">
+                    <div class="flex items-center justify-between gap-1.5">
+                        <span class="text-slate-500 font-bold whitespace-nowrap text-[11px] shrink-0">رقم الحساب:</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="font-mono font-black text-slate-900 text-xs sm:text-sm tracking-normal select-all" id="instapayAccNum">009348060001</span>
+                            <button type="button" onclick="copyTransferText('009348060001', this)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[10px] sm:text-[11px] font-black px-2 sm:px-2.5 py-1 rounded-lg transition inline-flex items-center justify-center gap-1 shrink-0 whitespace-nowrap h-7 sm:h-8 min-h-[28px] cursor-pointer">
                                 <span>نسخ الحساب</span>
                             </button>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
-                        <span class="text-slate-500 font-medium">اسم البنك:</span>
-                        <strong class="text-slate-800 font-bold">First Abu Dhabi Bank Misr</strong>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium text-[11px]">اسم البنك:</span>
+                        <strong class="text-slate-800 font-bold text-xs">First Abu Dhabi Bank Misr</strong>
                     </div>
-                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
-                        <span class="text-slate-500 font-medium">اسم صاحب الحساب:</span>
-                        <strong class="text-indigo-950 font-black">TRAINER X FOR TRAINING</strong>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium text-[11px]">اسم صاحب الحساب:</span>
+                        <strong class="text-indigo-950 font-black text-xs">TRAINER X FOR TRAINING</strong>
                     </div>
-                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
-                        <span class="text-slate-500 font-medium">المبلغ المطلوب:</span>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium text-[11px]">المبلغ المطلوب:</span>
                         <strong class="text-emerald-700 font-black text-sm" id="instapayAmountDisplay">400.00 ج.م</strong>
                     </div>
                 </div>
@@ -1179,24 +1179,24 @@
 
             <!-- 2. Vodafone Cash Details Box -->
             <div id="vodafoneDetailsBox" class="hidden bg-rose-50/90 border-2 border-rose-200 rounded-2xl p-3.5 mb-3.5 text-xs space-y-2.5">
-                <div class="flex items-center justify-between">
-                    <span class="font-black text-rose-950 flex items-center gap-1.5 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="font-black text-rose-950 flex items-center gap-1.5 text-xs min-w-0">
                         بيانات التحويل عبر محفظة فودافون كاش:
                     </span>
-                    <span class="bg-rose-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full">محفظة كاش</span>
+                    <span class="bg-rose-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap shadow-2xs">محفظة كاش</span>
                 </div>
-                <div class="bg-white p-3 rounded-xl border border-rose-100 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-500 font-medium">رقم المحفظة:</span>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-black text-rose-700 text-base tracking-wider" id="vodafoneCashNum">01002530197</span>
-                            <button type="button" onclick="copyTransferText('01002530197', this)" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                <div class="bg-white p-3 rounded-xl border border-rose-100 space-y-2.5">
+                    <div class="flex items-center justify-between gap-1.5">
+                        <span class="text-slate-500 font-bold whitespace-nowrap text-[11px] shrink-0">رقم المحفظة:</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="font-mono font-black text-rose-700 text-sm sm:text-base tracking-normal select-all" id="vodafoneCashNum">01002530197</span>
+                            <button type="button" onclick="copyTransferText('01002530197', this)" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-[10px] sm:text-[11px] font-black px-2 sm:px-2.5 py-1 rounded-lg transition inline-flex items-center justify-center gap-1 shrink-0 whitespace-nowrap h-7 sm:h-8 min-h-[28px] cursor-pointer">
                                 <span>نسخ الرقم</span>
                             </button>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-100">
-                        <span class="text-slate-500 font-medium">المبلغ المطلوب تحويله:</span>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="text-slate-500 font-medium text-[11px]">المبلغ المطلوب تحويله:</span>
                         <strong class="text-emerald-700 font-black text-sm" id="vodafoneAmountDisplay">400.00 ج.م</strong>
                     </div>
                 </div>

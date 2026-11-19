@@ -184,3 +184,11 @@ body[data-monir-page] #studentLedgerModal .overflow-x-auto {
 body[data-monir-page] #studentLedgerModal .overflow-x-auto::-webkit-scrollbar {
   display: none;
 }
+
+/* Direct Transfer & Payment Modal Button Fixes */
+body[data-monir-page] #paymobModal button[onclick*="copyTransferText"] {
+  min-height: 28px !important;
+  height: 30px !important;
+  padding-block: 0 !important;
+  line-height: 1 !important;
+}

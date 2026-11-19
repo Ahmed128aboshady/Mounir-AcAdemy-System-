@@ -1526,6 +1526,21 @@ function renderEnrolledCoursesTabs(courses) {
 
     const isAccordionMode = safeCourses.length > 1;
 
+    if (typeof currentPortalTrack !== 'undefined' && currentPortalTrack === 'competition') {
+        const compLinksBanner = document.createElement('div');
+        compLinksBanner.className = 'bg-emerald-50/90 border-2 border-emerald-200 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs';
+        compLinksBanner.innerHTML = `
+            <div class="space-y-0.5">
+                <h4 class="font-black text-emerald-950 text-xs sm:text-sm">اختصارات وروابط محاضرات المسابقة حسب الفئة والسن</h4>
+                <p class="text-[11px] text-emerald-800 font-medium">تصفح وانسخ روابط غرف Google Meet لمحاضرات الحديث والتفسير والقرآن والآداب والتجويد (بنين وبنات).</p>
+            </div>
+            <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto shrink-0 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black inline-flex items-center justify-center whitespace-nowrap shadow-xs transition">
+                فتح صفحة روابط المسابقة المختصرة
+            </a>
+        `;
+        container.appendChild(compLinksBanner);
+    }
+
     safeCourses.forEach((c, idx) => {
         if (!c) return;
         const cName = c.course_name || c.name || c.title || 'مسار القرآن الكريم والتدبر';
