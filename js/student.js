@@ -190,6 +190,32 @@ function renderModalStudentsList(list) {
     }).join('');
 }
 
+function syncCompetitionLinksTarget(s, finalName) {
+    if (!s) return;
+    const compBtn = document.querySelector('#floatingCompetitionLinksContainer a');
+    const stCode = s.student_code || ('ST' + String(s.id || '').padStart(4, '0'));
+    const sName = finalName || window.currentStudentName || s.name || '';
+    const sExplicitGender = window.currentStudentGender || s.gender || s.student_gender || s.parent_name || '';
+    const sGender = (typeof guessStudentGender === 'function')
+        ? guessStudentGender(sName, sExplicitGender, stCode)
+        : (sExplicitGender === 'f' || sExplicitGender === 'أنثى' ? 'f' : 'm');
+    const loadedAge = (window.currentStudentAge !== undefined && window.currentStudentAge !== null)
+        ? window.currentStudentAge
+        : (s.age ? parseInt(s.age, 10) : 9);
+
+    const url = `competition-links.html?code=${encodeURIComponent(stCode)}&age=${loadedAge}&gender=${sGender}&name=${encodeURIComponent(sName)}`;
+    if (compBtn) compBtn.href = url;
+    document.querySelectorAll('a[href*="competition-links.html"]').forEach(a => a.href = url);
+    try {
+        localStorage.setItem('monir_competition_target_student', JSON.stringify({
+            code: stCode,
+            name: sName,
+            age: loadedAge,
+            gender: sGender
+        }));
+    } catch(e) {}
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initStudentPage);
 } else {
@@ -386,6 +412,7 @@ async function loadStudentProfile() {
             const parentPhoneEl = document.getElementById('parentPhone');
             if (parentPhoneEl) parentPhoneEl.innerText = phoneVal;
             document.getElementById('enrolledCoursesCount').innerText = ((data && data.enrolled_courses_count) || (enrolledCoursesList ? enrolledCoursesList.length : 1)) + ' مسار تدريبي';
+            syncCompetitionLinksTarget(s, finalName);
         }
         
         const safeId = s.id || currentStudentId;
@@ -465,7 +492,8 @@ async function loadStudentProfile() {
         const dParent = document.getElementById('detailsParentName');
         if (dParent) dParent.innerText = document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب';
         const dPhone = document.getElementById('detailsParentPhone');
-        if (dPhone) dPhone.innerText = (parentPhoneEl && parentPhoneEl.innerText) ? parentPhoneEl.innerText : 'غير مسجل';
+        const pPhoneElem = document.getElementById('parentPhone');
+        if (dPhone) dPhone.innerText = (pPhoneElem && pPhoneElem.innerText) ? pPhoneElem.innerText : 'غير مسجل';
         const dStatus = document.getElementById('detailsAccountStatus');
         if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
         const dTrack = document.getElementById('detailsTrackName');
