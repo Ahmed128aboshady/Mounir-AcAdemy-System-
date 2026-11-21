@@ -4514,7 +4514,9 @@
                         recorded_role: recordedRole,
                         surah: s.current_surah || '—',
                         manual_match: manualMatch,
-                        is_scheduled: isScheduledToday
+                        is_scheduled: isScheduledToday,
+                        attendance_id: supaRec ? supaRec.id : null,
+                        joined_at: supaRec ? supaRec.joined_at : null
                     });
                 }
             });
@@ -4558,7 +4560,9 @@
                         recorded_role: extraRole,
                         surah: s.current_surah || '—',
                         manual_match: localStorage.getItem(manualMatchKey) || '',
-                        is_scheduled: false
+                        is_scheduled: false,
+                        attendance_id: supaRec ? supaRec.id : null,
+                        joined_at: supaRec ? supaRec.joined_at : null
                     });
                 }
             });
@@ -4770,7 +4774,7 @@
                 const matchSelected = r.manual_match || '';
 
                 const undoBtn = isRecorded ? `
-                    <button type="button" onclick="undoOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', '${r.status}')" class="p-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition" title="إلغاء رصد الحضور لهذا التاريخ واستعادة الحصة"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg></button>
+                    <button type="button" onclick="undoOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', '${r.status}', ${r.attendance_id || 'null'})" class="p-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition" title="إلغاء رصد الحضور لهذا التاريخ واستعادة الحصة"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg></button>
                 ` : '';
 
                 return `
@@ -5011,7 +5015,7 @@
             }
         }
 
-        async function undoOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, currentStatus) {
+        async function undoOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, currentStatus, attendanceId = null) {
             const studentName = decodeURIComponent(encodedName);
             const statusLabel = currentStatus === 'present' ? 'حضور' : currentStatus === 'absent' ? 'غياب' : currentStatus === 'excused' ? 'عذر' : 'مؤجلة';
 
@@ -5057,17 +5061,24 @@
                     }
                 }
 
-                // 2. Delete attendance row for this date/session
-                const dObj = new Date(dateStr + 'T12:00:00');
-                const startWindow = new Date(dObj.getTime() - 14 * 3600 * 1000).toISOString();
-                const endWindow = new Date(dObj.getTime() + 18 * 3600 * 1000).toISOString();
+                // 2. Delete attendance row for this date/session (exact ID first, then range fallback)
+                if (attendanceId) {
+                    await client
+                        .from('attendance')
+                        .delete()
+                        .eq('id', attendanceId);
+                } else {
+                    const dObj = new Date(dateStr + 'T12:00:00');
+                    const startWindow = new Date(dObj.getTime() - 20 * 3600 * 1000).toISOString();
+                    const endWindow = new Date(dObj.getTime() + 24 * 3600 * 1000).toISOString();
 
-                await client
-                    .from('attendance')
-                    .delete()
-                    .eq('student_id', studentId)
-                    .gte('joined_at', startWindow)
-                    .lte('joined_at', endWindow);
+                    await client
+                        .from('attendance')
+                        .delete()
+                        .eq('student_id', studentId)
+                        .gte('joined_at', startWindow)
+                        .lte('joined_at', endWindow);
+                }
 
                 // 3. Payment audit trail (using whatsapp_message)
                 try {

@@ -509,6 +509,90 @@
         }
     };
 
+    
+    // Supervisor direct session cancellation and credit restoration from Student Ledger
+    window.adminCancelStudentSession = async function(studentId, enrollmentId, attendanceId, status, dateStr, evt) {
+        if (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+
+        const statusLabel = status === 'present' ? 'حضور' : status === 'absent' ? 'غياب' : status === 'excused' ? 'عذر' : 'مؤجلة';
+        const confirmMsg = `تأكيد إلغاء الحصة واستعادة الرصيد:\n\n• تاريخ الحصة: ${dateStr}\n• الحالة المسجلة: ${statusLabel}\n\nسيتم حذف سجل الحصة نهائياً من قاعدة البيانات وإعادة الحصة إلى رصيد الطالب فوراً.\nهل تود تأكيد الإلغاء؟`;
+
+        let confirmed = false;
+        if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
+            confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد إلغاء الحصة', 'warning', 'نعم، إلغاء الحصة واستعادة الرصيد', 'تراجع');
+        } else {
+            confirmed = confirm(confirmMsg);
+        }
+        if (!confirmed) return;
+
+        try {
+            if (!window.MonirDB || !window.MonirDB.isConfigured()) {
+                alert('قاعدة البيانات غير متصلة');
+                return;
+            }
+            const client = window.MonirDB.getClient();
+
+            // 1. Delete attendance row by exact ID
+            if (attendanceId) {
+                const { error: delErr } = await client
+                    .from('attendance')
+                    .delete()
+                    .eq('id', attendanceId);
+                if (delErr) throw delErr;
+            }
+
+            // 2. Adjust enrollment balances
+            let enrQuery = client.from('enrollments').select('*');
+            if (enrollmentId) enrQuery = enrQuery.eq('id', enrollmentId);
+            else enrQuery = enrQuery.eq('student_id', studentId);
+            const { data: enrList, error: enrErr } = await enrQuery.limit(1);
+
+            if (enrList && enrList[0]) {
+                const e = enrList[0];
+                let updates = {};
+                if (status === 'present') {
+                    updates.remaining_credits = (e.remaining_credits || 0) + 1;
+                    updates.present_count = Math.max(0, (e.present_count || 0) - 1);
+                } else if (status === 'absent') {
+                    updates.remaining_credits = (e.remaining_credits || 0) + 1;
+                    updates.absent_count = Math.max(0, (e.absent_count || 0) - 1);
+                } else if (status === 'excused') {
+                    updates.excuse_count = Math.max(0, (e.excuse_count || 0) - 1);
+                }
+
+                if (Object.keys(updates).length > 0) {
+                    await client.from('enrollments').update(updates).eq('id', e.id);
+                }
+            }
+
+            // 3. Clear any matching localStorage cache
+            try {
+                localStorage.removeItem('monir_att_' + studentId + '_' + dateStr);
+            } catch(e) {}
+
+            // 4. Toast feedback
+            if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
+                window.MonirPopup.toast('تم إلغاء الحصة واستعادة الرصيد للطالب بنجاح', 'success');
+            } else {
+                alert('تم إلغاء الحصة واستعادة الرصيد بنجاح');
+            }
+
+            // 5. In-place Refresh
+            if (typeof window.openStudentLedgerModal === 'function') {
+                await window.openStudentLedgerModal(studentId, 'attendance');
+            }
+            if (typeof window.loadDailyAttendanceMatchingData === 'function') {
+                await window.loadDailyAttendanceMatchingData();
+            }
+        } catch(err) {
+            console.error('Error cancelling student session:', err);
+            alert('حدث خطأ أثناء إلغاء الحصة: ' + (err.message || err));
+        }
+    };
+
     window.closeStudentLedgerModal = function() {
         const modal = document.getElementById('studentLedgerModal');
         if (modal) {
@@ -712,7 +796,7 @@
 
                 <!-- Tab 1: Attendance Log -->
                 <div id="ledgerTabContent_attendance" class="ledger-tab-content space-y-3">
-                    ${renderAttendanceTableHtml(attendanceRecords, presentCount, absentCount, excuseCount, enrolledDate, stCourse, enrollment, sessionNotifs)}
+                    ${renderAttendanceTableHtml(attendanceRecords, presentCount, absentCount, excuseCount, enrolledDate, stCourse, enrollment, sessionNotifs, student)}
                 </div>
 
                 <!-- Tab 2: Renewals Log -->
@@ -746,10 +830,16 @@
     }
 
     // Helper: Render Tab 1 Attendance Table with verified real 2026 dates
-    function renderAttendanceTableHtml(records, presentCount, absentCount, excuseCount, enrolledDate, courseName, enrollment, sessionNotifs = []) {
+    function renderAttendanceTableHtml(records, presentCount, absentCount, excuseCount, enrolledDate, courseName, enrollment, sessionNotifs = [], student = null) {
         const totalAttended = (presentCount || 0) + (absentCount || 0);
 
         // Attendance table logs represent strictly recorded attendance sessions (no synthetic plan notifications)
+        const isAdminViewer = (typeof currentUser !== 'undefined' && (currentUser.role === 'admin' || currentUser.role === 'supervisor')) ||
+            (typeof currentRole !== 'undefined' && currentRole === 'admin') ||
+            window.location.pathname.includes('admin') ||
+            document.getElementById('dailyMatchingDatePicker') !== null ||
+            document.getElementById('adminApp') !== null;
+
         let resolvedRecords = [...(records || [])];
 
         // Sort descending by date
@@ -832,6 +922,15 @@
                     <td class="p-2.5 text-slate-600 truncate max-w-[150px] text-[11px]">${r.course_name || courseName}</td>
                     <td class="p-2.5 font-bold text-slate-700 whitespace-nowrap text-[11px]">${r.duration_minutes || 20} دقيقة</td>
                     <td class="p-2.5 text-center">${creditImpact}</td>
+                    ${isAdminViewer ? `
+                        <td class="p-2.5 text-center">
+                            ${r.id ? `
+                                <button type="button" onclick="window.adminCancelStudentSession(${student ? student.id : (enrollment ? enrollment.student_id : 0)}, ${enrollment ? enrollment.id : 'null'}, ${r.id}, '${r.status}', '${(r.joined_at || r.created_at || '').substring(0, 10)}', event)" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-black px-2 py-0.5 rounded-lg text-[10px] transition cursor-pointer shadow-2xs" title="إلغاء رصد هذه الحصة واستعادة الحصة لرصيد الطالب فوراً">
+                                    <span>إلغاء الحصة</span>
+                                </button>
+                            ` : '<span class="text-slate-300 text-[10px]">—</span>'}
+                        </td>
+                    ` : ''}
                 </tr>
             `;
         }).join('');
@@ -847,6 +946,7 @@
                             <th class="p-2.5">المسار التدريبي</th>
                             <th class="p-2.5">المدة</th>
                             <th class="p-2.5 text-center">التأثير على الرصيد</th>
+                            ${isAdminViewer ? '<th class="p-2.5 text-center">إجراء الإشراف</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>
