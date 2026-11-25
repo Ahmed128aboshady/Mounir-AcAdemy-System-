@@ -4743,8 +4743,11 @@
                             </div>
                         </div>
                     `;
-                } else if (r.is_inactive || r.remaining_credits <= 0) {
-                    statusBadge = '<span class="bg-slate-100 text-slate-500 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">موقوف / رصيد 0</span>';
+                } else if (r.is_inactive || (r.remaining_credits || 0) <= 0) {
+                    const badgeText = (r.is_inactive && (r.remaining_credits || 0) > 0) 
+                        ? `موقوف (رصيد: ${r.remaining_credits})` 
+                        : ((r.remaining_credits || 0) <= 0 ? 'رصيد 0 (يحتاج تجديد)' : 'موقوف');
+                    statusBadge = `<span class="bg-slate-100 text-slate-600 border border-slate-300 font-bold px-2 py-0.5 rounded-full text-[10px]">${badgeText}</span>`;
                 } else if (r.entered_meet) {
                     statusBadge = `
                         <div class="inline-flex flex-col items-center gap-1">
