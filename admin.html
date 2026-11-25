@@ -4463,7 +4463,7 @@
                         const isPostponed = !!(supaRec.course_name && supaRec.course_name.includes('[تأجيل'));
                         status = isPostponed ? 'postponed' : (supaRec.status || 'present');
                         const isAuto = !!(supaRec.course_name && (supaRec.course_name.includes('رصد آلي') || supaRec.course_name.includes('دخول القاعة') || supaRec.course_name.includes('دخول الطالب')));
-                        const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
+                        const isSup = !!(supaRec.course_name && (supaRec.course_name.includes('إشراف') || supaRec.course_name.includes('بديل')));
                         recordedRole = isAuto ? 'رصد تلقائي (دخول الطالب)' : (isSup ? 'إشراف' : 'معلم');
                         if (supaRec.joined_at) {
                             try {
@@ -4528,7 +4528,7 @@
                     const s = studentsList.find(st => st.id === sid) || {};
                     let recordedAt = '—';
                     const isAuto = !!(supaRec.course_name && (supaRec.course_name.includes('رصد آلي') || supaRec.course_name.includes('دخول القاعة') || supaRec.course_name.includes('دخول الطالب')));
-                    const isSup = !!(supaRec.course_name && supaRec.course_name.includes('[إشراف]'));
+                    const isSup = !!(supaRec.course_name && (supaRec.course_name.includes('إشراف') || supaRec.course_name.includes('بديل')));
                     const isPostponed = !!(supaRec.course_name && supaRec.course_name.includes('[تأجيل'));
                     const extraRole = isAuto ? 'رصد تلقائي (دخول الطالب)' : (isSup ? 'إشراف' : 'معلم');
                     const extraStatus = isPostponed ? 'postponed' : (supaRec.status || 'present');
@@ -4910,7 +4910,7 @@
                 if (isDuplicate && dupAtt) {
                     const ex = dupAtt;
                     const exStatus = ex.status === 'present' ? 'حضور' : ex.status === 'absent' ? 'غياب' : 'عذر';
-                    const isBySup = !!(ex.course_name && ex.course_name.includes('[إشراف]'));
+                    const isBySup = !!(ex.course_name && (ex.course_name.includes('إشراف') || ex.course_name.includes('بديل')));
                     const roleTxt = isBySup ? 'بواسطة الإشراف' : 'بواسطة المعلم';
                     alert(`تنبيه أمان قاطع: تم رصد هذا الطالب مسبقاً (${roleTxt}) بحالة (${exStatus}) في السحابة!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`);
                     await loadDailyAttendanceMatchingData();

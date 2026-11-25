@@ -892,7 +892,7 @@
         let rowsHtml = records.map((r, i) => {
             let statusBadge = '';
             let creditImpact = '';
-            const isSup = (r.course_name && r.course_name.includes('[إشراف]'));
+            const isSup = (r.course_name && (r.course_name.includes('إشراف') || r.course_name.includes('بديل')));
             const isTch = (r.course_name && r.course_name.includes('[معلم]'));
             const roleBadge = isSup 
                 ? '<span class="bg-purple-100 text-purple-900 border border-purple-300 font-extrabold px-1.5 py-0.5 rounded-md text-[9px] mr-1">إشراف</span>' 

@@ -764,7 +764,7 @@
                                         const hoursDiff = (nowMs - attMs) / (1000 * 3600);
                                         const absHours = Math.abs(hoursDiff);
                                         const isSameDay = a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr));
-                                        const isBySupervisor = !!(a.course_name && a.course_name.includes('[إشراف]'));
+                                        const isBySupervisor = !!(a.course_name && (a.course_name.includes('إشراف') || a.course_name.includes('بديل')));
                                         const isPostponed = !!(a.course_name && a.course_name.includes('[تأجيل'));
                                         const effectiveStatus = isPostponed ? 'postponed' : a.status;
 
@@ -2128,7 +2128,7 @@
                                 const hoursDiff = (nowMs - attMs) / (1000 * 3600);
                                 const absHours = Math.abs(hoursDiff);
                                 const isSameDay = att.joined_at.startsWith(todayDateStr) || att.joined_at.startsWith(todayUtcStr);
-                                const isBySup = !!(att.course_name && att.course_name.includes('[إشراف]'));
+                                const isBySup = !!(att.course_name && (att.course_name.includes('إشراف') || att.course_name.includes('بديل')));
                                 const isBlocked = isBySup 
                                     ? (isSameDay || absHours < 60)
                                     : (isSameDay || (hoursDiff >= -4 && hoursDiff < 12));
