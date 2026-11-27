@@ -873,7 +873,7 @@ function extractQuranPlan(rawSurah, rawAya, studentId, studentCode) {
     }
 
     // Check localStorage cache if any fields are empty
-    const cacheKeys = [
+    const cacheKeys = enrolledCoursesList.length > 1 ? [] : [
         studentId ? ('monir_quran_plan_' + studentId) : null,
         studentCode ? ('monir_quran_plan_' + studentCode) : null,
         studentId ? ('monir_surah_progress_' + studentId) : null,
@@ -912,7 +912,7 @@ function checkAndRenderQuranWidget(courses) {
             rawAya = c.current_aya;
         }
     }
-    if (!rawSurah && curStudent && curStudent.current_surah) {
+    if (!rawSurah && enrolledCoursesList.length <= 1 && curStudent.current_surah) {
         rawSurah = curStudent.current_surah;
         rawAya = curStudent.current_aya;
     }
@@ -1913,6 +1913,7 @@ window.toggleCourseAccordion = toggleCourseAccordion;
 
 function selectCourseTab(cName) {
     selectedCourseName = cName;
+    checkAndRenderQuranWidget(enrolledCoursesList);
     if (cName.includes('تفسير') || cName.includes('تدبر')) {
         currentGeneralTrack = 'tafsir';
     } else if (cName.includes('حديث') || cName.includes('سنة')) {
@@ -2634,8 +2635,9 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
             : (currentCourseInfo.google_meet_url || 'https://meet.google.com'));
 
     // Extract Quran Progress (الورد وموضع التلاوة والحفظ والماضي)
-    let rawLectureSurah = (l.current_surah || currentCourseInfo.current_surah || curStudent.current_surah || '').trim();
-    let rawLectureAya = l.current_aya || currentCourseInfo.current_aya || curStudent.current_aya || null;
+    const legacyPlan = enrolledCoursesList.length <= 1 ? curStudent : {};
+    let rawLectureSurah = (l.current_surah || currentCourseInfo.current_surah || legacyPlan.current_surah || '').trim();
+    let rawLectureAya = l.current_aya || currentCourseInfo.current_aya || legacyPlan.current_aya || null;
     const sId = curStudent.id || currentStudentId;
     const sCode = curStudent.student_code;
 
@@ -3521,9 +3523,11 @@ async function loadNotifications(overrideId = null, overrideCode = null, preload
         }
 
         // 4. Ensure the active Quran plan has a top-priority notification
+        const planCourse = enrolledCoursesList.find(course => course.course_name === selectedCourseName)
+            || (enrolledCoursesList.length <= 1 ? enrolledCoursesList[0] || curStudent : {});
         const plan = preloadedPlan || extractQuranPlan(
-            curStudent.current_surah,
-            curStudent.current_aya,
+            planCourse.current_surah,
+            planCourse.current_aya,
             sId,
             sCode
         );

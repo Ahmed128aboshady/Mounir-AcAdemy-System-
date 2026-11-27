@@ -29,7 +29,7 @@
                 console.log('[Supabase Cloud] Connected successfully to:', cfg.url);
                 // Trigger background silent sync of database
                 setTimeout(() => {
-                    if (window.MonirDB && window.MonirDB.syncFromCloud) {
+                    if (!cfg.teacherAuth && window.MonirDB && window.MonirDB.syncFromCloud) {
                         window.MonirDB.syncFromCloud();
                     }
                 }, 500);
@@ -40,6 +40,35 @@
     }
 
     window.MonirDB = {
+        requiresTeacherAuth: function() {
+            return getCfg()?.teacherAuth === true;
+        },
+
+        getVerifiedTeacher: async function() {
+            const client = this.getClient();
+            if (!client) throw new Error('خدمة تسجيل الدخول غير متاحة.');
+            const { data: account, error: authError } = await client.auth.getUser();
+            if (authError || !account.user) throw new Error('سجّل دخولك بحساب المعلم.');
+            const { data: teacherId, error: identityError } = await client.rpc('teacher_portal_identity');
+            if (identityError || !teacherId) throw new Error('حساب الدخول غير مرتبط بمعلم.');
+            const { data, error } = await client.from('teachers').select('id, name, email').eq('id', teacherId).single();
+            if (error || !data) throw new Error('تعذّر تحميل حساب المعلم.');
+            return { role: 'teacher', teacher_id: data.id, full_name: data.name, username: data.email || account.user.email };
+        },
+
+        loginVerifiedTeacher: async function(email, password) {
+            const client = this.getClient();
+            if (!client) return { error: 'خدمة تسجيل الدخول غير متاحة.' };
+            const { error } = await client.auth.signInWithPassword({ email: email.trim(), password });
+            if (error) return { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' };
+            try {
+                return { success: true, user: await this.getVerifiedTeacher() };
+            } catch (identityError) {
+                await client.auth.signOut();
+                return { error: identityError.message };
+            }
+        },
+
         isConfigured: function() {
             return !!(getCfg() && (supabaseClient || window.supabase));
         },
@@ -139,7 +168,10 @@
                 .or(orCond);
 
             // For admin, strictly enforce exact password check (no universal bypass allowed)
-            if (expectedRole === 'admin' || u === 'admin' || u === 'mounir' || u === 'mounirview' || u === 'supervisorview' || u === 'view') {
+            if (expectedRole === 'teacher') {
+                if (!p) return { error: 'يرجى إدخال كلمة المرور' };
+                query = query.eq('role', 'teacher').eq('password_hash', p);
+            } else if (expectedRole === 'admin' || u === 'admin' || u === 'mounir' || u === 'mounirview' || u === 'supervisorview' || u === 'view') {
                 if (!p) return { error: 'يرجى إدخال كلمة المرور' };
                 query = query.eq('password_hash', p);
             } else if (p !== '123456' && p !== '') {
@@ -180,6 +212,9 @@
                 }
             }
 
+            if (!user && expectedRole === 'teacher') {
+                return { error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+            }
             if (!user) {
                 return { notFound: true, fallback: true, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
             }
@@ -215,7 +250,8 @@
                 user.is_read_only = true;
             }
             const token = 'sb_token_' + user.role + '_' + user.id + '_' + Date.now();
-            return { success: true, token: token, user: user, student: studentData };
+            const { password_hash: _password, ...profile } = user;
+            return { success: true, token: token, user: profile, student: studentData };
         },
 
         // --- STUDENT: Get single student profile from cloud ---
