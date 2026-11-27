@@ -278,6 +278,48 @@ body[data-monir-page] .student-profile .profile-body {
 .student-quick-actions:has(> .student-renew-button.hidden) {
   grid-template-columns: minmax(0, 1fr);
 }
+.student-session-card { display: contents; }
+.student-session-summary { display: none; }
+@media (max-width: 767px) {
+  .student-session-card:has(.student-session-summary:not([hidden])) {
+    display: block;
+    margin-inline: 1rem;
+    padding: .75rem;
+    border: 1px solid #d2e4dc;
+    border-radius: .875rem;
+    background: #f6faf8;
+  }
+  .student-session-summary:not([hidden]) {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    align-items: start;
+    gap: .625rem;
+    margin-block-end: .625rem;
+    overflow-wrap: anywhere;
+  }
+  .student-session-summary svg {
+    width: 2rem;
+    height: 2rem;
+    padding: .375rem;
+    border-radius: .5rem;
+    background: #e0f1e8;
+    color: var(--primary-dark);
+  }
+  .student-session-summary h3 {
+    margin: 0;
+    color: var(--primary-dark);
+    font-size: .8125rem;
+    font-weight: 800;
+  }
+  #studentNextSessionCourse { color: var(--monir-navy); font-weight: 800; }
+  #studentNextSessionTime { color: var(--monir-muted); font-size: .8125rem; }
+  .student-session-card:has(.student-session-summary:not([hidden])) .student-quick-actions {
+    padding-inline: 0;
+  }
+  .student-session-card .student-quick-actions:has(> .student-renew-button:not(.hidden)) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
 .student-status-label { color: var(--monir-muted); }
 .student-status-label[data-status="active"] {
   color: #065f46;
