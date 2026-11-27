@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/attendance_scope.js?v=20261127"></script>
-    <script src="js/teacher_earnings.js?v=20261127_rates2"></script>
+    <script src="js/teacher_earnings.js?v=20261128_payroll"></script>
     <script src="js/popup.js"></script>
     <script src="js/meet_manager.js?v=20261012_v4"></script>
     <script src="js/student_genders.js?v=20260922_age1"></script>
@@ -3687,44 +3687,30 @@
 
                     const [teachers, enrollments, attendance, payouts] = await Promise.all([
                         fetchSupabaseDirect('teachers', 'id,name,phone'),
-                        fetchSupabaseDirect('enrollments', 'student_id,teacher_id,session_duration'),
-                        fetchSupabaseDirect('attendance', 'student_id,duration_minutes', 'status=eq.present'),
+                        fetchSupabaseDirect('enrollments', 'student_id,teacher_id,course_name', 'order=id'),
+                        fetchSupabaseDirect('attendance', 'student_id,course_name,joined_at,duration_minutes,status', 'status=in.(present,attended,late)&order=id'),
                         fetchSupabaseDirect('teacher_payouts', 'teacher_id,amount').catch(() => [])
                     ]);
 
-                    // Map student to teacher and standard duration
-                    const stToTeacher = {};
-                    const stDuration = {};
-                    for (const e of enrollments) {
-                        if (e.student_id && e.teacher_id) {
-                            stToTeacher[e.student_id] = e.teacher_id;
-                        }
-                        const durStr = String(e.session_duration || '');
-                        let d = 20;
-                        for (const cand of [60, 45, 30, 20, 15]) {
-                            if (durStr.includes(String(cand))) {
-                                d = cand;
-                                break;
-                            }
-                        }
-                        stDuration[e.student_id] = d;
+                    const enrollmentsByTeacher = new Map();
+                    const scopes = new Set();
+                    const ambiguousScopes = new Set();
+                    for (const enrollment of enrollments) {
+                        const scope = MonirAttendance.key(enrollment.student_id, enrollment.course_name);
+                        if (scopes.has(scope)) ambiguousScopes.add(scope);
+                        scopes.add(scope);
+                        if (!enrollment.teacher_id) continue;
+                        const assigned = enrollmentsByTeacher.get(enrollment.teacher_id) || [];
+                        assigned.push(enrollment);
+                        enrollmentsByTeacher.set(enrollment.teacher_id, assigned);
                     }
 
-                    // Count attendance sessions per teacher
-                    const teacherAtt = {};
-                    for (const a of attendance) {
-                        const sid = a.student_id;
-                        const tid = stToTeacher[sid];
-                        if (!tid) continue;
-                        const recordedDuration = parseInt(a.duration_minutes, 10) || stDuration[sid] || 20;
-                        const rate = MonirTeacherEarnings.rateForMinutes(recordedDuration);
-                        const dur = rate === null ? 20 : recordedDuration;
-                        if (!teacherAtt[tid]) {
-                            teacherAtt[tid] = { 15: 0, 20: 0, 30: 0, 60: 0, 45: 0, total: 0, earned: 0.0 };
-                        }
-                        teacherAtt[tid][dur] = (teacherAtt[tid][dur] || 0) + 1;
-                        teacherAtt[tid].total++;
-                        teacherAtt[tid].earned += rate ?? MonirTeacherEarnings.rateForMinutes(20);
+                    const recordsByScope = new Map();
+                    for (const record of attendance) {
+                        const scope = MonirAttendance.key(record.student_id, record.course_name);
+                        const records = recordsByScope.get(scope) || [];
+                        records.push(record);
+                        recordsByScope.set(scope, records);
                     }
 
                     // Map payouts per teacher
@@ -3741,12 +3727,15 @@
 
                     for (const t of teachers) {
                         const tid = t.id;
-                        const stat = teacherAtt[tid] || { 15: 0, 20: 0, 30: 0, 60: 0, 45: 0, total: 0, earned: 0.0 };
+                        const assigned = enrollmentsByTeacher.get(tid) || [];
+                        const assignedScopes = new Set(assigned.map(row => MonirAttendance.key(row.student_id, row.course_name)));
+                        const records = [...assignedScopes].flatMap(scope => recordsByScope.get(scope) || []);
+                        const stat = MonirTeacherEarnings.summarize(assigned, records, { ambiguousScopes, includeDuration: true });
                         const paid = teacherPayouts[tid] || 0.0;
-                        const earned = stat.earned;
+                        const earned = stat.total;
                         const bal = earned - paid;
 
-                        totSessions += stat.total;
+                        totSessions += stat.counted;
                         totEarned += earned;
                         totPaid += paid;
                         totBal += bal;
@@ -3755,11 +3744,13 @@
                             teacher_id: tid,
                             name: t.name,
                             phone: t.phone,
-                            sessions_15: stat[15] || 0,
-                            sessions_20: stat[20] || 0,
-                            sessions_30: stat[30] || 0,
-                            sessions_60: stat[60] || 0,
-                            completed_sessions: stat.total,
+                            sessions_15: stat.byDuration[15] || 0,
+                            sessions_20: stat.byDuration[20] || 0,
+                            sessions_30: stat.byDuration[30] || 0,
+                            sessions_45: stat.byDuration[45] || 0,
+                            sessions_60: stat.byDuration[60] || 0,
+                            completed_sessions: stat.counted,
+                            needs_review: stat.needsReview,
                             total_earned: earned,
                             total_paid: paid,
                             balance_due: bal
@@ -3833,6 +3824,8 @@
                 const earned = t.total_earned || 0;
                 const paid = t.total_paid || 0;
                 const bal = t.balance_due || 0;
+                const zeroRateSessions = Number(t.sessions_45) || 0;
+                const needsReview = Number(t.needs_review) || 0;
 
                 const balBadgeClass = bal > 0 
                     ? 'bg-amber-100 text-amber-900 border border-amber-300 font-black' 
@@ -3851,7 +3844,11 @@
                         <td class="p-3 text-center font-mono font-bold ${s20 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s20}</td>
                         <td class="p-3 text-center font-mono font-bold ${s30 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s30}</td>
                         <td class="p-3 text-center font-mono font-bold ${s60 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s60}</td>
-                        <td class="p-3 text-center font-mono font-black text-blue-900 text-xs sm:text-sm">${totalSessions}</td>
+                        <td class="p-3 text-center font-mono font-black text-blue-900 text-xs sm:text-sm">
+                            ${totalSessions}
+                            ${zeroRateSessions ? `<small class="block text-slate-600">٤٥ دقيقة: ${zeroRateSessions} بسعر صفر</small>` : ''}
+                            ${needsReview ? `<small class="block text-amber-800">${needsReview} للمراجعة</small>` : ''}
+                        </td>
                         <td class="p-3 text-center font-mono font-bold text-slate-900">${earned.toLocaleString()} ج.م</td>
                         <td class="p-3 text-center font-mono text-slate-600">${paid.toLocaleString()} ج.م</td>
                         <td class="p-3 text-center">

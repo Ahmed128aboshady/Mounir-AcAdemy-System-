@@ -13,6 +13,7 @@ from datetime import datetime
 import urllib.parse
 
 from database import get_db, init_db
+from teacher_earnings import summarize_teacher_earnings
 from seed_data import seed_all
 import paymob
 
@@ -800,19 +801,14 @@ def get_teacher_dashboard(teacher_id: int):
     
     # Teacher personal payroll stats
     rate = teacher["rate_per_session"] if "rate_per_session" in teacher.keys() and teacher["rate_per_session"] else 150.0
-    c.execute("""
-    SELECT COUNT(DISTINCT a.lecture_id) as comp_cnt
-    FROM attendance a
-    JOIN lectures l ON a.lecture_id = l.id
-    WHERE l.course_name IN ({}) AND l.status = 'completed'
-    """.format(','.join(['?']*len(assigned_courses)) if assigned_courses else "''"), assigned_courses if assigned_courses else [])
-    completed_sessions = c.fetchone()["comp_cnt"]
-    
+    earnings = summarize_teacher_earnings(c, teacher_id)[teacher_id]
+    completed_sessions = earnings['completed_sessions']
+
     c.execute("SELECT COALESCE(SUM(amount), 0) as paid_sum FROM teacher_payouts WHERE teacher_id = ?", (teacher_id,))
     paid_sum = c.fetchone()["paid_sum"]
     
-    total_earned = completed_sessions * rate
-    balance_due = max(0.0, total_earned - paid_sum)
+    total_earned = earnings["total_earned"]
+    balance_due = total_earned - paid_sum
     
     c.execute("SELECT * FROM teacher_payouts WHERE teacher_id = ? ORDER BY id DESC LIMIT 5", (teacher_id,))
     recent_payouts = [dict(p) for p in c.fetchall()]
@@ -863,6 +859,7 @@ def get_teachers_payroll():
     c.execute("SELECT * FROM teachers ORDER BY id ASC")
     teachers = [dict(t) for t in c.fetchall()]
     
+    earnings_by_teacher = summarize_teacher_earnings(c)
     payroll_list = []
     total_payroll_earned = 0
     total_payroll_paid = 0
@@ -872,20 +869,15 @@ def get_teachers_payroll():
         c.execute("SELECT DISTINCT course_name FROM enrollments WHERE teacher_id = ?", (t_id,))
         courses = [r["course_name"] for r in c.fetchall()]
         
-        c.execute("""
-        SELECT COUNT(*) as comp_cnt 
-        FROM lectures 
-        WHERE status = 'completed' AND course_name IN ({})
-        """.format(','.join(['?']*len(courses)) if courses else "''"), courses if courses else [])
-        completed_sessions = c.fetchone()["comp_cnt"]
-        
+        earnings = earnings_by_teacher[t_id]
+        completed_sessions = earnings["completed_sessions"]
         rate = t.get("rate_per_session") or 150.0
-        earned = completed_sessions * rate
-        
+        earned = earnings["total_earned"]
+
         c.execute("SELECT COALESCE(SUM(amount), 0) as paid_sum FROM teacher_payouts WHERE teacher_id = ?", (t_id,))
         paid = c.fetchone()["paid_sum"]
         
-        balance = max(0.0, earned - paid)
+        balance = earned - paid
         
         c.execute("SELECT * FROM teacher_payouts WHERE teacher_id = ? ORDER BY id DESC", (t_id,))
         history = [dict(p) for p in c.fetchall()]
@@ -900,6 +892,8 @@ def get_teachers_payroll():
             "phone": t["phone"],
             "rate_per_session": rate,
             "rate_per_private_session": t.get("rate_per_private_session") or 80.0,
+            **{f"sessions_{minutes}": earnings[f"sessions_{minutes}"] for minutes in (15, 20, 30, 45, 60)},
+            "needs_review": earnings["needs_review"],
             "completed_sessions": completed_sessions,
             "total_earned": earned,
             "total_paid": paid,
@@ -912,9 +906,12 @@ def get_teachers_payroll():
     return {
         "teachers_payroll": payroll_list,
         "summary": {
+            "total_earned": total_payroll_earned,
             "total_earned_all": total_payroll_earned,
+            "total_paid": total_payroll_paid,
             "total_paid_all": total_payroll_paid,
-            "total_balance_due": max(0.0, total_payroll_earned - total_payroll_paid)
+            "total_sessions": sum(row["completed_sessions"] for row in payroll_list),
+            "total_balance_due": total_payroll_earned - total_payroll_paid
         }
     }
 
