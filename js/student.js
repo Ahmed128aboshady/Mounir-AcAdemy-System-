@@ -426,8 +426,6 @@ async function loadStudentProfile() {
             const groupCodeEl = document.getElementById('groupCode');
             if (groupCodeEl) groupCodeEl.innerText = grpId;
 
-            const accBadgeEl = document.getElementById('accountStatusBadge');
-            if (accBadgeEl) accBadgeEl.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
 
             // Clean Parent Name Extraction for Compound Arabic Names
             let safeParentName = s.parent_name;
@@ -491,7 +489,7 @@ async function loadStudentProfile() {
         }
         
         const curCourseForBottom = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
-        updateBottomMeetButtonState(curCourseForBottom.remaining_credits !== undefined ? curCourseForBottom.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0));
+        updateBottomMeetButtonState(curCourseForBottom.remaining_credits ?? s.remaining_credits ?? 0, curCourseForBottom.course_name);
 
         // Update Track counts in UI
         const quranCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
@@ -544,8 +542,6 @@ async function loadStudentProfile() {
         const dPhone = document.getElementById('detailsParentPhone');
         const pPhoneElem = document.getElementById('parentPhone');
         if (dPhone) dPhone.innerText = (pPhoneElem && pPhoneElem.textContent) ? pPhoneElem.textContent : 'غير مسجل';
-        const dStatus = document.getElementById('detailsAccountStatus');
-        if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
         const dTrack = document.getElementById('detailsTrackName');
         if (dTrack) {
             dTrack.innerText = (quranCourses.length > 0 && academicCourses.length > 0)
@@ -638,7 +634,7 @@ function renderUpcomingScheduleList() {
         const teacher = c.teacher_name || 'معلم معتمد';
         const days = c.subscription_days || 'أسبوعياً';
         const timeVal = c.lecture_time || 'محدد مع المعلم';
-        const dur = c.session_duration ? (c.session_duration + ' دقيقة') : '30 دقيقة';
+        const dur = c.session_duration ? String(c.session_duration).replace(/\s*دقيقة\s*$/, '') + ' دقيقة' : '30 دقيقة';
         const rc = (c.remaining_credits !== undefined) ? c.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
         const gid = c.group_id || curStudent.group_id || 'G000';
 
@@ -669,7 +665,9 @@ function renderUpcomingScheduleList() {
                     <span class="font-bold text-slate-700">${timeVal}</span>
                     ${(() => {
                         const hasPass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(cName) : false;
-                        if (rc <= 0 && !hasPass) {
+                        if (isStudentAccountPaused(curStudent)) {
+                            return '<span class="text-red-800 font-bold">الحساب موقوف</span>';
+                        } else if (rc <= 0 && !hasPass) {
                             return `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`;
                         } else if (rc <= 0 && hasPass) {
                             return `<button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-500 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-xs">
@@ -767,8 +765,6 @@ function renderDetailsPanel() {
     const dPhone = document.getElementById('detailsParentPhone');
     if (dPhone) dPhone.innerText = curStudent.parent_phone || (document.getElementById('parentPhone') ? document.getElementById('parentPhone').textContent : 'غير مسجل');
     
-    const dStatus = document.getElementById('detailsAccountStatus');
-    if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (curStudent.account_status || 'نشط') + ')';
 
     const dTeacher = document.getElementById('detailsTeacherName');
     if (dTeacher) dTeacher.innerText = 'أ. ' + (curCourse.teacher_name || curStudent.teacher_name || 'مصطفى عيد');
@@ -1651,7 +1647,7 @@ function renderEnrolledCoursesTabs(courses) {
         let rawTimeVal = c.lecture_time || '';
         let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
 
-        const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+        const isStudentAdminPaused = isStudentAccountPaused(curStudent);
         let statusText = 'نشط';
         if (isStudentAdminPaused) {
             statusText = 'موقوف';
@@ -2596,7 +2592,7 @@ async function loadSelectedCourseLectures() {
         }
 
         // Sync bottom bar action button state (locked vs enter meet)
-        updateBottomMeetButtonState(rc);
+        updateBottomMeetButtonState(rc, selectedCourseName);
 
     } catch (err) {
         console.error("Error loading course lectures:", err);
@@ -2621,7 +2617,7 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
         (currentCourseInfo.remaining_credits !== undefined && currentCourseInfo.remaining_credits !== null) ? Number(currentCourseInfo.remaining_credits) : 0,
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
-    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStudentAdminPaused = isStudentAccountPaused(curStudent);
     const isCourseStopped = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(currentCourseInfo.status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0 && isCourseStopped);
 
@@ -2922,21 +2918,60 @@ function hasActiveSessionPassToday(courseName) {
     return false;
 }
 
+function isStudentAccountPaused(student) {
+    const pausedStatuses = ['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'];
+    return pausedStatuses.includes(String(student.status || student.account_status || '').trim().toLowerCase());
+}
+
 function updateBottomMeetButtonState(rc, courseName) {
     const btn = document.getElementById('bottomNavMeetBtn');
     const icon = document.getElementById('bottomNavMeetIcon');
     const label = document.getElementById('bottomNavMeetLabel');
     if (!btn) return;
 
-    const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(courseName) : false;
+    const student = window.currentStudentData?.student;
+    if (!student) return;
 
-    if (rc <= 0 && !hasActivePass) {
+    const paused = isStudentAccountPaused(student);
+    const noCredits = Number(rc) <= 0;
+    const hasActivePass = noCredits && hasActiveSessionPassToday(courseName);
+    const status = paused ? 'paused' : noCredits ? 'empty' : 'active';
+    const statusText = {
+        paused: 'الحساب موقوف',
+        empty: 'انتهى رصيد الحصص',
+        active: 'الاشتراك نشط',
+    }[status];
+    for (const id of ['accountStatusBadge', 'goalAccountStatus', 'detailsAccountStatus']) {
+        const statusLabel = document.getElementById(id);
+        statusLabel.textContent = statusText;
+        statusLabel.dataset.status = status;
+    }
+
+    const packageAction = document.getElementById('goalAccountAction');
+    packageAction.disabled = false;
+    packageAction.onclick = paused ? openSupportModal : openPaymobModal;
+    document.getElementById('goalAccountActionLabel').textContent = paused ? 'تواصل مع الدعم' : 'تجديد الباقة';
+    document.getElementById('goalAccountMessage').textContent = paused
+        ? 'تواصل مع الدعم لمعرفة خطوات إعادة تفعيل الحساب.'
+        : hasActivePass
+            ? 'تقدر ترجع لحصة اليوم من غير خصم حصة إضافية.'
+            : 'تقدر تجدّد الباقة لإضافة حصص لرصيدك.';
+    document.getElementById('studentProfileRenewBtn').classList.toggle('hidden', paused || (noCredits && !hasActivePass));
+
+    btn.disabled = false;
+    if (paused) {
+        btn.className = "flex items-center justify-center bg-red-50 text-red-800 border border-red-200 rounded-xl px-3 cursor-pointer";
+        btn.onclick = openSupportModal;
+        if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#user"/></svg>';
+        if (label) label.textContent = 'تواصل مع الدعم';
+        btn.removeAttribute('title');
+    } else if (noCredits && !hasActivePass) {
         btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-amber-700 active:scale-95 py-1 px-1 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { if (typeof openPaymobModal === 'function') openPaymobModal(); };
         if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#award"/></svg>';
-        if (label) label.innerText = 'رصيد 0 • تجديد';
+        if (label) label.textContent = 'تجديد الباقة';
         btn.removeAttribute('title');
-    } else if (rc <= 0 && hasActivePass) {
+    } else if (hasActivePass) {
         btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-900 active:scale-95 py-1 px-1 bg-emerald-100 border-2 border-emerald-500 rounded-xl transition shadow-xs cursor-pointer ring-2 ring-emerald-300/60";
         btn.onclick = () => { joinNextDueMeet(); };
         if (icon) icon.innerHTML = '<svg class="w-4 h-4 text-emerald-700 animate-pulse"><use href="#clock"/></svg>';
@@ -3240,7 +3275,7 @@ function joinMeet(lectureId, meetUrl) {
         (curCourse.remaining_credits !== undefined && curCourse.remaining_credits !== null) ? Number(curCourse.remaining_credits) : 0,
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
-    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStudentAdminPaused = isStudentAccountPaused(curStudent);
     const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(curCourse.course_name) : false;
     const isStopped = isStudentAdminPaused || (rc <= 0 && !hasActivePass);
 
@@ -3340,7 +3375,7 @@ function joinNextDueMeet() {
         (curCourse.remaining_credits !== undefined && curCourse.remaining_credits !== null) ? Number(curCourse.remaining_credits) : 0,
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
-    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStudentAdminPaused = isStudentAccountPaused(curStudent);
     const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(curCourse.course_name) : false;
     const isStopped = isStudentAdminPaused || (rc <= 0 && !hasActivePass);
 

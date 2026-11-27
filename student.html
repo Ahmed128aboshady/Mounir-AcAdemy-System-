@@ -37,7 +37,7 @@
     <script src="js/student_genders.js?v=20260922_v1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260923_v1"></script>
-    <link rel="stylesheet" href="css/monir-ui.css?v=20261127_desktop">
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261127_status">
 </head>
 <body data-monir-page="student" class="bg-slate-50 text-slate-800">
 
@@ -199,16 +199,16 @@
                         </p>
                     </div>
                 </div>
-                <span class="bg-emerald-500/15 text-emerald-800 border border-emerald-400/30 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full" id="accountStatusBadge">
-                    اشتراك ساري (نشط)
+                <span class="student-status-label text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full" id="accountStatusBadge" role="status">
+                    جاري تحميل الحالة
                 </span>
             </div>
             <div class="student-quick-actions">
-                <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
+                <button type="button" id="bottomNavMeetBtn" disabled class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
                     <span id="bottomNavMeetIcon" class="flex items-center justify-center"><svg class="w-4 h-4"><use href="#clock"/></svg></span>
-                    <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
+                    <span class="text-[10px] font-black" id="bottomNavMeetLabel">جاري التحميل</span>
                 </button>
-                <button type="button" onclick="openPaymobModal()" class="student-renew-button font-extrabold text-xs py-1.5 rounded-xl transition">
+                <button type="button" id="studentProfileRenewBtn" onclick="openPaymobModal()" class="hidden student-renew-button font-extrabold text-xs py-1.5 rounded-xl transition">
                     <span>تجديد الباقة</span>
                 </button>
             </div>
@@ -620,7 +620,7 @@
                         </div>
                         <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
                             <span class="text-slate-400 font-bold block mb-1">حالة الحساب والاشتراك</span>
-                            <strong class="text-sm font-bold text-emerald-700 block" id="detailsAccountStatus">نشط وساري</strong>
+                            <strong class="student-status-label text-sm font-bold block" id="detailsAccountStatus">جاري تحميل الحالة</strong>
                         </div>
                         <div class="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
                             <span class="text-slate-400 font-bold block mb-1">المعلم المشرف المعتمد</span>
@@ -674,7 +674,7 @@
                             <h3 class="font-black text-sm text-slate-900">متابعة باقتك ورصيدك</h3>
                             <p class="text-[11px] text-slate-600 mt-0.5">رصيد الحصص المتاح لديك حالياً</p>
                         </div>
-                        <span class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">ساري</span>
+                        <span class="student-status-label text-[10px] font-black px-2 py-0.5 rounded-full" id="goalAccountStatus">جاري تحميل الحالة</span>
                     </div>
 
                     <div class="flex items-baseline gap-1.5 mt-3">
@@ -683,15 +683,13 @@
                     </div>
 
                     <div class="w-full bg-emerald-100 h-2 rounded-full overflow-hidden mt-2.5">
-                        <div id="goalProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full transition-all duration-500" style="width: 100%"></div>
+                        <div id="goalProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
 
-                    <p class="text-[11px] text-slate-600 mt-2 leading-relaxed">
-                        شحن الرصيد يفتح لك المحاضرات والشهادات ويضمن استمرارية حضورك مع المعلم.
-                    </p>
+                    <p class="text-[11px] text-slate-600 mt-2 leading-relaxed" id="goalAccountMessage"></p>
 
-                    <button onclick="openPaymobModal()" class="w-full mt-3 bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-                        <span>تجديد الاشتراك وشحن الحصص</span>
+                    <button type="button" id="goalAccountAction" disabled class="w-full mt-3 bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                        <span id="goalAccountActionLabel">تجديد الباقة</span>
                         <span>←</span>
                     </button>
                 </section>
@@ -1684,7 +1682,7 @@
     </script>
 
     <script src="js/api_mock.js?v=20261023_open_v2"></script>
-    <script src="js/student.js?v=20261127_portal"></script>
+    <script src="js/student.js?v=20261127_status"></script>
     <script src="js/student_ledger.js?v=20261023_open_v2"></script>
 
     <!-- Confirm Classroom Entry Modal (توثيق دخول القاعة الذكية) -->
