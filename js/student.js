@@ -597,6 +597,24 @@ async function loadStudentProfile() {
 // DYNAMIC UPCOMING SCHEDULE & CERTIFICATES & DETAILS LINKAGE (UX / الربط)
 // ═════════════════════════════════════════════════════════════════════
 
+function getUpcomingCourseDate(subscriptionDays, lectureTime) {
+    const today = new Date(getMonirLocalDateStr() + 'T00:00:00');
+    const time = String(lectureTime || '').replace(/[٠-٩]/g, digit => digit.charCodeAt(0) - 1632);
+    const match = time.match(/(\d{1,2}):(\d{2})\s*([صم])?/);
+    const [, hours, minutes, period] = match || [];
+    if (Number(hours) < 24 && Number(minutes) < 60) {
+        const hour = period ? Number(hours) % 12 + (period === 'م' ? 12 : 0) : Number(hours);
+        const cairoTime = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+        }).format(new Date());
+        const [currentHour, currentMinute] = cairoTime.split(':').map(Number);
+        if (currentHour * 60 + currentMinute > hour * 60 + Number(minutes)) {
+            today.setDate(today.getDate() + 1);
+        }
+    }
+    return calculateGroupUpcomingDates(subscriptionDays, 1, today, null)[0]?.dateFormatted || '';
+}
+
 function renderUpcomingScheduleList() {
     const container = document.getElementById('upcomingScheduleList');
     if (!container) return;
@@ -632,7 +650,6 @@ function renderUpcomingScheduleList() {
     courses.forEach((c, idx) => {
         const cName = c.course_name || c.name || 'مسار القرآن الكريم والتدبر';
         const teacher = c.teacher_name || 'معلم معتمد';
-        const days = c.subscription_days || 'أسبوعياً';
         const timeVal = c.lecture_time || 'محدد مع المعلم';
         const dur = c.session_duration ? String(c.session_duration).replace(/\s*دقيقة\s*$/, '') + ' دقيقة' : '30 دقيقة';
         const rc = (c.remaining_credits !== undefined) ? c.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
@@ -645,8 +662,7 @@ function renderUpcomingScheduleList() {
                 ? window.getGroupMeetUrl(gid, c.teacher_id || teacher, cName)
                 : (c.google_meet_url || 'https://meet.google.com'));
 
-        const upcomingDates = calculateGroupUpcomingDates(days, 1);
-        const nextDateStr = (upcomingDates && upcomingDates[0]) ? upcomingDates[0].dateFormatted : days;
+        const nextDateStr = getUpcomingCourseDate(c.subscription_days, c.lecture_time) || 'اليوم غير محدد';
 
         const borderColor = idx === 0 ? '#57BA9E' : '#41519C';
         const tagBg = idx === 0 ? '#e8f8f4' : '#eaf0f8';
@@ -1933,12 +1949,10 @@ function selectCourseTab(cName) {
     loadSelectedCourseLectures();
 }
 
-function calculateGroupUpcomingDates(dayName, count, startDate = null) {
+function calculateGroupUpcomingDates(dayName, count, startDate = null, fallbackDay = 1) {
     const dates = [];
     const baseDate = startDate ? new Date(startDate) : new Date();
     baseDate.setHours(0, 0, 0, 0);
-    
-    if (!dayName) dayName = 'الاثنين';
     
     const dayMap = [
         { name: 'الأحد', regex: /أحد|احد/, day: 0 },
@@ -1958,7 +1972,8 @@ function calculateGroupUpcomingDates(dayName, count, startDate = null) {
     });
 
     if (targetDays.length === 0) {
-        targetDays.push(1); // default Monday
+        if (fallbackDay === null) return dates;
+        targetDays.push(fallbackDay);
     }
 
     const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -2125,11 +2140,14 @@ window.COMPETITION_LECTURES_MAP = COMPETITION_LECTURES_MAP;
 
 async function loadSelectedCourseLectures() {
     if (!selectedCourseName) return;
+    const requestedCourseName = selectedCourseName;
     
     try {
         let data = null;
         const currentCourseInfo = enrolledCoursesList.find(c => c.course_name === selectedCourseName) || enrolledCoursesList[0] || {};
         const remainingCredits = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (currentCourseInfo.total_lectures_unlocked || 12);
+        const accountCredits = currentCourseInfo.remaining_credits ?? window.currentStudentData?.student?.remaining_credits ?? 0;
+        updateBottomMeetButtonState(accountCredits, requestedCourseName);
 
         if (COMPETITION_LECTURES_MAP && COMPETITION_LECTURES_MAP[selectedCourseName]) {
             const student = (window.currentStudentData && window.currentStudentData.student) || {};
@@ -2592,7 +2610,9 @@ async function loadSelectedCourseLectures() {
         }
 
         // Sync bottom bar action button state (locked vs enter meet)
-        updateBottomMeetButtonState(rc, selectedCourseName);
+        if (requestedCourseName === selectedCourseName) {
+            updateBottomMeetButtonState(accountCredits, requestedCourseName);
+        }
 
     } catch (err) {
         console.error("Error loading course lectures:", err);
@@ -2923,6 +2943,22 @@ function isStudentAccountPaused(student) {
     return pausedStatuses.includes(String(student.status || student.account_status || '').trim().toLowerCase());
 }
 
+function renderStudentNextSession(student, courseName, isReentry) {
+    const summary = document.getElementById('studentNextSession');
+    const course = enrolledCoursesList.find(item => item.course_name === courseName)
+        || enrolledCoursesList[0] || student;
+    const title = course.course_name || course.name;
+    summary.hidden = !title;
+    if (!title) return;
+
+    document.getElementById('studentNextSessionHeading').textContent = isReentry ? 'حصة النهارده' : 'الحصة الجاية';
+    const date = getUpcomingCourseDate(course.subscription_days, course.lecture_time);
+    document.getElementById('studentNextSessionCourse').textContent = title;
+    document.getElementById('studentNextSessionTime').textContent = isReentry
+        ? 'تقدر ترجع للحصة من غير خصم حصة إضافية.'
+        : [date || 'اليوم غير محدد', course.lecture_time || 'الساعة تُحدد مع المعلم'].join(' · ');
+}
+
 function updateBottomMeetButtonState(rc, courseName) {
     const btn = document.getElementById('bottomNavMeetBtn');
     const icon = document.getElementById('bottomNavMeetIcon');
@@ -2931,10 +2967,10 @@ function updateBottomMeetButtonState(rc, courseName) {
 
     const student = window.currentStudentData?.student;
     if (!student) return;
-
     const paused = isStudentAccountPaused(student);
     const noCredits = Number(rc) <= 0;
     const hasActivePass = noCredits && hasActiveSessionPassToday(courseName);
+    renderStudentNextSession(student, courseName, !paused && hasActivePass);
     const status = paused ? 'paused' : noCredits ? 'empty' : 'active';
     const statusText = {
         paused: 'الحساب موقوف',
