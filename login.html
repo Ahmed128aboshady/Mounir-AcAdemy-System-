@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
     <script src="js/supabase_client.js"></script>
-    <script src="js/api_mock.js?v=20260910_auth4"></script>
+    <script src="js/api_mock.js?v=20261127_access"></script>
     <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
 </head>
 <body data-monir-page="login" class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
@@ -134,6 +134,10 @@
             const tabTeacher = document.getElementById('tabTeacher');
             const usernameLabel = document.getElementById('usernameLabel');
             const usernameInput = document.getElementById('loginUsername');
+            const verifiedTeacher = role === 'teacher' && window.MonirDB?.requiresTeacherAuth?.();
+            const passwordInput = document.getElementById('loginPassword');
+            usernameInput.type = verifiedTeacher ? 'email' : 'text';
+            passwordInput.placeholder = 'أدخل كلمة المرور';
             const submitBtn = document.getElementById('submitBtn');
             const registerPromptBox = document.getElementById('registerPromptBox');
 
@@ -148,8 +152,8 @@
             } else {
                 tabTeacher.className = 'py-2.5 rounded-lg transition bg-[#57BA9E] text-slate-950 font-bold shadow-sm';
                 tabStudent.className = 'py-2.5 rounded-lg transition text-slate-400 hover:text-white';
-                usernameLabel.innerText = 'اسم مستخدم المعلم أو البريد الإلكتروني:';
-                usernameInput.placeholder = 'أدخل اسم مستخدم المعلم أو البريد';
+                usernameLabel.innerText = verifiedTeacher ? 'البريد الإلكتروني للمعلم:' : 'اسم مستخدم المعلم أو البريد الإلكتروني:';
+                usernameInput.placeholder = verifiedTeacher ? 'أدخل البريد الإلكتروني للمعلم' : 'أدخل اسم مستخدم المعلم أو البريد';
                 submitBtn.innerHTML = '<span>تسجيل الدخول كمعلم</span>';
                 submitBtn.className = 'w-full bg-[#57BA9E] hover:bg-[#43A68A] text-slate-950 font-black py-3 rounded-xl transition shadow-lg shadow-[#57BA9E]/20 text-sm flex justify-center items-center gap-2';
                 if (registerPromptBox) registerPromptBox.classList.add('hidden');
@@ -159,7 +163,9 @@
         async function handleLoginSubmit(e) {
             if (e && e.preventDefault) e.preventDefault();
             const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+            const verifiedTeacher = currentRole === 'teacher' && window.MonirDB?.requiresTeacherAuth?.();
+            const enteredPassword = document.getElementById('loginPassword').value;
+            const password = verifiedTeacher ? enteredPassword : enteredPassword.trim();
             const alertBox = document.getElementById('loginAlert');
             const submitBtn = document.getElementById('submitBtn');
 
@@ -178,6 +184,12 @@
 
             try {
                 // If Supabase is configured, try cloud login first
+                if (verifiedTeacher) {
+                    const result = await window.MonirDB.loginVerifiedTeacher(username, password);
+                    if (!result.success) throw new Error(result.error);
+                    proceedSuccess(result.user);
+                    return;
+                }
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const sbRes = await window.MonirDB.login(username, password, currentRole);

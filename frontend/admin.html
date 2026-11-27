@@ -9,12 +9,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/attendance_scope.js?v=20261127"></script>
+    <script src="js/teacher_earnings.js?v=20261127_rates2"></script>
     <script src="js/popup.js"></script>
     <script src="js/meet_manager.js?v=20261012_v4"></script>
     <script src="js/student_genders.js?v=20260922_age1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase_client.js?v=20260918_v3"></script>
-    <script src="js/api_mock.js?v=20261023_open_v2"></script>
+    <script src="js/supabase_client.js?v=20261127_access"></script>
+    <script src="js/api_mock.js?v=20261127_access"></script>
 <script src="js/student_ledger.js?v=20261020_v4"></script>
     <script src="js/teacher_notifications.js?v=20261003_v2"></script>
     <style>
@@ -3643,17 +3645,18 @@
             try {
                 let payrollData = null;
 
-                // 1. Try Python live server API first if running on this host
-                try {
-                    const res = await fetch('/api/admin/teachers/payroll');
-                    if (res.ok) {
-                        const json = await res.json();
-                        if (json && json.teachers_payroll) {
-                            payrollData = json;
+                // The legacy API uses a flat session rate. Cloud attendance has the duration for each record.
+                if (!window.MonirDB?.isConfigured()) {
+                    try {
+                        const request = window.fetchStudentPortalApi || window.fetch.bind(window);
+                        const res = await request('/api/admin/teachers/payroll');
+                        if (res.ok) {
+                            const json = await res.json();
+                            if (json && json.teachers_payroll) payrollData = json;
                         }
+                    } catch (e) {
+                        // Continue with the cloud data source if the legacy server is unavailable.
                     }
-                } catch(e) {
-                    // Python server not running locally, proceed to direct cloud fetch
                 }
 
                 // 2. Direct client-side calculation from Supabase Cloud
@@ -3689,8 +3692,6 @@
                         fetchSupabaseDirect('teacher_payouts', 'teacher_id,amount').catch(() => [])
                     ]);
 
-                    const RATES = { 15: 25.0, 20: 33.0, 30: 50.0, 60: 100.0, 45: 75.0 };
-                    
                     // Map student to teacher and standard duration
                     const stToTeacher = {};
                     const stDuration = {};
@@ -3715,14 +3716,15 @@
                         const sid = a.student_id;
                         const tid = stToTeacher[sid];
                         if (!tid) continue;
-                        let dur = parseInt(a.duration_minutes) || stDuration[sid] || 20;
-                        if (!RATES[dur]) dur = 20;
+                        const recordedDuration = parseInt(a.duration_minutes, 10) || stDuration[sid] || 20;
+                        const rate = MonirTeacherEarnings.rateForMinutes(recordedDuration);
+                        const dur = rate === null ? 20 : recordedDuration;
                         if (!teacherAtt[tid]) {
                             teacherAtt[tid] = { 15: 0, 20: 0, 30: 0, 60: 0, 45: 0, total: 0, earned: 0.0 };
                         }
                         teacherAtt[tid][dur] = (teacherAtt[tid][dur] || 0) + 1;
                         teacherAtt[tid].total++;
-                        teacherAtt[tid].earned += RATES[dur] || 33.0;
+                        teacherAtt[tid].earned += rate ?? MonirTeacherEarnings.rateForMinutes(20);
                     }
 
                     // Map payouts per teacher
@@ -4160,8 +4162,9 @@
                 sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             const picker = document.getElementById('dailyMatchingDatePicker');
-            const now = new Date();
-            if (picker && (!picker.value || (now.getDay() === 2 && picker.value === getFormatDateLocal(now)))) {
+            const today = MonirAttendance.date();
+            const weekday = new Date(today + 'T00:00:00Z').getUTCDay();
+            if (picker && (!picker.value || (weekday === 2 && picker.value === today))) {
                 setDailyMatchingDay('mon');
                 return;
             }
@@ -4169,30 +4172,24 @@
         }
 
         function getFormatDateLocal(d) {
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            return MonirAttendance.date(d);
         }
 
         function setDailyMatchingDay(dayKey) {
-            const now = new Date();
-            let targetDate = new Date();
+            const targetDate = new Date(MonirAttendance.date() + 'T00:00:00Z');
             const DAY_MAP = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
 
-            if (dayKey === 'today') {
-                targetDate = now;
-            } else if (dayKey === 'yesterday') {
-                targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+            if (dayKey === 'yesterday') {
+                targetDate.setUTCDate(targetDate.getUTCDate() - 1);
             } else if (DAY_MAP[dayKey] !== undefined) {
                 const targetIdx = DAY_MAP[dayKey];
-                const curIdx = now.getDay();
+                const curIdx = targetDate.getUTCDay();
                 let diff = curIdx - targetIdx;
                 if (diff < 0) diff += 7;
-                targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
+                targetDate.setUTCDate(targetDate.getUTCDate() - diff);
             }
 
-            const dateStr = getFormatDateLocal(targetDate);
+            const dateStr = targetDate.toISOString().slice(0, 10);
             const picker = document.getElementById('dailyMatchingDatePicker');
             if (picker) picker.value = dateStr;
 
@@ -4216,17 +4213,18 @@
         function initDailyAttendanceMatching() {
             const picker = document.getElementById('dailyMatchingDatePicker');
             if (!picker) return;
-            const now = new Date();
+            const today = MonirAttendance.date();
+            const weekday = new Date(today + 'T00:00:00Z').getUTCDay();
             // Default to previous session day for daily reconciliation (Sunday if Mon, Monday if Tue)
-            if (now.getDay() === 1) {
+            if (weekday === 1) {
                 setDailyMatchingDay('sun');
                 return;
-            } else if (now.getDay() === 2) {
+            } else if (weekday === 2) {
                 setDailyMatchingDay('mon');
                 return;
             }
             if (!picker.value) {
-                picker.value = getFormatDateLocal(now);
+                picker.value = today;
             }
             loadDailyAttendanceMatchingData();
         }
@@ -4314,43 +4312,46 @@
                         const tMap = {};
                         (allTeachersList || []).forEach(t => { if (t.id) tMap[t.id] = t.name; });
 
-                        const eMap = {};
-                        (eData || []).forEach(e => {
-                            if (e.student_id) {
-                                if (!eMap[e.student_id] || e.status === 'active') {
-                                    eMap[e.student_id] = e;
-                                }
-                            }
-                        });
+                        const enrollmentsByStudent = new Map();
+                        for (const enrollment of eData || []) {
+                            const enrollments = enrollmentsByStudent.get(enrollment.student_id) || new Map();
+                            const course = MonirAttendance.courseName(enrollment.course_name);
+                            if (!enrollments.has(course) || enrollment.status === 'active') enrollments.set(course, enrollment);
+                            enrollmentsByStudent.set(enrollment.student_id, enrollments);
+                        }
 
-                        studentsList = sData.map(s => {
-                            const enr = eMap[s.id] || {};
-                            const assignedTeacherName = enr.teacher_id ? (tMap[enr.teacher_id] || s.teacher_name || 'غير محدد') : (s.teacher_name || 'غير محدد');
-                            const rawStatus = String(s.status || s.account_status || enr.status || '').toLowerCase().trim();
-                            const isInactive = ['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(rawStatus);
-                            const remCredits = (enr.remaining_credits !== undefined) ? parseInt(enr.remaining_credits || 0, 10) : parseInt(s.remaining_credits || 0, 10);
-                            const absCount = parseInt(enr.absent_count !== undefined ? enr.absent_count : (s.absent_count || 0), 10);
-                            const presCount = parseInt(enr.present_count !== undefined ? enr.present_count : (s.present_count || 0), 10);
-                            const excCount = parseInt(enr.excuse_count !== undefined ? enr.excuse_count : (s.excuse_count || 0), 10);
-                            return {
-                                id: s.id,
-                                name: s.name || '',
-                                student_code: s.student_code || ('ST' + s.id),
-                                phone: s.phone || s.parent_phone || '—',
-                                parent_phone: s.parent_phone || s.phone || '—',
-                                group_id: enr.group_id || s.qr_code || '—',
-                                subscription_days: enr.subscription_days || '',
-                                lecture_time: enr.lecture_time || '',
-                                teacher_name: assignedTeacherName,
-                                teacher_id: enr.teacher_id || s.teacher_id,
-                                current_surah: enr.current_surah || s.current_surah || '—',
-                                status: s.status,
-                                is_inactive: isInactive,
-                                remaining_credits: remCredits,
-                                absent_count: absCount,
-                                present_count: presCount,
-                                excuse_count: excCount
-                            };
+                        studentsList = sData.flatMap(s => {
+                            const enrollments = [...(enrollmentsByStudent.get(s.id)?.values() || [])];
+                            return (enrollments.length ? enrollments : [{}]).map(enr => {
+                                const assignedTeacherName = enr.teacher_id ? (tMap[enr.teacher_id] || s.teacher_name || 'غير محدد') : (s.teacher_name || 'غير محدد');
+                                const rawStatus = String(s.status || s.account_status || enr.status || '').toLowerCase().trim();
+                                const isInactive = ['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(rawStatus);
+                                const remCredits = (enr.remaining_credits !== undefined) ? parseInt(enr.remaining_credits || 0, 10) : parseInt(s.remaining_credits || 0, 10);
+                                const absCount = parseInt(enr.absent_count !== undefined ? enr.absent_count : (s.absent_count || 0), 10);
+                                const presCount = parseInt(enr.present_count !== undefined ? enr.present_count : (s.present_count || 0), 10);
+                                const excCount = parseInt(enr.excuse_count !== undefined ? enr.excuse_count : (s.excuse_count || 0), 10);
+                                return {
+                                    id: s.id,
+                                    name: s.name || '',
+                                    student_code: s.student_code || ('ST' + s.id),
+                                    phone: s.phone || s.parent_phone || '—',
+                                    parent_phone: s.parent_phone || s.phone || '—',
+                                    enrollment_id: enr.id || null,
+                                    course_name: enr.course_name || '',
+                                    group_id: enr.group_id || s.qr_code || '—',
+                                    subscription_days: enr.subscription_days || '',
+                                    lecture_time: enr.lecture_time || '',
+                                    teacher_name: assignedTeacherName,
+                                    teacher_id: enr.teacher_id || s.teacher_id,
+                                    current_surah: enr.current_surah || s.current_surah || '—',
+                                    status: s.status,
+                                    is_inactive: isInactive,
+                                    remaining_credits: remCredits,
+                                    absent_count: absCount,
+                                    present_count: presCount,
+                                    excuse_count: excCount
+                                };
+                            });
                         });
                         window._monirDailyStudentsCache = studentsList;
                         window.bsAllStudents = studentsList;
@@ -4370,6 +4371,8 @@
                             phone: s.phone || '—',
                             parent_phone: s.phone || '—',
                             group_id: g.group_id,
+                            enrollment_id: s.enrollment_id || null,
+                            course_name: s.course_name || '',
                             subscription_days: g.days || '',
                             lecture_time: g.time || '',
                             teacher_name: g.teacher_name || 'غير محدد',
@@ -4380,14 +4383,14 @@
                 });
             }
 
-            let supabaseAttMap = {};
+            const supabaseAttMap = new Map();
+            const studentEnteredMeetMap = new Map();
             if (window.MonirDB && window.MonirDB.isConfigured()) {
                 try {
                     const client = window.MonirDB.getClient();
-                    // Query attendance within session window: from 4 hours before day start to 32 hours after day start
-                    const dObj = new Date(dailyMatchingSelectedDate + 'T00:00:00');
-                    const startIso = new Date(dObj.getTime() - 4 * 3600 * 1000).toISOString();
-                    const endIso = new Date(dObj.getTime() + 32 * 3600 * 1000).toISOString();
+                    const utcMidnight = Date.parse(dailyMatchingSelectedDate + 'T00:00:00Z');
+                    const startIso = new Date(utcMidnight - 4 * 3600000).toISOString();
+                    const endIso = new Date(utcMidnight + 24 * 3600000).toISOString();
                     const [{ data: attData }, { data: entryData }] = await Promise.all([
                         client.from('attendance')
                             .select('*')
@@ -4402,27 +4405,23 @@
                             .order('created_at', { ascending: false })
                     ]);
 
-                    if (Array.isArray(attData)) {
-                        attData.forEach(a => {
-                            if (a.student_id && !supabaseAttMap[a.student_id]) {
-                                supabaseAttMap[a.student_id] = a;
-                            }
-                        });
+                    for (const record of attData || []) {
+                        const key = MonirAttendance.key(record.student_id, record.course_name);
+                        if (MonirAttendance.date(record.joined_at) === dailyMatchingSelectedDate && !supabaseAttMap.has(key)) {
+                            supabaseAttMap.set(key, record);
+                        }
                     }
-
-                    const studentEnteredMeetMap = {};
-                    if (Array.isArray(entryData)) {
-                        entryData.forEach(e => {
-                            if (e.student_id && !studentEnteredMeetMap[e.student_id]) {
-                                studentEnteredMeetMap[e.student_id] = e;
-                            }
-                        });
+                    for (const entry of entryData || []) {
+                        const key = MonirAttendance.key(entry.student_id, entry.course_name);
+                        if (MonirAttendance.date(entry.created_at) === dailyMatchingSelectedDate && !studentEnteredMeetMap.has(key)) {
+                            studentEnteredMeetMap.set(key, entry);
+                        }
                     }
                 } catch(err) {}
             }
 
             const matchedRecords = [];
-            const seenStudentIds = new Set();
+            const seenEnrollments = new Set();
             const norm = str => (str || '').replace(/[أإآ]/g, 'ا').toLowerCase();
 
             studentsList.forEach(s => {
@@ -4430,30 +4429,20 @@
                 const daysStr = norm(s.subscription_days || s.qr_code || s.course_name || '');
                 const isScheduledToday = curDay.aliases.some(alias => daysStr.includes(norm(alias)));
 
-                const localKey = 'monir_att_' + sid + '_' + dailyMatchingSelectedDate;
-                const localStatus = localStorage.getItem(localKey);
-                const supaRec = supabaseAttMap[sid];
-
-                // Do not schedule inactive students with 0 balance unless they have actual attendance/logs today
+                const scope = MonirAttendance.key(sid, s.course_name);
+                const localStatus = !window.MonirDB?.isConfigured() && MonirAttendance.read(sid, s.course_name, dailyMatchingSelectedDate)?.status;
+                const supaRec = supabaseAttMap.get(scope);
                 const isInactiveAndZero = s.is_inactive && (s.remaining_credits <= 0);
-                const cloudEntry = (typeof studentEnteredMeetMap !== 'undefined') ? studentEnteredMeetMap[sid] : null;
-                const localEntryStr = localStorage.getItem('monir_classroom_entry_' + sid + '_' + dailyMatchingSelectedDate);
-                let studentEnteredAt = '';
-                if (cloudEntry && cloudEntry.created_at) {
-                    try {
-                        const dt = new Date(cloudEntry.created_at);
-                        studentEnteredAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-                    } catch(e) {}
-                } else if (localEntryStr) {
-                    try {
-                        const p = JSON.parse(localEntryStr);
-                        studentEnteredAt = p.time || '';
-                    } catch(e) {}
-                }
+                const cloudEntry = studentEnteredMeetMap.get(scope);
+                const autoRecordTime = supaRec?.course_name?.includes(' [رصد آلي') ? supaRec.joined_at : null;
+                const enteredAt = cloudEntry?.created_at || autoRecordTime;
+                const studentEnteredAt = enteredAt ? new Date(enteredAt).toLocaleTimeString('ar-EG', {
+                    timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit'
+                }) : '';
                 const enteredMeet = !!studentEnteredAt;
 
                 if (((isScheduledToday && !isInactiveAndZero) || localStatus || supaRec || enteredMeet)) {
-                    seenStudentIds.add(sid);
+                    seenEnrollments.add(scope);
 
                     let status = 'not_recorded';
                     let recordedAt = '—';
@@ -4476,7 +4465,7 @@
                         recordedAt = 'رصد محلي';
                     }
 
-                    const manualMatchKey = 'monir_sup_match_' + sid + '_' + dailyMatchingSelectedDate;
+                    const manualMatchKey = 'monir_sup_match_' + scope + '_' + dailyMatchingSelectedDate;
                     const manualMatch = localStorage.getItem(manualMatchKey) || '';
 
                     let teacherName = s.teacher_name || 'غير محدد';
@@ -4493,6 +4482,8 @@
 
                     matchedRecords.push({
                         student_id: sid,
+                        enrollment_id: s.enrollment_id || null,
+                        course_name: s.course_name || '',
                         student_code: s.student_code || ('ST' + sid),
                         name: s.name || 'طالب الأكاديمية',
                         phone: s.phone || s.parent_phone || '—',
@@ -4521,11 +4512,10 @@
                 }
             });
 
-            Object.keys(supabaseAttMap).forEach(sidStr => {
-                const sid = parseInt(sidStr);
-                if (!seenStudentIds.has(sid)) {
-                    const supaRec = supabaseAttMap[sid];
-                    const s = studentsList.find(st => st.id === sid) || {};
+            supabaseAttMap.forEach((supaRec, scope) => {
+                if (!seenEnrollments.has(scope)) {
+                    const sid = supaRec.student_id;
+                    const s = studentsList.find(st => MonirAttendance.key(st.id, st.course_name) === scope) || {};
                     let recordedAt = '—';
                     const isAuto = !!(supaRec.course_name && (supaRec.course_name.includes('رصد آلي') || supaRec.course_name.includes('دخول القاعة') || supaRec.course_name.includes('دخول الطالب')));
                     const isSup = !!(supaRec.course_name && (supaRec.course_name.includes('إشراف') || supaRec.course_name.includes('بديل')));
@@ -4538,11 +4528,13 @@
                             recordedAt = dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) + ` (${extraRole})`;
                         } catch(e) {}
                     }
-                    const manualMatchKey = 'monir_sup_match_' + sid + '_' + dailyMatchingSelectedDate;
+                    const manualMatchKey = 'monir_sup_match_' + scope + '_' + dailyMatchingSelectedDate;
                     matchedRecords.push({
                         student_id: sid,
+                        enrollment_id: s.enrollment_id || null,
+                        course_name: s.course_name || MonirAttendance.courseName(supaRec.course_name),
                         student_code: s.student_code || ('ST' + sid),
-                        name: s.name || supaRec.student_name || 'طالب إضافي',
+                        name: s.name || studentsList.find(st => String(st.id) === String(sid))?.name || supaRec.student_name || 'طالب إضافي',
                         phone: s.phone || s.parent_phone || '—',
                         parent_phone: s.parent_phone || s.phone || '—',
                         teacher_name: s.teacher_name || 'غير محدد',
@@ -4626,10 +4618,11 @@
 
             // Dynamic search inclusion: If searching by code/name, include matching unscheduled students as compensation candidates
             if (searchInput && searchInput.length >= 2) {
-                const existingSids = new Set(dailyMatchingFilteredRecords.map(r => r.student_id));
+                const existingScopes = new Set(dailyMatchingFilteredRecords.map(r => MonirAttendance.key(r.student_id, r.course_name)));
                 const allPool = window.bsAllStudents || window._monirDailyStudentsCache || [];
                 allPool.forEach(s => {
-                    if (!existingSids.has(s.id)) {
+                    const scope = MonirAttendance.key(s.id, s.course_name);
+                    if (!existingScopes.has(scope)) {
                         const matchName = (s.name || '').toLowerCase().includes(searchInput);
                         const matchCode = (s.student_code || '').toLowerCase().includes(searchInput);
                         const matchPhone = (s.phone || '').includes(searchInput) || (s.parent_phone || '').includes(searchInput);
@@ -4637,7 +4630,7 @@
                         const matchGroup = (s.group_id || '').toLowerCase().includes(searchInput);
                         if (matchName || matchCode || matchPhone || matchTeacher || matchGroup) {
                             if (!teacherFilter || s.teacher_name === teacherFilter) {
-                                existingSids.add(s.id);
+                                existingScopes.add(scope);
                                 dailyMatchingFilteredRecords.push({
                                     student_id: s.id,
                                     name: s.name,
@@ -4645,7 +4638,8 @@
                                     phone: s.phone,
                                     parent_phone: s.parent_phone,
                                     group_id: s.group_id,
-                                    course_name: s.course_name || 'مسار القرآن الكريم والتدبر',
+                                    enrollment_id: s.enrollment_id || null,
+                                    course_name: s.course_name || '',
                                     subscription_days: s.subscription_days,
                                     lecture_time: s.lecture_time,
                                     teacher_name: s.teacher_name,
@@ -4737,9 +4731,9 @@
                         <div class="inline-flex flex-col items-center gap-1">
                             <span class="bg-amber-50 text-amber-900 border border-amber-300 font-extrabold px-2 py-0.5 rounded-full text-[10px]">غير مجدول اليوم (متاح تعويض)</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.remaining_credits || 0}, true)" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2 py-0.5 rounded text-[10px] transition cursor-pointer shadow-xs" title="تسجيل حضور تعويضي وخصم حصة">حضور تعويضي</button>
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'absent', ${r.remaining_credits || 0}, true)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تسجيل غياب">غياب</button>
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'excused', ${r.remaining_credits || 0}, true)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تسجيل عذر">عذر</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.enrollment_id || 'null'}, true)" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2 py-0.5 rounded text-[10px] transition cursor-pointer shadow-xs" title="تسجيل حضور تعويضي وخصم حصة">حضور تعويضي</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'absent', ${r.enrollment_id || 'null'}, true)" class="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تسجيل غياب">غياب</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'excused', ${r.enrollment_id || 'null'}, true)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تسجيل عذر">عذر</button>
                             </div>
                         </div>
                     `;
@@ -4753,7 +4747,7 @@
                         <div class="inline-flex flex-col items-center gap-1">
                             <span class="bg-blue-100 text-blue-900 border border-blue-300 font-black px-2 py-0.5 rounded-full text-[10px] inline-flex items-center gap-1 shadow-2xs">تم الرصد بالفعل (رصد آلي)</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.remaining_credits || 0})" class="bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-300 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="اعتماد رصد رسمي بالخصم نيابة عن المعلم">اعتماد رسمي</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.enrollment_id || 'null'})" class="bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-300 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="اعتماد رصد رسمي بالخصم نيابة عن المعلم">اعتماد رسمي</button>
                                 <button type="button" onclick="showSupervisorAutoRecordedModal('${encodeURIComponent(r.name)}', '${r.student_code}', '${r.student_entered_at}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer" title="تفاصيل الرصد الآلي">تفاصيل</button>
                             </div>
                         </div>
@@ -4764,9 +4758,9 @@
                         <div class="inline-flex flex-col items-center gap-1">
                             <span class="bg-slate-100 text-slate-500 border border-slate-200 font-bold px-2 py-0.5 rounded-full text-[10px]">لم يُرصد</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.remaining_credits || 0})" class="bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-300 font-black px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="رصد حضور رسمي نيابة عن المعلم وخصم حصة واحدة فقط">حضور</button>
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'absent', ${r.remaining_credits || 0})" class="bg-red-50 hover:bg-red-100 active:scale-95 text-red-800 border border-red-300 font-black px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="رصد غياب رسمي نيابة عن المعلم وخصم حصة واحدة فقط">غياب</button>
-                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'excused', ${r.remaining_credits || 0})" class="bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-800 border border-amber-300 font-black px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="رصد عذر رسمي نيابة عن المعلم دون خصم حصة">عذر</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'present', ${r.enrollment_id || 'null'})" class="bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-300 font-black px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="رصد حضور رسمي نيابة عن المعلم وخصم حصة واحدة فقط">حضور</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'absent', ${r.enrollment_id || 'null'})" class="bg-red-50 hover:bg-red-100 active:scale-95 text-red-800 border border-red-300 font-black px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="رصد غياب رسمي نيابة عن المعلم وخصم حصة واحدة فقط">غياب</button>
+                                <button type="button" onclick="recordOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', 'excused', ${r.enrollment_id || 'null'})" class="bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-800 border border-amber-300 font-black px-1.5 py-0.5 rounded text-[10px] transition cursor-pointer shadow-2xs" title="رصد عذر رسمي نيابة عن المعلم دون خصم حصة">عذر</button>
                             </div>
                         </div>
                     `;
@@ -4776,8 +4770,8 @@
                 const waLink = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('0') ? '20' + cleanPhone.substring(1) : cleanPhone}` : null;
                 const matchSelected = r.manual_match || '';
 
-                const undoBtn = isRecorded ? `
-                    <button type="button" onclick="undoOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', '${r.status}', ${r.attendance_id || 'null'})" class="p-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition" title="إلغاء رصد الحضور لهذا التاريخ واستعادة الحصة"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg></button>
+                const undoBtn = isRecorded && r.attendance_id && r.enrollment_id ? `
+                    <button type="button" onclick="undoOfficialAttendanceFromAdmin(${r.student_id}, '${r.student_code}', '${encodeURIComponent(r.name)}', '${dailyMatchingSelectedDate}', '${r.status}', ${r.attendance_id || 'null'}, ${r.enrollment_id || 'null'})" class="p-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition" title="إلغاء رصد الحضور لهذا التاريخ واستعادة الحصة"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg></button>
                 ` : '';
 
                 return `
@@ -4804,6 +4798,7 @@
                             <div class="flex items-center gap-1 flex-wrap">
                                 <span class="bg-slate-100 text-slate-700 font-mono font-bold px-1.5 py-0.5 rounded text-[10px]">${r.group_id}</span>
                                 <span class="text-slate-500 text-[10px]">${r.lecture_time}</span>
+                                <span class="w-full text-slate-700 font-bold text-[10px]">${r.course_name || ''}</span>
                             </div>
                         </td>
                         <td class="p-2.5 text-center">${statusBadge}</td>
@@ -4831,7 +4826,7 @@
                                 }
                                 return badge;
                             })()}
-                            <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                            <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value, ${r.enrollment_id || 'null'})" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
                                 <option value="" ${matchSelected === '' ? 'selected' : ''}>— تدقيق يدوي —</option>
                                 <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}>مطابق فعلياً</option>
                                 <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}>به اختلاف</option>
@@ -4850,10 +4845,14 @@
             }).join('');
         }
 
-        async function recordOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, status, currentCredits, isCompensation = false) {
+        async function recordOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, status, enrollmentId, isCompensation = false) {
             const studentName = decodeURIComponent(encodedName);
             const statusLabels = { present: 'حضور رسمي وخصم حصة واحدة', absent: 'غياب رسمي وخصم حصة واحدة', excused: 'عذر رسمي دون خصم' };
             const statusLabel = statusLabels[status] || status;
+            if (!enrollmentId) {
+                alert('تعذّر تحديد اشتراك الطالب لهذا المسار.');
+                return;
+            }
 
             const confirmMsg = `تأكيد الرصد الرسمي بواسطة الإشراف:\n\n• الطالب: ${studentName} (${studentCode})\n• التاريخ المختار: ${dateStr}\n• الإجراء: ${statusLabel}\n\nسيتم تسجيل الحضور رسمياً في السحابة وتعديل الرصيد تلقائياً وقفل التسجيل المزدوج أمام المعلم.\nهل تود تأكيد العملية؟`;
 
@@ -4872,113 +4871,20 @@
                 }
                 const client = window.MonirDB.getClient();
 
-                // 1. Cloud Idempotency check: Make sure no attendance already exists for this student on or around this session (within 30 hours or same date)
-                const localAttKey = 'monir_att_' + studentId + '_' + dateStr;
-                const existingLocal = localStorage.getItem(localAttKey);
-                if (existingLocal) {
-                    const exStatus = existingLocal === 'present' ? 'حضور' : existingLocal === 'absent' ? 'غياب' : 'عذر';
-                    alert(`تنبيه أمان: تم رصد هذا الطالب مسبقاً لهذا التاريخ (${dateStr}) بحالة (${exStatus})!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر.`);
-                    await loadDailyAttendanceMatchingData();
-                    return;
-                }
-
-                const { data: recentAtt } = await client
-                    .from('attendance')
-                    .select('id, status, joined_at, course_name')
-                    .eq('student_id', studentId)
-                    .order('joined_at', { ascending: false })
-                    .limit(5);
-
-                let isDuplicate = false;
-                let dupAtt = null;
-                if (recentAtt && recentAtt.length > 0) {
-                    const selMs = new Date(dateStr + 'T12:00:00').getTime();
-                    for (const att of recentAtt) {
-                        if (!att.joined_at) continue;
-                        const attDate = att.joined_at.split('T')[0];
-                        const attMs = new Date(att.joined_at).getTime();
-                        const hoursDiff = Math.abs(selMs - attMs) / (1000 * 3600);
-                        if (attDate === dateStr) {
-                            isDuplicate = true;
-                            dupAtt = att;
-                            break;
-                        } else if (!isCompensation && hoursDiff < 18) {
-                            isDuplicate = true;
-                            dupAtt = att;
-                            break;
-                        }
-                    }
-                }
-
-                if (isDuplicate && dupAtt) {
-                    const ex = dupAtt;
-                    const exStatus = ex.status === 'present' ? 'حضور' : ex.status === 'absent' ? 'غياب' : 'عذر';
-                    const isBySup = !!(ex.course_name && (ex.course_name.includes('إشراف') || ex.course_name.includes('بديل')));
-                    const roleTxt = isBySup ? 'بواسطة الإشراف' : 'بواسطة المعلم';
-                    alert(`تنبيه أمان قاطع: تم رصد هذا الطالب مسبقاً (${roleTxt}) بحالة (${exStatus}) في السحابة!\n\nتم إلغاء العملية تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`);
-                    await loadDailyAttendanceMatchingData();
-                    return;
-                }
-
-                // 2. Fetch current enrollment
-                // Auto-detection check: If student entered smart classroom today
-                const enteredMeet = (typeof studentEnteredMeetMap !== 'undefined' && studentEnteredMeetMap[studentId]);
-                if (enteredMeet && status === 'present') {
-                    const noticeMsg = `تنبيه رصد آلي مسبق:\n\n• الطالب: ${studentName} (${studentCode})\n• دخل القاعة الذكية الساعة: ${enteredMeet.time}\n\nالنظام يُعلم المعلم بأن الطالب مرصود بالفعل لمنع التكرار.\nهل تود مع ذلك تأكيد الاعتماد الرسمي من الإشراف وخصم حصة واحدة من الرصيد؟`;
-                    let proceed = false;
-                    if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                        proceed = await window.MonirPopup.confirm(noticeMsg, 'تم الرصد بالفعل (رصد آلي)', 'question', 'تأكيد الاعتماد والخصم', 'إلغاء');
-                    } else {
-                        proceed = confirm(noticeMsg);
-                    }
-                    if (!proceed) return;
-                }
-
-                const { data: enrList } = await client
-                    .from('enrollments')
-                    .select('*')
-                    .eq('student_id', studentId)
-                    .limit(1);
-
-                if (!enrList || enrList.length === 0) {
-                    alert('لم يتم العثور على اشتراك (enrollment) لهذا الطالب!');
-                    return;
-                }
-
-                const enr = enrList[0];
-                const rc = enr.remaining_credits || 0;
-                let updates = {};
-
-                if (status === 'present') {
-                    updates.remaining_credits = Math.max(0, rc - 1);
-                    if ('present_count' in enr) updates.present_count = (enr.present_count || 0) + 1;
-                } else if (status === 'absent') {
-                    updates.remaining_credits = Math.max(0, rc - 1);
-                    if ('absent_count' in enr) updates.absent_count = (enr.absent_count || 0) + 1;
-                } else if (status === 'excused') {
-                    updates.excuse_count = (enr.excuse_count || 0) + 1;
-                }
-
-                // Update enrollments
-                await client.from('enrollments').update(updates).eq('id', enr.id);
-
-                // Check for substitute teacher on this session
+                const { data: enr, error: enrollmentError } = await client.from('enrollments')
+                    .select('id, group_id, course_name').eq('id', enrollmentId).eq('student_id', studentId).single();
+                if (enrollmentError || !enr?.course_name) throw enrollmentError || new Error('لم يتم العثور على الاشتراك المحدد.');
                 const activeSub = (typeof getGroupSubstitution === 'function') ? getGroupSubstitution(enr.group_id, dateStr) : null;
-                const effectiveTeacherName = activeSub ? activeSub.substitute_teacher_name : (enr.teachers ? enr.teachers.name : 'الإشراف');
-                const subTag = isCompensation ? ' [إشراف - تعويض]' : (activeSub ? ` [بديل: ${activeSub.substitute_teacher_name}]` : ' [إشراف]');
-
-                // Insert official attendance record with teacher/substitute attribution
-                const todayStr = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-                const joinedAtTime = (dateStr === todayStr) ? new Date().toISOString() : (dateStr + 'T12:00:00.000Z');
-                await client.from('attendance').insert([{
-                    student_id: studentId,
-                    lecture_id: null,
-                    course_name: (enr.course_name || 'مسار القرآن الكريم والتدبر') + subTag,
-                    status: status,
-                    joined_at: joinedAtTime,
-                    duration_minutes: parseInt(enr.session_duration) || 20
-                }]);
-
+                const { data, error } = await client.rpc('apply_staff_course_attendance', {
+                    p_student_id: studentId,
+                    p_enrollment_id: enrollmentId,
+                    p_day: dateStr,
+                    p_status: status,
+                    p_source: 'supervisor',
+                    p_compensation: isCompensation,
+                    p_substitute_name: activeSub?.substitute_teacher_name || null
+                });
+                if (error || !data) throw error || new Error('لم يتم تسجيل الحضور.');
                 if (activeSub) {
                     activeSub.completed = true;
                     saveActiveSubstitutions(getActiveSubstitutions());
@@ -4996,9 +4902,6 @@
                 } catch(pErr) {}
 
                 // Sync localStorage key
-                try {
-                    localStorage.setItem('monir_att_' + studentId + '_' + dateStr, status);
-                } catch(e) {}
 
                 // Clear caches
                 window._monirDailyStudentsCache = [];
@@ -5018,8 +4921,12 @@
             }
         }
 
-        async function undoOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, currentStatus, attendanceId = null) {
+        async function undoOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, currentStatus, attendanceId, enrollmentId) {
             const studentName = decodeURIComponent(encodedName);
+            if (!attendanceId || !enrollmentId) {
+                alert('تعذّر تحديد سجل الحضور والاشتراك المرتبط به.');
+                return;
+            }
             const statusLabel = currentStatus === 'present' ? 'حضور' : currentStatus === 'absent' ? 'غياب' : currentStatus === 'excused' ? 'عذر' : 'مؤجلة';
 
             const confirmMsg = (currentStatus === 'postponed')
@@ -5039,49 +4946,15 @@
                 if (!window.MonirDB || !window.MonirDB.isConfigured()) return;
                 const client = window.MonirDB.getClient();
 
-                // 1. Fetch enrollment
-                const { data: enrList } = await client
-                    .from('enrollments')
-                    .select('*')
-                    .eq('student_id', studentId)
-                    .limit(1);
-
-                if (enrList && enrList.length > 0) {
-                    const enr = enrList[0];
-                    let updates = {};
-                    if (currentStatus === 'present') {
-                        updates.remaining_credits = (enr.remaining_credits || 0) + 1;
-                        if ('present_count' in enr) updates.present_count = Math.max(0, (enr.present_count || 0) - 1);
-                    } else if (currentStatus === 'absent') {
-                        updates.remaining_credits = (enr.remaining_credits || 0) + 1;
-                        if ('absent_count' in enr) updates.absent_count = Math.max(0, (enr.absent_count || 0) - 1);
-                    } else if (currentStatus === 'excused') {
-                        if ('excuse_count' in enr) updates.excuse_count = Math.max(0, (enr.excuse_count || 0) - 1);
-                    }
-
-                    if (Object.keys(updates).length > 0) {
-                        await client.from('enrollments').update(updates).eq('id', enr.id);
-                    }
-                }
-
-                // 2. Delete attendance row for this date/session (exact ID first, then range fallback)
-                if (attendanceId) {
-                    await client
-                        .from('attendance')
-                        .delete()
-                        .eq('id', attendanceId);
-                } else {
-                    const dObj = new Date(dateStr + 'T12:00:00');
-                    const startWindow = new Date(dObj.getTime() - 20 * 3600 * 1000).toISOString();
-                    const endWindow = new Date(dObj.getTime() + 24 * 3600 * 1000).toISOString();
-
-                    await client
-                        .from('attendance')
-                        .delete()
-                        .eq('student_id', studentId)
-                        .gte('joined_at', startWindow)
-                        .lte('joined_at', endWindow);
-                }
+                const { data, error } = await client.rpc('apply_staff_course_attendance', {
+                    p_student_id: studentId,
+                    p_enrollment_id: enrollmentId,
+                    p_day: dateStr,
+                    p_status: currentStatus,
+                    p_source: 'supervisor',
+                    p_undo_id: attendanceId
+                });
+                if (error || !data) throw error || new Error('تعذّر التراجع عن سجل الحضور.');
 
                 // 3. Payment audit trail (using whatsapp_message)
                 try {
@@ -5094,16 +4967,14 @@
                     }]);
                 } catch(pErr) {}
 
-                // Sync local storage
-                try {
-                    localStorage.removeItem('monir_att_' + studentId + '_' + dateStr);
-                } catch(e) {}
-
                 window._monirDailyStudentsCache = [];
                 window.bsAllStudents = [];
 
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast('تم التراجع عن الرصد واستعادة الحصة بنجاح ', 'success');
+                    window.MonirPopup.toast(
+                        ['present', 'absent'].includes(currentStatus) ? 'تم التراجع عن الرصد واستعادة الحصة.' : 'تم التراجع عن الرصد.',
+                        'success'
+                    );
                 } else {
                     alert('تم التراجع بنجاح');
                 }
@@ -5116,15 +4987,16 @@
             }
         }
 
-        function updateSupervisorManualMatch(studentId, dateStr, val) {
-            const key = 'monir_sup_match_' + studentId + '_' + dateStr;
+        function updateSupervisorManualMatch(studentId, dateStr, val, enrollmentId) {
+            const item = dailyMatchingRawRecords.find(r => r.student_id === studentId && r.enrollment_id === enrollmentId);
+            if (!item) return;
+            const key = 'monir_sup_match_' + MonirAttendance.key(studentId, item.course_name) + '_' + dateStr;
             if (val) {
                 localStorage.setItem(key, val);
             } else {
                 localStorage.removeItem(key);
             }
-            const item = dailyMatchingRawRecords.find(r => r.student_id === studentId);
-            if (item) item.manual_match = val;
+            item.manual_match = val;
         }
 
         function triggerBlobDownload(blob, filename) {
@@ -13157,7 +13029,7 @@ function handleCompModalSearch() {
         <div onclick='selectCompModalStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="p-2.5 hover:bg-emerald-50 cursor-pointer flex items-center justify-between transition">
             <div>
                 <span class="font-black text-slate-900 block">${s.name}</span>
-                <span class="text-[10px] text-slate-500 font-mono">${s.student_code} • ${s.group_id || 'بدون مجموعة'} • مع: ${s.teacher_name || 'غير محدد'}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${s.student_code} • ${s.course_name || s.group_id || 'بدون مجموعة'} • مع: ${s.teacher_name || 'غير محدد'}</span>
             </div>
             <div class="text-right">
                 <span class="text-emerald-700 font-extrabold text-[11px]">${s.remaining_credits || 0} حصة</span>
@@ -13206,7 +13078,7 @@ async function submitCompensationAttendance() {
     const student = selectedCompStudent;
 
     closeCompensationModal();
-    await recordOfficialAttendanceFromAdmin(student.id, student.student_code, encodeURIComponent(student.name), sessionDate, status, student.remaining_credits || 0, true);
+    await recordOfficialAttendanceFromAdmin(student.id, student.student_code, encodeURIComponent(student.name), sessionDate, status, student.enrollment_id, true);
 }
 
 

@@ -112,7 +112,7 @@
                                 if (!existingMap.has(key)) {
                                     const parts = (row.type || '').split(':');
                                     const notifType = parts[2] || 'student_added';
-                                    list.push({
+                                    const notification = {
                                         id: 'sb_' + row.id,
                                         teacher_id: tId,
                                         type: notifType,
@@ -123,7 +123,9 @@
                                         group_id: row.course_name || '',
                                         created_at: row.created_at || new Date().toISOString(),
                                         is_read: Boolean(row.is_read)
-                                    });
+                                    };
+                                    list.push(notification);
+                                    existingMap.set(key, notification);
                                 }
                             });
                             list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -144,9 +146,19 @@
         },
 
         // 6. Mark a single notification as read
-        markAsRead(notifId) {
+        async markAsRead(notifId, teacherId) {
+            const tId = Number(teacherId);
+            if (!Number.isSafeInteger(tId) || tId <= 0) throw new Error('Teacher not identified');
+            const remoteId = /^sb_(\d+)$/.exec(String(notifId));
+            if (remoteId) {
+                if (!window.MonirDB?.isConfigured()) throw new Error('Notifications service unavailable');
+                const { data, error } = await window.MonirDB.getClient().from('notifications')
+                    .update({ is_read: 1 }).eq('id', remoteId[1]).like('type', 'teacher:' + tId + ':%')
+                    .select('id').single();
+                if (error || !data) throw error || new Error('Notification not updated');
+            }
             const all = this.getAll();
-            const target = all.find(n => n.id === notifId);
+            const target = all.find(n => n.id === notifId && n.teacher_id === tId);
             if (target) {
                 target.is_read = true;
                 this.saveAll(all);
@@ -154,8 +166,14 @@
         },
 
         // 7. Mark all notifications as read for a teacher
-        markAllAsRead(teacherId) {
+        async markAllAsRead(teacherId) {
             const tId = parseInt(teacherId);
+            if (!Number.isSafeInteger(tId) || tId <= 0) throw new Error('Teacher not identified');
+            if (window.MonirDB?.isConfigured()) {
+                const { error } = await window.MonirDB.getClient().from('notifications')
+                    .update({ is_read: 1 }).like('type', 'teacher:' + tId + ':%');
+                if (error) throw error;
+            }
             const all = this.getAll();
             all.forEach(n => {
                 if (n.teacher_id === tId) {
@@ -164,18 +182,6 @@
             });
             this.saveAll(all);
 
-            // Also update Supabase in background
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
-                try {
-                    const client = window.MonirDB.getClient();
-                    if (client) {
-                        client.from('notifications')
-                            .update({ is_read: 1 })
-                            .like('type', 'teacher:' + tId + ':%')
-                            .then(() => {});
-                    }
-                } catch(e) {}
-            }
         },
 
         // Format relative timestamp in Arabic

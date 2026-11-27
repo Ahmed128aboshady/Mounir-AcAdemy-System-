@@ -784,7 +784,7 @@
     window.normalizeTeacherName = normalizeTeacherName;
 
     // Standardized Group Live Room generator (Google Meet / Zoom / Jitsi)
-    window.getGroupMeetUrl = function(groupId, teacherIdOrName, courseName) {
+    window.getGroupMeetUrl = function(groupId, teacherIdOrName, courseName, studentContext) {
         const cleanGid = groupId ? String(groupId).trim() : '';
         const cName = courseName ? String(courseName).trim() : '';
 
@@ -799,12 +799,13 @@
             if (cleanGid === 'CMP-H01' || cName.includes('الحديث')) {
                 // If student gender/age info is available via window
                 if (typeof window !== 'undefined') {
-                    const st = (window.currentStudentData && window.currentStudentData.student) || {};
+                    const st = studentContext || (window.currentStudentData && window.currentStudentData.student) || {};
                     const sName = st.name || '';
                     const sCode = st.student_code || st.id || '';
                     const sExplicit = st.gender || '';
                     const gender = typeof guessStudentGender === 'function' ? guessStudentGender(sName, sExplicit, sCode) : 'm';
-                    const age = (window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(st.age) || 9);
+                    const age = studentContext ? (parseInt(st.age, 10) || 9)
+                        : ((window.currentStudentAge !== undefined) ? window.currentStudentAge : (parseInt(st.age, 10) || 9));
                     if (gender === 'm') {
                         if (age < 10) {
                             return 'https://meet.google.com/che-nnub-mxf'; // Google Meet for boys under 10

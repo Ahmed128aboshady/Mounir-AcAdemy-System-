@@ -9,17 +9,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/attendance_scope.js?v=20261127"></script>
+    <script src="js/teacher_earnings.js?v=20261127_rates2"></script>
     <script src="js/popup.js?v=20260915_t1"></script>
-    <script src="js/meet_manager.js?v=20261012_v4"></script>
+    <script src="js/student_genders.js?v=20260922_age1"></script>
+    <script src="js/meet_manager.js?v=20261127_teacher_cycle"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase_client.js?v=20260918_v3"></script>
-    <script src="js/api_mock.js?v=20260918_v3"></script>
+    <script src="js/supabase_client.js?v=20261127_access"></script>
+    <script src="js/api_mock.js?v=20261127_access"></script>
 <script src="js/student_ledger.js?v=20261020_v4"></script>
-    <script src="js/teacher_notifications.js?v=20261003_v2"></script>
+    <script src="js/teacher_notifications.js?v=20261127_teacher_cycle"></script>
 
     <script>
         // Auth guard — teachers and admins only
         (function() {
+            if (window.MonirDB?.requiresTeacherAuth?.()) return;
             const userStr = localStorage.getItem('monir_current_user');
             if (!userStr) {
                 window.location.replace('login.html?role=teacher&alert=auth_required');
@@ -37,44 +41,120 @@
             }
         })();
     </script>
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
     <style>
         body { font-family: 'Cairo', sans-serif; }
-        .group-card { transition: box-shadow 0.2s; }
-        .group-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .student-row:hover { background: #f8fafc; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 0.75rem; overflow-y: auto; }
+        .teacher-header { background: #14263d; color: white; }
+        .teacher-header-inner, .teacher-workspace { width: min(100%, 80rem); margin-inline: auto; }
+        .teacher-header-inner { display: flex; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding: .5rem clamp(.75rem, 3vw, 2rem); }
+        .teacher-brand { display: flex; align-items: center; gap: .625rem; min-width: 0; }
+        .teacher-brand h1 { font-size: clamp(.9rem, 2.2vw, 1.125rem); font-weight: 900; }
+        .teacher-header-actions { display: flex; align-items: center; gap: .375rem; flex-wrap: wrap; }
+        .teacher-header-actions > :is(a, button) { min-width: 44px; min-height: 44px; justify-content: center; }
+        .teacher-header-actions > a { align-items: center; }
+        .teacher-header-actions > a:not(.hidden) { display: inline-flex; }
+        body[data-monir-page="teacher"] .teacher-workspace { padding: clamp(.875rem, 3vw, 1.75rem) clamp(.75rem, 3vw, 2rem) 2.5rem; }
+        .teacher-profile { display: grid; gap: 1rem; background: #fff; border: 1px solid #dce5e9; border-radius: 1.25rem; padding: clamp(1rem, 3vw, 1.5rem); }
+        .teacher-profile h2 { color: #14263d; font-size: clamp(1.375rem, 3vw, 1.875rem); font-weight: 900; overflow-wrap: anywhere; }
+        .teacher-profile #teacherContact { text-align: start; unicode-bidi: plaintext; overflow-wrap: anywhere; }
+        .teacher-profile #teacherContact:empty { display: none; }
+        .teacher-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+        .teacher-metric { min-width: 0; padding: .625rem .75rem; border-radius: .875rem; background: #f0f6f5; color: #244b48; }
+        .teacher-metric dt { font-size: .75rem; font-weight: 700; }
+        .teacher-metric dd { font-size: clamp(1.05rem, 2.2vw, 1.375rem); font-weight: 900; overflow-wrap: anywhere; }
+        .teacher-metric-earnings { background: #edf2fa; color: #243d57; }
+        .teacher-groups-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .125rem .75rem; }
+        .teacher-groups-heading h2 { font-size: clamp(1.25rem, 2.3vw, 1.625rem); font-weight: 900; color: #14263d; }
+        .teacher-tools { display: grid; gap: .625rem; margin-block: .625rem .875rem; }
+        .teacher-search { display: flex; align-items: stretch; gap: .375rem; min-width: 0; }
+        .teacher-search input { flex: 1; min-width: 0; }
+        .teacher-tool-actions { display: flex; flex-wrap: wrap; gap: .375rem; }
+        .teacher-tool-actions > button { flex: 1 0 auto; }
+        .teacher-group-content { overflow-x: auto; }
+        .teacher-group-heading { display: grid; gap: .5rem; padding: .75rem; background: #fff; }
+        .teacher-group-toggle { display: flex; align-items: center; gap: .625rem; width: 100%; min-width: 0; border-radius: .625rem; text-align: start; }
+        .teacher-group-toggle:hover { background: #f3f7f8; }
+        .teacher-group-toggle[aria-expanded="true"] .teacher-group-chevron { transform: rotate(180deg); }
+        .teacher-group-chevron { transition: transform .2s; }
+        .teacher-group-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+        .teacher-group-copy > span { display: block; }
+        .teacher-group-copy > .teacher-group-meta { display: flex; flex-wrap: wrap; gap: .125rem .5rem; align-items: center; color: #526579; }
+        .teacher-room-action { display: inline-flex; justify-content: center; align-items: center; gap: .375rem; min-height: 44px; border-radius: .75rem; padding-inline: .875rem; font-size: .875rem; font-weight: 800; background: #0f766e; color: white; }
+        .teacher-room-action:hover { background: #115e59; }
+        .teacher-room-action:disabled { background: #e8eef0; color: #42596d; opacity: 1; }
+        .teacher-group-toolbar a { min-height: 44px; }
+        .teacher-group-content table { table-layout: auto; }
+        .teacher-group-content :is(th, td) { padding-inline: .625rem; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(20,38,61,.62); z-index: 999; display: flex; align-items: center; justify-content: center; padding: .75rem; overflow-y: auto; }
         .modal-overlay.hidden { display: none; }
-        .privacy-shield { background: linear-gradient(135deg, #1F274B, #2D396E); }
+        #teacherCourseLedger { max-width: calc(100% - 1rem); }
+        @media (min-width: 36rem) {
+            .teacher-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .teacher-group-heading { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: .75rem 1rem; }
+            .teacher-tool-actions > button { flex: 0 0 auto; }
+        }
+        @media (min-width: 52rem) {
+            .teacher-tools { grid-template-columns: minmax(15rem, 1fr) auto; align-items: center; }
+        }
+        @media (min-width: 64rem) {
+            .teacher-profile { grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr); align-items: center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .teacher-group-chevron { transition: none; }
+        }
         .rating-star { cursor: pointer; font-size: 1.25rem; transition: transform 0.1s; }
         .rating-star:hover { transform: scale(1.3); }
         .badge-present { background: #d1fae5; color: #065f46; }
         .badge-absent { background: #fee2e2; color: #991b1b; }
         .badge-excuse { background: #fef3c7; color: #92400e; }
+        @media (max-width: 1023px) {
+            .teacher-group-content { overflow-x: visible; }
+            body[data-monir-page="teacher"] .teacher-group-content > table { display: block; min-width: 0; }
+            .teacher-group-content td > div { min-width: 0; }
+            .teacher-group-content tbody { display: block; }
+            .teacher-group-content thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+            .teacher-group-content .student-row {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .625rem;
+                margin: .75rem;
+                padding: .875rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 1rem;
+            }
+            .teacher-group-content .student-row > td { display: block; min-width: 0; padding: .25rem 0; }
+            .teacher-group-content .student-row > td:first-child { display: none; }
+            .teacher-group-content .student-row > td:nth-child(2),
+            .teacher-group-content .student-row > td:last-child { grid-column: 1 / -1; }
+            .teacher-group-content .student-row > td[data-label]::before {
+                content: attr(data-label);
+                display: block;
+                margin-bottom: .25rem;
+                font-weight: 700;
+                color: #475569;
+            }
+            [data-attendance-actions] { justify-content: flex-start !important; }
+            [data-attendance-actions] button, [data-room-link] { min-height: 44px; }
+        }
+        @media (min-width: 42rem) and (max-width: 1023px) {
+            .teacher-group-content .student-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .teacher-group-content .student-row > td:nth-child(2) { grid-column: span 2; }
+        }
     </style>
-    <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
 </head>
-<body data-monir-page="teacher" class="bg-slate-50 text-slate-800 min-h-screen pb-20">
+<body data-monir-page="teacher" class="bg-slate-50 text-slate-800 min-h-screen">
 
-    <!-- Top Navigation -->
-    <header class="bg-[#1F274B] text-white py-2 sm:py-3.5 px-3 sm:px-4 sticky top-0 z-40 shadow-sm border-b border-[#2D396E]">
-        <div class="max-w-6xl mx-auto flex justify-between items-center gap-2">
-            <!-- Logo & Title -->
-            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                <a href="index.html" class="flex items-center shrink-0">
-                    <img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-7 sm:h-9 w-auto object-contain">
+    <header class="teacher-header">
+        <div class="teacher-header-inner">
+            <div class="teacher-brand">
+                <a href="index.html" class="shrink-0">
+                    <img src="images/monir_logo_white.png" alt="أكاديمية منير" class="h-8 sm:h-9 w-auto object-contain">
                 </a>
-                <div class="min-w-0">
-                    <h1 class="font-extrabold text-xs sm:text-sm leading-tight text-white truncate">بوابة المعلمين والمدربين</h1>
-                    <p class="text-[10px] text-slate-300 hidden sm:block truncate">إدارة المجموعات وتسجيل الحضور ومتابعة القرآن الكريم</p>
-                </div>
+                <h1>بوابة المعلم</h1>
             </div>
-
-            <!-- Header Actions -->
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                <span class="text-xs text-slate-300 font-bold hidden lg:inline" id="teacherNameHeader">—</span>
-
+            <div class="teacher-header-actions" aria-label="إجراءات الحساب">
                 <!-- Notification Bell Button -->
-                <button type="button" onclick="openTeacherNotificationsModal()" class="relative bg-[#2D396E] hover:bg-[#3D4C8E] active:scale-95 text-amber-300 hover:text-white px-2 sm:px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm shrink-0 border border-indigo-400/30 cursor-pointer" title="إشعارات وتحديثات الطلاب">
+                <button type="button" onclick="openTeacherNotificationsModal()" class="relative bg-[#2D396E] hover:bg-[#3D4C8E] active:scale-95 text-amber-300 hover:text-white px-2 sm:px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm shrink-0 border border-indigo-400/30 cursor-pointer" aria-label="الإشعارات" title="إشعارات وتحديثات الطلاب">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     <span class="hidden md:inline text-xs font-bold text-white">الإشعارات</span>
                     <span id="teacherBellBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-[#1F274B] animate-pulse">0</span>
@@ -86,7 +166,7 @@
                     <span class="sm:hidden">الدعم</span>
                     <span id="teacherNotifBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-[#1F274B]">0</span>
                 </button>
-                <a href="admin.html" class="text-[11px] sm:text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 sm:px-3 py-1.5 rounded-lg font-bold transition border border-slate-600 shrink-0 flex items-center gap-1">
+                <a href="admin.html" id="teacherAdminLink" class="hidden text-[11px] sm:text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 sm:px-3 py-1.5 rounded-lg font-bold transition border border-slate-600 shrink-0 items-center gap-1">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span class="hidden sm:inline">لوحة الإدارة</span>
                     <span class="sm:hidden">الإدارة</span>
@@ -100,7 +180,7 @@
     </header>
 
     <!-- Admin Supervisor Toolbar for Teachers (يظهر فقط للإدارة عند استعراض صفحات المعلمين) -->
-    <div id="adminTeacherSupervisorBar" class="hidden bg-gradient-to-r from-emerald-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-emerald-500 py-1.5 sm:py-2 px-3 sm:px-4 shadow-md sticky top-[48px] sm:top-[57px] z-30">
+    <div id="adminTeacherSupervisorBar" class="hidden bg-gradient-to-r from-emerald-950 via-[#1F274B] to-slate-900 text-white border-b-2 border-emerald-500 py-1.5 sm:py-2 px-3 sm:px-4 shadow-md z-30">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-3 text-xs">
             <!-- Row 1: Status Badge & Quick Navigation Controls -->
             <div class="flex items-center justify-between gap-2">
@@ -132,89 +212,42 @@
         </div>
     </div>
 
-    <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-6">
-
-        <!-- Privacy Shield Banner -->
-        <div class="privacy-shield text-white p-3 sm:p-4 rounded-2xl shadow-md border border-[#57BA9E]/30 flex items-center justify-between gap-2.5 sm:gap-3">
-            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span class="bg-[#57BA9E] text-slate-950 p-1.5 sm:px-3 sm:py-1 rounded-xl font-black text-xs shrink-0 flex items-center justify-center">
-                    
-                    <span class="hidden sm:inline mr-1 font-black">درع الخصوصية</span>
-                </span>
-                <div class="min-w-0">
-                    <p class="font-black text-xs sm:text-sm text-white truncate">نظام الخصوصية المشددة مفعّل</p>
-                    <p class="text-[10px] sm:text-xs text-slate-300 line-clamp-1 sm:line-clamp-none">حجب بيانات الطلاب وأولياء الأمور لضمان الخصوصية</p>
-                </div>
+    <main class="teacher-workspace space-y-4 sm:space-y-6">
+        <section class="teacher-profile" aria-labelledby="teacherName">
+            <div class="min-w-0">
+                <p class="text-sm font-bold text-emerald-800" id="teacherSpecialty">معلم القرآن الكريم</p>
+                <h2 id="teacherName">جاري التحميل…</h2>
+                <p class="text-sm text-slate-500" id="teacherContact" dir="auto"></p>
             </div>
-            <div class="text-center shrink-0 bg-white/10 px-2.5 py-1 rounded-xl border border-white/10">
-                <div class="text-base sm:text-2xl font-black text-[#57BA9E] leading-tight" id="teacherGroupsCount">0</div>
-                <div class="text-[9px] sm:text-xs text-slate-300">مجموعة</div>
-            </div>
-        </div>
-
-        <!-- Teacher Bio Card -->
-        <section class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-5 shadow-sm">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-                <div class="min-w-0 w-full md:w-auto">
-                    <div class="flex items-center gap-1.5 sm:gap-2 mb-1.5 flex-wrap">
-                        <span class="bg-emerald-100 text-emerald-800 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full" id="teacherSpecialty">معلم القرآن الكريم</span>
-                        <span class="bg-blue-50 text-blue-900 border border-blue-200 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full hidden sm:inline-block">نظام الخصوصية المشددة</span>
-                    </div>
-                    <h2 class="text-lg sm:text-xl font-black text-slate-900 truncate" id="teacherName">جاري التحميل...</h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-mono truncate" id="teacherContact" dir="ltr">—</p>
+            <dl class="teacher-metrics">
+                <div class="teacher-metric"><dt>الطلاب</dt><dd id="statStudentCount">—</dd></div>
+                <div class="teacher-metric"><dt>المجموعات</dt><dd id="statGroupCount">—</dd></div>
+                <div class="teacher-metric"><dt>الحضور المحتسب</dt><dd id="statTeacherEarnedSessions">—</dd></div>
+                <div class="teacher-metric teacher-metric-earnings">
+                    <dt>مستحقات تقديرية</dt><dd id="statTeacherEarnedBalance">—</dd>
+                    <dd id="teacherEarningsReview" class="hidden !text-xs text-amber-800" role="status"></dd>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3 w-full md:w-auto">
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 sm:p-3 text-center min-w-0">
-                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 truncate">إجمالي الطلاب</div>
-                        <div class="text-base sm:text-xl font-black text-blue-900 mt-0.5" id="statStudentCount">0</div>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 sm:p-3 text-center min-w-0">
-                        <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 truncate">المجموعات</div>
-                        <div class="text-base sm:text-xl font-black text-emerald-700 mt-0.5" id="statGroupCount">0</div>
-                    </div>
-                    <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-2 sm:p-3 text-center min-w-0 shadow-2xs">
-                        <div class="text-[10px] sm:text-[11px] font-black text-emerald-800 truncate">رصيد الحصص المنجزة</div>
-                        <div class="text-base sm:text-xl font-black text-emerald-900 mt-0.5" id="statTeacherEarnedSessions">0</div>
-                    </div>
-                    <div class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-2 sm:p-3 text-center min-w-0 shadow-2xs">
-                        <div class="text-[10px] sm:text-[11px] font-black text-indigo-800 truncate">المستحقات المقدرة</div>
-                        <div class="text-base sm:text-xl font-black text-indigo-950 mt-0.5" id="statTeacherEarnedBalance">0 ج.م</div>
-                    </div>
-                </div>
-            </div>
+            </dl>
         </section>
 
-        <!-- Search bar & Quick Accordion Controls -->
-        <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center justify-between">
-            <div class="flex-1 flex gap-1.5 sm:gap-2">
-                <input type="text" id="searchInput" aria-label="البحث برقم الطالب أو المجموعة" onkeyup="filterGroups()" placeholder="ابحث برقم الطالب أو المجموعة..." class="w-full bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-[#57BA9E] shadow-sm">
-                <button onclick="loadTeacherGroups()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap cursor-pointer">تحديث</button>
-                <button type="button" onclick="openTeacherSubstituteModal()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center gap-1.5 cursor-pointer" title="تولي تعويض حصة لمعلم آخر لهذا اليوم فقط">
-                    <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    <span>تولي حصة بديلة</span>
-                </button>
+        <section aria-labelledby="teacherGroupsTitle">
+            <div class="teacher-groups-heading">
+                <h2 id="teacherGroupsTitle">مجموعاتي</h2>
+                <p id="teacherGroupStatus" class="text-sm text-slate-500" role="status"></p>
             </div>
-            <div class="flex items-center gap-1.5 sm:gap-2 justify-end">
-                <button type="button" onclick="toggleAllTeacherGroups(true)" class="flex-1 sm:flex-none bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center justify-center gap-1 cursor-pointer" title="فتح جميع المجموعات">
-                    <span>▼</span>
-                    <span>فتح الكل</span>
-                </button>
-                <button type="button" onclick="toggleAllTeacherGroups(false)" class="flex-1 sm:flex-none bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition shadow-sm whitespace-nowrap flex items-center justify-center gap-1 cursor-pointer" title="طي جميع المجموعات">
-                    <span>▲</span>
-                    <span>طي الكل</span>
-                </button>
+            <div class="teacher-tools">
+                <div class="teacher-search" role="search">
+                    <input type="search" id="searchInput" aria-label="البحث في المجموعات والطلاب" oninput="filterGroups()" placeholder="اسم الطالب، رقمه أو المجموعة" class="bg-white border border-slate-300 px-3 text-sm focus:border-emerald-600">
+                    <button type="button" id="teacherRefresh" onclick="loadTeacherGroups()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold px-3 rounded-xl text-sm">تحديث</button>
+                </div>
+                <div class="teacher-tool-actions">
+                    <button type="button" onclick="openTeacherSubstituteModal()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-3 rounded-xl text-sm">طلب حصة بديلة</button>
+                    <button type="button" data-group-bulk onclick="toggleAllTeacherGroups(true)" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold px-3 rounded-xl text-sm">فتح الكل</button>
+                    <button type="button" data-group-bulk onclick="toggleAllTeacherGroups(false)" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold px-3 rounded-xl text-sm">طي الكل</button>
+                </div>
             </div>
-        </div>
-
-        <!-- Groups Container -->
-        <div id="groupsContainer" class="space-y-5">
-            <div class="text-center py-12 text-slate-400">
-                
-                <p class="font-bold">جاري تحميل مجموعاتك...</p>
-            </div>
-        </div>
-
+            <div id="groupsContainer" class="space-y-3 sm:space-y-4" aria-busy="true"></div>
+        </section>
     </main>
 
     <!-- Modal: Update Quran Progress & Revision Plan -->
@@ -463,38 +496,66 @@
         </div>
     </div>
 
+    <dialog id="teacherCourseLedger" aria-labelledby="teacherCourseLedgerTitle" dir="rtl" class="w-[min(92vw,42rem)] max-h-[85vh] overflow-auto rounded-2xl bg-white p-5 text-slate-900 shadow-xl backdrop:bg-slate-950/60">
+        <form method="dialog" class="flex items-center justify-between gap-4 border-b border-slate-200 pb-3">
+            <h2 id="teacherCourseLedgerTitle" class="text-sm font-black">سجل حضور المسار</h2>
+            <button type="submit" class="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold">إغلاق</button>
+        </form>
+        <p id="teacherCourseLedgerStatus" role="status" class="py-3 text-xs text-slate-600"></p>
+        <ul id="teacherCourseLedgerEntries" class="divide-y divide-slate-200 text-sm"></ul>
+    </dialog>
+
     <script>
         function getMonirLocalDateStr() {
-            const d = new Date();
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return MonirAttendance.date();
         }
         let currentTeacherId = 1;
         let currentTeacherName = '';
         let teacherSupportTickets = [];
         let teacherGroups = [];
+        const openTeacherGroups = new Set();
         let activeModalStudentId = null;
         let selectedRating = 0;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const userStr = localStorage.getItem('monir_current_user');
+        const teacherAuthRequired = window.MonirDB?.requiresTeacherAuth?.() === true;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            let userStr = localStorage.getItem('monir_current_user');
+            if (teacherAuthRequired) {
+                try {
+                    const teacher = await window.MonirDB.getVerifiedTeacher();
+                    userStr = JSON.stringify(teacher);
+                    localStorage.setItem('monir_current_user', userStr);
+                } catch {
+                    localStorage.removeItem('monir_current_user');
+                    window.location.replace('login.html');
+                    return;
+                }
+            }
             if (userStr) {
                 try {
                     const u = JSON.parse(userStr);
                     if (u.role === 'admin') {
                         const bar = document.getElementById('adminTeacherSupervisorBar');
                         if (bar) bar.classList.remove('hidden');
+                        document.getElementById('teacherAdminLink').classList.remove('hidden');
                     }
                     currentTeacherId = u.teacher_id || u.related_id || 1;
                     currentTeacherName = u.full_name || u.name || u.username || '';
                     
                     // Setup logout button
                     const btn = document.getElementById('teacherAuthBtn');
-                    const nameHeader = document.getElementById('teacherNameHeader');
-                    if (nameHeader) nameHeader.innerText = (u.role === 'admin' ? 'مشرف الإدارة: ' : 'المعلم: ') + (u.full_name || u.username);
                     if (btn) {
-                        btn.onclick = (e) => {
+                        btn.onclick = async (e) => {
                             e.preventDefault();
                             if (confirm('هل ترغب في تسجيل الخروج؟')) {
+                                if (teacherAuthRequired) {
+                                    const { error } = await window.MonirDB.getClient().auth.signOut();
+                                    if (error) {
+                                        alert('تعذّر إنهاء جلسة الدخول. حاول مرة أخرى.');
+                                        return;
+                                    }
+                                }
                                 localStorage.removeItem('monir_current_user');
                                 localStorage.removeItem('monir_auth_token');
                                 window.location.href = 'login.html';
@@ -504,10 +565,15 @@
                 } catch(e) {}
             }
 
-            // Load from URL if admin is viewing a teacher
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('id')) {
-                currentTeacherId = parseInt(urlParams.get('id')) || currentTeacherId;
+            let session;
+            try { session = JSON.parse(userStr || 'null'); } catch {}
+            if (!session || !['teacher', 'admin'].includes(session.role)) {
+                window.location.replace('login.html');
+                return;
+            }
+            if (session.role === 'admin') {
+                const requestedTeacher = Number(new URLSearchParams(location.search).get('id'));
+                if (requestedTeacher > 0) currentTeacherId = requestedTeacher;
             }
 
             if (userStr) {
@@ -592,22 +658,7 @@
 
         
         // Format last recorded attendance info for teacher view
-        function formatLastAttendanceInfo(attInfo, studentId) {
-            let resolvedInfo = attInfo;
-            if (studentId) {
-                try {
-                    const rawCached = localStorage.getItem('monir_last_att_info_' + studentId);
-                    if (rawCached) {
-                        const cached = JSON.parse(rawCached);
-                        if (cached && cached.joined_at) {
-                            if (!resolvedInfo || new Date(cached.joined_at) > new Date(resolvedInfo.joined_at)) {
-                                resolvedInfo = cached;
-                            }
-                        }
-                    }
-                } catch(e) {}
-            }
-
+        function formatLastAttendanceInfo(resolvedInfo) {
             if (!resolvedInfo || !resolvedInfo.joined_at) return null;
             try {
                 const d = new Date(resolvedInfo.joined_at);
@@ -671,7 +722,7 @@
                 return m && !m.classList.contains('hidden');
             });
             if (openModal) return true;
-            if (window._surahSaveTimers && Object.keys(window._surahSaveTimers).length > 0) return true;
+            if (teacherPlanTimers.size > 0) return true;
             return false;
         }
         document.addEventListener('focusout', () => {
@@ -689,8 +740,11 @@
                 return;
             }
             const container = document.getElementById('groupsContainer');
-            if (!silent && container) {
-                container.innerHTML = '<div class="text-center py-12 text-slate-400"><div class="text-xs text-slate-400 font-bold mb-2">جاري التحميل...</div><p class="font-bold">جاري تحميل المجموعات...</p></div>';
+            const refresh = document.getElementById('teacherRefresh');
+            if (!silent) {
+                container.setAttribute('aria-busy', 'true');
+                document.getElementById('teacherGroupStatus').textContent = 'جاري تحميل المجموعات…';
+                refresh.disabled = true;
             }
 
             try {
@@ -717,7 +771,7 @@
                                 window.TEACHER_MEET_LINKS[tData.name] = tData.bio;
                             }
                             document.getElementById('teacherName').innerText = 'أ. ' + tData.name;
-                            document.getElementById('teacherContact').innerText = 'البريد: ' + (tData.email || '—');
+                            document.getElementById('teacherContact').textContent = tData.email || '';
                             document.getElementById('teacherSpecialty').innerText = 'معلم القرآن الكريم';
                         }
                     } catch(e) {}
@@ -734,73 +788,43 @@
                         const latestAttendanceMap = {};
                         window.todaySupabaseAttMap = {};
                         const todayDateStr = getMonirLocalDateStr();
-                        const todayUtcStr = new Date().toISOString().split('T')[0];
                         try {
-                            const sids = enrData ? enrData.map(e => e.student_id).filter(Boolean) : [];
-                            if (sids.length > 0) {
-                                const { data: attList } = await client
-                                    .from('attendance')
-                                    .select('id, student_id, status, joined_at, course_name')
-                                    .in('student_id', sids)
-                                    .order('joined_at', { ascending: false });
+                            const sids = [...new Set((enrData || []).map(e => e.student_id).filter(Boolean))];
+                            if (Array.isArray(enrData)) {
+                                const attList = await loadTeacherAttendance(client, sids);
+                                renderTeacherEarnings(MonirTeacherEarnings.summarize(enrData, attList));
                                 if (attList && attList.length > 0) {
                                     const nowMs = Date.now();
                                     window.studentMonthlyExcusesMap = {};
                                     const curYearMonth = todayDateStr.substring(0, 7);
                                     attList.forEach(a => {
-                                        if (a.status === 'excused' && a.joined_at && a.joined_at.substring(0, 7) === curYearMonth) {
-                                            window.studentMonthlyExcusesMap[a.student_id] = (window.studentMonthlyExcusesMap[a.student_id] || 0) + 1;
+                                        const key = MonirAttendance.key(a.student_id, a.course_name);
+                                        if (a.status === 'excused' && !a.course_name?.includes('[تأجيل')
+                                            && MonirAttendance.date(a.joined_at).startsWith(curYearMonth)) {
+                                            window.studentMonthlyExcusesMap[key] = (window.studentMonthlyExcusesMap[key] || 0) + 1;
                                         }
                                     });
                                     attList.forEach(a => {
-                                        if (!latestAttendanceMap[a.student_id]) {
-                                            latestAttendanceMap[a.student_id] = {
+                                        const scope = MonirAttendance.key(a.student_id, a.course_name);
+                                        if (!latestAttendanceMap[scope]) {
+                                            latestAttendanceMap[scope] = {
                                                 status: a.status,
                                                 joined_at: a.joined_at
                                             };
                                         }
-                                        // Real-time Cloud Detection for Today / Recent Session
-                                        const attMs = a.joined_at ? new Date(a.joined_at).getTime() : 0;
-                                        const hoursDiff = (nowMs - attMs) / (1000 * 3600);
-                                        const absHours = Math.abs(hoursDiff);
-                                        const isSameDay = a.joined_at && (a.joined_at.startsWith(todayDateStr) || a.joined_at.startsWith(todayUtcStr));
-                                        const isBySupervisor = !!(a.course_name && (a.course_name.includes('إشراف') || a.course_name.includes('بديل')));
-                                        const isPostponed = !!(a.course_name && a.course_name.includes('[تأجيل'));
-                                        const effectiveStatus = isPostponed ? 'postponed' : a.status;
-
-                                        // Strict Supervisor Lock: Supervisor record locks the teacher portal across the entire 60-hour session window or same day
-                                        // Teacher records lock out for same day or 30 hours
-                                        const isLocked = isBySupervisor
-                                            ? (isSameDay || absHours < 60)
-                                            : (isSameDay || (hoursDiff >= -4 && hoursDiff < 12));
-
-                                        if (isLocked && !window.todaySupabaseAttMap[a.student_id]) {
-                                            window.todaySupabaseAttMap[a.student_id] = {
-                                                id: a.id,
-                                                status: effectiveStatus,
-                                                joined_at: a.joined_at,
-                                                bySupervisor: isBySupervisor,
-                                                isPostponed: isPostponed
-                                            };
-                                            try {
-                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayDateStr, effectiveStatus);
-                                                localStorage.setItem('monir_att_' + a.student_id + '_' + todayUtcStr, effectiveStatus);
-                                                if (isBySupervisor) {
-                                                    localStorage.setItem('monir_att_by_supervisor_' + a.student_id, '1');
-                                                } else {
-                                                    localStorage.removeItem('monir_att_by_supervisor_' + a.student_id);
-                                                }
-                                                if (isPostponed) {
-                                                    localStorage.setItem('monir_att_postponed_' + a.student_id, '1');
-                                                } else {
-                                                    localStorage.removeItem('monir_att_postponed_' + a.student_id);
-                                                }
-                                            } catch(e) {}
-                                        }
+                                        if (MonirAttendance.date(a.joined_at) !== todayDateStr || window.todaySupabaseAttMap[scope]) return;
+                                        const tag = a.course_name || '';
+                                        window.todaySupabaseAttMap[scope] = {
+                                            id: a.id,
+                                            status: tag.includes('[تأجيل') ? 'postponed' : a.status,
+                                            joined_at: a.joined_at,
+                                            bySupervisor: tag.includes('[إشراف') || tag.includes('[بديل:')
+                                        };
                                     });
                                 }
                             }
                         } catch(attErr) {
+                            renderTeacherEarnings(null);
                             console.warn('Attendance map fetch notice:', attErr);
                         }
 
@@ -818,10 +842,11 @@
                                     .order('created_at', { ascending: false });
                                 if (entries && entries.length > 0) {
                                     entries.forEach(ent => {
-                                        if (!window.todayClassroomEntryMap[ent.student_id]) {
+                                        const scope = MonirAttendance.key(ent.student_id, ent.course_name);
+                                        if (MonirAttendance.date(ent.created_at) === todayDateStr && !window.todayClassroomEntryMap[scope]) {
                                             const entDate = ent.created_at ? new Date(ent.created_at) : new Date();
                                             const entTime = entDate.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-                                            window.todayClassroomEntryMap[ent.student_id] = {
+                                            window.todayClassroomEntryMap[scope] = {
                                                 id: ent.id,
                                                 time: entTime,
                                                 created_at: ent.created_at,
@@ -838,12 +863,12 @@
                         // Fallback to current_surah updated_at for students without raw attendance rows yet
                         if (enrData) {
                             enrData.forEach(e => {
-                                const sid = e.student_id;
-                                if (!latestAttendanceMap[sid] && e.current_surah && ((e.present_count || 0) > 0 || (e.absent_count || 0) > 0)) {
+                                const scope = MonirAttendance.key(e.student_id, e.course_name);
+                                if (!latestAttendanceMap[scope] && e.current_surah && ((e.present_count || 0) > 0 || (e.absent_count || 0) > 0)) {
                                     try {
                                         const cs = typeof e.current_surah === 'string' ? JSON.parse(e.current_surah) : e.current_surah;
                                         if (cs && cs.updated_at) {
-                                            latestAttendanceMap[sid] = {
+                                            latestAttendanceMap[scope] = {
                                                 status: (e.present_count > 0) ? 'present' : 'absent',
                                                 joined_at: cs.updated_at
                                             };
@@ -905,25 +930,24 @@
                                     const lecTime = sOv.lecture_time || e.lecture_time || gOv.lecture_time || '';
                                     const sesDur  = sOv.session_duration || e.session_duration || gOv.session_duration || '';
 
-                                    if (!groupsMap[safeGid]) {
-                                        const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                                            ? window.getGroupMeetUrl(safeGid, currentTeacherId || currentTeacherName)
-                                            : ('https://meet.google.com/mnr-' + safeGid.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                                        groupsMap[safeGid] = {
+                                    const groupScope = MonirAttendance.key(safeGid, e.course_name);
+                                    if (!groupsMap[groupScope]) {
+                                        groupsMap[groupScope] = {
                                             group_id: safeGid,
+                                            course_name: e.course_name,
                                             group_name: e.course_name || safeGid,
                                             subscription_days: subDays,
                                             lecture_time: lecTime,
                                             session_duration: sesDur,
-                                            google_meet_url: meetUrl,
+                                            google_meet_url: e.google_meet_url || '',
                                             students: []
                                         };
                                     }
-                                    if (!groupsMap[safeGid].subscription_days && subDays) groupsMap[safeGid].subscription_days = subDays;
-                                    if (!groupsMap[safeGid].lecture_time && lecTime) groupsMap[safeGid].lecture_time = lecTime;
-                                    if (!groupsMap[safeGid].session_duration && sesDur) groupsMap[safeGid].session_duration = sesDur;
+                                    if (!groupsMap[groupScope].subscription_days && subDays) groupsMap[groupScope].subscription_days = subDays;
+                                    if (!groupsMap[groupScope].lecture_time && lecTime) groupsMap[groupScope].lecture_time = lecTime;
+                                    if (!groupsMap[groupScope].session_duration && sesDur) groupsMap[groupScope].session_duration = sesDur;
 
-                                    const existingIdx = groupsMap[safeGid].students.findIndex(st => st.id === s.id || (st.student_code && st.student_code === s.student_code));
+                                    const existingIdx = groupsMap[groupScope].students.findIndex(st => MonirAttendance.key(st.id, st.course_name) === MonirAttendance.key(s.id, e.course_name));
                                     const studentObj = {
                                             id: s.id,
                                             student_id: s.id,
@@ -947,16 +971,16 @@
                                             account_status: (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(s.status || s.account_status || e.status || '').toLowerCase().trim())) ? 'موقوف' : 'نشط',
                                             rating: e.rating || null,
                                             enrollment_id: e.id,
-                                            last_attendance: latestAttendanceMap[s.id] || null,
+                                            last_attendance: latestAttendanceMap[MonirAttendance.key(s.id, e.course_name)] || null,
                                         };
                                     if (existingIdx === -1) {
-                                        groupsMap[safeGid].students.push(studentObj);
+                                        groupsMap[groupScope].students.push(studentObj);
                                     } else {
-                                        const existing = groupsMap[safeGid].students[existingIdx];
+                                        const existing = groupsMap[groupScope].students[existingIdx];
                                         const newActivity = (e.present_count || 0) + (e.absent_count || 0);
                                         const oldActivity = (existing.present_count || 0) + (existing.absent_count || 0);
                                         if (newActivity > oldActivity || (e.remaining_credits > 0 && existing.remaining_credits === 0)) {
-                                            groupsMap[safeGid].students[existingIdx] = studentObj;
+                                            groupsMap[groupScope].students[existingIdx] = studentObj;
                                         }
                                     }
                                 });
@@ -964,11 +988,10 @@
 
                             teacherGroups = Object.values(groupsMap).sort((a, b) => a.group_id.localeCompare(b.group_id));
                             
-                            document.getElementById('statStudentCount').innerText = enrData.length;
+                            document.getElementById('statStudentCount').innerText = new Set(enrData.map(e => e.student_id)).size;
                             document.getElementById('statGroupCount').innerText = teacherGroups.length;
-                            document.getElementById('teacherGroupsCount').innerText = teacherGroups.length;
                             
-                            renderGroups(teacherGroups);
+                            filterGroups();
                             return;
                         }
                     } catch(e) {
@@ -976,6 +999,7 @@
                     }
                 }
 
+                if (teacherAuthRequired) throw new Error('تعذّر جلب المجموعات من قاعدة البيانات.');
                 // Fallback: API mock
                 const res = await fetch('/api/teacher/' + currentTeacherId + '/groups');
                 const data = await res.json();
@@ -986,7 +1010,6 @@
                 }
                 document.getElementById('statStudentCount').innerText = data.total_students || 0;
                 document.getElementById('statGroupCount').innerText = data.total_groups || 0;
-                document.getElementById('teacherGroupsCount').innerText = data.total_groups || 0;
                 
                 teacherGroups = data.groups || [];
 
@@ -1011,117 +1034,148 @@
                     });
                 } catch(e) {}
 
-                renderGroups(teacherGroups);
+                filterGroups();
                 populateTeacherTicketGroups();
                 checkTeacherNotifications();
                 if (typeof updateTeacherNotificationsBadge === 'function') {
                     updateTeacherNotificationsBadge();
                 }
 
-            } catch(err) {
-                container.innerHTML = '<div class="text-center py-12 text-red-400"><p class="font-bold">حدث خطأ أثناء تحميل البيانات. حاول مرة أخرى.</p></div>';
+            } catch (err) {
+                if (!silent || !container.querySelector('.group-card')) {
+                    document.getElementById('teacherGroupStatus').textContent = 'تعذّر تحميل المجموعات';
+                    container.innerHTML = '<div class="rounded-xl border border-slate-200 bg-white p-5 text-center"><button type="button" onclick="loadTeacherGroups()" class="rounded-xl border border-slate-300 bg-white px-4 font-bold text-slate-700">إعادة المحاولة</button></div>';
+                }
                 console.error(err);
+            } finally {
+                if (!silent) {
+                    container.setAttribute('aria-busy', 'false');
+                    refresh.disabled = false;
+                }
+            }
+        }
+
+        async function loadTeacherAttendance(client, studentIds) {
+            const attendance = [];
+            const pageSize = 500;
+            for (let cursor = 0; cursor < studentIds.length; cursor += 100) {
+                const batch = studentIds.slice(cursor, cursor + 100);
+                for (let offset = 0; ; offset += pageSize) {
+                    const { data, error } = await client.from('attendance')
+                        .select('id, student_id, status, joined_at, course_name, duration_minutes')
+                        .in('student_id', batch)
+                        .order('joined_at', { ascending: false })
+                        .order('id', { ascending: false })
+                        .range(offset, offset + pageSize - 1);
+                    if (error) throw error;
+                    attendance.push(...(data || []));
+                    if (!data || data.length < pageSize) break;
+                }
+            }
+            return attendance;
+        }
+
+        function renderTeacherEarnings(summary) {
+            const count = document.getElementById('statTeacherEarnedSessions');
+            const balance = document.getElementById('statTeacherEarnedBalance');
+            const review = document.getElementById('teacherEarningsReview');
+            count.textContent = summary ? String(summary.counted) : '—';
+            balance.textContent = summary ? summary.total.toLocaleString('ar-EG') + ' ج.م' : '—';
+            review.hidden = !summary?.needsReview;
+            review.classList.toggle('hidden', review.hidden);
+            review.textContent = review.hidden ? '' : `${summary.needsReview} سجلات حضور تحتاج مراجعة`;
+        }
+
+        async function openTeacherCourseLedger(studentId, enrollmentId) {
+            const student = findTeacherEnrollment(studentId, enrollmentId);
+            if (!student?.course_name || !window.MonirDB?.isConfigured()) {
+                alert('تعذّر تحديد اشتراك الطالب أو الاتصال بقاعدة البيانات.');
+                return;
+            }
+
+            const dialog = document.getElementById('teacherCourseLedger');
+            const status = document.getElementById('teacherCourseLedgerStatus');
+            const entries = document.getElementById('teacherCourseLedgerEntries');
+            const key = MonirAttendance.key(student.id, student.course_name);
+            dialog.dataset.scope = key;
+            document.getElementById('teacherCourseLedgerTitle').textContent = 'سجل الحضور — ' + student.course_name;
+            entries.replaceChildren();
+            status.textContent = 'جاري تحميل سجل المسار…';
+            if (!dialog.open) dialog.showModal();
+
+            try {
+                const records = await loadTeacherAttendance(window.MonirDB.getClient(), [student.id]);
+                if (!dialog.open || dialog.dataset.scope !== key) return;
+                const course = MonirAttendance.courseName(student.course_name);
+                const scoped = records.filter(record => record.joined_at && MonirAttendance.date(record.joined_at)
+                    && MonirAttendance.courseName(record.course_name) === course);
+                const labels = { present: 'حضور', attended: 'حضور', late: 'تأخير', absent: 'غياب', excused: 'عذر' };
+                const date = new Intl.DateTimeFormat('ar-EG', { timeZone: 'Africa/Cairo', dateStyle: 'medium', timeStyle: 'short' });
+                for (const record of scoped.slice(0, 100)) {
+                    const item = document.createElement('li');
+                    item.className = 'py-2';
+                    const label = record.course_name.includes('[تأجيل') ? 'تأجيل' : labels[record.status] || 'غير محدد';
+                    item.textContent = date.format(new Date(record.joined_at)) + ' · ' + label;
+                    entries.append(item);
+                }
+                status.textContent = scoped.length > 100 ? 'عرض آخر ١٠٠ سجل.' : scoped.length ? '' : 'مفيش حضور مسجّل للمسار ده.';
+            } catch {
+                if (dialog.open && dialog.dataset.scope === key) status.textContent = 'تعذّر تحميل سجل المسار. حاول مرة أخرى.';
             }
         }
 
         function filterGroups() {
-            const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-            if (!q) {
-                renderGroups(teacherGroups);
-                return;
-            }
-            const filtered = teacherGroups.filter(g =>
-                g.group_id.toLowerCase().includes(q) ||
-                (g.group_name || '').toLowerCase().includes(q) ||
-                (g.subscription_days || '').toLowerCase().includes(q) ||
-                (g.lecture_time || '').toLowerCase().includes(q) ||
-                (g.session_duration || '').toLowerCase().includes(q) ||
-                g.students.some(s => 
-                    (s.student_code || '').toLowerCase().includes(q) ||
-                    (s.name || '').toLowerCase().includes(q) ||
-                    (s.student_name || '').toLowerCase().includes(q) ||
-                    (s.subscription_days || '').toLowerCase().includes(q) ||
-                    (s.lecture_time || '').toLowerCase().includes(q) ||
-                    (s.session_duration || '').toLowerCase().includes(q)
-                )
-            );
-            renderGroups(filtered);
-            toggleAllTeacherGroups(true);
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const groups = q ? teacherGroups.filter(group => {
+                const matches = value => String(value ?? '').toLowerCase().includes(q);
+                return [group.group_id, group.group_name, group.course_name, group.subscription_days, group.lecture_time, group.session_duration].some(matches) ||
+                    group.students.some(student => [student.student_code, student.name, student.student_name,
+                        student.subscription_days, student.lecture_time, student.session_duration].some(matches));
+            }) : teacherGroups;
+            renderGroups(groups, Boolean(q));
         }
 
-        function toggleTeacherGroup(idSafe) {
-            const content = document.getElementById('content-' + idSafe);
-            const arrow = document.getElementById('arrow-' + idSafe);
-            const badge = document.getElementById('badge-' + idSafe);
-            if (!content) return;
-            
-            const isHidden = content.classList.contains('hidden');
-            if (isHidden) {
-                content.classList.remove('hidden');
-                if (arrow) arrow.querySelector('svg')?.classList.add('rotate-180');
-                if (badge) {
-                    badge.innerText = 'مفتوح (اضغط للطي)';
-                    badge.className = 'text-[10px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full font-semibold';
-                }
-            } else {
-                content.classList.add('hidden');
-                if (arrow) arrow.querySelector('svg')?.classList.remove('rotate-180');
-                if (badge) {
-                    badge.innerText = 'اضغط للعرض';
-                    badge.className = 'text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-semibold';
-                }
+        function clearTeacherSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            filterGroups();
+            input.focus();
+        }
+
+        function setTeacherGroupOpen(card, open, remember = true) {
+            card.querySelector('.teacher-group-toggle').setAttribute('aria-expanded', String(open));
+            card.querySelector('.teacher-group-content').classList.toggle('hidden', !open);
+            if (remember) {
+                if (open) openTeacherGroups.add(card.dataset.groupKey);
+                else openTeacherGroups.delete(card.dataset.groupKey);
             }
+        }
+
+        function toggleTeacherGroup(button) {
+            setTeacherGroupOpen(button.closest('.group-card'), button.getAttribute('aria-expanded') !== 'true');
         }
 
         function toggleAllTeacherGroups(open) {
-            document.querySelectorAll('.teacher-group-content').forEach(c => {
-                const idSafe = c.id.replace('content-', '');
-                const arrow = document.getElementById('arrow-' + idSafe);
-                const badge = document.getElementById('badge-' + idSafe);
-                if (open) {
-                    c.classList.remove('hidden');
-                    if (arrow) arrow.querySelector('svg')?.classList.add('rotate-180');
-                    if (badge) {
-                        badge.innerText = 'مفتوح (اضغط للطي)';
-                        badge.className = 'text-[10px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full font-semibold';
-                    }
-                } else {
-                    c.classList.add('hidden');
-                    if (arrow) arrow.querySelector('svg')?.classList.remove('rotate-180');
-                    if (badge) {
-                        badge.innerText = 'اضغط للعرض';
-                        badge.className = 'text-[10px] bg-white/15 px-2 py-0.5 rounded-full font-semibold';
-                    }
-                }
-            });
+            document.querySelectorAll('#groupsContainer .group-card').forEach(card => setTeacherGroupOpen(card, open));
         }
 
-        function renderGroups(groups) {
+        function renderGroups(groups, searching = false) {
             const container = document.getElementById('groupsContainer');
-            
-            if (!groups || groups.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                        
-                        <h3 class="text-lg font-black text-slate-700 mb-2">لا توجد مجموعات مسندة إليك</h3>
-                        <p class="text-slate-400 text-sm">تواصل مع الإدارة لإضافة مجموعاتك</p>
-                    </div>
-                `;
+            const activeCard = document.activeElement.closest('.group-card');
+            const activeToggleKey = document.activeElement.matches('.teacher-group-toggle') ? activeCard?.dataset.groupKey : null;
+            const status = document.getElementById('teacherGroupStatus');
+            status.textContent = searching ? `${groups.length.toLocaleString('ar-EG')} من ${teacherGroups.length.toLocaleString('ar-EG')}` : '';
+            document.querySelectorAll('[data-group-bulk]').forEach(button => { button.disabled = groups.length === 0; });
+            container.replaceChildren();
+
+            if (!groups.length) {
+                container.innerHTML = `<div class="rounded-2xl border border-slate-200 bg-white p-7 text-center">
+                    <h3 class="font-black text-slate-900">${searching ? 'مفيش نتائج مطابقة' : 'مفيش مجموعات مسندة ليك'}</h3>
+                    ${searching ? '<button type="button" onclick="clearTeacherSearch()" class="mt-2 rounded-xl px-3 font-bold text-teal-800">مسح البحث</button>' : '<p class="text-sm text-slate-500">تواصل مع الإشراف لو عندك مجموعة مش ظاهرة.</p>'}
+                </div>`;
                 return;
             }
 
-            const _openGroupIds = Array.from(container.querySelectorAll('.teacher-group-content:not(.hidden)')).map(c => c.id);
-            const _prevScrollY = window.scrollY;
-            setTimeout(() => {
-                _openGroupIds.forEach(cid => {
-                    const idSafe = cid.replace('content-', '');
-                    const c = document.getElementById(cid);
-                    if (c && c.classList.contains('hidden')) toggleTeacherGroup(idSafe);
-                });
-                if (_openGroupIds.length) window.scrollTo(0, _prevScrollY);
-            }, 0);
-
-            container.innerHTML = '';
             groups.forEach((g, gIdx) => {
                 let cleanGid = (g.group_id || 'G000').toString().trim();
                 if (cleanGid.includes('http') || cleanGid.includes('qrserver') || cleanGid.includes('/') || cleanGid.includes('data=')) {
@@ -1135,9 +1189,10 @@
                 }
 
                 const idSafe = 'grp_' + cleanGid.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + gIdx;
-                const meetUrl = (typeof window !== 'undefined' && window.getGroupMeetUrl)
-                    ? window.getGroupMeetUrl(cleanGid, currentTeacherId || currentTeacherName)
-                    : (g.google_meet_url || ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, '')));
+                const courseName = g.course_name || g.group_name || g.students[0]?.course_name || '';
+                const roomEntries = resolveTeacherRooms(cleanGid, courseName, g);
+                const meetUrl = roomEntries.length === 1 ? roomEntries[0].url : '';
+                const roomHref = `href="${escapeTeacherText(meetUrl)}" target="_blank" rel="noopener noreferrer"`;
                 
                 // Determine true schedule from group or enrolled students
                 let days = (g.subscription_days && g.subscription_days !== '—') ? g.subscription_days : '';
@@ -1191,88 +1246,54 @@
 
                 const el = document.createElement('div');
                 el.className = 'bg-white border border-slate-200 rounded-2xl shadow-sm group-card overflow-hidden transition-all duration-200';
+                el.dataset.courseName = courseName;
+                el.dataset.groupKey = JSON.stringify([g.group_id, courseName]);
+                const activeStudents = g.students.filter(st => st.status !== 'inactive' && st.account_status !== 'موقوف').length;
+                const inactiveStudents = g.students.length - activeStudents;
                 el.innerHTML = `
                     ${g.is_substitute ? `
-                        <div class="bg-amber-500 text-slate-950 px-3 sm:px-5 py-2 flex items-center justify-between text-xs font-black border-b border-amber-600">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-slate-950 text-amber-300 px-2 py-0.5 rounded-lg text-[10px] font-black">حصة تعويضية بديلة اليوم</span>
-                                <span class="text-[11px] text-slate-900">المعلم الأصلي: <strong>${g.original_teacher_name || '—'}</strong></span>
+                        <div class="bg-amber-50 text-amber-950 px-3 sm:px-5 py-2 text-xs font-bold border-b border-amber-200">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span class="font-black">حصة بديلة اليوم</span>
+                                <span class="text-[11px] text-slate-900">المعلم الأصلي: <strong>${escapeTeacherText(g.original_teacher_name || '—')}</strong></span>
                             </div>
-                            <span class="text-[10px] bg-slate-900 text-white font-bold px-2 py-0.5 rounded-md">تُحتسب في رصيدك فور الرصد</span>
                         </div>
                     ` : ''}
-                    <!-- Group Header (Accordion Dropdown Trigger) -->
-                    <div class="bg-gradient-to-r from-[#1F274B] to-[#2D396E] text-white px-3 sm:px-5 py-2.5 sm:py-3.5 flex justify-between items-center cursor-pointer select-none group hover:brightness-110 transition gap-2 sm:gap-4" onclick="toggleTeacherGroup('${idSafe}')">
-                        <!-- Right Side: Arrow + Group Code + Title & Duration -->
-                        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <div id="arrow-${idSafe}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition shrink-0">
-                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform transition-transform duration-300 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="teacher-group-heading">
+                        <h3 class="min-w-0">
+                            <button type="button" id="toggle-${idSafe}" class="teacher-group-toggle" aria-expanded="false" aria-controls="content-${idSafe}" onclick="toggleTeacherGroup(this)">
+                                <span class="teacher-group-copy">
+                                    <span class="font-black text-slate-900">${escapeTeacherText(courseName || 'مجموعة تعليمية')}</span>
+                                    <span class="text-sm text-slate-600">${escapeTeacherText(scheduleDisplay)}</span>
+                                    <span class="teacher-group-meta text-xs">
+                                        <bdi class="rounded-md bg-slate-100 px-1.5 font-bold">${escapeTeacherText(cleanGid)}</bdi>
+                                        ${duration ? `<span>${escapeTeacherText(duration)}</span>` : ''}
+                                        <span>${activeStudents.toLocaleString('ar-EG')} نشط${inactiveStudents ? ` · ${inactiveStudents.toLocaleString('ar-EG')} موقوف` : ''}</span>
+                                    </span>
+                                </span>
+                                <svg class="teacher-group-chevron h-5 w-5 shrink-0 text-teal-800" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                 </svg>
-                            </div>
-                            <span class="bg-[#57BA9E] text-slate-950 font-mono font-black text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg shrink-0 max-w-[85px] truncate shadow-xs">${cleanGid}</span>
-                            
-                            <div class="min-w-0 flex-1">
-                                <h3 class="font-extrabold text-xs sm:text-sm text-white truncate leading-snug" title="${scheduleDisplay}">
-                                    ${scheduleDisplay}
-                                </h3>
-                                <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-300">
-                                    ${duration ? `<span class="bg-amber-400/20 text-amber-200 border border-amber-400/30 px-1.5 py-0.2 rounded-full font-bold shrink-0">${duration}</span>` : ''}
-                                    <span class="text-[10px] text-slate-300 hidden sm:inline truncate">مسار القرآن الكريم والتدبر</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Left Side: Live Room Button + Student Count Badge -->
-                        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-                            <a href="${meetUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[10px] sm:text-[11px] bg-emerald-500/25 hover:bg-emerald-500 text-emerald-200 hover:text-slate-950 border border-emerald-400/40 px-2 sm:px-2.5 py-1 rounded-lg font-black inline-flex items-center gap-1 transition shadow-xs shrink-0" title="بدء الحصة في القاعة المباشرة">
-                                
-                                <span class="hidden sm:inline">دخول القاعة</span>
-                                <span class="sm:hidden">القاعة</span>
-                            </a>
-                            ${(() => {
-                                const activeStudents = g.students.filter(st => st.status !== 'inactive' && st.account_status !== 'موقوف').length;
-                                const inactiveStudents = g.students.length - activeStudents;
-                                return `
-                                    <div class="text-center bg-white/10 px-2 py-0.5 sm:py-1 rounded-lg border border-white/10 shrink-0 min-w-[36px]">
-                                        <div class="text-xs sm:text-base font-black leading-tight">${activeStudents}</div>
-                                        <div class="text-[9px] text-slate-300">نشط${inactiveStudents > 0 ? `<span class="text-red-300 font-bold block">(${inactiveStudents} موقوف)</span>` : ''}</div>
-                                    </div>
-                                `;
-                            })()}
-                        </div>
+                            </button>
+                        </h3>
+                        ${meetUrl ? `<a ${roomHref} id="meet-link-${idSafe}" data-room-link class="teacher-room-action">دخول القاعة</a>` : roomEntries.length > 1 ? `
+                            <button type="button" class="teacher-room-action" aria-controls="content-${idSafe}" onclick="openTeacherRoomChoices(this)">اختيار القاعة</button>` : `
+                            <button type="button" class="teacher-room-action" disabled>رابط القاعة غير متاح</button>`}
                     </div>
 
                     <!-- Students Table & Tools (Collapsible Content) -->
-                    <div id="content-${idSafe}" class="teacher-group-content hidden overflow-x-auto transition-all duration-300 border-t border-slate-100">
-                        <!-- Group Live Room Toolbar -->
-                        <div class="bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-50 border-b border-emerald-100 p-3 sm:p-3.5 px-3 sm:px-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 sm:gap-3">
-                            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 w-full md:w-auto">
-                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm sm:text-base shadow-sm shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                        <span class="font-black text-xs text-slate-900 shrink-0">قاعة الحصة (${cleanGid})</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 mt-0.5 text-[10px] sm:text-[11px] text-slate-600 flex-wrap">
-                                        <span>الموعد: <strong class="text-slate-900">${scheduleDisplay}</strong></span>
-                                        ${duration ? `<span class="text-slate-300">|</span><span>المدة: <strong class="text-slate-900">${duration}</strong></span>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto flex-wrap">
-                                <button type="button" onclick="startClassMeet('${cleanGid}', this)" id="meet-btn-${idSafe}" class="inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-3.5 sm:px-4 py-2 rounded-xl text-xs shadow-sm transition cursor-pointer">
-                                    
-                                    <span>بدء الحصة الآن</span>
-                                </button>
-                                <button type="button" onclick="handleResetGroupMeet('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2.5 py-2 rounded-xl text-[11px] shadow-sm transition cursor-pointer" title="استعادة إعدادات قاعة الأكاديمية الأصلية">
+                    <div id="content-${idSafe}" class="teacher-group-content hidden border-t border-slate-200">
+                        <div class="teacher-group-toolbar bg-slate-50 border-b border-slate-200 p-3 sm:px-5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                ${roomEntries.length > 1 ? roomEntries.map(room => `
+                                    <a href="${escapeTeacherText(room.url)}" target="_blank" rel="noopener noreferrer" data-room-choice class="inline-flex items-center bg-teal-700 text-white font-black px-3 py-2 rounded-xl text-xs">قاعة ${escapeTeacherText(room.labels.join('، '))}</a>
+                                `).join('') : ''}
+                                ${roomEntries.length <= 1 && !isTeacherCompetitionGroup(cleanGid, courseName) ? `<button type="button" onclick="handleResetGroupMeet('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold px-2.5 py-2 rounded-xl text-[11px] shadow-sm transition cursor-pointer" title="استعادة إعدادات قاعة الأكاديمية الأصلية">
                                     
                                     <span>الرابط الأصلي</span>
-                                </button>
+                                </button>` : ''}
                                 <button type="button" onclick="postponeGroupSession('${cleanGid}', '${idSafe}', this)" class="inline-flex items-center justify-center gap-1 bg-indigo-50 hover:bg-indigo-100 active:scale-95 border border-indigo-200 text-indigo-900 font-bold px-3 py-2 rounded-xl text-[11px] shadow-sm transition cursor-pointer" title="تأجيل جلسة اليوم للمجموعة دون خصم حصص ودون استهلاك أعذار الطلاب">
                                     <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>تأجيل السيشن</span>
+                                    <span>تأجيل حصة المجموعة</span>
                                 </button>
                                 ${(() => {
                                     const inactiveCount = g.students.filter(st => st.status === 'inactive' || st.account_status === 'موقوف').length;
@@ -1283,7 +1304,6 @@
                                         </button>
                                     ` : '';
                                 })()}
-                            </div>
                         </div>
 
                         <table class="w-full text-right text-xs">
@@ -1296,7 +1316,7 @@
                                     <th class="p-3">الأعذار</th>
                                     <th class="p-3">الحضور / الغياب</th>
                                     <th class="p-3 min-w-[140px]">السورة</th>
-                                    <th class="p-3 min-w-[95px]">التارجت</th>
+                                    <th class="p-3 min-w-[95px]">الهدف</th>
                                     <th class="p-3 text-center">إجراءات الحصة</th>
                                 </tr>
                             </thead>
@@ -1307,37 +1327,37 @@
                     </div>
                 `;
                 container.appendChild(el);
+                setTeacherGroupOpen(el, searching || openTeacherGroups.has(el.dataset.groupKey), false);
+                if (activeToggleKey === el.dataset.groupKey) el.querySelector('.teacher-group-toggle').focus({ preventScroll: true });
             });
         }
 
-        window.startClassMeet = function(groupId, btn) {
-            const cleanGid = String(groupId || '').trim();
-            const tId = (typeof currentTeacherId !== 'undefined' && currentTeacherId) ? currentTeacherId : (window.currentTeacher?.id || null);
-            const meetUrl = (window.getGroupMeetUrl)
-                ? window.getGroupMeetUrl(cleanGid, tId)
-                : ((window.GROUP_MEET_LINKS && window.GROUP_MEET_LINKS[cleanGid]) || 'https://meet.google.com');
+        function openTeacherRoomChoices(button) {
+            const card = button.closest('.group-card');
+            setTeacherGroupOpen(card, true);
+            card.querySelector('[data-room-choice]')?.focus();
+        }
 
-            if (meetUrl && meetUrl.startsWith('http')) {
-                window.open(meetUrl, '_blank', 'noopener,noreferrer');
-            } else {
-                if (window.MonirPopup && window.MonirPopup.alert) {
-                    window.MonirPopup.alert('تعذر فتح القاعة، يرجى مراجعة إدارة الأكاديمية لتحديد رابط المجموعة.', 'تنبيه', 'warning');
-                } else {
-                    alert('تعذر فتح القاعة، يرجى مراجعة إدارة الأكاديمية.');
+        function isTeacherCompetitionGroup(groupId, courseName) {
+            return groupId.startsWith('CMP-') || /مسابقة|الحديث|التجويد|التفسير والتدبر/.test(courseName);
+        }
+
+        function resolveTeacherRooms(groupId, courseName, group) {
+            const byUrl = new Map();
+            const isHadith = groupId === 'CMP-H01' || courseName.includes('الحديث');
+            const students = isHadith ? group.students : [null];
+            for (const student of students) {
+                const url = window.getGroupMeetUrl?.(groupId, currentTeacherId || currentTeacherName, courseName, student)
+                    || group.google_meet_url;
+                if (!/^https:\/\//.test(url || '') || url.includes('/MounirAcademy_GeneralRoom')) continue;
+                if (!byUrl.has(url)) byUrl.set(url, new Set());
+                if (student) {
+                    const gender = window.guessStudentGender?.(student.name, student.gender, student.student_code);
+                    const cohort = (Number(student.age) || 9) >= 10 ? '١٠ سنوات فأكثر' : 'أقل من ١٠ سنوات';
+                    byUrl.get(url).add((gender === 'f' ? 'بنات ' : 'بنين ') + cohort);
                 }
             }
-        };
-
-        function updateTeacherGroupMeetUI(idSafe, groupId, newUrl) {
-            const linkEl = document.getElementById('meet-link-' + idSafe);
-            const btnEl = document.getElementById('meet-btn-' + idSafe);
-            if (linkEl) {
-                linkEl.href = newUrl;
-                linkEl.innerText = newUrl;
-            }
-            if (btnEl) {
-                btnEl.href = newUrl;
-            }
+            return Array.from(byUrl, ([url, labels]) => ({ url, labels: Array.from(labels) }));
         }
 
         function handleResetGroupMeet(groupId, idSafe, btn) {
@@ -1345,12 +1365,9 @@
             const defaultUrl = (window.resetGroupMeetUrl)
                 ? window.resetGroupMeetUrl(cleanGid, currentTeacherId || currentTeacherName)
                 : ('https://meet.jit.si/MounirAcademy_Group_' + cleanGid.toUpperCase().replace(/[^A-Z0-9]/g, ''));
-            updateTeacherGroupMeetUI(idSafe, cleanGid, defaultUrl);
-            const card = document.getElementById('content-' + idSafe)?.closest('.group-card');
-            if (card) {
-                const headerLink = card.querySelector('a[href*="meet."]');
-                if (headerLink) headerLink.href = defaultUrl;
-            }
+            const headerLink = document.getElementById('meet-link-' + idSafe);
+            if (headerLink) headerLink.href = defaultUrl;
+            else filterGroups();
             if (btn) {
                 const orig = btn.innerHTML;
                 btn.innerHTML = '<span>تمت الاستعادة!</span>';
@@ -1424,7 +1441,7 @@
             // Check if excuse already used in current cycle
             let storedLastCycle = 0;
             try {
-                storedLastCycle = parseInt(localStorage.getItem('monir_last_excuse_cycle_' + s.id) || '0', 10);
+                storedLastCycle = parseInt(localStorage.getItem('monir_last_excuse_cycle_' + MonirAttendance.key(s.id, s.course_name)) || '0', 10);
             } catch(e) {}
 
             const dbMaxExcuses = parseInt(s.max_allowed_excuses || 0, 10);
@@ -1437,7 +1454,7 @@
             // OR
             // 3. Student is inactive or has zero balance (no active excuses apply)
             const curYearMonth = (typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0]).substring(0, 7);
-            const hasMonthlyExcuse = !!(window.studentMonthlyExcusesMap && (window.studentMonthlyExcusesMap[s.id] || 0) >= 1);
+            const hasMonthlyExcuse = (window.studentMonthlyExcusesMap?.[MonirAttendance.key(s.id, s.course_name)] || 0) >= 1;
             const isLocked = isInactive || isZeroBalance || hasMonthlyExcuse || (excuseCount > 0 && (
                 storedLastCycle === currentCycle ||
                 dbMaxExcuses === currentCycle ||
@@ -1478,103 +1495,51 @@
 
 
         window._surahSaveTimers = window._surahSaveTimers || {};
-        function handleSurahOrTargetChange(studentId, enrollmentId, studentCode) {
-            clearTimeout(window._surahSaveTimers[studentId]);
-            window._surahSaveTimers[studentId] = setTimeout(() => {
-                const targetInput = document.getElementById('target-ayat-' + studentId);
-                const surahSelect = document.getElementById('surah-select-' + studentId);
-                const ae = document.activeElement;
-                if (ae && (ae === targetInput || ae === surahSelect)) {
-                    // still typing in this row: wait until she finishes
-                    delete window._surahSaveTimers[studentId];
-                    handleSurahOrTargetChange(studentId, enrollmentId, studentCode);
-                    return;
-                }
-                delete window._surahSaveTimers[studentId];
-                saveSurahOrTargetNow(studentId, enrollmentId, studentCode);
-            }, 2500);
+        const teacherPlanTimers = new Map();
+
+        function escapeTeacherText(value) {
+            const span = document.createElement('span');
+            span.textContent = String(value ?? '');
+            return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
-        async function saveSurahOrTargetNow(studentId, enrollmentId, studentCode) {
-            const surahSelect = document.getElementById('surah-select-' + studentId);
-            const targetInput = document.getElementById('target-ayat-' + studentId);
-            if (!surahSelect || !targetInput) return;
-
-            const surah = (surahSelect.value || '').trim();
-            const target = (targetInput.value || '').trim();
-
-            // Visual feedback indicator on inputs
-            surahSelect.classList.add('border-emerald-500', 'bg-emerald-50/40');
-            targetInput.classList.add('border-emerald-500', 'bg-emerald-50/40');
-            setTimeout(() => {
-                surahSelect.classList.remove('border-emerald-500', 'bg-emerald-50/40');
-                targetInput.classList.remove('border-emerald-500', 'bg-emerald-50/40');
-            }, 1200);
-
-            // Fetch existing plan to preserve madi qareeb and baeed if any
-            let existingPlan = {};
-            try {
-                const cached = localStorage.getItem('monir_quran_plan_' + studentId) ||
-                               localStorage.getItem('monir_quran_plan_' + studentCode) ||
-                               localStorage.getItem('monir_surah_progress_' + studentId);
-                if (cached && cached.startsWith('{')) {
-                    existingPlan = JSON.parse(cached);
-                }
-            } catch(e) {}
-
-            const planObj = {
-                ...existingPlan,
-                surah: surah,
-                hifz: surah ? (surah + (target ? ' (' + target + (isNaN(target) ? '' : ' آية') + ')' : '')) : '',
-                target_ayat: target,
-                updated_at: new Date().toISOString()
-            };
-            const planJson = JSON.stringify(planObj);
-
-            // 1. Save to local storage cache immediately
-            try {
-                localStorage.setItem('monir_quran_plan_' + studentId, planJson);
-                if (studentCode) localStorage.setItem('monir_quran_plan_' + studentCode, planJson);
-                localStorage.setItem('monir_surah_progress_' + studentId, planJson);
-                if (studentCode) localStorage.setItem('monir_surah_progress_' + studentCode, planJson);
-            } catch(e) {}
-
-            // 2. Save to in-memory teacher groups
-            try {
-                if (window.teacherGroupsData) {
-                    window.teacherGroupsData.forEach(g => {
-                        const found = g.students.find(st => st.id === studentId);
-                        if (found) {
-                            found.current_surah = planJson;
-                            found.current_aya = parseInt(target, 10) || 1;
-                        }
-                    });
-                }
-            } catch(e) {}
-
-            // 3. Save to Supabase Cloud
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
+        function handleSurahOrTargetChange(control, studentId, enrollmentId) {
+            const row = control.closest('tr');
+            const prior = teacherPlanTimers.get(enrollmentId);
+            clearTimeout(prior);
+            const pending = setTimeout(async () => {
+                teacherPlanTimers.delete(enrollmentId);
+                const enrollment = findTeacherEnrollment(studentId, enrollmentId);
                 try {
-                    const client = window.MonirDB.getClient();
-                    const numAya = parseInt(target, 10) || 1;
-                    const updatePayload = {
-                        current_surah: planJson,
-                        current_aya: numAya
+                    const surah = row.querySelector('[data-plan-surah]').value.trim();
+                    const target = row.querySelector('[data-plan-target]').value.trim();
+                    const current = enrollment?.current_surah || '';
+                    const oldPlan = current.startsWith('{') ? JSON.parse(current) : {};
+                    const plan = {
+                        ...oldPlan, surah, target_ayat: target,
+                        hifz: surah ? surah + (target ? ` (${target})` : '') : '',
+                        updated_at: new Date().toISOString()
                     };
-
-                    if (enrollmentId) {
-                        await client.from('enrollments').update(updatePayload).eq('id', enrollmentId);
-                    } else if (studentId) {
-                        await client.from('enrollments').update(updatePayload).eq('student_id', studentId);
-                    }
-                } catch(err) {
-                    console.warn('[Teacher Dashboard] Failed to sync surah/target to Supabase:', err);
+                    await updateTeacherEnrollment(enrollment, { current_surah: JSON.stringify(plan), current_aya: Number.parseInt(target, 10) || 1 });
+                    window.MonirPopup?.toast('تم حفظ السورة والهدف.', 'success');
+                } catch {
+                    window.MonirPopup?.toast('تعذّر حفظ السورة والهدف. حاول مرة أخرى.', 'error');
                 }
-            }
+            }, 400);
+            teacherPlanTimers.set(enrollmentId, pending);
+        }
 
-            if (window.MonirPopup) {
-                MonirPopup.toast('تم حفظ السورة والتارجت للطالب ', 'success');
-            }
+        async function updateTeacherEnrollment(enrollment, updates) {
+            if (!enrollment?.enrollment_id || !window.MonirDB?.isConfigured()) throw new Error('Enrollment unavailable');
+            const { data, error } = await window.MonirDB.getClient().from('enrollments')
+                .update(updates).eq('id', enrollment.enrollment_id).eq('student_id', enrollment.id)
+                .select('id').single();
+            if (error || !data) throw error || new Error('Save was not confirmed');
+            teacherGroups.forEach(group => {
+                for (const item of group.students || []) {
+                    if (item.enrollment_id === enrollment.enrollment_id) Object.assign(item, updates);
+                }
+            });
         }
 
         function renderStudentRow(s, idx) {
@@ -1646,20 +1611,6 @@
                 currentTargetAya = (s.current_aya && s.current_aya > 1) ? s.current_aya : '';
             }
 
-            if (!currentSurahName) {
-                try {
-                    const cached = localStorage.getItem('monir_quran_plan_' + s.id) || 
-                                   localStorage.getItem('monir_quran_plan_' + studentCode) ||
-                                   localStorage.getItem('monir_surah_progress_' + s.id) ||
-                                   localStorage.getItem('monir_surah_progress_' + studentCode);
-                    if (cached) {
-                        const p = JSON.parse(cached);
-                        currentSurahName = p.surah || p.hifz || '';
-                        currentTargetAya = p.target_ayat || p.ayat || p.target || currentTargetAya;
-                    }
-                } catch(e) {}
-            }
-
             let matchSurah = (currentSurahName || '').replace(/^سورة\s+/, '').trim();
             const ayaMatch = matchSurah.match(/\((?:آية|الآية|ايات|آيات)\s*([0-9\-\s]+)\)/);
             if (ayaMatch) {
@@ -1684,29 +1635,13 @@
                 hifzVal = rawPlan + (s.current_aya && s.current_aya > 1 && !rawPlan.includes('آية') ? ` (آية ${s.current_aya})` : '');
             }
 
-            // Fallback to local cache if missing
-            if (!hifzVal && !madiQareebVal) {
-                try {
-                    const cached = localStorage.getItem('monir_quran_plan_' + s.id) || 
-                                   localStorage.getItem('monir_quran_plan_' + studentCode) ||
-                                   localStorage.getItem('monir_surah_progress_' + s.id) ||
-                                   localStorage.getItem('monir_surah_progress_' + studentCode);
-                    if (cached) {
-                        const p = JSON.parse(cached);
-                        hifzVal = p.hifz || p.surah || '';
-                        madiQareebVal = p.madi_qareeb || p.madiQareeb || '';
-                        madiBaeedVal = p.madi_baeed || p.madiBaeed || '';
-                    }
-                } catch(e) {}
-            }
-
             let quranProgress = '';
             if (hifzVal || madiQareebVal || madiBaeedVal) {
                 quranProgress = `
                     <div class="space-y-1 text-[11px] min-w-[130px]">
                         ${hifzVal ? `<div class="flex items-center gap-1"><span class="bg-emerald-100 text-emerald-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">حفظ</span><strong class="text-slate-900 truncate" title="${hifzVal}">${hifzVal}</strong></div>` : ''}
-                        ${madiQareebVal ? `<div class="flex items-center gap-1"><span class="bg-blue-100 text-blue-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">قريب</span><span class="text-slate-700 truncate" title="${madiQareebVal}">${madiQareebVal}</span></div>` : ''}
-                        ${madiBaeedVal ? `<div class="flex items-center gap-1"><span class="bg-purple-100 text-purple-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">بعيد</span><span class="text-slate-700 truncate" title="${madiBaeedVal}">${madiBaeedVal}</span></div>` : ''}
+                        ${madiQareebVal ? `<div class="flex items-center gap-1"><span class="bg-blue-100 text-blue-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">قريب</span><span class="text-slate-700 truncate" title="${madiQareebVal}">${escapeTeacherText(madiQareebVal)}</span></div>` : ''}
+                        ${madiBaeedVal ? `<div class="flex items-center gap-1"><span class="bg-purple-100 text-purple-950 font-black px-1.5 py-0.2 rounded text-[10px] shrink-0">بعيد</span><span class="text-slate-700 truncate" title="${madiBaeedVal}">${escapeTeacherText(madiBaeedVal)}</span></div>` : ''}
                     </div>
                 `;
             } else {
@@ -1724,26 +1659,17 @@
             const sTime = (s.lecture_time && s.lecture_time !== '—') ? s.lecture_time : '';
             const sDur  = (s.session_duration && s.session_duration !== '—') ? s.session_duration : '';
 
-            const lastAttInfo = formatLastAttendanceInfo(s.last_attendance, s.id);
-
+            const lastAttInfo = formatLastAttendanceInfo(s.last_attendance);
             const todayDateStr = getMonirLocalDateStr();
-            const todayUtcStr = new Date().toISOString().split('T')[0];
-            const todayKey = 'monir_att_' + s.id + '_' + todayDateStr;
-            const supaToday = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[s.id]);
-            const todayRecordedStatus = supaToday ? supaToday.status : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + s.id + '_' + todayUtcStr));
-
-            const autoEntry = (window.todayClassroomEntryMap && window.todayClassroomEntryMap[s.id])
-                || (() => {
-                    try {
-                        const raw = localStorage.getItem('monir_classroom_entry_' + s.id + '_' + todayDateStr);
-                        return raw ? JSON.parse(raw) : null;
-                    } catch(e) { return null; }
-                })();
+            const scope = MonirAttendance.key(s.id, s.course_name);
+            const supaToday = teacherAttendanceToday(s, todayDateStr);
+            const todayRecordedStatus = supaToday?.status;
+            const autoEntry = window.todayClassroomEntryMap?.[scope];
 
             let actionsHtml = '';
             if (isInactive) {
                 actionsHtml = `
-                    <div class="flex items-center justify-center gap-1.5 flex-wrap" id="actions-cell-${s.id}">
+                    <div class="flex items-center justify-center gap-1.5 flex-wrap" data-attendance-actions>
                         <span class="inline-flex items-center gap-1 bg-red-100 text-red-800 border border-red-300 font-bold px-2.5 py-1 rounded-lg text-[11px] select-none" title="تم إيقاف اشتراك هذا الطالب من قبل الإدارة">
                             <span>الاشتراك موقوف</span>
                         </span>
@@ -1762,7 +1688,7 @@
                     : `<button onclick="recordSession(${s.id}, 'excused', ${s.enrollment_id || 'null'}, this)" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer" title="عذر متاح لاشتراك الحصص الحالي (عذر واحد لكل ${cycleDesc})">عذر</button>`;
 
                 let recordButtonsHtml = '';
-                const isBySupervisorLock = (supaToday && supaToday.bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + s.id) === '1');
+                const isBySupervisorLock = supaToday?.bySupervisor;
 
                 if (autoEntry && !todayRecordedStatus) {
                     recordButtonsHtml = `
@@ -1825,10 +1751,10 @@
                 }
 
                 actionsHtml = `
-                    <div class="flex items-center justify-center gap-1 flex-wrap" id="actions-cell-${s.id}">
+                    <div class="flex items-center justify-center gap-1 flex-wrap" data-attendance-actions>
                         ${recordButtonsHtml}
                         <button onclick="openSurahModal(${s.id}, '${studentCode}', '${encodeURIComponent(s.current_surah || '')}', ${s.current_aya || 1}, '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer" title="تحديد خطة الحفظ والماضي القريب والبعيد"><span>الحفظ والمراجعة</span></button>
-                        <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
+                        <button onclick="openRateModal(${s.id}, '${studentCode}', '${safeNameEsc}', ${s.enrollment_id || 'null'})" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 font-bold px-2 py-1 rounded-lg text-[11px] transition cursor-pointer">تقييم</button>
                     </div>
                 `;
             }
@@ -1857,7 +1783,7 @@
                         </div>
                         <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
                             ${lastAttInfo ? `
-                                <span class="inline-flex items-center gap-1 text-[10px] ${lastAttInfo.statusBadgeClass} font-bold px-2 py-0.5 rounded-lg border shadow-2xs cursor-pointer hover:opacity-85 transition" onclick="openStudentLedgerModal(${s.id})" title="انقر لعرض سجل الحضور الكامل والتواريخ">
+                                <span class="inline-flex items-center gap-1 text-[10px] ${lastAttInfo.statusBadgeClass} font-bold px-2 py-0.5 rounded-lg border shadow-2xs cursor-pointer hover:opacity-85 transition" onclick="openTeacherCourseLedger(${s.id}, ${s.enrollment_id || 'null'})" title="انقر لعرض سجل الحضور الكامل والتواريخ">
                                     <span class="text-slate-500 font-normal">آخر تسجيل:</span>
                                     <strong class="font-black">${lastAttInfo.displayTitle}</strong>
                                     <span>(${lastAttInfo.statusText})</span>
@@ -1867,30 +1793,31 @@
                                     <span>لم يُسجل حضور بعد</span>
                                 </span>
                             `}
-                            <button type="button" onclick="openStudentLedgerModal(${s.id})" class="text-[10px] text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-extrabold px-2 py-0.5 rounded-lg border border-indigo-200 transition cursor-pointer" title="انقر لعرض تفاصيل سجل الحضور والحلقات السابقة لهذا الطالب">
+                            <button type="button" onclick="openTeacherCourseLedger(${s.id}, ${s.enrollment_id || 'null'})" class="text-[10px] text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-extrabold px-2 py-0.5 rounded-lg border border-indigo-200 transition cursor-pointer" title="انقر لعرض تفاصيل سجل الحضور والحلقات السابقة لهذا الطالب">
                                 <span>سجل الحصص</span>
                             </button>
                         </div>
                     </td>
-                    <td class="p-3 font-bold text-slate-700">${s.age || '—'}</td>
-                    <td class="p-3">${creditBadge}</td>
-                    <td class="p-3">${excuseBadge}</td>
-                    <td class="p-3">
+                    <td data-label="العمر" class="p-3 font-bold text-slate-700">${s.age || '—'}</td>
+                    <td data-label="الرصيد" class="p-3">${creditBadge}</td>
+                    <td data-label="العذر" class="p-3">${excuseBadge}</td>
+                    <td data-label="الحضور والغياب" class="p-3">
                         <div class="flex items-center gap-1.5">
                             <span class="badge-present px-1.5 py-0.5 rounded font-bold text-[10px]"> ${present}</span>
                             <span class="badge-absent px-1.5 py-0.5 rounded font-bold text-[10px]"> ${absent}</span>
                         </div>
                         ${lastAttInfo ? `
-                            <div class="text-[10px] text-slate-500 font-medium mt-1 cursor-pointer hover:underline" onclick="openStudentLedgerModal(${s.id})" title="انقر لعرض سجل الحضور">
+                            <div class="text-[10px] text-slate-500 font-medium mt-1 cursor-pointer hover:underline" onclick="openTeacherCourseLedger(${s.id}, ${s.enrollment_id || 'null'})" title="انقر لعرض سجل الحضور">
                                 <span>آخر حصة:</span> <strong class="text-slate-800 font-bold">${lastAttInfo.displayTitle}</strong>
                             </div>
                         ` : ''}
                     </td>
                     <!-- السورة (دروب منيو لجميع سور القرآن 114) -->
-                    <td class="p-3">
+                    <td data-label="السورة" class="p-3">
                         <div class="min-w-[135px]">
-                            <select id="surah-select-${s.id}" 
-                                    onchange="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
+                            <select data-plan-surah
+                                    aria-label="السورة"
+                                    onchange="handleSurahOrTargetChange(this, ${s.id}, ${s.enrollment_id || 'null'})"
                                     class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs">
                                 <option value="">-- اختر السورة --</option>
                                 ${QURAN_SURAHS.map((surah, sIdx) => {
@@ -1901,13 +1828,13 @@
                         </div>
                     </td>
                     <!-- التارجت (عدد الآيات) -->
-                    <td class="p-3">
+                    <td data-label="الهدف" class="p-3">
                         <div class="min-w-[85px]">
                             <input type="text" 
-                                   id="target-ayat-${s.id}" 
+                                   data-plan-target aria-label="عدد الآيات" inputmode="numeric"
                                    value="${currentTargetAya || ''}" 
                                    placeholder="عدد الآيات" 
-                                   onchange="handleSurahOrTargetChange(${s.id}, ${s.enrollment_id || 'null'}, '${studentCode}')"
+                                   onchange="handleSurahOrTargetChange(this, ${s.id}, ${s.enrollment_id || 'null'})"
                                    class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none transition text-center shadow-2xs">
                         </div>
                     </td>
@@ -1916,6 +1843,42 @@
                     </td>
                 </tr>
             `;
+        }
+
+        function teacherAttendanceToday(student, dateStr = getMonirLocalDateStr()) {
+            const key = MonirAttendance.key(student.id, student.course_name);
+            return window.todaySupabaseAttMap?.[key] ||
+                (!window.MonirDB?.isConfigured() && MonirAttendance.read(student.id, student.course_name, dateStr));
+        }
+
+        function findTeacherEnrollment(studentId, enrollmentId) {
+            const matches = teacherGroups.flatMap(group => group.students || [])
+                .filter(student => String(student.id || student.student_id) === String(studentId));
+            if (enrollmentId != null) return matches.find(student => String(student.enrollment_id) === String(enrollmentId));
+            const byCourse = new Map(matches.map(student => [MonirAttendance.courseName(student.course_name), student]));
+            return byCourse.size === 1 ? byCourse.values().next().value : null;
+        }
+
+        async function findTeacherAttendance(client, student, dateStr) {
+            const { data, error } = await client.from('attendance')
+                .select('id, status, joined_at, course_name')
+                .eq('student_id', student.id)
+                .gte('joined_at', new Date(Date.now() - 26 * 3600000).toISOString())
+                .order('joined_at', { ascending: false });
+            if (error) throw error;
+            return (data || []).find(record => MonirAttendance.matches(record, student.course_name, dateStr));
+        }
+
+        function saveTeacherAttendance(client, student, status, date, excuseCycle = null) {
+            const scope = {
+                p_student_id: student.id, p_enrollment_id: student.enrollment_id,
+                p_status: status
+            };
+            if (teacherAuthRequired) return client.rpc('teacher_portal_record_attendance', scope);
+            return client.rpc('apply_staff_course_attendance', {
+                ...scope, p_day: date, p_source: 'teacher', p_excuse_cycle: excuseCycle,
+                p_substitute_name: student.is_substitute ? currentTeacherName : null
+            });
         }
 
         async function recordSession(studentId, sessionStatus, enrollmentId = null, btn = null) {
@@ -1931,14 +1894,20 @@
             }
 
             // 1. Strict Synchronous Double-Click Lock
+            const foundStudent = findTeacherEnrollment(studentId, enrollmentId);
+            if (!foundStudent?.course_name) {
+                alert('تعذّر تحديد اشتراك الطالب لهذا المسار.');
+                return;
+            }
+            const scope = MonirAttendance.key(studentId, foundStudent.course_name);
             window._inFlightSessionLocks = window._inFlightSessionLocks || {};
-            if (window._inFlightSessionLocks[studentId]) {
+            if (window._inFlightSessionLocks[scope]) {
                 console.warn('عملية تسجيل الحصة جارية بالفعل لهذا الطالب لمنع التكرار!');
                 return;
             }
-            window._inFlightSessionLocks[studentId] = true;
+            window._inFlightSessionLocks[scope] = true;
 
-            const cell = document.getElementById('actions-cell-' + studentId);
+            const cell = btn?.closest('[data-attendance-actions]');
             const disableButtons = () => {
                 if (cell) {
                     cell.querySelectorAll('button').forEach(b => {
@@ -1948,7 +1917,7 @@
                 }
             };
             const enableButtons = () => {
-                delete window._inFlightSessionLocks[studentId];
+                delete window._inFlightSessionLocks[scope];
                 if (cell) {
                     cell.querySelectorAll('button').forEach(b => {
                         b.disabled = false;
@@ -1961,15 +1930,6 @@
             disableButtons();
 
             try {
-                // Find student details from loaded memory
-                let foundStudent = null;
-                if (typeof teacherGroups !== 'undefined' && Array.isArray(teacherGroups)) {
-                    for (const g of teacherGroups) {
-                        const match = (g.students || []).find(st => st.id === studentId || st.student_id === studentId);
-                        if (match) { foundStudent = match; break; }
-                    }
-                }
-
                 if (foundStudent && (foundStudent.status === 'inactive' || foundStudent.account_status === 'موقوف')) {
                     enableButtons();
                     const warnMsg = 'عذراً، اشتراك هذا الطالب موقوف من قبل الإدارة ولا يمكن تسجيل حضور أو غياب له.';
@@ -2002,36 +1962,13 @@
                 const labels = { 'present': 'حضور وخصم حصة', 'excused': 'عذر', 'absent': 'غياب بدون عذر' };
                 const statusNames = { 'present': 'حضور', 'excused': 'عذر', 'absent': 'غياب' };
 
-                const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-                const todayUtcStr = new Date().toISOString().split('T')[0];
-                const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
-                const autoEntry = (window.todayClassroomEntryMap && window.todayClassroomEntryMap[studentId])
-                    || (() => {
-                        try {
-                            const raw = localStorage.getItem('monir_classroom_entry_' + studentId + '_' + todayDateStr);
-                            return raw ? JSON.parse(raw) : null;
-                        } catch(e) { return null; }
-                    })();
-
-                if (autoEntry && sessionStatus === 'present' && !window.todaySupabaseAttMap?.[studentId]) {
-                    enableButtons();
-                    const timeTxt = autoEntry.time ? ` الساعة ${autoEntry.time}` : '';
-                    const alertMsg = `تم الرصد بالفعل!\n\nتم رصد حضور الطالب (${stName}) آلياً لدخوله القاعة الذكية${timeTxt} اليوم.\nلا حاجة لإعادة الرصد يدوياً.`;
-                    if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
-                        await window.MonirPopup.alert(alertMsg, 'تم الرصد بالفعل', 'info');
-                    } else {
-                        alert(alertMsg);
-                    }
-                    return;
-                }
-
-                const prevRecord = (window.todaySupabaseAttMap && (window.todaySupabaseAttMap[studentId]))
-                    ? window.todaySupabaseAttMap[studentId].status
-                    : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + studentId + '_' + todayUtcStr));
+                const todayDateStr = getMonirLocalDateStr();
+                const existing = teacherAttendanceToday(foundStudent, todayDateStr);
+                const prevRecord = existing?.status;
 
                 if (prevRecord) {
                     enableButtons();
-                    const isSup = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId] && window.todaySupabaseAttMap[studentId].bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + studentId) === '1');
+                    const isSup = existing?.bySupervisor;
                     const prevLabel = statusNames[prevRecord] || prevRecord;
                     const blockMsg = isSup
                         ? `تنبيه أمان قاطع: تم رصد (${prevLabel}) للطالب (${stName}) بواسطة الإشراف مسبقاً!\n\nتم قفل التسجيل تلقائياً لمنع أي خصم مكرر من رصيد الطالب.`
@@ -2111,34 +2048,7 @@
                     try {
                         const client = window.MonirDB.getClient();
 
-                        // Strict Real-Time Cloud Idempotency Check: Verify in Supabase across today and recent hours
-                        const { data: recentAtt } = await client
-                            .from('attendance')
-                            .select('id, status, joined_at, course_name')
-                            .eq('student_id', studentId)
-                            .order('joined_at', { ascending: false })
-                            .limit(5);
-
-                        let duplicateRecord = null;
-                        if (recentAtt && recentAtt.length > 0) {
-                            const nowMs = Date.now();
-                            for (const att of recentAtt) {
-                                if (!att.joined_at) continue;
-                                const attMs = new Date(att.joined_at).getTime();
-                                const hoursDiff = (nowMs - attMs) / (1000 * 3600);
-                                const absHours = Math.abs(hoursDiff);
-                                const isSameDay = att.joined_at.startsWith(todayDateStr) || att.joined_at.startsWith(todayUtcStr);
-                                const isBySup = !!(att.course_name && (att.course_name.includes('إشراف') || att.course_name.includes('بديل')));
-                                const isBlocked = isBySup 
-                                    ? (isSameDay || absHours < 60)
-                                    : (isSameDay || (hoursDiff >= -4 && hoursDiff < 12));
-
-                                if (isBlocked) {
-                                    duplicateRecord = att;
-                                    break;
-                                }
-                            }
-                        }
+                        const duplicateRecord = await findTeacherAttendance(client, foundStudent, todayDateStr);
 
                         if (duplicateRecord) {
                             enableButtons();
@@ -2152,70 +2062,23 @@
                                 alert(alertMsg);
                             }
                             if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
-                            window.todaySupabaseAttMap[studentId] = {
+                            window.todaySupabaseAttMap[scope] = {
                                 id: duplicateRecord.id,
                                 status: duplicateRecord.status,
                                 joined_at: duplicateRecord.joined_at,
                                 bySupervisor: isBySup
                             };
-                            try {
-                                localStorage.setItem(todayKey, duplicateRecord.status);
-                                if (isBySup) localStorage.setItem('monir_att_by_supervisor_' + studentId, '1');
-                            } catch(e) {}
                             await loadTeacherGroups(true);
                             return;
                         }
 
-                        let enrQuery = client.from('enrollments').select('*');
-                        if (enrollmentId) {
-                            enrQuery = enrQuery.eq('id', enrollmentId);
-                        } else {
-                            enrQuery = enrQuery.eq('student_id', studentId);
-                        }
-                        const { data: enrList } = await enrQuery.limit(1);
-                        const enrData = (enrList && enrList.length > 0) ? enrList[0] : null;
-
-                        if (enrData) {
-                            let updates = {};
-                            const rc = enrData.remaining_credits || 0;
-                            const excuseCount = enrData.excuse_count || 0;
-                            const maxAllowedExcuses = enrData.max_allowed_excuses || 1;
-                            const hasExtendedCols = ('present_count' in enrData);
-
-                            if (sessionStatus === 'present') {
-                                updates.remaining_credits = Math.max(0, rc - 1);
-                                if (hasExtendedCols) updates.present_count = (enrData.present_count || 0) + 1;
-                                const isSubToday = (foundStudent && foundStudent.is_substitute) || (window.currentActiveSubGroup === foundStudent?.group_id);
-                                resultMsg = `تم تسجيل حضور (${stName}) بنجاح \nتم خصم حصة من رصيد الطالب (المتبقي: ${updates.remaining_credits}) وإضافتها لرصيد حصص المعلم${isSubToday ? ' البديل' : ''} المنجزة.`;
-                            } else if (sessionStatus === 'excused') {
-                                updates.excuse_count = excuseCount + 1;
-                                if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                updates.max_allowed_excuses = excuseInfo.currentCycle;
-                                try {
-                                    localStorage.setItem('monir_last_excuse_cycle_' + studentId, excuseInfo.currentCycle);
-                                } catch(e) {}
-                                resultMsg = `تم تسجيل عذر الطالب (${stName}) بنجاح \nلم يتم خصم أي حصة • تم استهلاك عذر هذا الاشتراك • يتجدد العذر بعد إتمام دورة الـ (${excuseInfo.cycleSize}) حصص • الرصيد: ${rc} حصة`;
-                            } else if (sessionStatus === 'absent') {
-                                if (hasExtendedCols) updates.absent_count = (enrData.absent_count || 0) + 1;
-                                updates.remaining_credits = Math.max(0, rc - 1);
-                                resultMsg = `تم تسجيل غياب (${stName}) \nالرصيد المتبقي: ${updates.remaining_credits} حصة`;
-                            }
-
-                            await client.from('enrollments').update(updates).eq('id', enrData.id);
-
-                            // Official attendance log table (tagged with [معلم])
-                            try {
-                                await client.from('attendance').insert([{
-                                    student_id: studentId,
-                                    lecture_id: null,
-                                    course_name: (enrData.course_name || 'مسار القرآن الكريم والتدبر') + ((foundStudent && foundStudent.is_substitute) ? ` [بديل: ${currentTeacherName || 'المعلم البديل'}]` : ' [معلم]'),
-                                    status: sessionStatus,
-                                    joined_at: new Date().toISOString(),
-                                    duration_minutes: parseInt(enrData.session_duration) || 20
-                                }]);
-                            } catch(attErr) {
-                                console.warn('Attendance insert log notice:', attErr);
-                            }
+                        if (foundStudent.enrollment_id) {
+                            const { data, error } = await saveTeacherAttendance(client, foundStudent, sessionStatus,
+                                todayDateStr, sessionStatus === 'excused' ? excuseInfo.currentCycle : null);
+                            if (error || !data) throw error || new Error('Attendance not saved');
+                            resultMsg = sessionStatus === 'excused'
+                                ? `تم تسجيل عذر الطالب (${stName}) دون خصم أي حصة.`
+                                : `تم تسجيل غياب (${stName}). الرصيد المتبقي: ${data.remaining_credits} حصة.`;
 
                             // Payment audit trail log
                             try {
@@ -2228,28 +2091,16 @@
                                 }]);
                             } catch(pErr) {}
 
-                            localStorage.setItem(todayKey, sessionStatus);
-                            localStorage.setItem('monir_att_' + studentId + '_' + todayUtcStr, sessionStatus);
                             if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
-                            window.todaySupabaseAttMap[studentId] = { status: sessionStatus, joined_at: new Date().toISOString() };
-                            // Increment teacher earned session tally in real time
-                            updateTeacherEarnedStatsAfterSession(1);
-                            if (foundStudent && foundStudent.is_substitute) {
-                                completeGroupSubstitution(foundStudent.group_id);
-                            }
-                            try {
-                                localStorage.setItem('monir_last_att_info_' + studentId, JSON.stringify({
-                                    status: sessionStatus,
-                                    joined_at: new Date().toISOString()
-                                }));
-                            } catch(e) {}
+                            window.todaySupabaseAttMap[scope] = { status: sessionStatus, joined_at: new Date().toISOString() };
                             success = true;
                         }
                     } catch(e) {
-                        console.warn('Supabase record failed, trying mock:', e);
+                        throw e;
                     }
                 }
 
+                if (!success && window.MonirDB?.isConfigured()) throw new Error('Enrollment not found');
                 if (!success) {
                     const res = await fetch('/api/quran/record-session', {
                         method: 'POST',
@@ -2257,13 +2108,14 @@
                         body: JSON.stringify({
                             student_id: studentId,
                             teacher_id: currentTeacherId,
-                            session_status: sessionStatus
+                            session_status: sessionStatus,
+                            course_name: foundStudent.course_name
                         })
                     });
                     const data = await res.json();
                     resultMsg = data.message + '\nالرصيد المتبقي: ' + data.remaining_credits + ' حصص';
-                    success = data.success;
-                    localStorage.setItem(todayKey, sessionStatus);
+                    if (!res.ok || !data.success) throw new Error(data.message || 'Attendance not saved');
+                    MonirAttendance.save(studentId, foundStudent.course_name, todayDateStr, { status: sessionStatus });
                 }
 
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
@@ -2281,7 +2133,7 @@
                 alert('حدث خطأ أثناء تسجيل الجلسة. يرجى المحاولة مرة أخرى.');
                 enableButtons();
             } finally {
-                delete window._inFlightSessionLocks[studentId];
+                delete window._inFlightSessionLocks[scope];
             }
         }
 
@@ -2292,115 +2144,24 @@
             } else {
                 alert(blockTeacherUndoMsg);
             }
-            return;
-            const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-            const todayUtcStr = new Date().toISOString().split('T')[0];
-            const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
 
-            const isSup = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId] && window.todaySupabaseAttMap[studentId].bySupervisor) || (localStorage.getItem('monir_att_by_supervisor_' + studentId) === '1');
-            if (isSup) {
-                const blockSupMsg = 'تنبيه أمان: تم رصد هذا الطالب بواسطة الإشراف، ولا يمكن التراجع عنه أو حذفه إلا من خلال شاشة مطابقة الحضور في لوحة تحكم الإشراف.';
-                if (window.MonirPopup && typeof window.MonirPopup.alert === 'function') {
-                    await window.MonirPopup.alert(blockSupMsg, 'الرصد خاص بالإشراف', 'info');
-                } else {
-                    alert(blockSupMsg);
-                }
-                return;
-            }
-
-            let confirmed = false;
-            const confirmMsg = (status === 'postponed')
-                ? 'هل تود بالتأكيد إلغاء تأجيل الجلسة لهذا اليوم وإعادة خيارات التسجيل؟'
-                : 'هل تود بالتأكيد التراجع عن تسجيل الحصة لهذا اليوم؟\nسيتم إعادة الحصة تلقائياً لرصيد الطالب وإلغاء تسجيل اليوم.';
-            const confirmBtnText = (status === 'postponed') ? 'نعم، إلغاء التأجيل' : 'نعم، تراجع واستعادة الحصة';
-            if (window.MonirPopup && typeof window.MonirPopup.confirm === 'function') {
-                confirmed = await window.MonirPopup.confirm(confirmMsg, 'تأكيد التراجع عن التسجيل', 'warning', confirmBtnText, 'إلغاء');
-            } else {
-                confirmed = confirm('تأكيد التراجع عن التسجيل\n\n' + confirmMsg);
-            }
-            if (!confirmed) return;
-
-            try {
-                if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    const client = window.MonirDB.getClient();
-                    let enrQuery = client.from('enrollments').select('*');
-                    if (enrollmentId) enrQuery = enrQuery.eq('id', enrollmentId);
-                    else enrQuery = enrQuery.eq('student_id', studentId);
-                    const { data: enrList } = await enrQuery.limit(1);
-                    if (enrList && enrList[0]) {
-                        const e = enrList[0];
-                        let updates = {};
-                        if (status === 'present') {
-                            updates.remaining_credits = (e.remaining_credits || 0) + 1;
-                            updates.present_count = Math.max(0, (e.present_count || 0) - 1);
-                        } else if (status === 'absent') {
-                            updates.remaining_credits = (e.remaining_credits || 0) + 1;
-                            updates.absent_count = Math.max(0, (e.absent_count || 0) - 1);
-                        } else if (status === 'excused') {
-                            updates.excuse_count = Math.max(0, (e.excuse_count || 0) - 1);
-                            updates.max_allowed_excuses = 1;
-                        }
-                        if (Object.keys(updates).length > 0) {
-                            await client.from('enrollments').update(updates).eq('id', e.id);
-                        }
-
-                        try {
-                            const deleteStart = new Date(Date.now() - 30 * 3600 * 1000).toISOString();
-                            await client.from('attendance')
-                                .delete()
-                                .eq('student_id', studentId)
-                                .gte('joined_at', deleteStart);
-                        } catch(attDelErr) {
-                            console.warn('Attendance delete on undo notice:', attDelErr);
-                        }
-
-                        // Payment audit trail log for undo
-                        try {
-                            const actionLabel = (status === 'present') ? 'حضور' : (status === 'absent') ? 'غياب' : (status === 'excused') ? 'عذر' : 'تأجيل الجلسة';
-                            await client.from('payments').insert([{
-                                student_id: studentId,
-                                amount: 0,
-                                payment_method: 'معلم',
-                                status: 'completed',
-                                whatsapp_message: `تراجع عن ${actionLabel} بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr}`
-                            }]);
-                        } catch(pErr) {}
-                    }
-                }
-                localStorage.removeItem(todayKey);
-                localStorage.removeItem('monir_att_' + studentId + '_' + todayUtcStr);
-                localStorage.removeItem('monir_att_by_supervisor_' + studentId);
-                localStorage.removeItem('monir_att_postponed_' + studentId);
-                if (window.todaySupabaseAttMap) {
-                    delete window.todaySupabaseAttMap[studentId];
-                }
-                try {
-                    localStorage.removeItem('monir_last_att_info_' + studentId);
-                } catch(e) {}
-                const toastMsg = (status === 'postponed')
-                    ? 'تم إلغاء التأجيل وإعادة خيارات التسجيل بنجاح '
-                    : 'تم التراجع عن التسجيل وإعادة الحصة لرصيد الطالب بنجاح ';
-                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast(toastMsg, 'success');
-                } else {
-                    alert(toastMsg);
-                }
-                await loadTeacherGroups();
-            } catch(err) {
-                console.error('Error undoing attendance:', err);
-                alert('حدث خطأ أثناء التراجع: ' + (err.message || err));
-            }
         }
 
         async function postponeStudentSession(studentId, enrollmentId = null, btn = null) {
+            const foundStudent = findTeacherEnrollment(studentId, enrollmentId);
+            if (!foundStudent?.course_name) {
+                alert('تعذّر تحديد اشتراك الطالب لهذا المسار.');
+                return;
+            }
+            const scope = MonirAttendance.key(studentId, foundStudent.course_name);
             window._inFlightSessionLocks = window._inFlightSessionLocks || {};
-            if (window._inFlightSessionLocks[studentId]) {
+            if (window._inFlightSessionLocks[scope]) {
                 console.warn('عملية التأجيل جارية بالفعل لهذا الطالب!');
                 return;
             }
-            window._inFlightSessionLocks[studentId] = true;
+            window._inFlightSessionLocks[scope] = true;
 
-            const cell = document.getElementById('actions-cell-' + studentId);
+            const cell = btn?.closest('[data-attendance-actions]');
             const disableButtons = () => {
                 if (cell) {
                     cell.querySelectorAll('button').forEach(b => {
@@ -2410,7 +2171,7 @@
                 }
             };
             const enableButtons = () => {
-                delete window._inFlightSessionLocks[studentId];
+                delete window._inFlightSessionLocks[scope];
                 if (cell) {
                     cell.querySelectorAll('button').forEach(b => {
                         b.disabled = false;
@@ -2422,14 +2183,6 @@
             disableButtons();
 
             try {
-                let foundStudent = null;
-                if (typeof teacherGroups !== 'undefined' && Array.isArray(teacherGroups)) {
-                    for (const g of teacherGroups) {
-                        const match = (g.students || []).find(st => st.id === studentId || st.student_id === studentId);
-                        if (match) { foundStudent = match; break; }
-                    }
-                }
-
                 if (foundStudent && (foundStudent.status === 'inactive' || foundStudent.account_status === 'موقوف')) {
                     enableButtons();
                     const warnMsg = 'عذراً، اشتراك هذا الطالب موقوف من قبل الإدارة ولا يمكن تأجيل حصته.';
@@ -2445,12 +2198,8 @@
                 const stCode = foundStudent ? (foundStudent.student_code || '') : '';
                 const curCredits = foundStudent ? (foundStudent.remaining_credits ?? 0) : 0;
 
-                const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-                const todayUtcStr = new Date().toISOString().split('T')[0];
-                const todayKey = 'monir_att_' + studentId + '_' + todayDateStr;
-                const prevRecord = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[studentId])
-                    ? window.todaySupabaseAttMap[studentId].status
-                    : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + studentId + '_' + todayUtcStr));
+                const todayDateStr = getMonirLocalDateStr();
+                const prevRecord = teacherAttendanceToday(foundStudent, todayDateStr)?.status;
 
                 if (prevRecord) {
                     enableButtons();
@@ -2486,28 +2235,20 @@
                     const client = window.MonirDB.getClient();
 
                     // Insert attendance with status 'excused' and tagged with '[تأجيل معلم]' to comply with database check constraint
-                    const courseNameTag = `حلقة قرآنية [معلم] [تأجيل معلم]`;
-                    try {
-                        await client
-                            .from('attendance')
-                            .insert([{
-                                student_id: studentId,
-                                status: 'excused',
-                                joined_at: new Date().toISOString(),
-                                course_name: courseNameTag,
-                                duration_minutes: 0
-                            }]);
-                    } catch(attErr) {
-                        console.error('Error inserting postponed attendance:', attErr);
-                    }
+                    if (await findTeacherAttendance(client, foundStudent, todayDateStr)) throw new Error('Attendance already recorded');
+                    if (!foundStudent.enrollment_id) throw new Error('Enrollment not found');
+                    const { error } = await saveTeacherAttendance(client, foundStudent, 'postponed', todayDateStr);
+                    if (error) throw error;
 
                     // Notification for student/parent
                     try {
                         await client.from('notifications').insert([{
-                            user_id: studentId,
+                            student_id: studentId,
+                            course_name: foundStudent.course_name,
+                            type: 'session_postponed',
                             title: 'تأجيل موعد الجلسة',
                             message: `تم تأجيل جلسة القرآن الكريم المقررة اليوم مع المعلم (${currentTeacherName || 'المعلم'}). رصيدك من الحصص والأعذار محفوظ بالكامل ولم يُخصم منه شيء.`,
-                            is_read: false
+                            is_read: 0
                         }]);
                     } catch(nErr) {
                         console.warn('Notice insert warning:', nErr);
@@ -2527,18 +2268,16 @@
 
                 // Update local maps
                 if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
-                window.todaySupabaseAttMap[studentId] = {
+                window.todaySupabaseAttMap[scope] = {
                     id: null,
                     status: 'postponed',
                     joined_at: new Date().toISOString(),
                     bySupervisor: false,
                     isPostponed: true
                 };
-                try {
-                    localStorage.setItem(todayKey, 'postponed');
-                    localStorage.setItem('monir_att_' + studentId + '_' + todayUtcStr, 'postponed');
-                    localStorage.setItem('monir_att_postponed_' + studentId, '1');
-                } catch(e) {}
+                if (!window.MonirDB?.isConfigured()) {
+                    MonirAttendance.save(studentId, foundStudent.course_name, todayDateStr, { status: 'postponed' });
+                }
 
                 const toastMsg = 'تم تأجيل الجلسة للطالب بنجاح مع الحفاظ على رصيده وأعذاره بالكامل ';
                 if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
@@ -2547,7 +2286,7 @@
                     alert(toastMsg);
                 }
 
-                delete window._inFlightSessionLocks[studentId];
+                delete window._inFlightSessionLocks[scope];
                 await loadTeacherGroups();
             } catch(err) {
                 enableButtons();
@@ -2560,7 +2299,10 @@
             try {
                 let group = null;
                 if (typeof teacherGroups !== 'undefined' && Array.isArray(teacherGroups)) {
-                    group = teacherGroups.find(g => String(g.id) === String(groupId) || String(g.group_id) === String(groupId));
+                    const course = (btn?.closest('.group-card') || document.getElementById('content-' + idSafe)?.closest('.group-card'))?.dataset.courseName;
+                    const matchingGroups = teacherGroups.filter(g => String(g.id) === String(groupId) || String(g.group_id) === String(groupId));
+                    group = course ? matchingGroups.find(g => (g.course_name || g.group_name) === course)
+                        : (matchingGroups.length === 1 ? matchingGroups[0] : null);
                 }
 
                 if (!group || !Array.isArray(group.students) || group.students.length === 0) {
@@ -2584,18 +2326,10 @@
                     return;
                 }
 
-                const todayDateStr = typeof getMonirLocalDateStr === 'function' ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-                const todayUtcStr = new Date().toISOString().split('T')[0];
-
-                // Filter eligible students who have not already recorded attendance today
-                const eligibleStudents = activeStudents.filter(st => {
-                    const sid = st.id;
-                    const todayKey = 'monir_att_' + sid + '_' + todayDateStr;
-                    const prev = (window.todaySupabaseAttMap && window.todaySupabaseAttMap[sid])
-                        ? window.todaySupabaseAttMap[sid].status
-                        : (localStorage.getItem(todayKey) || localStorage.getItem('monir_att_' + sid + '_' + todayUtcStr));
-                    return !prev;
-                });
+                const todayDateStr = getMonirLocalDateStr();
+                const eligibleStudents = activeStudents.filter(student =>
+                    student.course_name && !teacherAttendanceToday(student, todayDateStr)?.status
+                );
 
                 if (eligibleStudents.length === 0) {
                     const infoMsg = 'تم بالفعل رصد حضور أو تأجيل لجميع طلاب هذه المجموعة لليوم.';
@@ -2627,22 +2361,16 @@
 
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
-                    const nowIso = new Date().toISOString();
-                    const courseNameTag = `حلقة ${groupId} [معلم] [تأجيل معلم]`;
-
-                    const attRows = eligibleStudents.map(st => ({
-                        student_id: st.id,
-                        status: 'excused',
-                        joined_at: nowIso,
-                        course_name: courseNameTag,
-                        duration_minutes: 0
-                    }));
+                    const enrollmentIds = eligibleStudents.map(student => student.enrollment_id);
+                    if (enrollmentIds.some(id => !id)) throw new Error('Enrollment not found');
 
                     const notifRows = eligibleStudents.map(st => ({
-                        user_id: st.id,
+                        student_id: st.id,
+                        course_name: st.course_name,
+                        type: 'session_postponed',
                         title: 'تأجيل موعد الجلسة الجماعية',
                         message: `تم تأجيل جلسة القرآن الكريم المقررة اليوم لمجموعتكم (${groupId}) مع المعلم (${currentTeacherName || 'المعلم'}). رصيدك من الحصص والأعذار محفوظ بالكامل.`,
-                        is_read: false
+                        is_read: 0
                     }));
 
                     const payAuditRows = eligibleStudents.map(st => ({
@@ -2653,9 +2381,10 @@
                         whatsapp_message: `تأجيل جلسة مجموعة (${groupId}) للطالب (${st.name || st.student_code}) بواسطة المعلم (${currentTeacherName || 'المعلم'}) لتاريخ ${todayDateStr} دون خصم رصيد أو عذر`
                     }));
 
-                    try {
-                        await client.from('attendance').insert(attRows);
-                    } catch(e) { console.error('Error inserting group attendance postponement:', e); }
+                    const { error: attendanceError } = teacherAuthRequired
+                        ? await client.rpc('teacher_portal_postpone_group', { p_enrollment_ids: enrollmentIds })
+                        : await client.rpc('postpone_teacher_course_group', { p_enrollment_ids: enrollmentIds, p_day: todayDateStr });
+                    if (attendanceError) throw attendanceError;
 
                     try {
                         await client.from('notifications').insert(notifRows);
@@ -2669,18 +2398,16 @@
                 if (!window.todaySupabaseAttMap) window.todaySupabaseAttMap = {};
                 eligibleStudents.forEach(st => {
                     const sid = st.id;
-                    window.todaySupabaseAttMap[sid] = {
+                    window.todaySupabaseAttMap[MonirAttendance.key(sid, st.course_name)] = {
                         id: null,
                         status: 'postponed',
                         joined_at: new Date().toISOString(),
                         bySupervisor: false,
                         isPostponed: true
                     };
-                    try {
-                        localStorage.setItem('monir_att_' + sid + '_' + todayDateStr, 'postponed');
-                        localStorage.setItem('monir_att_' + sid + '_' + todayUtcStr, 'postponed');
-                        localStorage.setItem('monir_att_postponed_' + sid, '1');
-                    } catch(e) {}
+                    if (!window.MonirDB?.isConfigured()) {
+                        MonirAttendance.save(sid, st.course_name, todayDateStr, { status: 'postponed' });
+                    }
                 });
 
                 if (btn) {
@@ -2784,21 +2511,6 @@
                 }
             }
 
-            // Fallback from localStorage caches
-            try {
-                const cached = localStorage.getItem('monir_quran_plan_' + studentId) ||
-                               localStorage.getItem('monir_quran_plan_' + studentCode) ||
-                               localStorage.getItem('monir_surah_progress_' + studentId) || 
-                               localStorage.getItem('monir_surah_progress_' + studentCode);
-                if (cached) {
-                    const p = JSON.parse(cached);
-                    if (!hifz) hifz = p.hifz || p.surah || '';
-                    if (!madiQareeb) madiQareeb = p.madi_qareeb || p.madiQareeb || '';
-                    if (!madiBaeed) madiBaeed = p.madi_baeed || p.madiBaeed || '';
-                    if (!notes) notes = p.notes || '';
-                }
-            } catch(e) {}
-
             _lastPlanSnapshot = { hifz, madiQareeb, madiBaeed, notes };
             const lastSec = document.getElementById('modalLastPlanSection');
             const lastSum = document.getElementById('modalLastPlanSummary');
@@ -2806,9 +2518,9 @@
                 if (hifz || madiQareeb || madiBaeed) {
                     lastSec.classList.remove('hidden');
                     let summaryHtml = '';
-                    if (hifz) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-emerald-800"> الورد السابق:</span> <span class="font-black text-slate-800">${hifz}</span></div>`;
-                    if (madiQareeb) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-blue-800">الماضي القريب:</span> <span class="text-slate-700">${madiQareeb}</span></div>`;
-                    if (madiBaeed) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-purple-800">الماضي البعيد:</span> <span class="text-slate-700">${madiBaeed}</span></div>`;
+                    if (hifz) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-emerald-800"> الورد السابق:</span> <span class="font-black text-slate-800">${escapeTeacherText(hifz)}</span></div>`;
+                    if (madiQareeb) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-blue-800">الماضي القريب:</span> <span class="text-slate-700">${escapeTeacherText(madiQareeb)}</span></div>`;
+                    if (madiBaeed) summaryHtml += `<div class="flex items-center gap-1.5"><span class="font-bold text-purple-800">الماضي البعيد:</span> <span class="text-slate-700">${escapeTeacherText(madiBaeed)}</span></div>`;
                     lastSum.innerHTML = summaryHtml;
                 } else {
                     lastSec.classList.add('hidden');
@@ -2828,150 +2540,48 @@
             document.getElementById('updateSurahModal').classList.remove('hidden');
         }
 
+        let teacherPlanSaving = false;
         async function saveSurahProgress() {
-            if (!activeModalStudentId && !activeModalEnrollmentId) return;
-            const hifz = (document.getElementById('modalHifzInput')?.value || '').trim();
-            const madiQareeb = (document.getElementById('modalMadiQareebInput')?.value || '').trim();
-            const madiBaeed = (document.getElementById('modalMadiBaeedInput')?.value || '').trim();
-            const notes = (document.getElementById('modalNotesInput')?.value || '').trim();
-
+            if (teacherPlanSaving) return;
+            const enrollment = findTeacherEnrollment(activeModalStudentId, activeModalEnrollmentId);
+            const hifz = document.getElementById('modalHifzInput').value.trim();
+            const madiQareeb = document.getElementById('modalMadiQareebInput').value.trim();
+            const madiBaeed = document.getElementById('modalMadiBaeedInput').value.trim();
+            const notes = document.getElementById('modalNotesInput').value.trim();
             if (!hifz && !madiQareeb && !madiBaeed) {
-                alert('يرجى كتابة الحفظ الجديد أو الماضي على الأقل لاعتماد الخطة.');
+                alert('اكتب الحفظ الجديد أو الماضي قبل حفظ الخطة.');
                 return;
             }
 
-            const btnText = document.getElementById('btnSaveSurahPlanText');
-            if (btnText) btnText.innerText = 'جاري الحفظ والاعتماد...';
-
-            let tName = (typeof currentTeacherName !== 'undefined' && currentTeacherName) ? currentTeacherName : '';
-            if (!tName) {
-                const el = document.getElementById('teacherName');
-                tName = el ? el.innerText.replace(/^أ\.\s*/, '').trim() : '';
-            }
-
-            const planObj = {
-                hifz: hifz,
-                madi_qareeb: madiQareeb,
-                madi_baeed: madiBaeed,
-                notes: notes,
-                teacher_id: currentTeacherId,
-                teacher_name: tName,
-                updated_at: new Date().toISOString()
+            teacherPlanSaving = true;
+            const plan = {
+                hifz, madi_qareeb: madiQareeb, madi_baeed: madiBaeed, notes,
+                teacher_id: currentTeacherId, teacher_name: currentTeacherName, updated_at: new Date().toISOString()
             };
-            const planJson = JSON.stringify(planObj);
-
             try {
-                let success = false;
-                if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    try {
-                        const client = window.MonirDB.getClient();
-                        
-                        // 1. Update by enrollment_id if available
-                        if (activeModalEnrollmentId) {
-                            const { error: enrErr } = await client.from('enrollments').update({
-                                current_surah: planJson,
-                                current_aya: 1
-                            }).eq('id', activeModalEnrollmentId);
-                            if (!enrErr) success = true;
-                        }
-
-                        // 2. Also update by student_id
-                        if (activeModalStudentId) {
-                            const { error: stErr } = await client.from('enrollments').update({
-                                current_surah: planJson,
-                                current_aya: 1
-                            }).eq('student_id', activeModalStudentId);
-                            if (!stErr) success = true;
-                        }
-
-                        // 3. Send parent notification to Supabase table
-                        try {
-                            const notifMsg = `الحفظ الجديد: ${hifz || '—'}\nالماضي القريب: ${madiQareeb || '—'}\nالماضي البعيد: ${madiBaeed || '—'}${notes ? '\n توجيهات: ' + notes : ''}`;
-                            await client.from('notifications').insert([{
-                                student_id: activeModalStudentId,
-                                title: 'إشعار خطة الحفظ والمراجعة القرآنية',
-                                message: notifMsg,
-                                is_read: 0,
-                                created_at: new Date().toISOString()
-                            }]);
-                        } catch(ne) {
-                            console.warn('Could not insert notification into cloud table:', ne);
-                        }
-                    } catch(e) {
-                        console.error('Supabase update plan error:', e);
-                    }
-                }
-
-                // Cache in localStorage for seamless cross-tab synchronization
-                const cacheKeys = [
-                    activeModalStudentId ? ('monir_quran_plan_' + activeModalStudentId) : null,
-                    activeModalStudentCode ? ('monir_quran_plan_' + activeModalStudentCode) : null,
-                    activeModalStudentId ? ('monir_surah_progress_' + activeModalStudentId) : null,
-                    activeModalStudentCode ? ('monir_surah_progress_' + activeModalStudentCode) : null
-                ].filter(Boolean);
-
-                cacheKeys.forEach(k => localStorage.setItem(k, planJson));
-
-                // Save to student local notifications list
-                const notifKeys = [
-                    activeModalStudentId ? ('monir_student_notifs_' + activeModalStudentId) : null,
-                    activeModalStudentCode ? ('monir_student_notifs_' + activeModalStudentCode) : null
-                ].filter(Boolean);
-
-                const newNotif = {
-                    id: 'qplan_' + Date.now(),
-                    student_id: activeModalStudentId,
+                await updateTeacherEnrollment(enrollment, { current_surah: JSON.stringify(plan), current_aya: 1 });
+                const { error } = await window.MonirDB.getClient().from('notifications').insert({
+                    student_id: enrollment.id,
+                    course_name: enrollment.course_name,
                     type: 'quran_plan',
                     title: 'إشعار خطة الحفظ والمراجعة القرآنية',
-                    message: `الحفظ الجديد: ${hifz || '—'}\nالماضي القريب: ${madiQareeb || '—'}\nالماضي البعيد: ${madiBaeed || '—'}${notes ? '\n توجيهات: ' + notes : ''}`,
-                    is_read: 0,
-                    created_at: new Date().toISOString()
-                };
-
-                notifKeys.forEach(nk => {
-                    try {
-                        const existing = JSON.parse(localStorage.getItem(nk) || '[]');
-                        existing.unshift(newNotif);
-                        localStorage.setItem(nk, JSON.stringify(existing.slice(0, 30)));
-                    } catch(e) {}
+                    message: [`الحفظ الجديد: ${hifz || '—'}`, `الماضي القريب: ${madiQareeb || '—'}`, `الماضي البعيد: ${madiBaeed || '—'}`, notes].filter(Boolean).join('\n'),
+                    is_read: 0
                 });
-
-                // Update memory representation immediately
-                if (teacherGroups) {
-                    teacherGroups.forEach(g => {
-                        (g.students || []).forEach(st => {
-                            if ((activeModalEnrollmentId && st.enrollment_id === activeModalEnrollmentId) || 
-                                st.id === activeModalStudentId || 
-                                st.student_id === activeModalStudentId || 
-                                st.student_code === activeModalStudentCode) {
-                                st.current_surah = planJson;
-                                st.current_aya = 1;
-                            }
-                        });
-                    });
-                    renderGroups(teacherGroups);
-                }
-
                 closeModal('updateSurahModal');
-                
-                const msg = ' تم اعتماد خطة الحفظ والمراجعة بنجاح!\nتم إرسال الإشعار لولي الأمر وستظهر الخطة في صفحة الطالب لكل المحاضرات.';
-                if (window.MonirPopup && typeof window.MonirPopup.toast === 'function') {
-                    window.MonirPopup.toast(msg, 'success');
-                } else {
-                    alert(msg);
-                }
-
-                await loadTeacherGroups();
-            } catch(err) {
-                console.error(err);
-                alert('حدث خطأ أثناء حفظ الخطة: ' + (err.message || err));
+                filterGroups();
+                if (error) alert('تم حفظ الخطة. تعذّر إرسال إشعار ولي الأمر.');
+                else window.MonirPopup?.toast('تم حفظ الخطة وإرسال إشعار ولي الأمر.', 'success');
+            } catch {
+                alert('تعذّر إكمال حفظ الخطة. راجع نتيجة الحفظ وحاول مرة أخرى.');
             } finally {
-                if (btnText) btnText.innerText = 'حفظ الخطة وإشعار ولي الأمر';
+                teacherPlanSaving = false;
             }
         }
 
-        function openRateModal(studentId, studentCode, studentName) {
+        function openRateModal(studentId, studentCode, studentName, enrollmentId) {
             activeModalStudentId = studentId;
+            activeModalEnrollmentId = enrollmentId;
             selectedRating = 0;
             const nameEl = document.getElementById('rateStudentName');
             if (nameEl) nameEl.innerText = studentName || studentCode;
@@ -2997,28 +2607,18 @@
         }
 
         async function saveRating() {
-            if (!selectedRating || !activeModalStudentId) { alert('يرجى اختيار تقييم أولاً'); return; }
+            if (!selectedRating) {
+                alert('اختار تقييم أولاً.');
+                return;
+            }
             try {
-                let done = false;
-                if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    try {
-                        const client = window.MonirDB.getClient();
-                        await client.from('enrollments').update({ rating: selectedRating }).eq('student_id', activeModalStudentId);
-                        done = true;
-                    } catch(e) {}
-                }
-                if (!done) {
-                    await fetch('/api/teacher/' + currentTeacherId + '/student/' + activeModalStudentId + '/rate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ rating: selectedRating })
-                    });
-                }
+                const enrollment = findTeacherEnrollment(activeModalStudentId, activeModalEnrollmentId);
+                await updateTeacherEnrollment(enrollment, { rating: selectedRating });
                 closeModal('rateStudentModal');
-                alert('تم حفظ التقييم بنجاح! ');
-                await loadTeacherGroups();
-            } catch(e) {
-                alert('حدث خطأ أثناء الحفظ.');
+                filterGroups();
+                alert('تم حفظ التقييم.');
+            } catch {
+                alert('تعذّر حفظ التقييم. حاول مرة أخرى.');
             }
         }
 
@@ -3031,6 +2631,18 @@
             populateTeacherTicketGroups();
             document.getElementById('teacherSupportModal').classList.remove('hidden');
             loadTeacherTickets();
+        }
+
+        function openTeacherSubstituteModal() {
+            openTeacherSupportModal();
+            switchTeacherSupportTab('new');
+            const subject = document.getElementById('teacherTicketSubject');
+            const message = document.getElementById('teacherTicketMessage');
+            if (!subject.value && !message.value) {
+                subject.value = 'طلب تولي حصة بديلة';
+                message.value = 'كود المجموعة: \nتاريخ الحصة: \nسبب الطلب: ';
+            }
+            message.focus();
         }
 
         function switchTeacherSupportTab(tab) {
@@ -3075,23 +2687,11 @@
             container.innerHTML = '<div class="text-center py-8 text-slate-400 font-bold"><span class="inline-block animate-spin mr-1"></span> جاري تحميل التذاكر...</div>';
 
             try {
-                let tickets = [];
-                if (window.MonirDB && window.MonirDB.isConfigured()) {
-                    const client = window.MonirDB.getClient();
-                    const { data, error } = await client
-                        .from('support_tickets')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                    if (data && !error) tickets = data;
-                }
-
-                const myTeacherIdTag = `[معلم #${currentTeacherId}]`;
-                const myTickets = tickets.filter(t => {
-                    const name = t.student_name || '';
-                    if (name.includes(myTeacherIdTag)) return true;
-                    if (currentTeacherName && name.includes(currentTeacherName) && (name.includes('معلم') || (t.category && t.category.includes('معلم')))) return true;
-                    return false;
-                });
+                if (!window.MonirDB?.isConfigured()) throw new Error('Support service unavailable');
+                const { data, error } = await window.MonirDB.getClient().from('support_tickets')
+                    .select('*').eq('teacher_id', Number(currentTeacherId)).order('created_at', { ascending: false });
+                if (error) throw error;
+                const myTickets = data || [];
 
                 teacherSupportTickets = myTickets;
                 renderTeacherTickets(myTickets);
@@ -3153,8 +2753,8 @@
                         </div>
 
                         <div>
-                            <h4 class="font-black text-slate-900 text-xs">${t.subject || 'بدون عنوان'}</h4>
-                            <p class="text-slate-600 text-[11px] mt-1 whitespace-pre-line leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100">${t.message || ''}</p>
+                            <h4 class="font-black text-slate-900 text-xs">${escapeTeacherText(t.subject || 'بدون عنوان')}</h4>
+                            <p class="text-slate-600 text-[11px] mt-1 whitespace-pre-line leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100">${escapeTeacherText(t.message)}</p>
                         </div>
 
                         ${t.admin_reply ? `
@@ -3165,7 +2765,7 @@
                                     </span>
                                     <span class="text-[10px] text-emerald-700 font-mono">${t.updated_at ? new Date(t.updated_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
                                 </div>
-                                <p class="text-emerald-950 font-bold text-xs leading-relaxed whitespace-pre-line">${t.admin_reply}</p>
+                                <p class="text-emerald-950 font-bold text-xs leading-relaxed whitespace-pre-line">${escapeTeacherText(t.admin_reply)}</p>
                             </div>
                         ` : `
                             <div class="text-[10px] text-slate-400 flex items-center gap-1 italic">
@@ -3181,20 +2781,9 @@
             try {
                 if (!window.MonirDB || !window.MonirDB.isConfigured()) return;
                 const client = window.MonirDB.getClient();
-                const { data } = await client
-                    .from('support_tickets')
-                    .select('id, student_name, admin_reply, status, updated_at')
-                    .order('created_at', { ascending: false });
-
-                if (!data) return;
-
-                const myTeacherIdTag = `[معلم #${currentTeacherId}]`;
-                const myTickets = data.filter(t => {
-                    const name = t.student_name || '';
-                    if (name.includes(myTeacherIdTag)) return true;
-                    if (currentTeacherName && name.includes(currentTeacherName) && name.includes('معلم')) return true;
-                    return false;
-                });
+                const { data: myTickets, error } = await client.from('support_tickets')
+                    .select('id, admin_reply, status, updated_at').eq('teacher_id', Number(currentTeacherId));
+                if (error || !myTickets) return;
 
                 let unreadCount = 0;
                 myTickets.forEach(t => {
@@ -3253,7 +2842,6 @@
             }
 
             try {
-                const nextId = (Date.now() % 2147483647);
                 const tName = currentTeacherName || ('معلم ' + currentTeacherId);
                 const studentNameFormatted = `المعلم: ${tName} [معلم #${currentTeacherId}]`;
                 const courseFormatted = group ? `مجموعة ${group}` : 'بوابة المعلمين';
@@ -3262,7 +2850,7 @@
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     const client = window.MonirDB.getClient();
                     const { error } = await client.from('support_tickets').insert({
-                        id: nextId,
+                        teacher_id: Number(currentTeacherId),
                         student_id: null,
                         student_name: studentNameFormatted,
                         course_name: courseFormatted,
@@ -3354,11 +2942,11 @@
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="text-[10px] font-black px-2 py-0.5 rounded-md border ${cfg.badgeClass}">${cfg.badge}</span>
                                     ${n.group_id ? `<span class="bg-slate-200 text-slate-800 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded">${n.group_id}</span>` : ''}
-                                    <h4 class="font-extrabold text-xs text-slate-900">${n.title}</h4>
+                                    <h4 class="font-extrabold text-xs text-slate-900">${escapeTeacherText(n.title)}</h4>
                                 </div>
                                 <span class="text-[10px] text-slate-400 font-normal shrink-0" dir="ltr">${timeAgo}</span>
                             </div>
-                            <p class="text-[11px] text-slate-700 leading-relaxed font-normal">${n.message}</p>
+                            <p class="text-[11px] text-slate-700 leading-relaxed font-normal">${escapeTeacherText(n.message)}</p>
                             ${!n.is_read ? `
                                 <div class="mt-1.5 flex justify-end">
                                     <button type="button" onclick="markSingleTeacherNotifRead('${n.id}', this)" class="text-[10px] text-indigo-700 hover:text-indigo-900 font-bold bg-white/80 hover:bg-white px-2 py-0.5 rounded border border-indigo-200 transition cursor-pointer">
@@ -3394,24 +2982,26 @@
             }
         }
 
-        function markSingleTeacherNotifRead(id, btn) {
-            if (window.TeacherNotifications) {
-                window.TeacherNotifications.markAsRead(id);
-                if (btn) {
-                    const card = btn.closest('.p-3');
-                    if (card) card.classList.add('opacity-70');
-                    btn.remove();
-                }
-                updateTeacherNotificationsBadge();
+        async function markSingleTeacherNotifRead(id, btn) {
+            if (!window.TeacherNotifications || btn?.disabled) return;
+            if (btn) btn.disabled = true;
+            try {
+                await window.TeacherNotifications.markAsRead(id, currentTeacherId);
+                await Promise.all([updateTeacherNotificationsBadge(), openTeacherNotificationsModal()]);
+            } catch {
+                alert('تعذّر تحديث حالة الإشعار. حاول مرة أخرى.');
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 
-        function markAllTeacherNotifsRead() {
-            if (window.TeacherNotifications) {
-                const tId = currentTeacherId || (window.currentTeacher && window.currentTeacher.id) || 1;
-                window.TeacherNotifications.markAllAsRead(tId);
-                updateTeacherNotificationsBadge();
-                openTeacherNotificationsModal();
+        async function markAllTeacherNotifsRead() {
+            if (!window.TeacherNotifications) return;
+            try {
+                await window.TeacherNotifications.markAllAsRead(currentTeacherId);
+                await Promise.all([updateTeacherNotificationsBadge(), openTeacherNotificationsModal()]);
+            } catch {
+                alert('تعذّر تحديد الإشعارات كمقروءة. حاول مرة أخرى.');
             }
         }
 
@@ -3452,47 +3042,5 @@
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <!-- MODAL: TAKE SUBSTITUTE SESSION (تولي حصة تعويضية للمعلم)            -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
-    <div id="teacherSubstituteModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    </span>
-                    <div>
-                        <h3 class="font-black text-sm sm:text-base text-slate-900">تولي حصة تعويضية كمعلم بديل</h3>
-                        <p class="text-[11px] text-slate-500">تعويض جلسة اليوم مع احتساب الحصة في رصيدك</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeTeacherSubstituteModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">&times;</button>
-            </div>
-
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">اختر المجموعة التي ستعوضها اليوم:</label>
-                    <select id="tSubModalGroupSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500">
-                        <option value="">جاري تحميل المجموعات المتاحة...</option>
-                    </select>
-                </div>
-
-                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-[11px] text-indigo-950 space-y-1">
-                    <p class="font-bold">آلية التعويض المعتمدة:</p>
-                    <p>• ستظهر المجموعة في حسابك لهذا اليوم فقط لتباشر الحصة وترصد الحضور.</p>
-                    <p>• يُخصم الرصيد من الطلاب ويُضاف مباشرة لرصيد حصصك المنجزة ومستحقاتك.</p>
-                    <p>• بعد رصد الحصة، تعود المجموعة تلقائياً لمعلمها الأصلي دون أي لخبطة.</p>
-                </div>
-            </div>
-
-            <div class="pt-2 flex gap-2">
-                <button type="button" onclick="confirmTeacherTakeSubstitution()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition shadow-sm text-xs cursor-pointer">
-                    تأكيد تولي الحصة
-                </button>
-                <button type="button" onclick="closeTeacherSubstituteModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-xs">
-                    إلغاء
-                </button>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>
