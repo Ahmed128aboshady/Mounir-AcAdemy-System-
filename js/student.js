@@ -540,10 +540,10 @@ async function loadStudentProfile() {
         const dCode = document.getElementById('detailsStudentCode');
         if (dCode) dCode.innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
         const dParent = document.getElementById('detailsParentName');
-        if (dParent) dParent.innerText = document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب';
+        if (dParent) dParent.innerText = document.getElementById('parentName') ? document.getElementById('parentName').textContent : 'ولي أمر الطالب';
         const dPhone = document.getElementById('detailsParentPhone');
         const pPhoneElem = document.getElementById('parentPhone');
-        if (dPhone) dPhone.innerText = (pPhoneElem && pPhoneElem.innerText) ? pPhoneElem.innerText : 'غير مسجل';
+        if (dPhone) dPhone.innerText = (pPhoneElem && pPhoneElem.textContent) ? pPhoneElem.textContent : 'غير مسجل';
         const dStatus = document.getElementById('detailsAccountStatus');
         if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
         const dTrack = document.getElementById('detailsTrackName');
@@ -762,10 +762,10 @@ function renderDetailsPanel() {
     if (dCode) dCode.innerText = curStudent.student_code || ('ST' + String(curStudent.id || currentStudentId).padStart(4, '0'));
     
     const dParent = document.getElementById('detailsParentName');
-    if (dParent) dParent.innerText = curStudent.parent_name || (document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب');
+    if (dParent) dParent.innerText = curStudent.parent_name || (document.getElementById('parentName') ? document.getElementById('parentName').textContent : 'ولي أمر الطالب');
     
     const dPhone = document.getElementById('detailsParentPhone');
-    if (dPhone) dPhone.innerText = curStudent.parent_phone || (document.getElementById('parentPhone') ? document.getElementById('parentPhone').innerText : 'غير مسجل');
+    if (dPhone) dPhone.innerText = curStudent.parent_phone || (document.getElementById('parentPhone') ? document.getElementById('parentPhone').textContent : 'غير مسجل');
     
     const dStatus = document.getElementById('detailsAccountStatus');
     if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (curStudent.account_status || 'نشط') + ')';
@@ -1441,7 +1441,7 @@ window.switchPortalTrack = switchPortalTrack;
 function requestCourseEnrollmentPrompt(courseName) {
     const student = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const sName = student.name || document.getElementById('studentName')?.innerText || 'طالب بالأكاديمية';
-    const sCode = student.student_code || document.getElementById('studentCode')?.innerText || 'ST0000';
+    const sCode = student.student_code || document.getElementById('studentCode')?.textContent || 'ST0000';
     
     const msg = `السلام عليكم ورحمة الله وبركاته،\nأرغب في تسجيل الطالب: (${sName}) - كود الطالب: (${sCode})\nفي (${courseName}).\nيرجى تزويدي بالمواعيد المتاحة وأسعار الباقات وتفاصيل الحصص.`;
     const waUrl = 'https://wa.me/201118599442?text=' + encodeURIComponent(msg);
@@ -2261,7 +2261,7 @@ async function loadSelectedCourseLectures() {
         if (cBadge) cBadge.innerText = data.course_name || selectedCourseName;
         const sInfo = document.getElementById('paymobStudentInfo');
         if (sInfo && document.getElementById('studentName')) {
-            sInfo.innerText = document.getElementById('studentName').innerText + ' (' + (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : '') + ')';
+            sInfo.innerText = document.getElementById('studentName').innerText + ' (' + (document.getElementById('studentCode') ? document.getElementById('studentCode').textContent : '') + ')';
         }
 
         // ════════════════════════════════════════════════
@@ -3866,7 +3866,7 @@ function updateWhatsAppTransferLink() {
     const sNameElem = document.getElementById('studentName');
     const sCodeElem = document.getElementById('studentCode');
     const sName = sNameElem ? sNameElem.innerText.trim() : 'طالب الأكاديمية';
-    const sCode = sCodeElem ? sCodeElem.innerText.trim() : 'MNR';
+    const sCode = sCodeElem ? sCodeElem.textContent.trim() : 'MNR';
     
     const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
     const methodVal = payMethodRadio ? payMethodRadio.value : 'instapay';
@@ -4023,7 +4023,7 @@ function openPaymobModal() {
     const sNameElem = document.getElementById('studentName');
     const sCodeElem = document.getElementById('studentCode');
     if (sInfo && sNameElem) {
-        sInfo.innerText = sNameElem.innerText + (sCodeElem ? ' (' + sCodeElem.innerText + ')' : '');
+        sInfo.innerText = sNameElem.innerText + (sCodeElem ? ' (' + sCodeElem.textContent + ')' : '');
     }
 
     selectRenewalPackage(selectedRenewalPackageId || 'group_4');
@@ -4039,7 +4039,7 @@ function openReceiptModal(receipt) {
     if (!receipt) return;
     document.getElementById('receiptNumber').innerText = receipt.receipt_number || ('REQ-' + Date.now());
     document.getElementById('receiptStudentName').innerText = receipt.student_name || (document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية');
-    document.getElementById('receiptStudentCode').innerText = receipt.student_code || (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : 'MNR');
+    document.getElementById('receiptStudentCode').innerText = receipt.student_code || (document.getElementById('studentCode') ? document.getElementById('studentCode').textContent : 'MNR');
     document.getElementById('receiptCourseName').innerText = receipt.course_name || selectedCourseName;
     
     const rPkg = document.getElementById('receiptPackageName');
@@ -4081,7 +4081,7 @@ async function submitPaymobPayment() {
     btn.disabled = true;
 
     const sName = document.getElementById('studentName') ? document.getElementById('studentName').innerText.trim() : 'طالب الأكاديمية';
-    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').innerText.trim() : 'MNR';
+    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').textContent.trim() : 'MNR';
     const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
     const payMethod = payMethodRadio ? payMethodRadio.value : 'instapay';
     const methodTitle = (payMethod === 'vodafone_cash') ? 'فودافون كاش (01002530197)' : 'إنستا باي (009348060001)';
