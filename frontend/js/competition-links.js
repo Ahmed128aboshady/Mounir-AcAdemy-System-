@@ -14,7 +14,7 @@
     try {
       if (!navigator.clipboard || !window.isSecureContext) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(text);
-      announce(text.includes('\n') ? 'تم نسخ الروابط المعروضة' : 'تم نسخ الرابط بنجاح');
+      announce(text.includes('\n') ? 'تم نسخ روابط فئتك' : 'تم نسخ الرابط بنجاح');
     } catch (_) {
       const dialog = document.getElementById('copyFallback');
       const field = document.getElementById('copyFallbackText');
@@ -106,10 +106,24 @@
   document.querySelectorAll('.sc-card').forEach(card => {
     card.hidden = !card.querySelector('.sc-link:not([hidden])');
   });
-  for (const section of ['live', 'recordings']) {
-    document.querySelector(`.sc-nav-links a[href="#${section}"] span`).textContent =
-      document.querySelectorAll(`#${section} .sc-link:not([hidden])`).length;
+
+  const archives = [...document.querySelectorAll('.sc-archive')];
+  for (const archive of archives) {
+    const count = archive.querySelectorAll('.sc-link:not([hidden])').length;
+    archive.querySelector('.sc-archive-count').textContent = count;
+    archive.hidden = count === 0;
   }
+  for (const kind of ['live', 'recordings']) {
+    const count = document.querySelectorAll(`[data-link-kind="${kind}"] .sc-link:not([hidden])`).length;
+    document.querySelector(`.sc-nav-links a[href="#${kind}"] span`).textContent = count;
+  }
+  function openArchives() {
+    for (const archive of archives) {
+      if (!archive.hidden) archive.open = true;
+    }
+  }
+  document.querySelector('.sc-nav-links a[href="#recordings"]').addEventListener('click', openArchives);
+  if (window.location.hash === '#recordings') openArchives();
 
   // Action Buttons
   document.querySelectorAll('.sc-copy').forEach(button => {
@@ -121,20 +135,14 @@
     if (student?.name) {
       blocks[0] += ` (الروابط المخصصة لـ: ${student.name})`;
     }
-    document.querySelectorAll('.sc-section').forEach(section => {
-      const secTitle = section.querySelector('h2').textContent;
-      const visibleLinks = [];
-      section.querySelectorAll('.sc-card').forEach(card => {
-        const cardTitle = card.querySelector('h3').textContent;
-        card.querySelectorAll('.sc-link').forEach(row => {
-          if (!row.hidden) {
-            visibleLinks.push(`${cardTitle} — ${row.querySelector('h4').textContent}:\n${row.querySelector('.sc-open').href}`);
-          }
-        });
+    document.querySelectorAll('.sc-card').forEach(card => {
+      const rows = [...card.querySelectorAll('.sc-link:not([hidden])')];
+      if (!rows.length) return;
+      const links = rows.map(row => {
+        const kind = row.closest('[data-link-kind]').dataset.linkKind === 'live' ? 'البث المباشر' : 'تسجيل';
+        return `${kind} — ${row.querySelector('h4').textContent}:\n${row.querySelector('.sc-open').href}`;
       });
-      if (visibleLinks.length > 0) {
-        blocks.push('\n' + secTitle + '\n' + visibleLinks.join('\n\n'));
-      }
+      blocks.push('\n' + card.querySelector('h3').textContent + '\n' + links.join('\n\n'));
     });
     copyText(blocks.join('\n'));
   });
