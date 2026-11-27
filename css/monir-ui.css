@@ -224,6 +224,22 @@ body[data-monir-page="student"] .student-header > div:first-child > div:last-chi
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+#topUserInitials {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 2.125rem;
+  block-size: 2.125rem;
+  font-size: .75rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+#topUserName {
+  max-inline-size: clamp(8rem, 18vw, 14rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .student-profile {
   background: #fff;
   color: var(--monir-navy);
@@ -370,6 +386,20 @@ body[data-monir-page="student"] .kpi-stat-card span { font-size: .75rem; }
   font-weight: 800;
 }
 .student-assessments button:hover { background: #d1fae5; }
+.student-video-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  align-items: flex-start;
+  gap: .375rem;
+  margin-block-end: .5rem;
+}
+body[data-monir-page="student"] .student-video-badges > span {
+  flex: 0 0 auto;
+  max-inline-size: 100%;
+  line-height: 1.35;
+  text-align: start;
+}
 @media (min-width: 600px) {
   body[data-monir-page="student"] { padding-bottom: 0; scroll-padding-bottom: 0; }
   body[data-monir-page] .student-profile .profile-body {
@@ -399,6 +429,12 @@ body[data-monir-page="student"] .kpi-stat-card span { font-size: .75rem; }
 }
 @media (min-width: 768px) {
   body[data-monir-page="student"] > main { padding-block: 1.5rem 2rem; }
+  .student-video-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  }
+  .student-video-grid > div { padding-inline: 1rem; }
+  .student-video-grid > div > button { padding-inline: .625rem; }
+  .student-video-badges { min-block-size: 3.125rem; }
   #portalMainColumnsGrid :is(#enrolledCoursesMainSection, #lecturesSection, #certificatesPanel, #detailsPanel) {
     scroll-margin-top: 8rem;
   }
