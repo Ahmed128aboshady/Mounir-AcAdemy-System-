@@ -15,7 +15,7 @@
     <script src="js/meet_manager.js?v=20261012_v4"></script>
     <script src="js/student_genders.js?v=20260922_age1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase_client.js?v=20261127_access"></script>
+    <script src="js/supabase_client.js?v=20261128_scoped"></script>
     <script src="js/api_mock.js?v=20261127_access"></script>
 <script src="js/student_ledger.js?v=20261020_v4"></script>
     <script src="js/teacher_notifications.js?v=20261003_v2"></script>
@@ -166,6 +166,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
+    <link rel="stylesheet" href="css/supervisor-attendance.css?v=20261128">
 </head>
 <body data-monir-page="admin" class="bg-slate-100 text-slate-800 pb-20 overflow-x-hidden min-h-screen">
 
@@ -211,7 +212,7 @@
                 <button type="button" onclick="ensureOpenAndLoadGeneralLecturesAdmin()" class="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="لوحة شرف الأوائل ورصد المحاضرات العامة">
                     <span>المحاضرات والأوائل</span>
                 </button>
-                <button type="button" onclick="ensureOpenAndLoadPayroll()" class="bg-amber-700 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="مستحقات ورواتب المعلمين (حسابات الإشراف)">
+                <button type="button" onclick="ensureOpenAndLoadPayroll()" class="bg-amber-700 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1 cursor-pointer flex-shrink-0" title="مستحقات المعلمين">
                     <span>رواتب المعلمين</span>
                 </button>
                 <button type="button" onclick="exportAllStudentBalancesExcel()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black px-3 py-1 rounded-lg transition shadow-xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer flex-shrink-0" title="تصدير كشف شامل بأرصدة جميع الطلاب Excel">
@@ -509,16 +510,16 @@
         <section class="bg-white rounded-2xl sm:rounded-3xl border-2 border-amber-300 p-4 sm:p-6 shadow-sm space-y-4" id="sectionSupervisorPayroll">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleDashboardSection('supervisorPayrollContent', 'supervisorPayrollToggleBtn', 'supervisorPayrollStateBadge')">
                 <div class="flex items-center gap-3">
-                    <button type="button" id="supervisorPayrollToggleBtn" class="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-amber-100 text-amber-700 flex items-center justify-center transition shadow-sm shrink-0">
+                    <button type="button" id="supervisorPayrollToggleBtn" aria-label="فتح أو طي المستحقات" aria-controls="supervisorPayrollContent" aria-expanded="true" class="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-amber-100 text-amber-700 flex items-center justify-center transition shadow-sm shrink-0">
                         <svg class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div>
                         <div class="flex items-center flex-wrap gap-2 mb-1">
-                            <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-900 transition">مستحقات ورواتب المعلمين (حسابات الإشراف)</h2>
+                            <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-amber-900 transition">مستحقات المعلمين</h2>
                             <span class="text-[10px] font-black text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">خاص بالإشراف فقط</span>
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="supervisorPayrollStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-slate-500">احتساب مالي آلي للحصص المنجزة حسب مدة كل حصة: 15د=25ج | 20د=33ج | 30د=50ج | 60د=100ج</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500">مراجعة الحصص المحتسبة والدفعات والرصيد المتبقي.</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap" onclick="event.stopPropagation()">
@@ -536,7 +537,7 @@
                 <!-- Rates Legend Banner -->
                 <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3 sm:p-4 text-xs">
                     <div class="font-black text-amber-950 mb-1.5 text-xs sm:text-sm">تعرفة الحصص المعتمدة للإشراف:</div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                    <div class="grid supervisor-rates gap-2 text-center">
                         <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
                             <span class="block text-slate-500 text-[11px] font-bold">حصة 15 دقيقة</span>
                             <strong class="text-sm font-black text-slate-900">25 ج.م</strong>
@@ -548,6 +549,10 @@
                         <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
                             <span class="block text-slate-500 text-[11px] font-bold">حصة 30 دقيقة</span>
                             <strong class="text-sm font-black text-slate-900">50 ج.م</strong>
+                        </div>
+                        <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
+                            <span class="block text-slate-500 text-[11px] font-bold">حصة 45 دقيقة</span>
+                            <strong class="text-sm font-black text-slate-900">0 ج.م</strong>
                         </div>
                         <div class="bg-white/90 border border-amber-200/80 rounded-xl p-2 shadow-2xs">
                             <span class="block text-slate-500 text-[11px] font-bold">حصة 60 دقيقة</span>
@@ -578,28 +583,28 @@
 
                 <!-- Quick Search -->
                 <div>
-                    <input type="text" id="payrollSearchInput" oninput="filterPayrollTable()" placeholder="بحث سريع باسم المعلم أو رقم الهاتف..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500">
+                    <input type="text" id="payrollSearchInput" aria-label="البحث في مستحقات المعلمين" oninput="filterPayrollTable()" placeholder="بحث سريع باسم المعلم أو رقم الهاتف..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
 
                 <!-- Payroll Table -->
-                <div class="overflow-x-auto rounded-xl border border-slate-200" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
-                    <table class="w-full text-right text-xs min-w-[880px]">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[11px]">
-                                <th class="p-3">#</th>
-                                <th class="p-3">المعلم</th>
-                                <th class="p-3 text-center">15 د (25ج)</th>
-                                <th class="p-3 text-center">20 د (33ج)</th>
-                                <th class="p-3 text-center">30 د (50ج)</th>
-                                <th class="p-3 text-center">60 د (100ج)</th>
-                                <th class="p-3 text-center">إجمالي الحصص</th>
-                                <th class="p-3 text-center">إجمالي المستحق</th>
-                                <th class="p-3 text-center">المسدد</th>
-                                <th class="p-3 text-center">المتبقي</th>
-                                <th class="p-3 text-center">الإجراء</th>
+                <div class="supervisor-data-region overflow-x-auto rounded-xl border border-slate-200" tabindex="0" role="region" aria-label="كشف مستحقات المعلمين">
+                    <table role="table" class="w-full text-right text-xs min-w-[880px]">
+                        <thead role="rowgroup">
+                            <tr role="row" class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[11px]">
+                                <th scope="col" role="columnheader" class="p-3">#</th>
+                                <th scope="col" role="columnheader" class="p-3">المعلم</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">15 د (25ج)</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">20 د (33ج)</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">30 د (50ج)</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">60 د (100ج)</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">إجمالي الحصص</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">إجمالي المستحق</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">المسدد</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">المتبقي</th>
+                                <th scope="col" role="columnheader" class="p-3 text-center">الإجراء</th>
                             </tr>
                         </thead>
-                        <tbody id="payrollTableBody" class="divide-y divide-slate-100">
+                        <tbody role="rowgroup" id="payrollTableBody" class="divide-y divide-slate-100">
                             <!-- Injected via JS -->
                         </tbody>
                     </table>
@@ -611,16 +616,13 @@
         <section class="bg-white rounded-2xl sm:rounded-3xl border-2 border-emerald-300 p-4 sm:p-6 shadow-sm space-y-4" id="sectionDailyAttendanceMatching">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 cursor-pointer select-none group" onclick="toggleDashboardSection('dailyMatchingContent', 'dailyMatchingToggleBtn', 'dailyMatchingStateBadge')">
                 <div class="flex items-center gap-3">
-                    <button type="button" id="dailyMatchingToggleBtn" class="w-9 h-9 rounded-xl bg-emerald-50 group-hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition shadow-sm shrink-0">
+                    <button type="button" id="dailyMatchingToggleBtn" aria-label="فتح أو طي الحضور اليومي" aria-controls="dailyMatchingContent" aria-expanded="true" class="w-9 h-9 rounded-xl bg-emerald-50 group-hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition shadow-sm shrink-0">
                         <svg class="w-4 h-4 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div>
                         <div class="flex items-center flex-wrap gap-2 mb-1">
-                            <span class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
-                                مطابقة الحضور اليومي الفعلي
-                            </span>
                             <h2 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-emerald-900 transition">
-                                استخراج ومطابقة كشوف الحضور اليومية (Excel)
+                                الحضور اليومي
                             </h2>
                             <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md" id="dailyMatchingDateBadge">
                                 اليوم: جاري التحميل...
@@ -631,9 +633,6 @@
                             </span>
                             <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full" id="dailyMatchingStateBadge">قائمة قابلة للطي (اضغط للفتح)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-slate-500">
-                            تقرير يومي تلقائي لمطابقة حضور المنصة بالحضور الفعلي حتى نهاية الشهر، مع تصدير فوري لملف Excel كامل بنقرة واحدة
-                        </p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap" onclick="event.stopPropagation()">
@@ -657,11 +656,11 @@
                 <div class="flex items-center gap-2 border-b border-slate-200 pb-2 flex-wrap">
                     <button type="button" id="tabBtnDailyMatching" onclick="switchDailyAttendanceTab('matching')" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-emerald-600 text-white shadow-xs">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        <span>كشف الحضور اليومي والمطابقة</span>
+                        <span>كشف الحضور</span>
                     </button>
                     <button type="button" id="tabBtnFrequentAbsence" onclick="switchDailyAttendanceTab('frequent')" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700">
                         <span></span>
-                        <span>رادار الغيابات المتكررة (إنذار المتابعة)</span>
+                        <span>الغياب المتكرر</span>
                         <span id="tabFrequentAbsenceBadge" class="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
                     </button>
                 </div>
@@ -675,7 +674,7 @@
                             <div class="lg:col-span-2">
                                 <label class="block font-bold text-slate-700 mb-1 text-[11px]">اختر اليوم أو تاريخ الكشف:</label>
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                    <input type="date" id="dailyMatchingDatePicker" onchange="loadDailyAttendanceMatchingData()" class="bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 w-36">
+                                    <input type="date" id="dailyMatchingDatePicker" aria-label="تاريخ الحضور" onchange="loadDailyAttendanceMatchingData()" class="bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 w-36">
                                     <div class="flex items-center gap-1 flex-wrap" id="dailyMatchingDayPills">
                                         <button type="button" onclick="setDailyMatchingDay('today')" data-day="today" class="day-pill bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">اليوم</button>
                                         <button type="button" onclick="setDailyMatchingDay('yesterday')" data-day="yesterday" class="day-pill bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold px-2 py-1 rounded-lg text-[10px] cursor-pointer">أمس</button>
@@ -693,7 +692,7 @@
                             <!-- Teacher Filter -->
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1 text-[11px]">تصفية بالمعلم:</label>
-                                <select id="dailyMatchingTeacherFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                                <select id="dailyMatchingTeacherFilter" aria-label="المعلم" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
                                     <option value="">جميع المعلمين (الكل)</option>
                                 </select>
                             </div>
@@ -701,8 +700,8 @@
                             <!-- Status Filter -->
                             <div>
                                 <label class="block font-bold text-slate-700 mb-1 text-[11px]">حالة الحضور:</label>
-                                <select id="dailyMatchingStatusFilter" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
-                                    <option value="">الكل (حاضر + غائب + بعذر + مؤجلة + لم يُرصد)</option>
+                                <select id="dailyMatchingStatusFilter" aria-label="حالة الحضور" onchange="renderDailyAttendanceMatchingTable()" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="">جميع الحالات</option>
                                     <option value="entered_unrecorded">تنبيهات: دخل القاعة ولم يرصده المعلم بعد</option>
                                     <option value="entered_all">الطلاب الذين دخلوا القاعة اليوم (الكل)</option>
                                     <option value="present">حاضر فقط</option>
@@ -717,17 +716,17 @@
                         <!-- Quick Search Row -->
                         <div class="flex flex-col sm:flex-row items-center gap-2">
                             <div class="flex-1 w-full">
-                                <input type="text" id="dailyMatchingSearchInput" oninput="renderDailyAttendanceMatchingTable()" placeholder=" بحث سريع باسم الطالب، الكود (ST..)، رقم الهاتف، المعلم، أو المجموعة..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
+                                <input type="text" id="dailyMatchingSearchInput" aria-label="البحث في الحضور" oninput="renderDailyAttendanceMatchingTable()" placeholder="اسم الطالب، الكود أو المجموعة" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
                             </div>
                             <button type="button" onclick="openCompensationModal()" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black px-3.5 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition cursor-pointer flex-shrink-0">
                                 <span class="text-sm font-black">+</span>
-                                <span>تسجيل جلسة تعويضية</span>
+                                <span>تسجيل حصة تعويضية</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- KPI Summary Chips (مع رادار الدخول الفعلي وتنبيهات المعلمين) -->
-                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 text-center text-xs">
                         <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2 sm:p-2.5">
                             <div class="text-sm sm:text-lg font-black text-emerald-900" id="dailyMatchingStatPresent">0</div>
                             <div class="text-slate-500 font-bold text-[10px]">الحاضرون بالمنصة</div>
@@ -755,24 +754,24 @@
                     </div>
 
                     <!-- Matching Table Area -->
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200" tabindex="0" role="region" aria-label="جدول البيانات، يمكن تمريره أفقياً">
-                        <table class="w-full text-right text-xs">
-                            <thead class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
-                                <tr>
-                                    <th class="p-2.5 text-center">#</th>
-                                    <th class="p-2.5 whitespace-nowrap">كود الطالب</th>
-                                    <th class="p-2.5 whitespace-nowrap">اسم الطالب</th>
-                                    <th class="p-2.5 whitespace-nowrap">رقم ولي الأمر</th>
-                                    <th class="p-2.5 whitespace-nowrap">المعلم</th>
-                                    <th class="p-2.5 whitespace-nowrap">المجموعة والموعد</th>
-                                    <th class="p-2.5 whitespace-nowrap text-center">حالة المنصة</th>
-                                    <th class="p-2.5 whitespace-nowrap">وقت التسجيل</th>
-                                    <th class="p-2.5">الورد القرآني والتقييم</th>
-                                    <th class="p-2.5 whitespace-nowrap text-center">المطابقة الفعلية للإشراف</th>
-                                    <th class="p-2.5 text-center whitespace-nowrap">إجراءات</th>
+                    <div class="supervisor-data-region overflow-x-auto rounded-2xl border border-slate-200" tabindex="0" role="region" aria-label="كشف الحضور اليومي">
+                        <table role="table" class="w-full text-right text-xs">
+                            <thead role="rowgroup" class="bg-slate-50 text-slate-700 font-black border-b border-slate-200 text-[10px]">
+                                <tr role="row">
+                                    <th scope="col" role="columnheader" class="p-2.5 text-center">#</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap">كود الطالب</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap">اسم الطالب</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap">رقم ولي الأمر</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap">المعلم</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap">المجموعة والموعد</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap text-center">حالة المنصة</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap">وقت التسجيل</th>
+                                    <th scope="col" role="columnheader" class="p-2.5">الورد القرآني والتقييم</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 whitespace-nowrap text-center">المطابقة الفعلية للإشراف</th>
+                                    <th scope="col" role="columnheader" class="p-2.5 text-center whitespace-nowrap">إجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody id="dailyMatchingTableBody" class="divide-y divide-slate-100">
+                            <tbody role="rowgroup" id="dailyMatchingTableBody" class="divide-y divide-slate-100">
                                 <tr>
                                     <td colspan="12" class="text-center py-8 text-slate-400 font-bold">
                                         جاري تحميل بيانات المطابقة...
@@ -782,23 +781,10 @@
                         </table>
                     </div>
 
-                    <!-- Action Footer -->
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 text-xs">
-                        <span class="text-[11px] text-slate-500">
-                            ملاحظة للإشراف: يمكنك الضغط على "تصدير Excel (.xls)" لتنزيل الملف مباشرة بتنسيق Microsoft Excel بالألوان والبيانات الكاملة، أو تصدير CSV.
-                        </span>
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="printDailyAttendanceMatchingReport()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer">
-                                طباعة الكشف
-                            </button>
-                            <button type="button" onclick="exportDailyAttendanceMatchingExcel('xls')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                <span>تصدير Excel (.xls)</span>
-                            </button>
-                            <button type="button" onclick="exportDailyAttendanceMatchingExcel('csv')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-xs cursor-pointer">
-                                تصدير CSV
-                            </button>
-                        </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="printDailyAttendanceMatchingReport()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer">
+                            طباعة الكشف
+                        </button>
                     </div>
                 </div>
 
@@ -3665,7 +3651,11 @@
                         ? window.MONIR_SUPABASE_CONFIG
                         : { url: 'https://chwhrxquvaiskdsthips.supabase.co', anonKey: 'sb_publishable_EEpE3k9qqqWSpACYFD0wLw_77C-fYYP' };
                     
-                    const headers = { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey };
+                    const scopedAttendance = cfg.scopedAttendanceAuth === true;
+                    const session = scopedAttendance ? await MonirDB.getClient().auth.getSession() : null;
+                    const token = scopedAttendance ? session?.data?.session?.access_token : cfg.anonKey;
+                    if (!token) throw new Error('سجّل الدخول بحساب الإشراف لعرض المستحقات.');
+                    const headers = { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + token };
 
                     async function fetchSupabaseDirect(table, select, extra = '') {
                         let rows = [];
@@ -3689,7 +3679,8 @@
                         fetchSupabaseDirect('teachers', 'id,name,phone'),
                         fetchSupabaseDirect('enrollments', 'student_id,teacher_id,course_name', 'order=id'),
                         fetchSupabaseDirect('attendance', 'student_id,course_name,joined_at,duration_minutes,status', 'status=in.(present,attended,late)&order=id'),
-                        fetchSupabaseDirect('teacher_payouts', 'teacher_id,amount').catch(() => [])
+                        fetchSupabaseDirect('teacher_payouts', 'teacher_id,amount', 'order=id')
+                            .catch(error => { if (scopedAttendance) throw error; return []; })
                     ]);
 
                     const enrollmentsByTeacher = new Map();
@@ -3834,29 +3825,29 @@
                 const safeName = (t.name || '').replace(/'/g, "\\'");
 
                 return `
-                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                        <td class="p-3 text-slate-400 font-mono font-bold text-center">${idx + 1}</td>
-                        <td class="p-3">
+                    <tr role="row" class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td role="cell" data-row-number class="p-3 text-slate-400 font-mono font-bold text-center">${idx + 1}</td>
+                        <td role="cell" data-label="المعلم" data-wide class="p-3">
                             <strong class="text-slate-900 block font-bold text-xs sm:text-sm">${t.name}</strong>
                             <span class="text-slate-400 font-mono text-[11px]">${t.phone || '—'}</span>
                         </td>
-                        <td class="p-3 text-center font-mono font-bold ${s15 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s15}</td>
-                        <td class="p-3 text-center font-mono font-bold ${s20 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s20}</td>
-                        <td class="p-3 text-center font-mono font-bold ${s30 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s30}</td>
-                        <td class="p-3 text-center font-mono font-bold ${s60 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s60}</td>
-                        <td class="p-3 text-center font-mono font-black text-blue-900 text-xs sm:text-sm">
+                        <td role="cell" data-label="١٥ دقيقة" class="p-3 text-center font-mono font-bold ${s15 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s15}</td>
+                        <td role="cell" data-label="٢٠ دقيقة" class="p-3 text-center font-mono font-bold ${s20 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s20}</td>
+                        <td role="cell" data-label="٣٠ دقيقة" class="p-3 text-center font-mono font-bold ${s30 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s30}</td>
+                        <td role="cell" data-label="٦٠ دقيقة" class="p-3 text-center font-mono font-bold ${s60 > 0 ? 'text-slate-900 bg-slate-50/50' : 'text-slate-300'}">${s60}</td>
+                        <td role="cell" data-label="إجمالي الحصص" class="p-3 text-center font-mono font-black text-blue-900 text-xs sm:text-sm">
                             ${totalSessions}
                             ${zeroRateSessions ? `<small class="block text-slate-600">٤٥ دقيقة: ${zeroRateSessions} بسعر صفر</small>` : ''}
                             ${needsReview ? `<small class="block text-amber-800">${needsReview} للمراجعة</small>` : ''}
                         </td>
-                        <td class="p-3 text-center font-mono font-bold text-slate-900">${earned.toLocaleString()} ج.م</td>
-                        <td class="p-3 text-center font-mono text-slate-600">${paid.toLocaleString()} ج.م</td>
-                        <td class="p-3 text-center">
+                        <td role="cell" data-label="المستحق" class="p-3 text-center font-mono font-bold text-slate-900">${earned.toLocaleString()} ج.م</td>
+                        <td role="cell" data-label="المسدد" class="p-3 text-center font-mono text-slate-600">${paid.toLocaleString()} ج.م</td>
+                        <td role="cell" data-label="المتبقي" class="p-3 text-center">
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-mono inline-block ${balBadgeClass}">
                                 ${bal.toLocaleString()} ج.م
                             </span>
                         </td>
-                        <td class="p-3 text-center">
+                        <td role="cell" data-wide class="p-3 text-center">
                             <button type="button" onclick="openSettleModal(${t.teacher_id}, '${safeName}', ${bal}, ${totalSessions})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black px-2.5 py-1 rounded-lg text-[11px] transition cursor-pointer shadow-2xs">
                                 تسوية دفعة
                             </button>
@@ -4028,7 +4019,7 @@
                 <body dir="rtl">
                     <table>
                         <tr>
-                            <td colspan="12" class="title-row" style="padding:14px;">أكاديمية منير — كشف مستحقات ورواتب المعلمين (حسابات الإشراف)</td>
+                            <td colspan="12" class="title-row" style="padding:14px;">أكاديمية منير — كشف مستحقات المعلمين</td>
                         </tr>
                         <tr>
                             <td colspan="12" class="subtitle-row" style="padding:8px;">تعرفة الحصص المعتمدة: 15 دقيقة = 25 ج.م | 20 دقيقة = 33 ج.م | 30 دقيقة = 50 ج.م | 60 دقيقة = 100 ج.م — تاريخ الاستخراج: ${todayStr}</td>
@@ -4118,6 +4109,7 @@
             const isHidden = content.classList.contains('hidden');
             const btn = btnId ? document.getElementById(btnId) : null;
             const badge = badgeId ? document.getElementById(badgeId) : null;
+            if (btn?.hasAttribute('aria-expanded')) btn.setAttribute('aria-expanded', String(isHidden));
             
             if (isHidden) {
                 content.classList.remove('hidden');
@@ -4266,12 +4258,13 @@
 
             const exportBtnLabel = document.getElementById('dailyMatchingExportBtnLabel');
             if (exportBtnLabel) {
-                exportBtnLabel.innerText = `تصدير كشف (${curDay.name} ${dailyMatchingSelectedDate}) Excel`;
+                exportBtnLabel.textContent = 'تصدير Excel';
             }
 
             // 1. Instant Cache retrieval
-            let studentsList = window._monirDailyStudentsCache || [];
-            let allTeachersList = window._monirAllTeachersCache || [];
+            const scopedAttendance = window.MonirDB?.requiresAttendanceAuth?.() === true;
+            let studentsList = scopedAttendance ? [] : window._monirDailyStudentsCache || [];
+            let allTeachersList = scopedAttendance ? [] : window._monirAllTeachersCache || [];
 
             // If not cached, fetch directly from Supabase in parallel (under 0.5s)
             if (studentsList.length === 0 && window.MonirDB && window.MonirDB.isConfigured()) {
@@ -4285,8 +4278,12 @@
                         while (true) {
                             const from = page * pageSize;
                             const to = from + pageSize - 1;
-                            const { data, error } = await client.from(tableName).select(selectFields).range(from, to);
-                            if (error || !data || data.length === 0) break;
+                            const request = tableName
+                                ? client.from(tableName).select(selectFields).order('id')
+                                : client.rpc('supervisor_portal_attendance_students').order('id');
+                            const { data, error } = await request.range(from, to);
+                            if (error) throw error;
+                            if (!data || data.length === 0) break;
                             all.push(...data);
                             if (data.length < pageSize) break;
                             page++;
@@ -4295,7 +4292,7 @@
                     }
 
                     const [sData, eData, tData] = await Promise.all([
-                        fetchAllRowsFromDb('students', '*'),
+                        scopedAttendance ? fetchAllRowsFromDb(null, null) : fetchAllRowsFromDb('students', '*'),
                         fetchAllRowsFromDb('enrollments', '*'),
                         fetchAllRowsFromDb('teachers', 'id, name')
                     ]);
@@ -4350,15 +4347,21 @@
                                 };
                             });
                         });
-                        window._monirDailyStudentsCache = studentsList;
-                        window.bsAllStudents = studentsList;
+                        if (!scopedAttendance) {
+                            window._monirDailyStudentsCache = studentsList;
+                            window.bsAllStudents = studentsList;
+                        }
                     }
                 } catch(e) {
                     console.error('[Attendance Match Loader]', e);
+                    if (scopedAttendance) {
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="11" class="p-4 font-bold text-red-800">تعذّر تحميل الحضور. سجّل الدخول بحساب الإشراف وحاول مرة أخرى.</td></tr>';
+                        return;
+                    }
                 }
             }
 
-            if (studentsList.length === 0 && Array.isArray(window.schedAllGroups) && window.schedAllGroups.length > 0) {
+            if (!scopedAttendance && studentsList.length === 0 && Array.isArray(window.schedAllGroups) && window.schedAllGroups.length > 0) {
                 window.schedAllGroups.forEach(g => {
                     (g.students || []).forEach(s => {
                         studentsList.push({
@@ -4772,38 +4775,38 @@
                 ` : '';
 
                 return `
-                    <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
-                        <td class="p-2.5 text-center text-slate-400 font-bold font-mono text-[11px]">${idx + 1}</td>
-                        <td class="p-2.5 font-mono font-bold text-slate-800 text-[11px]">${r.student_code}</td>
-                        <td class="p-2.5 font-bold text-slate-900">
+                    <tr role="row" class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
+                        <td role="cell" data-row-number class="p-2.5 text-center text-slate-400 font-bold font-mono text-[11px]">${idx + 1}</td>
+                        <td role="cell" data-label="كود الطالب" class="p-2.5 font-mono font-bold text-slate-800 text-[11px]">${r.student_code}</td>
+                        <td role="cell" data-label="الطالب" data-student-name class="p-2.5 font-bold text-slate-900">
                             <div class="flex items-center gap-1 flex-wrap">
                                 <span>${r.name}</span>
                                 ${(r.absent_count >= 2) ? `<span class="bg-red-100 text-red-800 border border-red-300 font-extrabold text-[9px] px-1.5 py-0.2 rounded inline-flex items-center gap-0.5" title="تنبيه: الطالب لديه ${r.absent_count} مرات غياب مسجلة">️ ${r.absent_count} غياب</span>` : ''}
                             </div>
                         </td>
-                        <td class="p-2.5 text-slate-600 font-mono text-[11px]">
+                        <td role="cell" data-label="ولي الأمر" class="p-2.5 text-slate-600 font-mono text-[11px]">
                             ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-700 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1" title="فتح محادثة واتساب"><span></span><span>${r.phone}</span></a>` : r.phone}
                         </td>
-                        <td class="p-2.5 font-bold text-slate-800">
+                        <td role="cell" data-label="المعلم" class="p-2.5 font-bold text-slate-800">
                             <div>${r.teacher_name}</div>
                             ${(() => {
                                 const sub = (typeof getGroupSubstitution === 'function') ? getGroupSubstitution(r.group_id, dailyMatchingSelectedDate) : null;
                                 return sub ? `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded text-[10px] block mt-0.5">بديل اليوم: ${sub.substitute_teacher_name}</span>` : '';
                             })()}
                         </td>
-                        <td class="p-2.5">
+                        <td role="cell" data-label="المجموعة والموعد" class="p-2.5">
                             <div class="flex items-center gap-1 flex-wrap">
                                 <span class="bg-slate-100 text-slate-700 font-mono font-bold px-1.5 py-0.5 rounded text-[10px]">${r.group_id}</span>
                                 <span class="text-slate-500 text-[10px]">${r.lecture_time}</span>
                                 <span class="w-full text-slate-700 font-bold text-[10px]">${r.course_name || ''}</span>
                             </div>
                         </td>
-                        <td class="p-2.5 text-center">${statusBadge}</td>
-                        <td class="p-2.5 text-slate-500 text-[10px] font-mono">${r.recorded_at}</td>
-                        <td class="p-2.5 text-slate-700 text-[11px] max-w-[140px] truncate" title="${formatSurahForDisplay(r.surah, r.current_aya)}">
+                        <td role="cell" data-label="حالة الحضور" data-attendance-status class="p-2.5 text-center">${statusBadge}</td>
+                        <td role="cell" data-label="وقت التسجيل" class="p-2.5 text-slate-500 text-[10px] font-mono">${r.recorded_at}</td>
+                        <td role="cell" data-label="الورد والتقييم" class="p-2.5 text-slate-700 text-[11px] max-w-[140px] truncate" title="${formatSurahForDisplay(r.surah, r.current_aya)}">
                             <span class="bg-emerald-50/80 text-emerald-900 border border-emerald-200/60 px-1.5 py-0.5 rounded text-[10px] font-bold block truncate">${formatSurahForDisplay(r.surah, r.current_aya)}</span>
                         </td>
-                        <td class="p-2.5 text-center">
+                        <td role="cell" data-label="المراجعة" data-wide class="p-2.5 text-center">
                             ${(() => {
                                 let badge = '';
                                 if (r.entered_meet) {
@@ -4823,15 +4826,15 @@
                                 }
                                 return badge;
                             })()}
-                            <select onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value, ${r.enrollment_id || 'null'})" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
+                            <select aria-label="مراجعة حالة الحضور" onchange="updateSupervisorManualMatch(${r.student_id}, '${dailyMatchingSelectedDate}', this.value, ${r.enrollment_id || 'null'})" class="bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-[10px] font-bold outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer">
                                 <option value="" ${matchSelected === '' ? 'selected' : ''}>— تدقيق يدوي —</option>
                                 <option value="matched" ${matchSelected === 'matched' ? 'selected' : ''}>مطابق فعلياً</option>
                                 <option value="discrepant" ${matchSelected === 'discrepant' ? 'selected' : ''}>به اختلاف</option>
                                 <option value="manual_excused" ${matchSelected === 'manual_excused' ? 'selected' : ''}>عذر معتمد</option>
                             </select>
                         </td>
-                        <td class="p-2.5 text-center">
-                            <div class="flex items-center justify-center gap-1">
+                        <td role="cell" data-label="إجراءات" data-wide class="p-2.5 text-center">
+                            <div class="supervisor-actions flex items-center justify-center gap-1">
                                 ${waLink ? `<a href="${waLink}" target="_blank" class="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition" title="واتساب"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg></a>` : ''}
                                 <button type="button" onclick="showStudentFullLedgerModal(${r.student_id})" class="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="سجل الطالب"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button>
                                 ${undoBtn}
@@ -4840,6 +4843,13 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        function saveSupervisorAttendance(client, params) {
+            if (window.MonirDB?.requiresAttendanceAuth?.()) {
+                return client.rpc('supervisor_portal_record_attendance', params);
+            }
+            return client.rpc('apply_staff_course_attendance', { ...params, p_source: 'supervisor' });
         }
 
         async function recordOfficialAttendanceFromAdmin(studentId, studentCode, encodedName, dateStr, status, enrollmentId, isCompensation = false) {
@@ -4872,12 +4882,11 @@
                     .select('id, group_id, course_name').eq('id', enrollmentId).eq('student_id', studentId).single();
                 if (enrollmentError || !enr?.course_name) throw enrollmentError || new Error('لم يتم العثور على الاشتراك المحدد.');
                 const activeSub = (typeof getGroupSubstitution === 'function') ? getGroupSubstitution(enr.group_id, dateStr) : null;
-                const { data, error } = await client.rpc('apply_staff_course_attendance', {
+                const { data, error } = await saveSupervisorAttendance(client, {
                     p_student_id: studentId,
                     p_enrollment_id: enrollmentId,
                     p_day: dateStr,
                     p_status: status,
-                    p_source: 'supervisor',
                     p_compensation: isCompensation,
                     p_substitute_name: activeSub?.substitute_teacher_name || null
                 });
@@ -4943,12 +4952,11 @@
                 if (!window.MonirDB || !window.MonirDB.isConfigured()) return;
                 const client = window.MonirDB.getClient();
 
-                const { data, error } = await client.rpc('apply_staff_course_attendance', {
+                const { data, error } = await saveSupervisorAttendance(client, {
                     p_student_id: studentId,
                     p_enrollment_id: enrollmentId,
                     p_day: dateStr,
                     p_status: currentStatus,
-                    p_source: 'supervisor',
                     p_undo_id: attendanceId
                 });
                 if (error || !data) throw error || new Error('تعذّر التراجع عن سجل الحضور.');
@@ -7794,23 +7802,19 @@
             } catch(e) {}
         });
 
-        function handleAdminLogout() {
-            if (window.MonirPopup) {
-                window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من لوحة الإدارة المركزية؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
-                    .then(confirmed => {
-                        if (confirmed) {
-                            localStorage.removeItem('monir_current_user');
-                            localStorage.removeItem('monir_auth_token');
-                            localStorage.removeItem('monir_admin_session_epoch');
-                            window.location.href = 'admin-login.html';
-                        }
-                    });
-            } else if (confirm("هل ترغب في تسجيل الخروج من لوحة الإدارة؟")) {
-                localStorage.removeItem('monir_current_user');
-                localStorage.removeItem('monir_auth_token');
-                localStorage.removeItem('monir_admin_session_epoch');
-                window.location.href = 'admin-login.html';
+        async function handleAdminLogout() {
+            const confirmed = window.MonirPopup
+                ? await window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من لوحة الإدارة المركزية؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
+                : confirm('هل ترغب في تسجيل الخروج من لوحة الإدارة؟');
+            if (!confirmed) return;
+            if (window.MonirDB?.requiresAttendanceAuth?.()) {
+                const { error } = await window.MonirDB.getClient().auth.signOut();
+                if (error) return alert('تعذّر إنهاء جلسة الدخول. حاول مرة أخرى.');
             }
+            localStorage.removeItem('monir_current_user');
+            localStorage.removeItem('monir_auth_token');
+            localStorage.removeItem('monir_admin_session_epoch');
+            window.location.href = 'admin-login.html';
         }
 
         // ══════════════════════════════════════════════════════════════════

@@ -56,22 +56,19 @@ function initStudentPage() {
                 authBtn.innerHTML = `<span class="hidden sm:inline">تسجيل الخروج (${name})</span><span class="sm:hidden text-[11px]">خروج</span>`;
                 authBtn.title = 'تسجيل الخروج (' + name + ')';
                 authBtn.className = 'text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2 sm:px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 shrink-0';
-                authBtn.onclick = (e) => {
+                authBtn.onclick = async (e) => {
                     e.preventDefault();
-                    if (window.MonirPopup) {
-                        window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من حسابك؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
-                            .then(confirmed => {
-                                if (confirmed) {
-                                    localStorage.removeItem('monir_current_user');
-                                    localStorage.removeItem('monir_auth_token');
-                                    window.location.href = 'login.html';
-                                }
-                            });
-                    } else if (confirm('هل ترغب في تسجيل الخروج؟')) {
-                        localStorage.removeItem('monir_current_user');
-                        localStorage.removeItem('monir_auth_token');
-                        window.location.href = 'login.html';
+                    const confirmed = window.MonirPopup
+                        ? await window.MonirPopup.confirm('هل ترغب في تسجيل الخروج من حسابك؟', 'تسجيل الخروج', 'question', 'نعم، تسجيل الخروج', 'إلغاء')
+                        : confirm('هل ترغب في تسجيل الخروج؟');
+                    if (!confirmed) return;
+                    if (window.MonirDB?.requiresAttendanceAuth?.()) {
+                        const { error } = await window.MonirDB.getClient().auth.signOut();
+                        if (error) return alert('تعذّر إنهاء جلسة الدخول. حاول مرة أخرى.');
                     }
+                    localStorage.removeItem('monir_current_user');
+                    localStorage.removeItem('monir_auth_token');
+                    window.location.href = 'login.html';
                 };
             }
         } catch(e) {}
@@ -286,6 +283,7 @@ async function loadStudentProfile() {
         }
 
         if (!data || !data.student) {
+            if (window.MonirDB?.requiresAttendanceAuth?.()) throw new Error('تعذّر تحميل حساب الطالب.');
             const res = await fetch('/api/student/' + encodeURIComponent(lookupKey));
             data = await res.json();
         }
@@ -3053,10 +3051,10 @@ async function executeClassroomJoin(url, courseName) {
         if (classroomTab) classroomTab.opener = null;
 
         if (!window.MonirDB?.isConfigured()) throw new Error('Attendance service unavailable');
-        const { data, error } = await window.MonirDB.getClient().rpc('record_student_classroom_entry', {
-            p_student_id: student.id,
-            p_course_name: courseName
-        });
+        const client = window.MonirDB.getClient();
+        const { data, error } = window.MonirDB.requiresAttendanceAuth?.()
+            ? await client.rpc('student_portal_classroom_entry', { p_course_name: courseName })
+            : await client.rpc('record_student_classroom_entry', { p_student_id: student.id, p_course_name: courseName });
         if (error || !data) throw error || new Error('Attendance was not confirmed');
 
         confirmedClassroomPasses.set(courseName, getMonirLocalDateStr());

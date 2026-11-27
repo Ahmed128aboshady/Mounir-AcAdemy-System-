@@ -29,7 +29,7 @@
                 console.log('[Supabase Cloud] Connected successfully to:', cfg.url);
                 // Trigger background silent sync of database
                 setTimeout(() => {
-                    if (!cfg.teacherAuth && window.MonirDB && window.MonirDB.syncFromCloud) {
+                    if (!cfg.teacherAuth && !cfg.scopedAttendanceAuth && window.MonirDB && window.MonirDB.syncFromCloud) {
                         window.MonirDB.syncFromCloud();
                     }
                 }, 500);
@@ -42,6 +42,21 @@
     window.MonirDB = {
         requiresTeacherAuth: function() {
             return getCfg()?.teacherAuth === true;
+        },
+        requiresAttendanceAuth: function() {
+            return getCfg()?.scopedAttendanceAuth === true;
+        },
+        loginAttendanceAccount: async function(email, password, role) {
+            const client = this.getClient();
+            if (!client) throw new Error('خدمة تسجيل الدخول غير متاحة.');
+            const { data: account, error: authError } = await client.auth.signInWithPassword({ email, password });
+            if (authError || !account?.user) throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+            const { data: profile, error } = await client.rpc('attendance_portal_identity', { p_role: role });
+            if (error || !profile) {
+                await client.auth.signOut();
+                throw new Error('حساب الدخول غير مربوط بالبوابة المطلوبة.');
+            }
+            return { ...profile, username: account.user.email, full_name: profile.full_name || 'مشرف الأكاديمية' };
         },
 
         getVerifiedTeacher: async function() {
@@ -261,6 +276,7 @@
                 const idStr = String(studentId || '').trim();
                 if (!idStr) return null;
 
+                const scopedAttendance = this.requiresAttendanceAuth();
                 const isPureNumber = /^\d+$/.test(idStr);
                 const numId = isPureNumber ? parseInt(idStr, 10) : null;
                 
@@ -268,7 +284,7 @@
                 let localEnrs = [];
                 
                 // 1. Resolve local record if available
-                if (window.DEFAULT_DB && window.DEFAULT_DB.students) {
+                if (!scopedAttendance && window.DEFAULT_DB && window.DEFAULT_DB.students) {
                     localSt = window.DEFAULT_DB.students.find(s => 
                         (s.student_code && s.student_code.toLowerCase() === idStr.toLowerCase()) ||
                         (numId !== null && s.id === numId)
@@ -276,7 +292,7 @@
                 }
 
                 // If not found in local DB yet, check active session
-                if (!localSt) {
+                if (!scopedAttendance && !localSt) {
                     try {
                         const uStr = localStorage.getItem('monir_current_user');
                         if (uStr) {
@@ -292,7 +308,12 @@
                 let stData = null;
                 let enrData = null;
 
-                if (client) {
+                if (client && scopedAttendance) {
+                    const { data, error } = await client.rpc('student_portal_attendance_profile');
+                    if (error || !data?.student) return null;
+                    stData = data.student;
+                    enrData = data.enrollments;
+                } else if (client) {
                     // Try student_code (case-insensitive)
                     try {
                         const { data: byCode, error: cErr } = await client
@@ -378,7 +399,7 @@
                     stData.account_status = stData.status === 'active' ? 'نشط' : (stData.status === 'inactive' ? 'موقوف' : (stData.account_status || 'نشط'));
                 } else {
                     stData.group_id = groupIdFromDB;
-                    stData.account_status = stData.status === 'active' ? 'نشط' : (stData.status === 'inactive' ? 'موقوف' : 'نشط');
+                    stData.account_status = stData.status === 'active' ? 'نشط' : (stData.status === 'inactive' ? 'موقوف' : (stData.account_status || 'نشط'));
                 }
 
                 let enrichedEnr = [];

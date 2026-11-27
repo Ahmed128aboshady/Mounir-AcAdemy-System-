@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/custom.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="js/popup.js"></script>
-    <script src="js/supabase_client.js"></script>
+    <script src="js/supabase_client.js?v=20261128_scoped"></script>
     <script src="js/api_mock.js?v=20260910_auth4"></script>
     <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
 </head>
@@ -112,7 +112,9 @@
         async function handleAdminLogin(e) {
             e.preventDefault();
             const username = document.getElementById('adminUsername').value.trim();
-            const password = document.getElementById('adminPassword').value.trim();
+            const scopedAttendance = window.MonirDB?.requiresAttendanceAuth?.();
+            const enteredPassword = document.getElementById('adminPassword').value;
+            const password = scopedAttendance ? enteredPassword : enteredPassword.trim();
             const alertBox = document.getElementById('adminAlert');
             const btn = document.getElementById('adminSubmitBtn');
             alertBox.classList.add('hidden');
@@ -121,6 +123,14 @@
             btn.innerText = 'جاري التحقق من الصلاحيات...';
 
             try {
+                if (scopedAttendance) {
+                    const user = await window.MonirDB.loginAttendanceAccount(username, password, 'admin');
+                    localStorage.setItem('monir_admin_session_epoch', '20261025_session_v2');
+                    localStorage.setItem('monir_current_user', JSON.stringify(user));
+                    localStorage.removeItem('monir_auth_token');
+                    window.location.href = 'admin.html';
+                    return;
+                }
                 if (window.MonirDB && window.MonirDB.isConfigured()) {
                     try {
                         const sbRes = await window.MonirDB.login(username, password, 'admin');

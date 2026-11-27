@@ -1,0 +1,86 @@
+body[data-monir-page="admin"] .supervisor-data-region {
+    max-inline-size: 100%;
+    scroll-margin-block-start: 1rem;
+}
+
+.supervisor-data-region :is(button, a[role="button"]) {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+}
+
+.supervisor-data-region .supervisor-actions {
+    flex-wrap: wrap;
+}
+
+.supervisor-rates {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
+}
+
+@media (max-width: 1199px) {
+    body[data-monir-page="admin"] .supervisor-data-region {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+    }
+
+    body[data-monir-page="admin"] .supervisor-data-region > table {
+        display: block;
+        min-inline-size: 0;
+    }
+
+    .supervisor-data-region thead {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    .supervisor-data-region tbody {
+        display: grid;
+        gap: .75rem;
+    }
+
+    .supervisor-data-region tbody > tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .75rem;
+        padding: .875rem;
+        border: 1px solid #dce5e9;
+        border-radius: 1rem;
+        background: white;
+    }
+
+    body[data-monir-page="admin"] .supervisor-data-region td {
+        display: block;
+        min-inline-size: 0;
+        max-inline-size: none;
+        padding: 0;
+        text-align: start;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .supervisor-data-region td[data-label]::before {
+        display: block;
+        margin-block-end: .125rem;
+        color: #526579;
+        font-size: .75rem;
+        font-weight: 700;
+        content: attr(data-label);
+    }
+
+    .supervisor-data-region td:is([colspan], [data-wide]) { grid-column: 1 / -1; }
+    body[data-monir-page="admin"] .supervisor-data-region td[data-row-number] { display: none; }
+    .supervisor-data-region .supervisor-actions { justify-content: flex-start; }
+    .supervisor-data-region [data-attendance-status] .flex { flex-wrap: wrap; }
+}
+
+@media (max-width: 359px) {
+    .supervisor-data-region [data-attendance-status] { grid-column: 1 / -1; }
+}
+
+@media (min-width: 640px) and (max-width: 1199px) {
+    .supervisor-data-region tbody > tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .supervisor-data-region [data-student-name] { grid-column: span 2; }
+}
