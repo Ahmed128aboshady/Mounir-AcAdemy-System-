@@ -426,8 +426,6 @@ async function loadStudentProfile() {
             const groupCodeEl = document.getElementById('groupCode');
             if (groupCodeEl) groupCodeEl.innerText = grpId;
 
-            const accBadgeEl = document.getElementById('accountStatusBadge');
-            if (accBadgeEl) accBadgeEl.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
 
             // Clean Parent Name Extraction for Compound Arabic Names
             let safeParentName = s.parent_name;
@@ -491,7 +489,7 @@ async function loadStudentProfile() {
         }
         
         const curCourseForBottom = (enrolledCoursesList && enrolledCoursesList.find(c => c.course_name === selectedCourseName)) || (enrolledCoursesList && enrolledCoursesList[0]) || {};
-        updateBottomMeetButtonState(curCourseForBottom.remaining_credits !== undefined ? curCourseForBottom.remaining_credits : (s.remaining_credits !== undefined ? s.remaining_credits : 0));
+        updateBottomMeetButtonState(curCourseForBottom.remaining_credits ?? s.remaining_credits ?? 0, curCourseForBottom.course_name);
 
         // Update Track counts in UI
         const quranCourses = enrolledCoursesList.filter(c => classifyCourseTrack(c) === 'quran');
@@ -540,12 +538,10 @@ async function loadStudentProfile() {
         const dCode = document.getElementById('detailsStudentCode');
         if (dCode) dCode.innerText = s.student_code || ('ST' + String(safeId).padStart(4, '0'));
         const dParent = document.getElementById('detailsParentName');
-        if (dParent) dParent.innerText = document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب';
+        if (dParent) dParent.innerText = document.getElementById('parentName') ? document.getElementById('parentName').textContent : 'ولي أمر الطالب';
         const dPhone = document.getElementById('detailsParentPhone');
         const pPhoneElem = document.getElementById('parentPhone');
-        if (dPhone) dPhone.innerText = (pPhoneElem && pPhoneElem.innerText) ? pPhoneElem.innerText : 'غير مسجل';
-        const dStatus = document.getElementById('detailsAccountStatus');
-        if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (s.account_status || 'نشط') + ')';
+        if (dPhone) dPhone.innerText = (pPhoneElem && pPhoneElem.textContent) ? pPhoneElem.textContent : 'غير مسجل';
         const dTrack = document.getElementById('detailsTrackName');
         if (dTrack) {
             dTrack.innerText = (quranCourses.length > 0 && academicCourses.length > 0)
@@ -601,6 +597,24 @@ async function loadStudentProfile() {
 // DYNAMIC UPCOMING SCHEDULE & CERTIFICATES & DETAILS LINKAGE (UX / الربط)
 // ═════════════════════════════════════════════════════════════════════
 
+function getUpcomingCourseDate(subscriptionDays, lectureTime) {
+    const today = new Date(getMonirLocalDateStr() + 'T00:00:00');
+    const time = String(lectureTime || '').replace(/[٠-٩]/g, digit => digit.charCodeAt(0) - 1632);
+    const match = time.match(/(\d{1,2}):(\d{2})\s*([صم])?/);
+    const [, hours, minutes, period] = match || [];
+    if (Number(hours) < 24 && Number(minutes) < 60) {
+        const hour = period ? Number(hours) % 12 + (period === 'م' ? 12 : 0) : Number(hours);
+        const cairoTime = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+        }).format(new Date());
+        const [currentHour, currentMinute] = cairoTime.split(':').map(Number);
+        if (currentHour * 60 + currentMinute > hour * 60 + Number(minutes)) {
+            today.setDate(today.getDate() + 1);
+        }
+    }
+    return calculateGroupUpcomingDates(subscriptionDays, 1, today, null)[0]?.dateFormatted || '';
+}
+
 function renderUpcomingScheduleList() {
     const container = document.getElementById('upcomingScheduleList');
     if (!container) return;
@@ -636,9 +650,8 @@ function renderUpcomingScheduleList() {
     courses.forEach((c, idx) => {
         const cName = c.course_name || c.name || 'مسار القرآن الكريم والتدبر';
         const teacher = c.teacher_name || 'معلم معتمد';
-        const days = c.subscription_days || 'أسبوعياً';
         const timeVal = c.lecture_time || 'محدد مع المعلم';
-        const dur = c.session_duration ? (c.session_duration + ' دقيقة') : '30 دقيقة';
+        const dur = c.session_duration ? String(c.session_duration).replace(/\s*دقيقة\s*$/, '') + ' دقيقة' : '30 دقيقة';
         const rc = (c.remaining_credits !== undefined) ? c.remaining_credits : (curStudent.remaining_credits !== undefined ? curStudent.remaining_credits : 0);
         const gid = c.group_id || curStudent.group_id || 'G000';
 
@@ -649,8 +662,7 @@ function renderUpcomingScheduleList() {
                 ? window.getGroupMeetUrl(gid, c.teacher_id || teacher, cName)
                 : (c.google_meet_url || 'https://meet.google.com'));
 
-        const upcomingDates = calculateGroupUpcomingDates(days, 1);
-        const nextDateStr = (upcomingDates && upcomingDates[0]) ? upcomingDates[0].dateFormatted : days;
+        const nextDateStr = getUpcomingCourseDate(c.subscription_days, c.lecture_time) || 'اليوم غير محدد';
 
         const borderColor = idx === 0 ? '#57BA9E' : '#41519C';
         const tagBg = idx === 0 ? '#e8f8f4' : '#eaf0f8';
@@ -669,7 +681,9 @@ function renderUpcomingScheduleList() {
                     <span class="font-bold text-slate-700">${timeVal}</span>
                     ${(() => {
                         const hasPass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(cName) : false;
-                        if (rc <= 0 && !hasPass) {
+                        if (isStudentAccountPaused(curStudent)) {
+                            return '<span class="text-red-800 font-bold">الحساب موقوف</span>';
+                        } else if (rc <= 0 && !hasPass) {
                             return `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`;
                         } else if (rc <= 0 && hasPass) {
                             return `<button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-500 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-xs">
@@ -762,13 +776,11 @@ function renderDetailsPanel() {
     if (dCode) dCode.innerText = curStudent.student_code || ('ST' + String(curStudent.id || currentStudentId).padStart(4, '0'));
     
     const dParent = document.getElementById('detailsParentName');
-    if (dParent) dParent.innerText = curStudent.parent_name || (document.getElementById('parentName') ? document.getElementById('parentName').innerText : 'ولي أمر الطالب');
+    if (dParent) dParent.innerText = curStudent.parent_name || (document.getElementById('parentName') ? document.getElementById('parentName').textContent : 'ولي أمر الطالب');
     
     const dPhone = document.getElementById('detailsParentPhone');
-    if (dPhone) dPhone.innerText = curStudent.parent_phone || (document.getElementById('parentPhone') ? document.getElementById('parentPhone').innerText : 'غير مسجل');
+    if (dPhone) dPhone.innerText = curStudent.parent_phone || (document.getElementById('parentPhone') ? document.getElementById('parentPhone').textContent : 'غير مسجل');
     
-    const dStatus = document.getElementById('detailsAccountStatus');
-    if (dStatus) dStatus.innerText = 'اشتراك ساري (' + (curStudent.account_status || 'نشط') + ')';
 
     const dTeacher = document.getElementById('detailsTeacherName');
     if (dTeacher) dTeacher.innerText = 'أ. ' + (curCourse.teacher_name || curStudent.teacher_name || 'مصطفى عيد');
@@ -1441,7 +1453,7 @@ window.switchPortalTrack = switchPortalTrack;
 function requestCourseEnrollmentPrompt(courseName) {
     const student = (window.currentStudentData && window.currentStudentData.student) ? window.currentStudentData.student : {};
     const sName = student.name || document.getElementById('studentName')?.innerText || 'طالب بالأكاديمية';
-    const sCode = student.student_code || document.getElementById('studentCode')?.innerText || 'ST0000';
+    const sCode = student.student_code || document.getElementById('studentCode')?.textContent || 'ST0000';
     
     const msg = `السلام عليكم ورحمة الله وبركاته،\nأرغب في تسجيل الطالب: (${sName}) - كود الطالب: (${sCode})\nفي (${courseName}).\nيرجى تزويدي بالمواعيد المتاحة وأسعار الباقات وتفاصيل الحصص.`;
     const waUrl = 'https://wa.me/201118599442?text=' + encodeURIComponent(msg);
@@ -1651,7 +1663,7 @@ function renderEnrolledCoursesTabs(courses) {
         let rawTimeVal = c.lecture_time || '';
         let timeText = rawTimeVal.replace(/\(ساعة\s*\d+(\.\d+)?\)/g, '').replace(/\(ساعة\s*كاملة\)/g, '').trim();
 
-        const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+        const isStudentAdminPaused = isStudentAccountPaused(curStudent);
         let statusText = 'نشط';
         if (isStudentAdminPaused) {
             statusText = 'موقوف';
@@ -1937,12 +1949,10 @@ function selectCourseTab(cName) {
     loadSelectedCourseLectures();
 }
 
-function calculateGroupUpcomingDates(dayName, count, startDate = null) {
+function calculateGroupUpcomingDates(dayName, count, startDate = null, fallbackDay = 1) {
     const dates = [];
     const baseDate = startDate ? new Date(startDate) : new Date();
     baseDate.setHours(0, 0, 0, 0);
-    
-    if (!dayName) dayName = 'الاثنين';
     
     const dayMap = [
         { name: 'الأحد', regex: /أحد|احد/, day: 0 },
@@ -1962,7 +1972,8 @@ function calculateGroupUpcomingDates(dayName, count, startDate = null) {
     });
 
     if (targetDays.length === 0) {
-        targetDays.push(1); // default Monday
+        if (fallbackDay === null) return dates;
+        targetDays.push(fallbackDay);
     }
 
     const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -2129,11 +2140,14 @@ window.COMPETITION_LECTURES_MAP = COMPETITION_LECTURES_MAP;
 
 async function loadSelectedCourseLectures() {
     if (!selectedCourseName) return;
+    const requestedCourseName = selectedCourseName;
     
     try {
         let data = null;
         const currentCourseInfo = enrolledCoursesList.find(c => c.course_name === selectedCourseName) || enrolledCoursesList[0] || {};
         const remainingCredits = (currentCourseInfo.remaining_credits !== undefined) ? currentCourseInfo.remaining_credits : (currentCourseInfo.total_lectures_unlocked || 12);
+        const accountCredits = currentCourseInfo.remaining_credits ?? window.currentStudentData?.student?.remaining_credits ?? 0;
+        updateBottomMeetButtonState(accountCredits, requestedCourseName);
 
         if (COMPETITION_LECTURES_MAP && COMPETITION_LECTURES_MAP[selectedCourseName]) {
             const student = (window.currentStudentData && window.currentStudentData.student) || {};
@@ -2261,7 +2275,7 @@ async function loadSelectedCourseLectures() {
         if (cBadge) cBadge.innerText = data.course_name || selectedCourseName;
         const sInfo = document.getElementById('paymobStudentInfo');
         if (sInfo && document.getElementById('studentName')) {
-            sInfo.innerText = document.getElementById('studentName').innerText + ' (' + (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : '') + ')';
+            sInfo.innerText = document.getElementById('studentName').innerText + ' (' + (document.getElementById('studentCode') ? document.getElementById('studentCode').textContent : '') + ')';
         }
 
         // ════════════════════════════════════════════════
@@ -2596,7 +2610,9 @@ async function loadSelectedCourseLectures() {
         }
 
         // Sync bottom bar action button state (locked vs enter meet)
-        updateBottomMeetButtonState(rc);
+        if (requestedCourseName === selectedCourseName) {
+            updateBottomMeetButtonState(accountCredits, requestedCourseName);
+        }
 
     } catch (err) {
         console.error("Error loading course lectures:", err);
@@ -2621,7 +2637,7 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
         (currentCourseInfo.remaining_credits !== undefined && currentCourseInfo.remaining_credits !== null) ? Number(currentCourseInfo.remaining_credits) : 0,
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
-    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStudentAdminPaused = isStudentAccountPaused(curStudent);
     const isCourseStopped = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(currentCourseInfo.status || '').toLowerCase().trim()));
     const isStopped = isStudentAdminPaused || (rc <= 0 && isCourseStopped);
 
@@ -2922,21 +2938,76 @@ function hasActiveSessionPassToday(courseName) {
     return false;
 }
 
+function isStudentAccountPaused(student) {
+    const pausedStatuses = ['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'];
+    return pausedStatuses.includes(String(student.status || student.account_status || '').trim().toLowerCase());
+}
+
+function renderStudentNextSession(student, courseName, isReentry) {
+    const summary = document.getElementById('studentNextSession');
+    const course = enrolledCoursesList.find(item => item.course_name === courseName)
+        || enrolledCoursesList[0] || student;
+    const title = course.course_name || course.name;
+    summary.hidden = !title;
+    if (!title) return;
+
+    document.getElementById('studentNextSessionHeading').textContent = isReentry ? 'حصة النهارده' : 'الحصة الجاية';
+    const date = getUpcomingCourseDate(course.subscription_days, course.lecture_time);
+    document.getElementById('studentNextSessionCourse').textContent = title;
+    document.getElementById('studentNextSessionTime').textContent = isReentry
+        ? 'تقدر ترجع للحصة من غير خصم حصة إضافية.'
+        : [date || 'اليوم غير محدد', course.lecture_time || 'الساعة تُحدد مع المعلم'].join(' · ');
+}
+
 function updateBottomMeetButtonState(rc, courseName) {
     const btn = document.getElementById('bottomNavMeetBtn');
     const icon = document.getElementById('bottomNavMeetIcon');
     const label = document.getElementById('bottomNavMeetLabel');
     if (!btn) return;
 
-    const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(courseName) : false;
+    const student = window.currentStudentData?.student;
+    if (!student) return;
+    const paused = isStudentAccountPaused(student);
+    const noCredits = Number(rc) <= 0;
+    const hasActivePass = noCredits && hasActiveSessionPassToday(courseName);
+    renderStudentNextSession(student, courseName, !paused && hasActivePass);
+    const status = paused ? 'paused' : noCredits ? 'empty' : 'active';
+    const statusText = {
+        paused: 'الحساب موقوف',
+        empty: 'انتهى رصيد الحصص',
+        active: 'الاشتراك نشط',
+    }[status];
+    for (const id of ['accountStatusBadge', 'goalAccountStatus', 'detailsAccountStatus']) {
+        const statusLabel = document.getElementById(id);
+        statusLabel.textContent = statusText;
+        statusLabel.dataset.status = status;
+    }
 
-    if (rc <= 0 && !hasActivePass) {
+    const packageAction = document.getElementById('goalAccountAction');
+    packageAction.disabled = false;
+    packageAction.onclick = paused ? openSupportModal : openPaymobModal;
+    document.getElementById('goalAccountActionLabel').textContent = paused ? 'تواصل مع الدعم' : 'تجديد الباقة';
+    document.getElementById('goalAccountMessage').textContent = paused
+        ? 'تواصل مع الدعم لمعرفة خطوات إعادة تفعيل الحساب.'
+        : hasActivePass
+            ? 'تقدر ترجع لحصة اليوم من غير خصم حصة إضافية.'
+            : 'تقدر تجدّد الباقة لإضافة حصص لرصيدك.';
+    document.getElementById('studentProfileRenewBtn').classList.toggle('hidden', paused || (noCredits && !hasActivePass));
+
+    btn.disabled = false;
+    if (paused) {
+        btn.className = "flex items-center justify-center bg-red-50 text-red-800 border border-red-200 rounded-xl px-3 cursor-pointer";
+        btn.onclick = openSupportModal;
+        if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#user"/></svg>';
+        if (label) label.textContent = 'تواصل مع الدعم';
+        btn.removeAttribute('title');
+    } else if (noCredits && !hasActivePass) {
         btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-amber-700 active:scale-95 py-1 px-1 bg-amber-50 border border-amber-300 rounded-xl transition shadow-xs cursor-pointer";
         btn.onclick = () => { if (typeof openPaymobModal === 'function') openPaymobModal(); };
         if (icon) icon.innerHTML = '<svg class="w-4 h-4"><use href="#award"/></svg>';
-        if (label) label.innerText = 'رصيد 0 • تجديد';
+        if (label) label.textContent = 'تجديد الباقة';
         btn.removeAttribute('title');
-    } else if (rc <= 0 && hasActivePass) {
+    } else if (hasActivePass) {
         btn.className = "flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-900 active:scale-95 py-1 px-1 bg-emerald-100 border-2 border-emerald-500 rounded-xl transition shadow-xs cursor-pointer ring-2 ring-emerald-300/60";
         btn.onclick = () => { joinNextDueMeet(); };
         if (icon) icon.innerHTML = '<svg class="w-4 h-4 text-emerald-700 animate-pulse"><use href="#clock"/></svg>';
@@ -3240,7 +3311,7 @@ function joinMeet(lectureId, meetUrl) {
         (curCourse.remaining_credits !== undefined && curCourse.remaining_credits !== null) ? Number(curCourse.remaining_credits) : 0,
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
-    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStudentAdminPaused = isStudentAccountPaused(curStudent);
     const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(curCourse.course_name) : false;
     const isStopped = isStudentAdminPaused || (rc <= 0 && !hasActivePass);
 
@@ -3340,7 +3411,7 @@ function joinNextDueMeet() {
         (curCourse.remaining_credits !== undefined && curCourse.remaining_credits !== null) ? Number(curCourse.remaining_credits) : 0,
         (curStudent.remaining_credits !== undefined && curStudent.remaining_credits !== null) ? Number(curStudent.remaining_credits) : 0
     );
-    const isStudentAdminPaused = (['inactive', 'موقوف', 'غير نشط', 'frozen', 'paused', 'stopped', 'expired'].includes(String(curStudent.status || curStudent.account_status || '').toLowerCase().trim()));
+    const isStudentAdminPaused = isStudentAccountPaused(curStudent);
     const hasActivePass = (typeof hasActiveSessionPassToday === 'function') ? hasActiveSessionPassToday(curCourse.course_name) : false;
     const isStopped = isStudentAdminPaused || (rc <= 0 && !hasActivePass);
 
@@ -3866,7 +3937,7 @@ function updateWhatsAppTransferLink() {
     const sNameElem = document.getElementById('studentName');
     const sCodeElem = document.getElementById('studentCode');
     const sName = sNameElem ? sNameElem.innerText.trim() : 'طالب الأكاديمية';
-    const sCode = sCodeElem ? sCodeElem.innerText.trim() : 'MNR';
+    const sCode = sCodeElem ? sCodeElem.textContent.trim() : 'MNR';
     
     const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
     const methodVal = payMethodRadio ? payMethodRadio.value : 'instapay';
@@ -4023,7 +4094,7 @@ function openPaymobModal() {
     const sNameElem = document.getElementById('studentName');
     const sCodeElem = document.getElementById('studentCode');
     if (sInfo && sNameElem) {
-        sInfo.innerText = sNameElem.innerText + (sCodeElem ? ' (' + sCodeElem.innerText + ')' : '');
+        sInfo.innerText = sNameElem.innerText + (sCodeElem ? ' (' + sCodeElem.textContent + ')' : '');
     }
 
     selectRenewalPackage(selectedRenewalPackageId || 'group_4');
@@ -4039,7 +4110,7 @@ function openReceiptModal(receipt) {
     if (!receipt) return;
     document.getElementById('receiptNumber').innerText = receipt.receipt_number || ('REQ-' + Date.now());
     document.getElementById('receiptStudentName').innerText = receipt.student_name || (document.getElementById('studentName') ? document.getElementById('studentName').innerText : 'طالب الأكاديمية');
-    document.getElementById('receiptStudentCode').innerText = receipt.student_code || (document.getElementById('studentCode') ? document.getElementById('studentCode').innerText : 'MNR');
+    document.getElementById('receiptStudentCode').innerText = receipt.student_code || (document.getElementById('studentCode') ? document.getElementById('studentCode').textContent : 'MNR');
     document.getElementById('receiptCourseName').innerText = receipt.course_name || selectedCourseName;
     
     const rPkg = document.getElementById('receiptPackageName');
@@ -4081,7 +4152,7 @@ async function submitPaymobPayment() {
     btn.disabled = true;
 
     const sName = document.getElementById('studentName') ? document.getElementById('studentName').innerText.trim() : 'طالب الأكاديمية';
-    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').innerText.trim() : 'MNR';
+    const sCode = document.getElementById('studentCode') ? document.getElementById('studentCode').textContent.trim() : 'MNR';
     const payMethodRadio = document.querySelector('input[name="payMethod"]:checked');
     const payMethod = payMethodRadio ? payMethodRadio.value : 'instapay';
     const methodTitle = (payMethod === 'vodafone_cash') ? 'فودافون كاش (01002530197)' : 'إنستا باي (009348060001)';
@@ -5721,7 +5792,7 @@ function renderGeneralTrackView() {
             <!-- Monthly Comprehensive Exam ( ملخص الشهر الأول - 40 درجة ) -->
             ${(() => {
                 const trackMonthlyMap = {
-                    'tafsir': { id: 1001, title: 'امتحان التفسير والتدبر — ملخص الشهر الأول', desc: 'امتحان شهري شامل يغطي موضوعات وتطبيقات الشهر الأول (سورة لقمان وبودكاست من يدلني).' },
+                    'tafsir': { id: 1001, title: 'اختبار التفسير «من يدلني» — أقل من 10 سنوات', desc: 'اختبار شامل (10 أسئلة اختيار من متعدد + 10 أسئلة صح وخطأ) في القيم والتطبيقات التربوية من بودكاست من يدلني.' },
                     'hadith': { id: 1002, title: 'امتحان الحديث الشريف والسنة — ملخص الشهر الأول', desc: 'امتحان شهري شامل يغطي مجالس الحديث النبوي الشريف وتطبيقاتها السلوكية والتربوية.' },
                     'tajweed': { id: 1003, title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين', desc: 'اختبار شامل (10 أسئلة اختيار من متعدد + 10 أسئلة صح وخطأ) في أحكام النون الساكنة والتنوين والنون والميم المشددتين واللحن الجلي.' }
                 };
@@ -5744,7 +5815,7 @@ function renderGeneralTrackView() {
                                 <strong class="text-sm sm:text-base font-black text-white block">${mInfo.title}</strong>
                             </div>
                             <span class="text-[11px] font-bold text-amber-200 bg-amber-950/50 px-3 py-1 rounded-xl border border-amber-400/30">
-                                ${mInfo.id === 1003 ? 'متاح الآن للحل • تصحيح ومراجعة فورية' : 'متاح في فترة الامتحان الشهري'}
+                                ${(mInfo.id === 1001 || mInfo.id === 1003) ? 'متاح الآن للحل • تصحيح ومراجعة فورية' : 'متاح في فترة الامتحان الشهري'}
                             </span>
                         </div>
 
@@ -6189,8 +6260,8 @@ window.MONTHLY_EXAMS_DATA = {
     {
       "id": 1001,
       "course_name": "مسار القرآن الكريم والتدبر",
-      "title": "امتحان التفسير والتدبر — ملخص الشهر الأول",
-      "description": "{\"track\": \"tafsir\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار التفسير والتدبر يغطي الحلقات والمحاضرات من سورة لقمان والتطبيقات الإيمانية والعملية.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-23T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
+      "title": "اختبار التفسير «من يدلني» — أقل من 10 سنوات",
+      "description": "{\"track\": \"tafsir\", \"age_group\": \"under_10\", \"is_monthly_exam\": true, \"month\": 2, \"summary_text\": \"اختبار التفسير «من يدلني» — الفئة العمرية أقل من 10 سنوات: 20 سؤالاً (10 اختيار من متعدد + 10 صح وخطأ).\", \"open_date\": \"2026-11-01T00:00:00+02:00\", \"close_date\": \"2026-12-31T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
       "total_questions": 20,
       "passing_score": 70
     },
@@ -6213,265 +6284,255 @@ window.MONTHLY_EXAMS_DATA = {
   ],
   "questions": [
     {
-      "id": 100101,
-      "quiz_id": 1001,
-      "question_text": "يعني إيه إن القرآن هدى لينا؟",
-      "points": 2,
-      "options": [
-        "إنه يرشدنا للطريق الصحيح",
-        "إنه يمنعنا من التفكير والسؤال",
-        "إنه يعلمنا معلومات من غير ما نستفيد منها"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الهداية تعني الإرشاد إلى الحق والطريق الصحيح."
-    },
-    {
-      "id": 100102,
-      "quiz_id": 1001,
-      "question_text": "لو أنا مؤمن إن ربنا هيحاسبني على أعمالي، إيه المفروض أعمله قبل ما أعمل أي تصرف؟",
-      "points": 2,
-      "options": [
-        "أفكر هل التصرف صحيح ويرضي ربنا",
-        "أعمل أي حاجة أصحابي بيعملوها",
-        "أختار التصرف الأسهل حتى لو غلط"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الإيمان بالآخرة يدفع إلى مراجعة الاختيارات وتحمل المسؤولية."
-    },
-    {
-      "id": 100103,
-      "quiz_id": 1001,
-      "question_text": "لقيت قلم مش بتاعك، وصاحبك قال لك خده من غير ما حد يشوفك. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "أرفض واسأل على صاحبه أو أسلّمه للمدرس",
-        "آخده طالما محدش شافني",
-        "أسيبه معايا لحد ما أعرف صاحبه من غير ما أقول لحد"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الموقف يقيس الأمانة واحترام حقوق الآخرين."
-    },
-    {
-      "id": 100104,
-      "quiz_id": 1001,
-      "question_text": "يوسف بيقول: «الولد الشاطر عمره ما بيغلط». إيه الرد الصحيح؟",
-      "points": 2,
-      "options": [
-        "ممكن نغلط، ولكن المهم نتوب ونصلح الخطأ ونتعلم",
-        "أي خطأ معناه إننا مش كويسين",
-        "مش مهم نصلح أخطاءنا"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الخطأ لا يعني اليأس، لكنه يستدعي التوبة والإصلاح بحسب الموقف."
-    },
-    {
-      "id": 100105,
-      "quiz_id": 1001,
-      "question_text": "لما نسمع كلام مش عارفين إذا كان صح ولا غلط، نعمل إيه؟",
-      "points": 2,
-      "options": [
-        "نصدقه علشان ناس كتير قالته",
-        "ننشره بسرعة قبل ما ننساه",
-        "نتوقف ونتحقق ونسأل شخص موثوق"
-      ],
-      "correct_option_index": 2,
-      "explanation": "أن يتعرف على أهمية التثبت وعدم تصديق كل ما يسمعه تلقائيًا."
-    },
-    {
-      "id": 100106,
-      "quiz_id": 1001,
-      "question_text": "لو كل أصحابك بيضحكوا على زميل، هل ده معناه إن السخرية منه صح؟",
-      "points": 2,
-      "options": [
-        "أيوه، طالما كلهم بيعملوا كده",
-        "لأ، لازم أفكر في التصرف نفسه، مش في عدد اللي بيعملوه",
-        "أيوه، علشان محدش يزعل مني"
-      ],
-      "correct_option_index": 1,
-      "explanation": "أن يميز بين انتشار التصرف وصحته، وألا يجعل ضغط الأقران معيارًا وحيدًا للاختيار."
-    },
-    {
-      "id": 100107,
-      "quiz_id": 1001,
-      "question_text": "لو نصحني حد بحاجة صحيحة وأنا اتضايقت من النصيحة، إيه التصرف الأفضل؟",
-      "points": 2,
-      "options": [
-        "أرفضها فورًا علشان أنا اتضايقت",
-        "أهدأ وأفكر في الكلام وأتأكد من صحته",
-        "أعتبر إن كل نصيحة معناها إن الشخص بيكرهني"
-      ],
-      "correct_option_index": 1,
-      "explanation": "تنمية تقبل المراجعة والتمييز بين الشعور بالضيق وصحة النصيحة."
-    },
-    {
-      "id": 100108,
-      "quiz_id": 1001,
-      "question_text": "ليه نسأل ماما أو بابا أو شخصًا موثوقًا لما نشوف حاجة مش فاهمينها أو بتضايقنا؟",
-      "points": 2,
-      "options": [
-        "علشان يساعدونا نفهم ونتصرف بطريقة آمنة وصحيحة",
-        "علشان ما نفكرش في أي حاجة بنفسنا",
-        "علشان كل سؤال لازم يكون له إجابة سهلة وفورية"
-      ],
-      "correct_option_index": 0,
-      "explanation": "فهم دور الشخص البالغ الموثوق في التوجيه والحماية، دون إلغاء تفكير الطفل."
-    },
-    {
-      "id": 100109,
-      "quiz_id": 1001,
-      "question_text": "هل معنى الآية عن «لهو الحديث» إن كل لعبة أو وقت للترفيه غلط؟",
-      "points": 2,
-      "options": [
-        "أيوه، لازم نبطل كل الألعاب",
-        "أيوه، أي حاجة ممتعة تبعدنا عن الخير بالضرورة",
-        "لأ، فيه ترفيه مناسب، لكن نختار ما لا يبعدنا عن طاعة ربنا ومسؤولياتنا"
-      ],
-      "correct_option_index": 2,
-      "explanation": "منع التعميم غير الدقيق في فهم الآية، والتمييز بين الترفيه المناسب والمحتوى الذي يصد عن الخير."
-    },
-    {
-      "id": 100110,
-      "quiz_id": 1001,
-      "question_text": "هل كل حاجة منتشرة بين أصحابنا تبقى صح؟",
-      "points": 2,
-      "options": [
-        "لأ، لازم نقيّم التصرف نفسه ونتأكد إنه صحيح",
-        "أيوه، لأن الأغلبية عمرها ما بتغلط",
-        "أيوه، علشان ما نبقاش مختلفين عن الناس"
-      ],
-      "correct_option_index": 0,
-      "explanation": "تصحيح الاعتقاد بأن الانتشار أو موافقة المجموعة دليل كافٍ على صحة السلوك."
-    },
-    {
-      "id": 100111,
-      "quiz_id": 1001,
-      "question_text": "لو غلطت بعد ما اتعلمت الصح، هل معنى كده إن مفيش فايدة من المحاولة؟",
-      "points": 2,
-      "options": [
-        "أيوه، الخطأ معناه إني مش هقدر أتغير",
-        "الأفضل أخفي الغلط وما أصلحوش",
-        "لأ، أعترف بالخطأ وأتوب إلى الله وأصلح ما أقدر عليه وأحاول من جديد"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ترسيخ التوبة والإصلاح والاستمرار في الخير، بعيدًا عن اليأس أو تبرير الخطأ."
-    },
-    {
-      "id": 100112,
-      "quiz_id": 1001,
-      "question_text": "ربنا سبحانه وتعالى قال في سورة لقمان: ﴿هَٰذَا خَلْقُ اللَّهِ﴾. إيه اللي نتعلمه لما نتأمل في السماء والنباتات والحيوانات؟",
-      "points": 2,
-      "options": [
-        "إننا نعرف كل أسرار الكون بمجرد النظر",
-        "إننا نتأمل في مخلوقات الله ونلاحظ نعمه وقدرته ونشكره",
-        "إننا ما نحتاجش نتعلم أي حاجة عن العالم حولينا"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ربط التأمل في خلق الله باستشعار النعم والشكر، دون ادعاء معرفة كل أسرار الكون."
-    },
-    {
-      "id": 100113,
-      "quiz_id": 1001,
-      "question_text": "سمعت كلام سئ عن زميلك، وإنت مش عارف إذا كان صحيحًا. تتصرف إزاي؟",
-      "points": 2,
-      "options": [
-        "تحكي الكلام لزملائك علشان يعرفوا",
-        "تتجنب زميلك فورًا من غير ما تفهم الموقف",
-        "ما تنشرش الكلام، وما تحكمش عليه من غير دليل، وتطلب مساعدة شخص موثوق لو احتجت"
-      ],
-      "correct_option_index": 2,
-      "explanation": "تطبيق التثبت ومنع نشر الشائعات وحماية الآخرين من الظلم."
-    },
-    {
-      "id": 100114,
-      "quiz_id": 1001,
-      "question_text": "قال الله تعالى: ﴿أَنِ اشْكُرْ لِلَّهِ﴾. إيه معنى الشكر؟",
-      "points": 2,
-      "options": [
-        "أفتكر نعم ربنا وأحمده وأستخدمها في الخير",
-        "أشكر ربنا بس لما آخد لعبة جديدة",
-        "أطلب نعمًا أكتر من غير ما أقدّر اللي عندي"
-      ],
-      "correct_option_index": 0,
-      "explanation": "فهم الشكر بالقول والعمل."
-    },
-    {
-      "id": 100115,
-      "quiz_id": 1001,
-      "question_text": "إزاي تشكر ربنا على نعمة البصر؟",
-      "points": 2,
-      "options": [
-        "أستخدم عينيّ في السخرية من الناس",
-        "أنظر لأي حاجة من غير تفكير",
-        "أستخدم عينيّ في التعلم والنظر إلى ما ينفعني"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ربط الشكر باستخدام النعمة في الخير."
-    },
-    {
-      "id": 100116,
-      "quiz_id": 1001,
-      "question_text": "إيه اللي نتعلمه من وصية ربنا ببر الوالدين؟",
-      "points": 2,
-      "options": [
-        "نقدّر مجهودهم، ونتكلم معاهم بأدب، ونساعدهم فيما نقدر عليه",
-        "نسمع كلامهم بس لما ناخد هدية",
-        "ما نساعدهمش إلا لو طلبوا أكتر من مرة"
-      ],
-      "correct_option_index": 0,
-      "explanation": "ربط البر بالتقدير والسلوك اليومي."
-    },
-    {
-      "id": 100117,
-      "quiz_id": 1001,
-      "question_text": "لو حد مدحك لأنك عملت حاجة كويسة، هل فرحتك بالمدح معناها إنك عملت الخير علشان الناس؟",
-      "points": 2,
-      "options": [
-        "أيوه، أي فرحة بالمدح معناها إن النية مش كويسة",
-        "لأ، ممكن أفرح بشكل طبيعي، وأحرص إن هدفي يكون رضا ربنا",
-        "أيوه، ولازم أبطل أعمل أي خير"
-      ],
-      "correct_option_index": 1,
-      "explanation": "فهم الإخلاص دون إثارة الشك في النية."
-    },
-    {
-      "id": 100118,
-      "quiz_id": 1001,
-      "question_text": "ماما طلبت منك تساعدها وإنت بتلعب. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "اكمل لعب",
-        "ترد باحترام وتساعدها، أو تتفق معاها على وقت قريب لو الموقف يسمح",
-        "تتجاهلها تمامًا"
-      ],
-      "correct_option_index": 1,
-      "explanation": "تطبيق البر وتنظيم الوقت."
-    },
-    {
-      "id": 100119,
-      "quiz_id": 1001,
-      "question_text": "أصحابك طلبوا منك تشارك في تحدٍّ على الإنترنت مش متأكد إنه آمن. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "تشارك فورًا",
-        "تعمل عكسهم لمجرد إنك مختلف",
-        "تتوقف وتفكر، وتسأل بابا وماما أو معلمي قبل المشاركة"
-      ],
-      "correct_option_index": 2,
-      "explanation": "تطبيق التفكير قبل التقليد."
-    },
-    {
-      "id": 100120,
-      "quiz_id": 1001,
-      "question_text": "زعقت لأخوك وبعدها اكتشفت إنك غلطان. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "تتظاهر إن مفيش حاجة حصلت",
-        "تعتذر وتحاول تصلّح الموقف",
-        "تلومه حتى لو الغلط منك"
-      ],
-      "correct_option_index": 1,
-      "explanation": "B) تعتذر وتحاول تصلّح الموقف."
-    },
+        "id": 100101,
+        "quiz_id": 1001,
+        "question_text": "طلبت منك والدتك أن تترك اللعب لتساعدها في شيء، وأنت لا تريد التوقف. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أرفض وأصرخ",
+          "أساعدها بأدب، ثم أعود للعب عندما أنتهي",
+          "أتظاهر أنني لم أسمع"
+        ],
+        "correct_option_index": 1,
+        "explanation": "بر الوالدين وطاعتهما بأدب مقدّمان على اللعب، ويمكنك العودة للعب بعد المساعدة."
+      },
+      {
+        "id": 100102,
+        "quiz_id": 1001,
+        "question_text": "رأيت زميلك يغش في الامتحان، فطلب منك أن تساعده. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أساعده حتى لا يغضب مني",
+          "أرفض الغش بأدب، وأشجعه أن يعتمد على نفسه",
+          "أغش مثله"
+        ],
+        "correct_option_index": 1,
+        "explanation": "المساعدة الحقيقية للصديق تكون برفض الغش بأدب وتشجيعه على الصدق والاعتماد على نفسه."
+      },
+      {
+        "id": 100103,
+        "quiz_id": 1001,
+        "question_text": "وجدت نقودًا ليست لك في الفصل. ما التصرف الصحيح؟",
+        "points": 2,
+        "options": [
+          "آخذها لأنها على الأرض",
+          "أخفيها",
+          "أبحث عن صاحبها أو أسلمها للمعلم"
+        ],
+        "correct_option_index": 2,
+        "explanation": "الأمانة تقتضي ردّ الحقوق لأصحابها أو تسليمها للمعلم حتى تعود لصاحبها."
+      },
+      {
+        "id": 100104,
+        "quiz_id": 1001,
+        "question_text": "صديقك يسخر من طفل آخر، ويطلب منك أن تضحك معه. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أضحك حتى لا يسخروا مني",
+          "لا أشارك في السخرية وأساند الطفل أو أطلب مساعدة المعلم",
+          "أصور الموقف وأنشره"
+        ],
+        "correct_option_index": 1,
+        "explanation": "نهى الله عن السخرية بالآخرين، والبطل يساند المظلوم ولا يشارك في الأذى."
+      },
+      {
+        "id": 100105,
+        "quiz_id": 1001,
+        "question_text": "رأيت فيديو يقول إن كل الأطفال يفعلون تحديًا خطيرًا. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أجربه فورًا",
+          "أرسله لكل أصحابي",
+          "أرفض المشاركة وأخبر ماما أو بابا أثق به"
+        ],
+        "correct_option_index": 2,
+        "explanation": "العقل والوعي يحمياننا من التقليد الخطير، وإخبار الوالدين تصرف حكيم وشجاع."
+      },
+      {
+        "id": 100106,
+        "quiz_id": 1001,
+        "question_text": "أعطاك الله نعمة العقل والقدرة على التعلم. كيف تشكره على هذه النعمة؟",
+        "points": 2,
+        "options": [
+          "أستخدمها في التعلم والعمل النافع",
+          "أستخدمها في السخرية من الآخرين",
+          "لا أهتم بها"
+        ],
+        "correct_option_index": 0,
+        "explanation": "شكر النعمة يكون باستعمالها فيما يرضي الله من التعلم والعمل النافع."
+      },
+      {
+        "id": 100107,
+        "quiz_id": 1001,
+        "question_text": "أخذت وقتًا طويلًا في اللعب، وكادت الصلاة تفوتك. ماذا تفعل في المرة القادمة؟",
+        "points": 2,
+        "options": [
+          "أؤجل الصلاة دائمًا",
+          "أرتب وقت اللعب حتى أحافظ على الصلاة",
+          "أترك الصلاة إذا كنت مستمتعًا"
+        ],
+        "correct_option_index": 1,
+        "explanation": "تنظيم الوقت يجعلنا نستمتع باللعب ونحافظ على الصلاة في وقتها."
+      },
+      {
+        "id": 100108,
+        "quiz_id": 1001,
+        "question_text": "فاز صديقك بجائزة كبيرة، وأنت لم تفز. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أقلل من جائزته",
+          "أفرح له وأحاول أن أتعلم وأتحسن",
+          "أتوقف عن المحاولة"
+        ],
+        "correct_option_index": 1,
+        "explanation": "الفرح بنجاح الآخرين علامة سلامة القلب، والتعلم المستمر يقودنا للنجاح."
+      },
+      {
+        "id": 100109,
+        "quiz_id": 1001,
+        "question_text": "اعتنيت بحيوان أليف عندك. أي تصرف يدل على شكر نعمة القدرة على رعايته؟",
+        "points": 2,
+        "options": [
+          "أطعمه وأرحمه ولا أؤذيه",
+          "أهمله عندما أنشغل",
+          "أزعجه للعب معه"
+        ],
+        "correct_option_index": 0,
+        "explanation": "الرحمة بالحيوان وإطعامه وعدم إيذائه من أجمل صور شكر الله والرفق بمخلوقاته."
+      },
+      {
+        "id": 100110,
+        "quiz_id": 1001,
+        "question_text": "أخطأت في حق أخيك، ثم شعرت بالندم. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أنكر أنني أخطأت",
+          "أعتذر وأحاول إصلاح ما أفسدته",
+          "أقول إنني لن أتغير أبدًا"
+        ],
+        "correct_option_index": 1,
+        "explanation": "الاعتراف بالخطأ والاعتذار وإصلاحه من أخلاق الشجعان الصادقين."
+      },
+      {
+        "id": 100111,
+        "quiz_id": 1001,
+        "question_text": "إذا طلب مني أحد والديّ فعل شيء لا أحبه، أستطيع أن أرفضه.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: نطيع والدينا بأدب في كل معروف حتى لو لم يكن محببًا لنا، ولا نرفض إلا ما فيه معصية."
+      },
+      {
+        "id": 100112,
+        "quiz_id": 1001,
+        "question_text": "يمكن أن تكون هناك نعم لا أراها بعيني، مثل العقل والهداية.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: نعم الله منها الظاهر ومنها الباطن كالعقل والهداية والأمان."
+      },
+      {
+        "id": 100113,
+        "quiz_id": 1001,
+        "question_text": "إذا فعل جميع أصدقائي شيئًا، فهذا دليل أنه صحيح.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: الكثرة ليست دليلًا على الصواب؛ بل نقيس الأفعال بالحق والشرع والعقل."
+      },
+      {
+        "id": 100114,
+        "quiz_id": 1001,
+        "question_text": "أستطيع أن أفرح بنجاحي دون أن أحتقر من لم ينجح.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: نفرح بنجاحنا بتواضع ونحترم الآخرين ونشجعهم."
+      },
+      {
+        "id": 100115,
+        "quiz_id": 1001,
+        "question_text": "إذا نصحت صديقي ولم يستجب، فهذا يعني أنني فشلت.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: علينا النصيحة بالرفق والحكمة، وأما الهداية والاستجابة فبيد الله."
+      },
+      {
+        "id": 100116,
+        "quiz_id": 1001,
+        "question_text": "التوكل على الله يعني أن أبذل جهدي وأطلب عون الله.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: التوكل الصحيح يجمع بين الأخذ بالأسباب وبذل الجهد مع الاعتماد على الله."
+      },
+      {
+        "id": 100117,
+        "quiz_id": 1001,
+        "question_text": "من حقنا أن نحكم على نيات الناس من شكلهم أو كلامهم.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: النيات في القلوب لا يعلمها إلا الله، وعلينا حسن الظن بالناس."
+      },
+      {
+        "id": 100118,
+        "quiz_id": 1001,
+        "question_text": "إذا أخطأت، يمكنني أن أستغفر وأعتذر وأحاول إصلاح الخطأ.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الاستغفار والاعتذار وإصلاح الخطأ طريق التصحيح والنمو."
+      },
+      {
+        "id": 100119,
+        "quiz_id": 1001,
+        "question_text": "خفض الصوت يعني ألا أرفع صوتي أبدًا حتى لو كنت أحذر شخصًا من خطر.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: خفض الصوت أدب عام في الحديث، لكن عند الضرورة والتحذير من خطر نرفع الصوت لحماية الآخرين."
+      },
+      {
+        "id": 100120,
+        "quiz_id": 1001,
+        "question_text": "يمكن أن أشكر الله على نعمة المال بأن أستخدمه في الخير وأساعد المحتاج.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الإنفاق في الخير ومساعدة المحتاج من أعظم صور شكر نعمة المال."
+      },
     {
       "id": 100201,
       "quiz_id": 1002,
@@ -6987,265 +7048,255 @@ window.MONTHLY_EXAMS_DATA = {
 window.MONTHLY_EXAMS_QUESTIONS = {
   "1001": [
     {
-      "id": 100101,
-      "quiz_id": 1001,
-      "question_text": "يعني إيه إن القرآن هدى لينا؟",
-      "points": 2,
-      "options": [
-        "إنه يرشدنا للطريق الصحيح",
-        "إنه يمنعنا من التفكير والسؤال",
-        "إنه يعلمنا معلومات من غير ما نستفيد منها"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الهداية تعني الإرشاد إلى الحق والطريق الصحيح."
-    },
-    {
-      "id": 100102,
-      "quiz_id": 1001,
-      "question_text": "لو أنا مؤمن إن ربنا هيحاسبني على أعمالي، إيه المفروض أعمله قبل ما أعمل أي تصرف؟",
-      "points": 2,
-      "options": [
-        "أفكر هل التصرف صحيح ويرضي ربنا",
-        "أعمل أي حاجة أصحابي بيعملوها",
-        "أختار التصرف الأسهل حتى لو غلط"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الإيمان بالآخرة يدفع إلى مراجعة الاختيارات وتحمل المسؤولية."
-    },
-    {
-      "id": 100103,
-      "quiz_id": 1001,
-      "question_text": "لقيت قلم مش بتاعك، وصاحبك قال لك خده من غير ما حد يشوفك. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "أرفض واسأل على صاحبه أو أسلّمه للمدرس",
-        "آخده طالما محدش شافني",
-        "أسيبه معايا لحد ما أعرف صاحبه من غير ما أقول لحد"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الموقف يقيس الأمانة واحترام حقوق الآخرين."
-    },
-    {
-      "id": 100104,
-      "quiz_id": 1001,
-      "question_text": "يوسف بيقول: «الولد الشاطر عمره ما بيغلط». إيه الرد الصحيح؟",
-      "points": 2,
-      "options": [
-        "ممكن نغلط، ولكن المهم نتوب ونصلح الخطأ ونتعلم",
-        "أي خطأ معناه إننا مش كويسين",
-        "مش مهم نصلح أخطاءنا"
-      ],
-      "correct_option_index": 0,
-      "explanation": "الخطأ لا يعني اليأس، لكنه يستدعي التوبة والإصلاح بحسب الموقف."
-    },
-    {
-      "id": 100105,
-      "quiz_id": 1001,
-      "question_text": "لما نسمع كلام مش عارفين إذا كان صح ولا غلط، نعمل إيه؟",
-      "points": 2,
-      "options": [
-        "نصدقه علشان ناس كتير قالته",
-        "ننشره بسرعة قبل ما ننساه",
-        "نتوقف ونتحقق ونسأل شخص موثوق"
-      ],
-      "correct_option_index": 2,
-      "explanation": "أن يتعرف على أهمية التثبت وعدم تصديق كل ما يسمعه تلقائيًا."
-    },
-    {
-      "id": 100106,
-      "quiz_id": 1001,
-      "question_text": "لو كل أصحابك بيضحكوا على زميل، هل ده معناه إن السخرية منه صح؟",
-      "points": 2,
-      "options": [
-        "أيوه، طالما كلهم بيعملوا كده",
-        "لأ، لازم أفكر في التصرف نفسه، مش في عدد اللي بيعملوه",
-        "أيوه، علشان محدش يزعل مني"
-      ],
-      "correct_option_index": 1,
-      "explanation": "أن يميز بين انتشار التصرف وصحته، وألا يجعل ضغط الأقران معيارًا وحيدًا للاختيار."
-    },
-    {
-      "id": 100107,
-      "quiz_id": 1001,
-      "question_text": "لو نصحني حد بحاجة صحيحة وأنا اتضايقت من النصيحة، إيه التصرف الأفضل؟",
-      "points": 2,
-      "options": [
-        "أرفضها فورًا علشان أنا اتضايقت",
-        "أهدأ وأفكر في الكلام وأتأكد من صحته",
-        "أعتبر إن كل نصيحة معناها إن الشخص بيكرهني"
-      ],
-      "correct_option_index": 1,
-      "explanation": "تنمية تقبل المراجعة والتمييز بين الشعور بالضيق وصحة النصيحة."
-    },
-    {
-      "id": 100108,
-      "quiz_id": 1001,
-      "question_text": "ليه نسأل ماما أو بابا أو شخصًا موثوقًا لما نشوف حاجة مش فاهمينها أو بتضايقنا؟",
-      "points": 2,
-      "options": [
-        "علشان يساعدونا نفهم ونتصرف بطريقة آمنة وصحيحة",
-        "علشان ما نفكرش في أي حاجة بنفسنا",
-        "علشان كل سؤال لازم يكون له إجابة سهلة وفورية"
-      ],
-      "correct_option_index": 0,
-      "explanation": "فهم دور الشخص البالغ الموثوق في التوجيه والحماية، دون إلغاء تفكير الطفل."
-    },
-    {
-      "id": 100109,
-      "quiz_id": 1001,
-      "question_text": "هل معنى الآية عن «لهو الحديث» إن كل لعبة أو وقت للترفيه غلط؟",
-      "points": 2,
-      "options": [
-        "أيوه، لازم نبطل كل الألعاب",
-        "أيوه، أي حاجة ممتعة تبعدنا عن الخير بالضرورة",
-        "لأ، فيه ترفيه مناسب، لكن نختار ما لا يبعدنا عن طاعة ربنا ومسؤولياتنا"
-      ],
-      "correct_option_index": 2,
-      "explanation": "منع التعميم غير الدقيق في فهم الآية، والتمييز بين الترفيه المناسب والمحتوى الذي يصد عن الخير."
-    },
-    {
-      "id": 100110,
-      "quiz_id": 1001,
-      "question_text": "هل كل حاجة منتشرة بين أصحابنا تبقى صح؟",
-      "points": 2,
-      "options": [
-        "لأ، لازم نقيّم التصرف نفسه ونتأكد إنه صحيح",
-        "أيوه، لأن الأغلبية عمرها ما بتغلط",
-        "أيوه، علشان ما نبقاش مختلفين عن الناس"
-      ],
-      "correct_option_index": 0,
-      "explanation": "تصحيح الاعتقاد بأن الانتشار أو موافقة المجموعة دليل كافٍ على صحة السلوك."
-    },
-    {
-      "id": 100111,
-      "quiz_id": 1001,
-      "question_text": "لو غلطت بعد ما اتعلمت الصح، هل معنى كده إن مفيش فايدة من المحاولة؟",
-      "points": 2,
-      "options": [
-        "أيوه، الخطأ معناه إني مش هقدر أتغير",
-        "الأفضل أخفي الغلط وما أصلحوش",
-        "لأ، أعترف بالخطأ وأتوب إلى الله وأصلح ما أقدر عليه وأحاول من جديد"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ترسيخ التوبة والإصلاح والاستمرار في الخير، بعيدًا عن اليأس أو تبرير الخطأ."
-    },
-    {
-      "id": 100112,
-      "quiz_id": 1001,
-      "question_text": "ربنا سبحانه وتعالى قال في سورة لقمان: ﴿هَٰذَا خَلْقُ اللَّهِ﴾. إيه اللي نتعلمه لما نتأمل في السماء والنباتات والحيوانات؟",
-      "points": 2,
-      "options": [
-        "إننا نعرف كل أسرار الكون بمجرد النظر",
-        "إننا نتأمل في مخلوقات الله ونلاحظ نعمه وقدرته ونشكره",
-        "إننا ما نحتاجش نتعلم أي حاجة عن العالم حولينا"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ربط التأمل في خلق الله باستشعار النعم والشكر، دون ادعاء معرفة كل أسرار الكون."
-    },
-    {
-      "id": 100113,
-      "quiz_id": 1001,
-      "question_text": "سمعت كلام سئ عن زميلك، وإنت مش عارف إذا كان صحيحًا. تتصرف إزاي؟",
-      "points": 2,
-      "options": [
-        "تحكي الكلام لزملائك علشان يعرفوا",
-        "تتجنب زميلك فورًا من غير ما تفهم الموقف",
-        "ما تنشرش الكلام، وما تحكمش عليه من غير دليل، وتطلب مساعدة شخص موثوق لو احتجت"
-      ],
-      "correct_option_index": 2,
-      "explanation": "تطبيق التثبت ومنع نشر الشائعات وحماية الآخرين من الظلم."
-    },
-    {
-      "id": 100114,
-      "quiz_id": 1001,
-      "question_text": "قال الله تعالى: ﴿أَنِ اشْكُرْ لِلَّهِ﴾. إيه معنى الشكر؟",
-      "points": 2,
-      "options": [
-        "أفتكر نعم ربنا وأحمده وأستخدمها في الخير",
-        "أشكر ربنا بس لما آخد لعبة جديدة",
-        "أطلب نعمًا أكتر من غير ما أقدّر اللي عندي"
-      ],
-      "correct_option_index": 0,
-      "explanation": "فهم الشكر بالقول والعمل."
-    },
-    {
-      "id": 100115,
-      "quiz_id": 1001,
-      "question_text": "إزاي تشكر ربنا على نعمة البصر؟",
-      "points": 2,
-      "options": [
-        "أستخدم عينيّ في السخرية من الناس",
-        "أنظر لأي حاجة من غير تفكير",
-        "أستخدم عينيّ في التعلم والنظر إلى ما ينفعني"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ربط الشكر باستخدام النعمة في الخير."
-    },
-    {
-      "id": 100116,
-      "quiz_id": 1001,
-      "question_text": "إيه اللي نتعلمه من وصية ربنا ببر الوالدين؟",
-      "points": 2,
-      "options": [
-        "نقدّر مجهودهم، ونتكلم معاهم بأدب، ونساعدهم فيما نقدر عليه",
-        "نسمع كلامهم بس لما ناخد هدية",
-        "ما نساعدهمش إلا لو طلبوا أكتر من مرة"
-      ],
-      "correct_option_index": 0,
-      "explanation": "ربط البر بالتقدير والسلوك اليومي."
-    },
-    {
-      "id": 100117,
-      "quiz_id": 1001,
-      "question_text": "لو حد مدحك لأنك عملت حاجة كويسة، هل فرحتك بالمدح معناها إنك عملت الخير علشان الناس؟",
-      "points": 2,
-      "options": [
-        "أيوه، أي فرحة بالمدح معناها إن النية مش كويسة",
-        "لأ، ممكن أفرح بشكل طبيعي، وأحرص إن هدفي يكون رضا ربنا",
-        "أيوه، ولازم أبطل أعمل أي خير"
-      ],
-      "correct_option_index": 1,
-      "explanation": "فهم الإخلاص دون إثارة الشك في النية."
-    },
-    {
-      "id": 100118,
-      "quiz_id": 1001,
-      "question_text": "ماما طلبت منك تساعدها وإنت بتلعب. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "اكمل لعب",
-        "ترد باحترام وتساعدها، أو تتفق معاها على وقت قريب لو الموقف يسمح",
-        "تتجاهلها تمامًا"
-      ],
-      "correct_option_index": 1,
-      "explanation": "تطبيق البر وتنظيم الوقت."
-    },
-    {
-      "id": 100119,
-      "quiz_id": 1001,
-      "question_text": "أصحابك طلبوا منك تشارك في تحدٍّ على الإنترنت مش متأكد إنه آمن. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "تشارك فورًا",
-        "تعمل عكسهم لمجرد إنك مختلف",
-        "تتوقف وتفكر، وتسأل بابا وماما أو معلمي قبل المشاركة"
-      ],
-      "correct_option_index": 2,
-      "explanation": "تطبيق التفكير قبل التقليد."
-    },
-    {
-      "id": 100120,
-      "quiz_id": 1001,
-      "question_text": "زعقت لأخوك وبعدها اكتشفت إنك غلطان. تعمل إيه؟",
-      "points": 2,
-      "options": [
-        "تتظاهر إن مفيش حاجة حصلت",
-        "تعتذر وتحاول تصلّح الموقف",
-        "تلومه حتى لو الغلط منك"
-      ],
-      "correct_option_index": 1,
-      "explanation": "B) تعتذر وتحاول تصلّح الموقف."
-    }
+        "id": 100101,
+        "quiz_id": 1001,
+        "question_text": "طلبت منك والدتك أن تترك اللعب لتساعدها في شيء، وأنت لا تريد التوقف. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أرفض وأصرخ",
+          "أساعدها بأدب، ثم أعود للعب عندما أنتهي",
+          "أتظاهر أنني لم أسمع"
+        ],
+        "correct_option_index": 1,
+        "explanation": "بر الوالدين وطاعتهما بأدب مقدّمان على اللعب، ويمكنك العودة للعب بعد المساعدة."
+      },
+      {
+        "id": 100102,
+        "quiz_id": 1001,
+        "question_text": "رأيت زميلك يغش في الامتحان، فطلب منك أن تساعده. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أساعده حتى لا يغضب مني",
+          "أرفض الغش بأدب، وأشجعه أن يعتمد على نفسه",
+          "أغش مثله"
+        ],
+        "correct_option_index": 1,
+        "explanation": "المساعدة الحقيقية للصديق تكون برفض الغش بأدب وتشجيعه على الصدق والاعتماد على نفسه."
+      },
+      {
+        "id": 100103,
+        "quiz_id": 1001,
+        "question_text": "وجدت نقودًا ليست لك في الفصل. ما التصرف الصحيح؟",
+        "points": 2,
+        "options": [
+          "آخذها لأنها على الأرض",
+          "أخفيها",
+          "أبحث عن صاحبها أو أسلمها للمعلم"
+        ],
+        "correct_option_index": 2,
+        "explanation": "الأمانة تقتضي ردّ الحقوق لأصحابها أو تسليمها للمعلم حتى تعود لصاحبها."
+      },
+      {
+        "id": 100104,
+        "quiz_id": 1001,
+        "question_text": "صديقك يسخر من طفل آخر، ويطلب منك أن تضحك معه. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أضحك حتى لا يسخروا مني",
+          "لا أشارك في السخرية وأساند الطفل أو أطلب مساعدة المعلم",
+          "أصور الموقف وأنشره"
+        ],
+        "correct_option_index": 1,
+        "explanation": "نهى الله عن السخرية بالآخرين، والبطل يساند المظلوم ولا يشارك في الأذى."
+      },
+      {
+        "id": 100105,
+        "quiz_id": 1001,
+        "question_text": "رأيت فيديو يقول إن كل الأطفال يفعلون تحديًا خطيرًا. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أجربه فورًا",
+          "أرسله لكل أصحابي",
+          "أرفض المشاركة وأخبر ماما أو بابا أثق به"
+        ],
+        "correct_option_index": 2,
+        "explanation": "العقل والوعي يحمياننا من التقليد الخطير، وإخبار الوالدين تصرف حكيم وشجاع."
+      },
+      {
+        "id": 100106,
+        "quiz_id": 1001,
+        "question_text": "أعطاك الله نعمة العقل والقدرة على التعلم. كيف تشكره على هذه النعمة؟",
+        "points": 2,
+        "options": [
+          "أستخدمها في التعلم والعمل النافع",
+          "أستخدمها في السخرية من الآخرين",
+          "لا أهتم بها"
+        ],
+        "correct_option_index": 0,
+        "explanation": "شكر النعمة يكون باستعمالها فيما يرضي الله من التعلم والعمل النافع."
+      },
+      {
+        "id": 100107,
+        "quiz_id": 1001,
+        "question_text": "أخذت وقتًا طويلًا في اللعب، وكادت الصلاة تفوتك. ماذا تفعل في المرة القادمة؟",
+        "points": 2,
+        "options": [
+          "أؤجل الصلاة دائمًا",
+          "أرتب وقت اللعب حتى أحافظ على الصلاة",
+          "أترك الصلاة إذا كنت مستمتعًا"
+        ],
+        "correct_option_index": 1,
+        "explanation": "تنظيم الوقت يجعلنا نستمتع باللعب ونحافظ على الصلاة في وقتها."
+      },
+      {
+        "id": 100108,
+        "quiz_id": 1001,
+        "question_text": "فاز صديقك بجائزة كبيرة، وأنت لم تفز. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أقلل من جائزته",
+          "أفرح له وأحاول أن أتعلم وأتحسن",
+          "أتوقف عن المحاولة"
+        ],
+        "correct_option_index": 1,
+        "explanation": "الفرح بنجاح الآخرين علامة سلامة القلب، والتعلم المستمر يقودنا للنجاح."
+      },
+      {
+        "id": 100109,
+        "quiz_id": 1001,
+        "question_text": "اعتنيت بحيوان أليف عندك. أي تصرف يدل على شكر نعمة القدرة على رعايته؟",
+        "points": 2,
+        "options": [
+          "أطعمه وأرحمه ولا أؤذيه",
+          "أهمله عندما أنشغل",
+          "أزعجه للعب معه"
+        ],
+        "correct_option_index": 0,
+        "explanation": "الرحمة بالحيوان وإطعامه وعدم إيذائه من أجمل صور شكر الله والرفق بمخلوقاته."
+      },
+      {
+        "id": 100110,
+        "quiz_id": 1001,
+        "question_text": "أخطأت في حق أخيك، ثم شعرت بالندم. ماذا تفعل؟",
+        "points": 2,
+        "options": [
+          "أنكر أنني أخطأت",
+          "أعتذر وأحاول إصلاح ما أفسدته",
+          "أقول إنني لن أتغير أبدًا"
+        ],
+        "correct_option_index": 1,
+        "explanation": "الاعتراف بالخطأ والاعتذار وإصلاحه من أخلاق الشجعان الصادقين."
+      },
+      {
+        "id": 100111,
+        "quiz_id": 1001,
+        "question_text": "إذا طلب مني أحد والديّ فعل شيء لا أحبه، أستطيع أن أرفضه.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: نطيع والدينا بأدب في كل معروف حتى لو لم يكن محببًا لنا، ولا نرفض إلا ما فيه معصية."
+      },
+      {
+        "id": 100112,
+        "quiz_id": 1001,
+        "question_text": "يمكن أن تكون هناك نعم لا أراها بعيني، مثل العقل والهداية.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: نعم الله منها الظاهر ومنها الباطن كالعقل والهداية والأمان."
+      },
+      {
+        "id": 100113,
+        "quiz_id": 1001,
+        "question_text": "إذا فعل جميع أصدقائي شيئًا، فهذا دليل أنه صحيح.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: الكثرة ليست دليلًا على الصواب؛ بل نقيس الأفعال بالحق والشرع والعقل."
+      },
+      {
+        "id": 100114,
+        "quiz_id": 1001,
+        "question_text": "أستطيع أن أفرح بنجاحي دون أن أحتقر من لم ينجح.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: نفرح بنجاحنا بتواضع ونحترم الآخرين ونشجعهم."
+      },
+      {
+        "id": 100115,
+        "quiz_id": 1001,
+        "question_text": "إذا نصحت صديقي ولم يستجب، فهذا يعني أنني فشلت.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: علينا النصيحة بالرفق والحكمة، وأما الهداية والاستجابة فبيد الله."
+      },
+      {
+        "id": 100116,
+        "quiz_id": 1001,
+        "question_text": "التوكل على الله يعني أن أبذل جهدي وأطلب عون الله.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: التوكل الصحيح يجمع بين الأخذ بالأسباب وبذل الجهد مع الاعتماد على الله."
+      },
+      {
+        "id": 100117,
+        "quiz_id": 1001,
+        "question_text": "من حقنا أن نحكم على نيات الناس من شكلهم أو كلامهم.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: النيات في القلوب لا يعلمها إلا الله، وعلينا حسن الظن بالناس."
+      },
+      {
+        "id": 100118,
+        "quiz_id": 1001,
+        "question_text": "إذا أخطأت، يمكنني أن أستغفر وأعتذر وأحاول إصلاح الخطأ.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الاستغفار والاعتذار وإصلاح الخطأ طريق التصحيح والنمو."
+      },
+      {
+        "id": 100119,
+        "quiz_id": 1001,
+        "question_text": "خفض الصوت يعني ألا أرفع صوتي أبدًا حتى لو كنت أحذر شخصًا من خطر.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: خفض الصوت أدب عام في الحديث، لكن عند الضرورة والتحذير من خطر نرفع الصوت لحماية الآخرين."
+      },
+      {
+        "id": 100120,
+        "quiz_id": 1001,
+        "question_text": "يمكن أن أشكر الله على نعمة المال بأن أستخدمه في الخير وأساعد المحتاج.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الإنفاق في الخير ومساعدة المحتاج من أعظم صور شكر نعمة المال."
+      }
   ],
   "1002": [
     {
@@ -7837,7 +7888,7 @@ function loadQuizzesList() {
     const monthlyQuizzes = [
         { id: 1004, title: 'اختبار حفاظ القرآن الكريم والتقييم الشهري — دورة سبتمبر 2026', track: 'quran', total_questions: 'تقييم الحفظ والتجويد', total_points: 20 },
         { id: 1003, title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين', track: 'tajweed', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' },
-        { id: 1001, title: 'امتحان مسار التفسير والتدبر — ملخص الشهر الأول', track: 'tafsir', total_questions: 20, total_points: 40 },
+        { id: 1001, title: 'اختبار التفسير «من يدلني» — أقل من 10 سنوات', track: 'tafsir', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' },
         { id: 1002, title: 'امتحان مسار الحديث الشريف والسنة — ملخص الشهر الأول', track: 'hadith', total_questions: 20, total_points: 40 }
     ];
 
@@ -7951,7 +8002,7 @@ async function startQuiz(quizId) {
     if (isMonthly) {
         const now = new Date();
         const startWindow = new Date('2026-10-16T00:00:00');
-        const endWindow = (Number(quizId) === 1003)
+        const endWindow = (Number(quizId) === 1003 || Number(quizId) === 1001)
             ? new Date('2026-12-31T23:59:59+02:00')
             : new Date('2026-10-24T00:59:59+02:00');
         if (now < startWindow) {
@@ -7974,7 +8025,9 @@ async function startQuiz(quizId) {
 
     const qTitleEl = document.getElementById('activeQuizTitle');
     const qMetaEl = document.getElementById('activeQuizMeta');
-    if (qTitleEl) qTitleEl.textContent = (Number(quizId) === 1003) ? 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين' : quiz.title;
+    if (qTitleEl) qTitleEl.textContent = (Number(quizId) === 1003)
+        ? 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين'
+        : ((Number(quizId) === 1001) ? 'اختبار التفسير «من يدلني» — أقل من 10 سنوات' : quiz.title);
     if (qMetaEl) {
         qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال)';
     }
