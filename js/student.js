@@ -1,5 +1,10 @@
 let currentStudentId = 1;
 let selectedCourseName = "";
+let renewalCourseName = '';
+let pendingRenewalRequest = null;
+const confirmedClassroomPasses = new Map();
+let confirmedPassStudentId;
+let classroomEntryPending = false;
 let enrolledCoursesList = [];
 let activeQuizId = null;
 let activeQuizQuestions = [];
@@ -298,55 +303,27 @@ async function loadStudentProfile() {
         }
         window.currentStudentAge = loadedAge;
 
-        // Check active session pass for today (until midnight 12:00 AM)
-        let hasAttendedToday = false;
-        let todayPassCourse = '';
-        const todayDateStr = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-        const targetSid = s.id || s.student_code || lookupKey;
-        const localEntryKey = 'monir_classroom_entry_' + targetSid + '_' + todayDateStr;
-        const localEntry = localStorage.getItem(localEntryKey);
-        if (localEntry || localStorage.getItem('monir_att_' + targetSid + '_' + todayDateStr) === 'present') {
-            hasAttendedToday = true;
+        const passDate = getMonirLocalDateStr();
+        if (confirmedPassStudentId !== s.id) confirmedClassroomPasses.clear();
+        confirmedPassStudentId = s.id;
+        if (window.MonirDB?.isConfigured() && s.id) {
             try {
-                const parsed = JSON.parse(localEntry);
-                if (parsed && parsed.course_name) todayPassCourse = parsed.course_name;
-            } catch(e) {}
-        }
-
-        if (window.MonirDB && window.MonirDB.isConfigured()) {
-            const sbClient = window.MonirDB.getClient();
-            const numId = s.id ? parseInt(s.id, 10) : (typeof lookupKey === 'number' ? lookupKey : null);
-            if (sbClient && numId) {
-                try {
-                    const todayStartIso = todayDateStr + 'T00:00:00';
-                    const { data: todayAtt } = await sbClient
-                        .from('attendance')
-                        .select('id, course_name, status, joined_at')
-                        .eq('student_id', numId)
-                        .gte('joined_at', todayStartIso)
-                        .limit(5);
-
-                    if (todayAtt && todayAtt.length > 0) {
-                        hasAttendedToday = true;
-                        todayPassCourse = todayAtt[0].course_name || '';
-                        window.todayAttendanceRecords = todayAtt;
-                        try {
-                            localStorage.setItem(localEntryKey, JSON.stringify({
-                                date: todayDateStr,
-                                time: todayAtt[0].joined_at,
-                                course_name: todayPassCourse,
-                                deducted: 1
-                            }));
-                            localStorage.setItem('monir_att_' + targetSid + '_' + todayDateStr, 'present');
-                        } catch(e) {}
+                const { data: attendance, error } = await window.MonirDB.getClient()
+                    .from('attendance')
+                    .select('course_name, joined_at')
+                    .eq('student_id', s.id)
+                    .in('status', ['present', 'attended', 'late'])
+                    .gte('joined_at', new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString());
+                if (error) throw error;
+                for (const record of attendance || []) {
+                    if (getMonirLocalDateStr(new Date(record.joined_at)) === passDate) {
+                        confirmedClassroomPasses.set(record.course_name.split(' [رصد آلي')[0], passDate);
                     }
-                } catch(attErr) {
-                    console.warn('[CheckTodayAttendance] Query error:', attErr);
                 }
+            } catch (error) {
+                console.warn('[Student attendance lookup]', error);
             }
         }
-        window.studentHasActivePassToday = hasAttendedToday;
-        window.todayActivePassCourseName = todayPassCourse;
         if (typeof updateFridayScheduleNoticeByAge === 'function') {
             updateFridayScheduleNoticeByAge(loadedAge);
         }
@@ -684,7 +661,7 @@ function renderUpcomingScheduleList() {
                         if (isStudentAccountPaused(curStudent)) {
                             return '<span class="text-red-800 font-bold">الحساب موقوف</span>';
                         } else if (rc <= 0 && !hasPass) {
-                            return `<button type="button" onclick="openPaymobModal()" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`;
+                            return `<button type="button" data-renewal-course="${encodeURIComponent(cName)}" onclick="openPaymobModal(decodeURIComponent(this.dataset.renewalCourse))" class="text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer">رصيد 0 • تجديد</button>`;
                         } else if (rc <= 0 && hasPass) {
                             return `<button type="button" onclick="selectCourseTab('${cName}'); joinMeet(null, '${meetUrl}')" class="text-emerald-950 bg-emerald-100 hover:bg-emerald-200 border border-emerald-500 px-2 py-0.5 rounded-md font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-xs">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
@@ -736,12 +713,11 @@ function renderCertificatesPanel() {
     const courseTitle = curCourse.course_name || curStudent.course_name || 'مسار القرآن الكريم والتجويد';
     const presentCount = (curCourse.present_count !== undefined) ? curCourse.present_count : (curStudent.present_count || 0);
     const absentCount = (curCourse.absent_count !== undefined) ? curCourse.absent_count : (curStudent.absent_count || 0);
-    const totalSessions = presentCount + absentCount;
-    const rate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 100;
+    const rate = formatAttendanceRate(presentCount, absentCount);
 
     if (hifzTitleEl) hifzTitleEl.innerText = courseTitle;
     if (hifzSubtitleEl) {
-        hifzSubtitleEl.innerText = `حضور مؤكد: ${presentCount} حصص • نسبة الالتزام: ${rate}% • المعلم: أ. ${curCourse.teacher_name || curStudent.teacher_name || 'معتمد'}`;
+        hifzSubtitleEl.innerText = `حضور مؤكد: ${presentCount} حصص • نسبة الالتزام: ${rate} • المعلم: أ. ${curCourse.teacher_name || curStudent.teacher_name || 'معتمد'}`;
     }
     if (courseStatusEl) {
         courseStatusEl.innerText = 'مقفولة حالياً';
@@ -829,8 +805,7 @@ function populateCertificateModalData() {
 
     const presentCount = (curCourse.present_count !== undefined) ? curCourse.present_count : (curStudent.present_count || 0);
     const absentCount = (curCourse.absent_count !== undefined) ? curCourse.absent_count : (curStudent.absent_count || 0);
-    const totalSessions = presentCount + absentCount;
-    const rate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 100;
+    const rate = formatAttendanceRate(presentCount, absentCount);
 
     let grade = 'امتياز مع مرتبة الشرف';
     if (cachedStudentSubmissions && cachedStudentSubmissions.length > 0) {
@@ -853,7 +828,7 @@ function populateCertificateModalData() {
     const teacherEl = document.getElementById('certModalTeacherName');
     if (teacherEl) teacherEl.innerText = 'أ. ' + teacherName;
     const attEl = document.getElementById('certModalAttendance');
-    if (attEl) attEl.innerText = rate + '%';
+    if (attEl) attEl.innerText = rate;
     const gradeEl = document.getElementById('certModalGrade');
     if (gradeEl) gradeEl.innerText = grade;
     const dateEl = document.getElementById('certModalDate');
@@ -1880,7 +1855,7 @@ function renderEnrolledCoursesTabs(courses) {
                                 <span>الحساب موقوف إدارياً</span>
                             </button>`;
                         } else if (remCredits <= 0 && !hasPass) {
-                            return `<button type="button" onclick="event.stopPropagation(); openPaymobModal();" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                            return `<button type="button" data-renewal-course="${encodeURIComponent(cName)}" onclick="event.stopPropagation(); openPaymobModal(decodeURIComponent(this.dataset.renewalCourse));" class="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 active:scale-95 text-slate-950 font-black text-xs py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
                                 <svg class="w-3.5 h-3.5"><use href="#clock"/></svg>
                                 <span>رصيدك منتهي (0) — تجديد الآن</span>
                             </button>`;
@@ -2138,6 +2113,12 @@ const COMPETITION_LECTURES_MAP = {
 };
 window.COMPETITION_LECTURES_MAP = COMPETITION_LECTURES_MAP;
 
+function formatAttendanceRate(present, absent) {
+    const attended = Number(present) || 0;
+    const total = attended + (Number(absent) || 0);
+    return total > 0 ? Math.round(100 * attended / total) + '%' : '—';
+}
+
 async function loadSelectedCourseLectures() {
     if (!selectedCourseName) return;
     const requestedCourseName = selectedCourseName;
@@ -2228,14 +2209,18 @@ async function loadSelectedCourseLectures() {
             };
         }
         
+        if (requestedCourseName !== selectedCourseName) return;
         document.getElementById('selectedCourseTitle').innerText = 'جدول محاضرات: ' + (data.course_name || selectedCourseName);
         if (typeof renderUpcomingScheduleList === "function") renderUpcomingScheduleList();
         if (typeof renderCertificatesPanel === "function") renderCertificatesPanel();
         if (typeof renderDetailsPanel === "function") renderDetailsPanel();
         
         if (currentCourseInfo) {
-            document.getElementById('presentCount').innerText = (currentCourseInfo.present_count !== undefined) ? currentCourseInfo.present_count : 0;
-            document.getElementById('absentCount').innerText = currentCourseInfo.absent_count || 0;
+            const present = Number(currentCourseInfo.present_count) || 0;
+            const absent = Number(currentCourseInfo.absent_count) || 0;
+            document.getElementById('presentCount').innerText = present;
+            document.getElementById('absentCount').innerText = absent;
+            document.getElementById('statAttendanceRate').textContent = formatAttendanceRate(present, absent);
 
             // Trigger 3rd Absence Warning Banner if absent_count >= 3
             const curAbsCount = (currentCourseInfo.absent_count !== undefined) ? Number(currentCourseInfo.absent_count) : 0;
@@ -2877,65 +2862,18 @@ function renderLectureCard(l, isCurrentDue = false, isScheduledToday = false) {
     return div;
 }
 
-function getMonirLocalDateStr() {
+function getMonirLocalDateStr(now = new Date()) {
     try {
-        const now = new Date();
         const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' });
         return formatter.format(now);
     } catch(e) {
-        const d = new Date();
+        const d = now;
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 }
 
-function hasActiveSessionPassToday(courseName) {
-    const todayDate = getMonirLocalDateStr();
-
-    // 1. Check in-memory flag set by profile loader or recent join
-    if (window.studentHasActivePassToday) {
-        if (!courseName || !window.todayActivePassCourseName) return true;
-        const cClean = String(courseName).trim();
-        const pClean = String(window.todayActivePassCourseName).trim();
-        if (cClean.includes(pClean) || pClean.includes(cClean) || pClean.includes('حلقة') || cClean.includes('حلقة')) return true;
-    }
-
-    // 2. Resolve student ID variations
-    const sData = window.currentStudentData || {};
-    const s = sData.student || window.curStudent || {};
-    const sId = s.id || window.currentStudentId || '';
-    const stCode = s.student_code || '';
-
-    const idList = [sId, stCode].filter(Boolean);
-    try {
-        const u = JSON.parse(localStorage.getItem('monir_current_user') || '{}');
-        if (u.student_code) idList.push(u.student_code);
-        if (u.id) idList.push(u.id);
-    } catch(e) {}
-
-    for (const id of idList) {
-        // Check classroom entry marker for today
-        const entryKey = 'monir_classroom_entry_' + id + '_' + todayDate;
-        const entryRaw = localStorage.getItem(entryKey);
-        if (entryRaw) {
-            try {
-                const parsed = JSON.parse(entryRaw);
-                if (parsed && (parsed.date === todayDate || parsed.deducted)) {
-                    return true;
-                }
-            } catch(e) {
-                return true;
-            }
-        }
-
-        // Check attendance marker for today
-        const attKey = 'monir_att_' + id + '_' + todayDate;
-        const attVal = localStorage.getItem(attKey);
-        if (attVal === 'present' || attVal === 'attended') {
-            return true;
-        }
-    }
-
-    return false;
+function hasActiveSessionPassToday(courseName = selectedCourseName) {
+    return confirmedClassroomPasses.get(courseName) === getMonirLocalDateStr();
 }
 
 function isStudentAccountPaused(student) {
@@ -2945,6 +2883,7 @@ function isStudentAccountPaused(student) {
 
 function renderStudentNextSession(student, courseName, isReentry) {
     const summary = document.getElementById('studentNextSession');
+    if (!summary) return;
     const course = enrolledCoursesList.find(item => item.course_name === courseName)
         || enrolledCoursesList[0] || student;
     const title = course.course_name || course.name;
@@ -2979,20 +2918,23 @@ function updateBottomMeetButtonState(rc, courseName) {
     }[status];
     for (const id of ['accountStatusBadge', 'goalAccountStatus', 'detailsAccountStatus']) {
         const statusLabel = document.getElementById(id);
+        if (!statusLabel) continue;
         statusLabel.textContent = statusText;
         statusLabel.dataset.status = status;
     }
 
     const packageAction = document.getElementById('goalAccountAction');
-    packageAction.disabled = false;
-    packageAction.onclick = paused ? openSupportModal : openPaymobModal;
-    document.getElementById('goalAccountActionLabel').textContent = paused ? 'تواصل مع الدعم' : 'تجديد الباقة';
-    document.getElementById('goalAccountMessage').textContent = paused
-        ? 'تواصل مع الدعم لمعرفة خطوات إعادة تفعيل الحساب.'
-        : hasActivePass
-            ? 'تقدر ترجع لحصة اليوم من غير خصم حصة إضافية.'
-            : 'تقدر تجدّد الباقة لإضافة حصص لرصيدك.';
-    document.getElementById('studentProfileRenewBtn').classList.toggle('hidden', paused || (noCredits && !hasActivePass));
+    if (packageAction) {
+        packageAction.disabled = false;
+        packageAction.onclick = paused ? openSupportModal : () => openPaymobModal();
+        document.getElementById('goalAccountActionLabel').textContent = paused ? 'تواصل مع الدعم' : 'تجديد الباقة';
+        document.getElementById('goalAccountMessage').textContent = paused
+            ? 'تواصل مع الدعم لمعرفة خطوات إعادة تفعيل الحساب.'
+            : hasActivePass
+                ? 'تقدر ترجع لحصة اليوم من غير خصم حصة إضافية.'
+                : 'تقدر تجدّد الباقة لإضافة حصص لرصيدك.';
+    }
+    document.getElementById('studentProfileRenewBtn')?.classList.toggle('hidden', paused || (noCredits && !hasActivePass));
 
     btn.disabled = false;
     if (paused) {
@@ -3097,157 +3039,37 @@ async function proceedClassroomEntry() {
     await executeClassroomJoin(url, courseName, lectureId);
 }
 
-async function executeClassroomJoin(url, courseName, lectureId) {
-    if (!url) return;
+async function executeClassroomJoin(url, courseName) {
+    if (!url || classroomEntryPending) return;
+    const student = window.currentStudentData?.student;
+    if (!student?.id || isStudentAccountPaused(student)) return;
     
-    // 1. Open classroom immediately in new tab
+    classroomEntryPending = true;
+    let classroomTab = null;
     try {
-        window.open(url, '_blank');
-    } catch(e) {
-        window.location.href = url;
-    }
+        classroomTab = window.open('about:blank', '_blank');
+        if (classroomTab) classroomTab.opener = null;
 
-    // 2. Automated Attendance & Credit Deduction
-    const sId = (typeof currentStudentId !== 'undefined' && currentStudentId) ? currentStudentId : null;
-    if (sId) {
-        const todayDate = (typeof getMonirLocalDateStr === 'function') ? getMonirLocalDateStr() : new Date().toISOString().split('T')[0];
-        const localKey = 'monir_classroom_entry_' + sId + '_' + todayDate;
-        const nowTimeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-        const alreadyDone = localStorage.getItem(localKey) || window.studentHasActivePassToday;
+        if (!window.MonirDB?.isConfigured()) throw new Error('Attendance service unavailable');
+        const { data, error } = await window.MonirDB.getClient().rpc('record_student_classroom_entry', {
+            p_student_id: student.id,
+            p_course_name: courseName
+        });
+        if (error || !data) throw error || new Error('Attendance was not confirmed');
 
-        if (alreadyDone) {
-            console.log('[AutoRecord] Session already deducted/attended today. Re-entry allowed without deduction until 12:00 midnight.');
-            window.studentHasActivePassToday = true;
+        confirmedClassroomPasses.set(courseName, getMonirLocalDateStr());
+        if (classroomTab && !classroomTab.closed) classroomTab.location.replace(url);
+        else {
+            window.location.assign(url);
             return;
         }
-
-        localStorage.setItem(localKey, JSON.stringify({
-            date: todayDate,
-            time: nowTimeStr,
-            course_name: courseName || (typeof selectedCourseName !== 'undefined' ? selectedCourseName : ''),
-            url: url,
-            deducted: 1
-        }));
-        localStorage.setItem('monir_att_' + sId + '_' + todayDate, 'present');
-
-        try {
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
-                const client = window.MonirDB.getClient();
-
-                // 2.0 Resolve Numeric Student ID (PostgreSQL integer column)
-                let numericStudentId = null;
-                if (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.id) {
-                    numericStudentId = parseInt(window.currentStudentData.student.id, 10);
-                } else if (window.curStudent && window.curStudent.id) {
-                    numericStudentId = parseInt(window.curStudent.id, 10);
-                } else if (typeof sId === 'number' || (typeof sId === 'string' && !isNaN(Number(sId)) && !sId.startsWith('ST'))) {
-                    numericStudentId = parseInt(sId, 10);
-                }
-
-                if (!numericStudentId) {
-                    try {
-                        const { data: stRow } = await client
-                            .from('students')
-                            .select('id')
-                            .eq('student_code', String(sId))
-                            .maybeSingle();
-                        if (stRow && stRow.id) {
-                            numericStudentId = parseInt(stRow.id, 10);
-                        }
-                    } catch(e) {
-                        console.warn('Could not resolve numeric student id from code:', e);
-                    }
-                }
-
-                const targetQueryId = numericStudentId || sId;
-
-                // 2.1 Deduct 1 credit from active enrollment (idempotent: checked in local storage AND cloud DB)
-                if (!alreadyDone) {
-                    try {
-                        // Cloud DB check: ensure no attendance was already recorded today from any device or source
-                        const todayStartIso = todayDate + 'T00:00:00';
-                        const { data: existingToday } = await client
-                            .from('attendance')
-                            .select('id')
-                            .eq('student_id', targetQueryId)
-                            .gte('joined_at', todayStartIso)
-                            .limit(1);
-
-                        if (existingToday && existingToday.length > 0) {
-                            console.log('[AutoRecord] Attendance already recorded today in database, skipping duplicate deduction.');
-                            return;
-                        }
-
-                        // Fetch student active enrollments
-                        const { data: enrList } = await client
-                            .from('enrollments')
-                            .select('id, remaining_credits, present_count, course_name, session_duration, subscription_days')
-                            .eq('student_id', targetQueryId);
-
-                        if (enrList && enrList.length > 0) {
-                            // Smart course matching if student is enrolled in multiple courses (e.g. Prayer & Quran)
-                            let enr = null;
-                            if (courseName && courseName !== 'حلقة قرآن كريم') {
-                                enr = enrList.find(e => e.course_name && (e.course_name.includes(courseName) || courseName.includes(e.course_name)));
-                            }
-                            if (!enr) enr = enrList[0];
-
-                            // Support both regular scheduled days and confirmed make-up / compensation sessions
-                            let isCompensationSession = false;
-                            if (enr.subscription_days) {
-                                const dayNamesArabic = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-                                const todayArabicDay = dayNamesArabic[new Date().getDay()];
-                                const cleanSub = String(enr.subscription_days).replace(/[أإآ]/g, 'ا');
-                                const cleanToday = todayArabicDay.replace(/[أإآ]/g, 'ا');
-
-                                if (!cleanSub.includes(cleanToday)) {
-                                    isCompensationSession = true;
-                                    console.log(`[AutoRecord] Recorded as confirmed make-up/compensation session: today is ${todayArabicDay}, scheduled days: ${enr.subscription_days}`);
-                                }
-                            }
-
-                            const curRem = parseFloat(enr.remaining_credits || 0);
-                            const newRem = Math.max(0, curRem - 1);
-                            const newPresent = parseInt(enr.present_count || 0) + 1;
-
-                            await client
-                                .from('enrollments')
-                                .update({
-                                    remaining_credits: newRem,
-                                    present_count: newPresent
-                                })
-                                .eq('id', enr.id);
-
-                            // Insert official attendance record
-                            await client
-                                .from('attendance')
-                                .insert([{
-                                    student_id: targetQueryId,
-                                    lecture_id: null,
-                                    course_name: (enr.course_name || courseName || 'حلقة قرآن كريم') + (typeof isCompensationSession !== 'undefined' && isCompensationSession ? ' [رصد آلي - تعويض]' : ' [رصد آلي - دخول الطالب]'),
-                                    status: 'present',
-                                    joined_at: new Date().toISOString(),
-                                    duration_minutes: parseInt(enr.session_duration) || 20
-                                }]);
-
-                            // Update in-memory data and UI
-                            if (window.currentStudentData) {
-                                if (window.currentStudentData.student) {
-                                    window.currentStudentData.student.remaining_credits = newRem;
-                                }
-                                if (typeof renderStudentDashboard === 'function') {
-                                    renderStudentDashboard();
-                                }
-                            }
-                        }
-                    } catch(dbErr) {
-                        console.warn('[AutoRecord] DB Error during automated attendance:', dbErr);
-                    }
-                }
-            }
-        } catch(e) {
-            console.warn('[AutoRecord] General Error in executeClassroomJoin:', e);
-        }
+        void loadStudentProfile();
+    } catch (error) {
+        classroomTab?.close();
+        console.warn('[Student attendance]', error);
+        alert('تعذّر تأكيد الحضور. حاول دخول الحصة مرة أخرى أو تواصل مع الدعم.');
+    } finally {
+        classroomEntryPending = false;
     }
 }
 
@@ -3528,47 +3350,32 @@ async function submitSupportTicket() {
     try {
         const u = activeUser || {};
         const stName = u.full_name || u.name || (window.currentStudentData && window.currentStudentData.student && window.currentStudentData.student.name) || 'طالب الأكاديمية';
-        const stCode = u.student_code || u.username || String(currentStudentId);
-
-        const newTicket = {
-            id: Date.now(),
-            student_id: currentStudentId,
-            student_code: stCode,
+        const studentId = window.currentStudentData?.student?.id;
+        if (!studentId) throw new Error('Missing student ID');
+        const ticket = {
+            student_id: studentId,
             student_name: stName,
-            category: category,
-            subject: subject,
-            message: message,
-            status: 'open',
-            created_at: new Date().toISOString()
+            course_name: selectedCourseName || 'عام',
+            category,
+            subject,
+            message,
+            status: 'open'
         };
 
-        // 1. Save to localStorage immediately for instant persistence
-        const storageKey = 'monir_support_tickets_' + currentStudentId;
-        let stored = [];
-        try {
-            stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        } catch(e) { stored = []; }
-        stored.unshift(newTicket);
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(stored));
-        } catch(e) {}
-
-        // 2. Submit to Mock/Backend API safely
-        try {
-            await fetch('/api/support/tickets', {
+        if (window.MonirDB?.isConfigured()) {
+            const { error } = await window.MonirDB.getClient().from('support_tickets').insert(ticket);
+            if (error) throw error;
+        } else {
+            const fetchApi = window.fetchStudentPortalApi || window.fetch.bind(window);
+            const response = await fetchApi('/api/support/tickets', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newTicket)
+                body: JSON.stringify(ticket)
             });
-        } catch(fetchErr) {}
-
-        // 3. Submit to Supabase if configured
-        try {
-            if (window.MonirDB && window.MonirDB.isConfigured()) {
-                const client = window.MonirDB.getClient();
-                await client.from('support_tickets').insert([newTicket]);
+            if (!response.ok || !(await response.json()).success) {
+                throw new Error('Support ticket was not confirmed');
             }
-        } catch(supaErr) {}
+        }
 
         alert("تم إرسال تذكرتك بنجاح، وسيتم الرد والمتابعة معك من إدارة الأكاديمية.");
         if (subEl) subEl.value = '';
@@ -3587,36 +3394,24 @@ async function submitSupportTicket() {
 }
 
 async function loadSupportTickets() {
+    const list = document.getElementById('supportListTab');
+    if (!list) return;
+
     try {
-        const storageKey = 'monir_support_tickets_' + currentStudentId;
-        let localTickets = [];
-        try {
-            localTickets = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        } catch(e) { localTickets = []; }
-
-        let remoteTickets = [];
-        try {
-            const res = await fetch('/api/student/' + currentStudentId + '/support/tickets');
-            if (res.ok) {
-                remoteTickets = await res.json();
-            }
-        } catch(e) {}
-
-        if ((!remoteTickets || remoteTickets.length === 0) && window.MonirDB && window.MonirDB.isConfigured()) {
-            try {
-                const client = window.MonirDB.getClient();
-                const { data } = await client.from('support_tickets').select('*').eq('student_id', currentStudentId).order('created_at', { ascending: false });
-                if (data) remoteTickets = data;
-            } catch(e) {}
+        const studentId = window.currentStudentData?.student?.id;
+        if (!studentId) return;
+        let combined;
+        if (window.MonirDB?.isConfigured()) {
+            const { data, error } = await window.MonirDB.getClient()
+                .from('support_tickets').select('*').eq('student_id', studentId);
+            if (error) throw error;
+            combined = data || [];
+        } else {
+            const fetchApi = window.fetchStudentPortalApi || window.fetch.bind(window);
+            const response = await fetchApi('/api/student/' + encodeURIComponent(studentId) + '/support/tickets');
+            if (!response.ok) throw new Error('Support tickets could not be loaded');
+            combined = await response.json();
         }
-
-        // Merge local and remote
-        const combined = [...localTickets];
-        (remoteTickets || []).forEach(rt => {
-            if (!combined.some(ct => String(ct.id) === String(rt.id) || (ct.subject === rt.subject && ct.created_at === rt.created_at))) {
-                combined.push(rt);
-            }
-        });
 
         // Sort newest first
         combined.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
@@ -3624,8 +3419,6 @@ async function loadSupportTickets() {
         const badge = document.getElementById('ticketCountBadge');
         if (badge) badge.innerText = combined.length;
 
-        const list = document.getElementById('supportListTab');
-        if (!list) return;
         list.innerHTML = '';
         
         if (combined.length === 0) {
@@ -3666,6 +3459,7 @@ async function loadSupportTickets() {
         });
     } catch (err) {
         console.error("Error loading tickets:", err);
+        list.textContent = 'تعذّر تحميل تذاكر الدعم. حاول فتح القائمة مرة أخرى.';
     }
 }
 
@@ -3948,7 +3742,7 @@ function updateWhatsAppTransferLink() {
     const msg = 
         'السلام عليكم، تم تحويل رسوم تجديد الاشتراك بأكاديمية منير:\n' +
         '• اسم الطالب: ' + sName + ' (' + sCode + ')\n' +
-        '• المسار التدريبي: ' + (selectedCourseName || 'مسار القرآن الكريم والتدبر') + '\n' +
+        '• المسار التدريبي: ' + renewalCourseName + '\n' +
         '• الباقة المختارة: ' + pkg.name + ' (' + pkg.typeName + ')\n' +
         '• الرصيد المطلوب إضافته: +' + pkg.credits + ' حصص (' + pkg.duration + ')\n' +
         '• المبلغ المحول: ' + pkg.price + ' ج.م\n' +
@@ -4086,9 +3880,10 @@ function updatePayMethodVisual(radioInput) {
     updateWhatsAppTransferLink();
 }
 
-function openPaymobModal() {
+function openPaymobModal(courseName = selectedCourseName) {
+    renewalCourseName = courseName || 'مسار القرآن الكريم والتدبر';
     const cBadge = document.getElementById('paymobCourseNameBadge');
-    if (cBadge) cBadge.innerText = selectedCourseName || 'مسار القرآن الكريم والتدبر';
+    if (cBadge) cBadge.innerText = renewalCourseName;
     
     const sInfo = document.getElementById('paymobStudentInfo');
     const sNameElem = document.getElementById('studentName');
@@ -4147,6 +3942,7 @@ function closeReceiptModal() {
 async function submitPaymobPayment() {
     const pkg = RENEWAL_PACKAGES.find(p => p.id === selectedRenewalPackageId) || RENEWAL_PACKAGES[1];
     const btn = document.getElementById('btnPaymobSubmit');
+    if (btn.disabled) return;
     const oldTxt = btn.innerHTML;
     btn.innerHTML = '<span>جاري تسجيل الطلب...</span>';
     btn.disabled = true;
@@ -4158,12 +3954,19 @@ async function submitPaymobPayment() {
     const methodTitle = (payMethod === 'vodafone_cash') ? 'فودافون كاش (01002530197)' : 'إنستا باي (009348060001)';
 
     try {
-        const reqNum = 'REQ-2026-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const studentId = window.currentStudentData?.student?.id;
+        if (!window.MonirDB?.isConfigured() || !studentId) {
+            throw new Error('Renewal service unavailable');
+        }
+        const requestKey = JSON.stringify([studentId, renewalCourseName, pkg.id, payMethod]);
+        if (pendingRenewalRequest?.key !== requestKey) {
+            pendingRenewalRequest = { key: requestKey, number: 'REQ-' + crypto.randomUUID().toUpperCase() };
+        }
         const receipt = {
-            receipt_number: reqNum,
+            receipt_number: pendingRenewalRequest.number,
             student_name: sName,
             student_code: sCode,
-            course_name: selectedCourseName,
+            course_name: renewalCourseName,
             package_name: pkg.name + ' (' + pkg.typeName + ')',
             credits_added: pkg.credits,
             amount: pkg.price,
@@ -4171,46 +3974,27 @@ async function submitPaymobPayment() {
             created_at: new Date().toISOString()
         };
 
-        // Notify in Supabase without modifying remaining_credits directly
-        if (window.MonirDB && window.MonirDB.isConfigured()) {
-            try {
-                const client = window.MonirDB.getClient();
-                if (client && currentStudentId) {
-                    await client.from('notifications').insert([{
-                        student_id: currentStudentId,
-                        course_name: selectedCourseName,
-                        title: 'طلب تجديد اشتراك قيد المراجعة (' + pkg.name + ')',
-                        message: 'تم تسجيل طلب التجديد بقيمة ' + pkg.price + ' ج.م برقم #' + receipt.receipt_number + '. يرجى إرسال صورة إشعار التحويل عبر واتساب ليتم تفعيل الحصص.',
-                        type: 'renewal_pending',
-                        action_url: '/student.html'
-                    }]);
-                }
-            } catch(err) {
-                console.warn('[Supabase] Notification insert error:', err);
-            }
-        }
+        const { error } = await window.MonirDB.getClient().from('notifications').upsert({
+            renewal_request_id: receipt.receipt_number,
+            student_id: studentId,
+            course_name: receipt.course_name,
+            title: 'طلب تجديد اشتراك قيد المراجعة (' + pkg.name + ')',
+            message: 'تم تسجيل طلب التجديد بقيمة ' + pkg.price + ' ج.م برقم #' + receipt.receipt_number + '. يرجى إرسال صورة إشعار التحويل عبر واتساب ليتم تفعيل الحصص.',
+            type: 'renewal_pending',
+            action_url: '/student.html'
+        }, { onConflict: 'renewal_request_id', ignoreDuplicates: true });
+        if (error) throw error;
 
-        btn.innerHTML = 'تم تسجيل الطلب بنجاح';
-        btn.className = 'w-full bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl';
-
-        setTimeout(() => {
-            closePaymobModal();
-            btn.innerHTML = oldTxt;
-            btn.disabled = false;
-            btn.className = 'w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2';
-            
-            // Show request receipt modal
-            openReceiptModal(receipt);
-            
-            // Refresh notifications
-            loadNotifications();
-        }, 800);
-
-    } catch (err) {
-        console.error("Paymob Error:", err);
+        pendingRenewalRequest = null;
+        closePaymobModal();
+        openReceiptModal(receipt);
+        void loadNotifications();
+    } catch (error) {
+        console.warn('[Student renewal]', error);
+        alert('تعذّر تأكيد تسجيل طلب التجديد. يمكنك إعادة المحاولة أو التواصل عبر واتساب.');
+    } finally {
         btn.innerHTML = oldTxt;
         btn.disabled = false;
-        alert("حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة مرة أخرى أو التواصل مباشرة عبر الواتساب.");
     }
 }
 

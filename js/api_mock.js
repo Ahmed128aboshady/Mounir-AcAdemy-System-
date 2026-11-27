@@ -2321,6 +2321,7 @@
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') : false;
 
     if (typeof window !== 'undefined' && realFetch) {
+        window.fetchStudentPortalApi = realFetch.bind(window);
         window.fetch = async function(resource, init) {
             const url = (typeof resource === 'string') ? resource : (resource && resource.url ? resource.url : '');
             
