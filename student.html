@@ -37,7 +37,7 @@
     <script src="js/student_genders.js?v=20260922_v1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260923_v1"></script>
-    <link rel="stylesheet" href="css/monir-ui.css?v=20261127_status">
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261127_next-session">
 </head>
 <body data-monir-page="student" class="bg-slate-50 text-slate-800">
 
@@ -203,14 +203,24 @@
                     جاري تحميل الحالة
                 </span>
             </div>
-            <div class="student-quick-actions">
-                <button type="button" id="bottomNavMeetBtn" disabled class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
-                    <span id="bottomNavMeetIcon" class="flex items-center justify-center"><svg class="w-4 h-4"><use href="#clock"/></svg></span>
-                    <span class="text-[10px] font-black" id="bottomNavMeetLabel">جاري التحميل</span>
-                </button>
-                <button type="button" id="studentProfileRenewBtn" onclick="openPaymobModal()" class="hidden student-renew-button font-extrabold text-xs py-1.5 rounded-xl transition">
-                    <span>تجديد الباقة</span>
-                </button>
+            <div class="student-session-card">
+                <div class="student-session-summary" id="studentNextSession" hidden>
+                    <svg aria-hidden="true"><use href="#calendar"/></svg>
+                    <div>
+                        <h3 id="studentNextSessionHeading">الحصة الجاية</h3>
+                        <p id="studentNextSessionCourse"></p>
+                        <p id="studentNextSessionTime"></p>
+                    </div>
+                </div>
+                <div class="student-quick-actions">
+                    <button type="button" id="bottomNavMeetBtn" disabled class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
+                        <span id="bottomNavMeetIcon" class="flex items-center justify-center"><svg class="w-4 h-4"><use href="#clock"/></svg></span>
+                        <span class="text-[10px] font-black" id="bottomNavMeetLabel">جاري التحميل</span>
+                    </button>
+                    <button type="button" id="studentProfileRenewBtn" onclick="openPaymobModal()" class="hidden student-renew-button font-extrabold text-xs py-1.5 rounded-xl transition">
+                        <span>تجديد الباقة</span>
+                    </button>
+                </div>
             </div>
             <details class="student-profile-details">
                 <summary>بيانات الطالب وسجلاته</summary>
@@ -1682,7 +1692,7 @@
     </script>
 
     <script src="js/api_mock.js?v=20261023_open_v2"></script>
-    <script src="js/student.js?v=20261127_status"></script>
+    <script src="js/student.js?v=20261127_next-session"></script>
     <script src="js/student_ledger.js?v=20261023_open_v2"></script>
 
     <!-- Confirm Classroom Entry Modal (توثيق دخول القاعة الذكية) -->
