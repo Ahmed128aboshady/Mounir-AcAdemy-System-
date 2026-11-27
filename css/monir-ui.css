@@ -275,6 +275,23 @@ body[data-monir-page] .student-profile .profile-body {
   gap: .5rem;
   padding-inline: 1rem;
 }
+.student-quick-actions:has(> .student-renew-button.hidden) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.student-status-label { color: var(--monir-muted); }
+.student-status-label[data-status="active"] {
+  color: #065f46;
+  background: #d1fae5;
+}
+.student-status-label[data-status="empty"] {
+  color: #854d0e;
+  background: #fef3c7;
+}
+.student-status-label[data-status="paused"] {
+  color: #991b1b;
+  background: #fee2e2;
+}
+#detailsAccountStatus { background: transparent; }
 #bottomNavMeetBtn {
   flex-direction: row;
   gap: .375rem;
