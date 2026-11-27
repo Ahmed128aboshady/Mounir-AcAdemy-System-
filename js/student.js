@@ -5723,7 +5723,7 @@ function renderGeneralTrackView() {
                 const trackMonthlyMap = {
                     'tafsir': { id: 1001, title: 'امتحان التفسير والتدبر — ملخص الشهر الأول', desc: 'امتحان شهري شامل يغطي موضوعات وتطبيقات الشهر الأول (سورة لقمان وبودكاست من يدلني).' },
                     'hadith': { id: 1002, title: 'امتحان الحديث الشريف والسنة — ملخص الشهر الأول', desc: 'امتحان شهري شامل يغطي مجالس الحديث النبوي الشريف وتطبيقاتها السلوكية والتربوية.' },
-                    'tajweed': { id: 1003, title: 'امتحان أحكام التجويد — ملخص الشهر الأول', desc: 'امتحان شهري شامل يغطي أحكام النون الساكنة والتنوين والمخارج وتطبيقات جزء عم.' }
+                    'tajweed': { id: 1003, title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين', desc: 'اختبار شامل (10 أسئلة اختيار من متعدد + 10 أسئلة صح وخطأ) في أحكام النون الساكنة والتنوين والنون والميم المشددتين واللحن الجلي.' }
                 };
                 const mInfo = trackMonthlyMap[currentGeneralTrack];
                 if (!mInfo) return '';
@@ -5744,7 +5744,7 @@ function renderGeneralTrackView() {
                                 <strong class="text-sm sm:text-base font-black text-white block">${mInfo.title}</strong>
                             </div>
                             <span class="text-[11px] font-bold text-amber-200 bg-amber-950/50 px-3 py-1 rounded-xl border border-amber-400/30">
-                                متاح حتى اليوم الجمعة 23 أكتوبر 2026 (12:00 منتصف الليل)
+                                ${mInfo.id === 1003 ? 'متاح الآن للحل • تصحيح ومراجعة فورية' : 'متاح في فترة الامتحان الشهري'}
                             </span>
                         </div>
 
@@ -6205,8 +6205,8 @@ window.MONTHLY_EXAMS_DATA = {
     {
       "id": 1003,
       "course_name": "مسار القرآن الكريم والتدبر",
-      "title": "امتحان أحكام التجويد ومخارج الحروف — ملخص الشهر الأول",
-      "description": "{\"track\": \"tajweed\", \"is_monthly_exam\": true, \"month\": 1, \"summary_text\": \"امتحان شهري شامل في مسار أحكام التجويد يغطي أحكام النون الساكنة والتنوين والمخارج والتطبيقات العملية في جزء عم.\", \"open_date\": \"2026-10-16T00:00:00+02:00\", \"close_date\": \"2026-10-23T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
+      "title": "اختبار محققي التجويد — أحكام النون الساكنة والتنوين",
+      "description": "{\"track\": \"tajweed\", \"is_monthly_exam\": true, \"month\": 2, \"summary_text\": \"اختبار محققي التجويد: 20 سؤالاً (10 اختيار من متعدد + 10 صح وخطأ) في أحكام النون الساكنة والتنوين والنون والميم المشددتين واللحن الجلي.\", \"open_date\": \"2026-11-01T00:00:00+02:00\", \"close_date\": \"2026-12-31T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
       "total_questions": 20,
       "passing_score": 70
     }
@@ -6733,285 +6733,255 @@ window.MONTHLY_EXAMS_DATA = {
       "explanation": "تصحيح الخلط بين الرضا والتواكل."
     },
     {
-      "id": 100301,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود بالتجويد اصطلاحًا؟",
-      "points": 2,
-      "options": [
-        "قراءة القرآن بسرعة",
-        "إعطاء الحروف حقها ومستحقها عند تلاوة القرآن",
-        "رفع الصوت بالقراءة",
-        "حفظ القرآن دون مراجعة"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100302,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود باللحن في قراءة القرآن؟",
-      "points": 2,
-      "options": [
-        "تحسين الصوت بالقرآن",
-        "الوقف عند نهاية الآية",
-        "الخطأ في قراءة القرآن",
-        "تكرار الآية للتدريب"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100303,
-      "quiz_id": 1003,
-      "question_text": "ما الفرق بين اللحن الجلي واللحن الخفي؟",
-      "points": 2,
-      "options": [
-        "الجلي خطأ ظاهر، والخفي خطأ أدق يتعلق بأداء التلاوة والتجويد",
-        "الجلي في السور الطويلة والخفي في القصيرة",
-        "لا يوجد فرق بينهما",
-        "الجلي في الحفظ والخفي في المراجعة"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100304,
-      "quiz_id": 1003,
-      "question_text": "ما الدلالة التعليمية من المقارنة بين «عَسَى» و«عَصَى»؟",
-      "points": 2,
-      "options": [
-        "أن السين والصاد حرف واحد",
-        "أن الكلمتين لهما المعنى نفسه",
-        "أن تغيير حركة الكلمة لا يؤثر في معناها",
-        "أن استبدال حرف بآخر قد يؤدي إلى اختلاف المعنى"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100305,
-      "quiz_id": 1003,
-      "question_text": "إذا اكتشفت أنك تخطئ في نطق حرف أثناء قراءة القرآن، فما التصرف الأفضل؟",
-      "points": 2,
-      "options": [
-        "تتجاهل الخطأ وتكمل به",
-        "تستمع للنطق الصحيح وتتدرب عليه وتطلب التصحيح من معلم متقن",
-        "تتجنب الكلمات الصعبة",
-        "تقرأ بسرعة أكبر"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100306,
-      "quiz_id": 1003,
-      "question_text": "ما الأشكال الأساسية للنون التي تناولناها في الحلقة؟",
-      "points": 2,
-      "options": [
-        "نون متحركة، ونون ساكنة، ونون مشددة",
-        "نون طويلة ونون قصيرة",
-        "نون في أول الكلمة ونون في آخرها فقط",
-        "نون مكتوبة ونون غير منطوقة"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100307,
-      "quiz_id": 1003,
-      "question_text": "ما العلامات التي تدل على التنوين؟",
-      "points": 2,
-      "options": [
-        "الفتحة والضمة والكسرة المفردة",
-        "الشدة والسكون",
-        "الفتحة والشدة فقط",
-        "فتحتان وضمتان وكسرتان"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100308,
-      "quiz_id": 1003,
-      "question_text": "ما أحكام النون الساكنة والتنوين الأربعة؟",
-      "points": 2,
-      "options": [
-        "المد والوقف والابتداء والوصل",
-        "الإظهار والإدغام والإقلاب والإخفاء",
-        "التفخيم والترقيق والقلقلة واللين",
-        "الفتح والضم والكسر والسكون"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100309,
-      "quiz_id": 1003,
-      "question_text": "إذا وجدنا نونًا ساكنة أو تنوينًا، فكيف نحدد الحكم التجويدي؟",
-      "points": 2,
-      "options": [
-        "ننظر إلى عدد حروف الكلمة",
-        "نحدد أول حرف في السورة",
-        "ننظر إلى الحرف الذي يأتي بعد النون الساكنة أو التنوين",
-        "نحدد موضع الكلمة في الصفحة"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100310,
-      "quiz_id": 1003,
-      "question_text": "ما الفرق بين النون الساكنة والتنوين؟",
-      "points": 2,
-      "options": [
-        "لا يوجد أي فرق بينهما",
-        "النون الساكنة لا تُنطق، والتنوين يُنطق",
-        "التنوين يكون في أول الكلمة فقط",
-        "يتشابهان في صوت النون الساكنة عند النطق، لكنهما يختلفان في الكتابة والموضع"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100311,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود بالإظهار الحلقي؟",
-      "points": 2,
-      "options": [
-        "نطق النون الساكنة أو التنوين بوضوح عند مجيء أحد حروف الإظهار",
-        "إدخال النون في الحرف الذي بعدها",
-        "تحويل النون إلى ميم",
-        "إخفاء صوت النون تمامًا"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100312,
-      "quiz_id": 1003,
-      "question_text": "ما حروف الإظهار الحلقي الستة؟",
-      "points": 2,
-      "options": [
-        "ي، ر، م، ل، و، ن",
-        "ء، هـ، ع، ح، غ، خ",
-        "ب، م، ف، و، ن، ي",
-        "ق، ط، ب، ج، د، ك"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100313,
-      "quiz_id": 1003,
-      "question_text": "لماذا سُمّي الإظهار الحلقي بهذا الاسم؟",
-      "points": 2,
-      "options": [
-        "لأن النون تُكتب في الحلق",
-        "لأن الحكم يُقرأ بصوت مرتفع",
-        "لأن حروفه تخرج من الحلق",
-        "لأن النون تُمد ست حركات"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100314,
-      "quiz_id": 1003,
-      "question_text": "في قوله تعالى «أَنْعَمْتَ»، ما سبب الإظهار الحلقي؟",
-      "points": 2,
-      "options": [
-        "لأن بعد النون الساكنة حرف الميم",
-        "لأن بعد النون الساكنة حرف التاء",
-        "لأن الكلمة تحتوي على مد",
-        "لأن بعد النون الساكنة حرف العين، وهو من حروف الإظهار"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100315,
-      "quiz_id": 1003,
-      "question_text": "في المثال «عَلِيمٌ حَكِيمٌ»، ما الحكم التجويدي عند وصل التنوين بحرف الحاء؟",
-      "points": 2,
-      "options": [
-        "الإظهار الحلقي",
-        "الإدغام",
-        "الإقلاب",
-        "الإخفاء"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100316,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود بالإدغام؟",
-      "points": 2,
-      "options": [
-        "إظهار النون بوضوح في كل الحالات",
-        "إدخال النون الساكنة أو التنوين في الحرف التالي وفق شروط الإدغام",
-        "حذف الحرف التالي للنون",
-        "تغيير الكلمة إلى كلمة أخرى"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100317,
-      "quiz_id": 1003,
-      "question_text": "ما حروف الإدغام الستة؟",
-      "points": 2,
-      "options": [
-        "ء، هـ، ع، ح، غ، خ",
-        "ي، ر، م، ل، و، ن",
-        "ص، ذ، ث، ك، ج، ش",
-        "ب، م، ف، و، ن، ي"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب — يجمعها لفظ «يرملون»."
-    },
-    {
-      "id": 100318,
-      "quiz_id": 1003,
-      "question_text": "ما الفرق بين الإدغام بغنة والإدغام بغير غنة؟",
-      "points": 2,
-      "options": [
-        "الإدغام كله يكون بغير غنة",
-        "الإدغام بغنة مع اللام والراء",
-        "الإدغام بغنة مع الياء والنون والميم والواو، وبغير غنة مع اللام والراء",
-        "لا يوجد فرق بين النوعين"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100319,
-      "quiz_id": 1003,
-      "question_text": "في قوله تعالى «مَنْ يَعْمَلْ»، ما حكم النون الساكنة؟",
-      "points": 2,
-      "options": [
-        "إظهار حلقي",
-        "إدغام بغنة",
-        "إقلاب",
-        "إدغام بغير غنة"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100320,
-      "quiz_id": 1003,
-      "question_text": "لماذا لا ندغم النون الساكنة في الياء داخل كلمة «دُنْيَا»؟",
-      "points": 2,
-      "options": [
-        "لأن الكلمة لا تحتوي على نون ساكنة",
-        "لأن الإدغام يكون مع اللام والراء فقط",
-        "لأنها من مواضع الإظهار المطلق، فلا تُدغم النون في الياء داخل الكلمة",
-        "لأن حكمها الإقلاب"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    }
+        "id": 100301,
+        "quiz_id": 1003,
+        "question_text": "كم عدد أحكام النون الساكنة والتنوين؟",
+        "points": 2,
+        "options": [
+          "حكمان",
+          "أربعة أحكام",
+          "ستة أحكام"
+        ],
+        "correct_option_index": 1,
+        "explanation": "أحكام النون الساكنة والتنوين أربعة: الإظهار الحلقي، والإدغام، والإقلاب، والإخفاء الحقيقي."
+      },
+      {
+        "id": 100302,
+        "quiz_id": 1003,
+        "question_text": "كم عدد حروف الإظهار الحلقي؟",
+        "points": 2,
+        "options": [
+          "6 حروف",
+          "4 حروف",
+          "حرفان"
+        ],
+        "correct_option_index": 0,
+        "explanation": "حروف الإظهار الحلقي 6 حروف: الهمزة والهاء والعين والحاء والغين والخاء."
+      },
+      {
+        "id": 100303,
+        "quiz_id": 1003,
+        "question_text": "ما حروف الإدغام؟",
+        "points": 2,
+        "options": [
+          "يرملون",
+          "قطب جد",
+          "خص ضغط قظ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "حروف الإدغام مجموعة في كلمة «يرملون» (ي، ر، م، ل، و، ن)."
+      },
+      {
+        "id": 100304,
+        "quiz_id": 1003,
+        "question_text": "ما الحرف الذي يأتي معه حكم الإقلاب؟",
+        "points": 2,
+        "options": [
+          "الباء",
+          "الميم",
+          "اللام"
+        ],
+        "correct_option_index": 0,
+        "explanation": "الإقلاب له حرف واحد فقط وهو حرف الباء."
+      },
+      {
+        "id": 100305,
+        "quiz_id": 1003,
+        "question_text": "كم عدد حروف الإدغام؟",
+        "points": 2,
+        "options": [
+          "6 حروف",
+          "15 حرفًا",
+          "4 حروف"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عدد حروف الإدغام 6 حروف مجموعة في كلمة «يرملون»."
+      },
+      {
+        "id": 100306,
+        "quiz_id": 1003,
+        "question_text": "ما حكم النون المشددة؟",
+        "points": 2,
+        "options": [
+          "الإظهار",
+          "الغنة",
+          "الإقلاب"
+        ],
+        "correct_option_index": 1,
+        "explanation": "حكم النون المشددة والميم المشددة وجوب الغنة بمقدار حركتين."
+      },
+      {
+        "id": 100307,
+        "quiz_id": 1003,
+        "question_text": "كم مقدار الغنة في النون والميم المشددتين؟",
+        "points": 2,
+        "options": [
+          "حركتان",
+          "حركة واحدة",
+          "أربع حركات"
+        ],
+        "correct_option_index": 0,
+        "explanation": "مقدار الغنة في النون والميم المشددتين حركتان."
+      },
+      {
+        "id": 100308,
+        "quiz_id": 1003,
+        "question_text": "ما حروف الإدغام بغير غنة؟",
+        "points": 2,
+        "options": [
+          "ينمو",
+          "اللام والراء",
+          "الهمزة والهاء"
+        ],
+        "correct_option_index": 1,
+        "explanation": "الإدغام بغير غنة يكون في حرفين فقط هما اللام والراء."
+      },
+      {
+        "id": 100309,
+        "quiz_id": 1003,
+        "question_text": "لماذا سُمّي الإظهار حلقيًا؟",
+        "points": 2,
+        "options": [
+          "لأن حروفه تخرج من الحلق",
+          "لأنه يُكتب في أول الكلمة",
+          "لأنه خاص بالميم"
+        ],
+        "correct_option_index": 0,
+        "explanation": "سُمّي الإظهار حلقيًا لأن حروفه الستة تخرج من الحلق."
+      },
+      {
+        "id": 100310,
+        "quiz_id": 1003,
+        "question_text": "كم عدد حروف الإخفاء الحقيقي؟",
+        "points": 2,
+        "options": [
+          "6 حروف",
+          "15 حرفًا",
+          "10 حروف"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عدد حروف الإخفاء الحقيقي 15 حرفًا هي باقي حروف الهجاء بعد الإظهار والإدغام والإقلاب."
+      },
+      {
+        "id": 100311,
+        "quiz_id": 1003,
+        "question_text": "الإظهار الحلقي له ستة حروف.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: حروف الإظهار الحلقي ستة (ء، هـ، ع، ح، غ، خ)."
+      },
+      {
+        "id": 100312,
+        "quiz_id": 1003,
+        "question_text": "حروف الإدغام مجموعة في كلمة يرملون.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: حروف الإدغام ستة مجموعة في كلمة «يرملون»."
+      },
+      {
+        "id": 100313,
+        "quiz_id": 1003,
+        "question_text": "الإقلاب يكون عند حرف الباء.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: للإقلاب حرف واحد وهو الباء."
+      },
+      {
+        "id": 100314,
+        "quiz_id": 1003,
+        "question_text": "الإخفاء الحقيقي له 15 حرفًا.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: حروف الإخفاء الحقيقي 15 حرفًا."
+      },
+      {
+        "id": 100315,
+        "quiz_id": 1003,
+        "question_text": "النون المشددة ليس فيها غنة.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: النون المشددة فيها غنة واجبة بمقدار حركتين."
+      },
+      {
+        "id": 100316,
+        "quiz_id": 1003,
+        "question_text": "الميم المشددة لها غنة بمقدار حركتين.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الميم المشددة تُغن بمقدار حركتين."
+      },
+      {
+        "id": 100317,
+        "quiz_id": 1003,
+        "question_text": "الإدغام ينقسم إلى إدغام بغنة وإدغام بغير غنة.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: ينقسم إلى إدغام بغنة (ينمو) وإدغام بغير غنة (ل، ر)."
+      },
+      {
+        "id": 100318,
+        "quiz_id": 1003,
+        "question_text": "اللحن الجلي هو الخطأ الظاهر في قراءة القرآن.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: اللحن الجلي هو الخطأ الظاهر الذي يخل بمبنى الكلمة أو معناها."
+      },
+      {
+        "id": 100319,
+        "quiz_id": 1003,
+        "question_text": "حرفا الإدغام بغير غنة هما اللام والراء.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الإدغام بغير غنة يكون مع اللام والراء."
+      },
+      {
+        "id": 100320,
+        "quiz_id": 1003,
+        "question_text": "الإظهار الحلقي يكون عند حروف الحلق.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الإظهار الحلقي يكون عند مجيء أحد حروف الحلق الستة."
+      }
   ]
 };
 window.MONTHLY_EXAMS_QUESTIONS = {
@@ -7541,285 +7511,255 @@ window.MONTHLY_EXAMS_QUESTIONS = {
   ],
   "1003": [
     {
-      "id": 100301,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود بالتجويد اصطلاحًا؟",
-      "points": 2,
-      "options": [
-        "قراءة القرآن بسرعة",
-        "إعطاء الحروف حقها ومستحقها عند تلاوة القرآن",
-        "رفع الصوت بالقراءة",
-        "حفظ القرآن دون مراجعة"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100302,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود باللحن في قراءة القرآن؟",
-      "points": 2,
-      "options": [
-        "تحسين الصوت بالقرآن",
-        "الوقف عند نهاية الآية",
-        "الخطأ في قراءة القرآن",
-        "تكرار الآية للتدريب"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100303,
-      "quiz_id": 1003,
-      "question_text": "ما الفرق بين اللحن الجلي واللحن الخفي؟",
-      "points": 2,
-      "options": [
-        "الجلي خطأ ظاهر، والخفي خطأ أدق يتعلق بأداء التلاوة والتجويد",
-        "الجلي في السور الطويلة والخفي في القصيرة",
-        "لا يوجد فرق بينهما",
-        "الجلي في الحفظ والخفي في المراجعة"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100304,
-      "quiz_id": 1003,
-      "question_text": "ما الدلالة التعليمية من المقارنة بين «عَسَى» و«عَصَى»؟",
-      "points": 2,
-      "options": [
-        "أن السين والصاد حرف واحد",
-        "أن الكلمتين لهما المعنى نفسه",
-        "أن تغيير حركة الكلمة لا يؤثر في معناها",
-        "أن استبدال حرف بآخر قد يؤدي إلى اختلاف المعنى"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100305,
-      "quiz_id": 1003,
-      "question_text": "إذا اكتشفت أنك تخطئ في نطق حرف أثناء قراءة القرآن، فما التصرف الأفضل؟",
-      "points": 2,
-      "options": [
-        "تتجاهل الخطأ وتكمل به",
-        "تستمع للنطق الصحيح وتتدرب عليه وتطلب التصحيح من معلم متقن",
-        "تتجنب الكلمات الصعبة",
-        "تقرأ بسرعة أكبر"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100306,
-      "quiz_id": 1003,
-      "question_text": "ما الأشكال الأساسية للنون التي تناولناها في الحلقة؟",
-      "points": 2,
-      "options": [
-        "نون متحركة، ونون ساكنة، ونون مشددة",
-        "نون طويلة ونون قصيرة",
-        "نون في أول الكلمة ونون في آخرها فقط",
-        "نون مكتوبة ونون غير منطوقة"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100307,
-      "quiz_id": 1003,
-      "question_text": "ما العلامات التي تدل على التنوين؟",
-      "points": 2,
-      "options": [
-        "الفتحة والضمة والكسرة المفردة",
-        "الشدة والسكون",
-        "الفتحة والشدة فقط",
-        "فتحتان وضمتان وكسرتان"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100308,
-      "quiz_id": 1003,
-      "question_text": "ما أحكام النون الساكنة والتنوين الأربعة؟",
-      "points": 2,
-      "options": [
-        "المد والوقف والابتداء والوصل",
-        "الإظهار والإدغام والإقلاب والإخفاء",
-        "التفخيم والترقيق والقلقلة واللين",
-        "الفتح والضم والكسر والسكون"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100309,
-      "quiz_id": 1003,
-      "question_text": "إذا وجدنا نونًا ساكنة أو تنوينًا، فكيف نحدد الحكم التجويدي؟",
-      "points": 2,
-      "options": [
-        "ننظر إلى عدد حروف الكلمة",
-        "نحدد أول حرف في السورة",
-        "ننظر إلى الحرف الذي يأتي بعد النون الساكنة أو التنوين",
-        "نحدد موضع الكلمة في الصفحة"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100310,
-      "quiz_id": 1003,
-      "question_text": "ما الفرق بين النون الساكنة والتنوين؟",
-      "points": 2,
-      "options": [
-        "لا يوجد أي فرق بينهما",
-        "النون الساكنة لا تُنطق، والتنوين يُنطق",
-        "التنوين يكون في أول الكلمة فقط",
-        "يتشابهان في صوت النون الساكنة عند النطق، لكنهما يختلفان في الكتابة والموضع"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100311,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود بالإظهار الحلقي؟",
-      "points": 2,
-      "options": [
-        "نطق النون الساكنة أو التنوين بوضوح عند مجيء أحد حروف الإظهار",
-        "إدخال النون في الحرف الذي بعدها",
-        "تحويل النون إلى ميم",
-        "إخفاء صوت النون تمامًا"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100312,
-      "quiz_id": 1003,
-      "question_text": "ما حروف الإظهار الحلقي الستة؟",
-      "points": 2,
-      "options": [
-        "ي، ر، م، ل، و، ن",
-        "ء، هـ، ع، ح، غ، خ",
-        "ب، م، ف، و، ن، ي",
-        "ق، ط، ب، ج، د، ك"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100313,
-      "quiz_id": 1003,
-      "question_text": "لماذا سُمّي الإظهار الحلقي بهذا الاسم؟",
-      "points": 2,
-      "options": [
-        "لأن النون تُكتب في الحلق",
-        "لأن الحكم يُقرأ بصوت مرتفع",
-        "لأن حروفه تخرج من الحلق",
-        "لأن النون تُمد ست حركات"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100314,
-      "quiz_id": 1003,
-      "question_text": "في قوله تعالى «أَنْعَمْتَ»، ما سبب الإظهار الحلقي؟",
-      "points": 2,
-      "options": [
-        "لأن بعد النون الساكنة حرف الميم",
-        "لأن بعد النون الساكنة حرف التاء",
-        "لأن الكلمة تحتوي على مد",
-        "لأن بعد النون الساكنة حرف العين، وهو من حروف الإظهار"
-      ],
-      "correct_option_index": 3,
-      "explanation": "د"
-    },
-    {
-      "id": 100315,
-      "quiz_id": 1003,
-      "question_text": "في المثال «عَلِيمٌ حَكِيمٌ»، ما الحكم التجويدي عند وصل التنوين بحرف الحاء؟",
-      "points": 2,
-      "options": [
-        "الإظهار الحلقي",
-        "الإدغام",
-        "الإقلاب",
-        "الإخفاء"
-      ],
-      "correct_option_index": 0,
-      "explanation": "أ"
-    },
-    {
-      "id": 100316,
-      "quiz_id": 1003,
-      "question_text": "ما المقصود بالإدغام؟",
-      "points": 2,
-      "options": [
-        "إظهار النون بوضوح في كل الحالات",
-        "إدخال النون الساكنة أو التنوين في الحرف التالي وفق شروط الإدغام",
-        "حذف الحرف التالي للنون",
-        "تغيير الكلمة إلى كلمة أخرى"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100317,
-      "quiz_id": 1003,
-      "question_text": "ما حروف الإدغام الستة؟",
-      "points": 2,
-      "options": [
-        "ء، هـ، ع، ح، غ، خ",
-        "ي، ر، م، ل، و، ن",
-        "ص، ذ، ث، ك، ج، ش",
-        "ب، م، ف، و، ن، ي"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب — يجمعها لفظ «يرملون»."
-    },
-    {
-      "id": 100318,
-      "quiz_id": 1003,
-      "question_text": "ما الفرق بين الإدغام بغنة والإدغام بغير غنة؟",
-      "points": 2,
-      "options": [
-        "الإدغام كله يكون بغير غنة",
-        "الإدغام بغنة مع اللام والراء",
-        "الإدغام بغنة مع الياء والنون والميم والواو، وبغير غنة مع اللام والراء",
-        "لا يوجد فرق بين النوعين"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    },
-    {
-      "id": 100319,
-      "quiz_id": 1003,
-      "question_text": "في قوله تعالى «مَنْ يَعْمَلْ»، ما حكم النون الساكنة؟",
-      "points": 2,
-      "options": [
-        "إظهار حلقي",
-        "إدغام بغنة",
-        "إقلاب",
-        "إدغام بغير غنة"
-      ],
-      "correct_option_index": 1,
-      "explanation": "ب"
-    },
-    {
-      "id": 100320,
-      "quiz_id": 1003,
-      "question_text": "لماذا لا ندغم النون الساكنة في الياء داخل كلمة «دُنْيَا»؟",
-      "points": 2,
-      "options": [
-        "لأن الكلمة لا تحتوي على نون ساكنة",
-        "لأن الإدغام يكون مع اللام والراء فقط",
-        "لأنها من مواضع الإظهار المطلق، فلا تُدغم النون في الياء داخل الكلمة",
-        "لأن حكمها الإقلاب"
-      ],
-      "correct_option_index": 2,
-      "explanation": "ج"
-    }
+        "id": 100301,
+        "quiz_id": 1003,
+        "question_text": "كم عدد أحكام النون الساكنة والتنوين؟",
+        "points": 2,
+        "options": [
+          "حكمان",
+          "أربعة أحكام",
+          "ستة أحكام"
+        ],
+        "correct_option_index": 1,
+        "explanation": "أحكام النون الساكنة والتنوين أربعة: الإظهار الحلقي، والإدغام، والإقلاب، والإخفاء الحقيقي."
+      },
+      {
+        "id": 100302,
+        "quiz_id": 1003,
+        "question_text": "كم عدد حروف الإظهار الحلقي؟",
+        "points": 2,
+        "options": [
+          "6 حروف",
+          "4 حروف",
+          "حرفان"
+        ],
+        "correct_option_index": 0,
+        "explanation": "حروف الإظهار الحلقي 6 حروف: الهمزة والهاء والعين والحاء والغين والخاء."
+      },
+      {
+        "id": 100303,
+        "quiz_id": 1003,
+        "question_text": "ما حروف الإدغام؟",
+        "points": 2,
+        "options": [
+          "يرملون",
+          "قطب جد",
+          "خص ضغط قظ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "حروف الإدغام مجموعة في كلمة «يرملون» (ي، ر، م، ل، و، ن)."
+      },
+      {
+        "id": 100304,
+        "quiz_id": 1003,
+        "question_text": "ما الحرف الذي يأتي معه حكم الإقلاب؟",
+        "points": 2,
+        "options": [
+          "الباء",
+          "الميم",
+          "اللام"
+        ],
+        "correct_option_index": 0,
+        "explanation": "الإقلاب له حرف واحد فقط وهو حرف الباء."
+      },
+      {
+        "id": 100305,
+        "quiz_id": 1003,
+        "question_text": "كم عدد حروف الإدغام؟",
+        "points": 2,
+        "options": [
+          "6 حروف",
+          "15 حرفًا",
+          "4 حروف"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عدد حروف الإدغام 6 حروف مجموعة في كلمة «يرملون»."
+      },
+      {
+        "id": 100306,
+        "quiz_id": 1003,
+        "question_text": "ما حكم النون المشددة؟",
+        "points": 2,
+        "options": [
+          "الإظهار",
+          "الغنة",
+          "الإقلاب"
+        ],
+        "correct_option_index": 1,
+        "explanation": "حكم النون المشددة والميم المشددة وجوب الغنة بمقدار حركتين."
+      },
+      {
+        "id": 100307,
+        "quiz_id": 1003,
+        "question_text": "كم مقدار الغنة في النون والميم المشددتين؟",
+        "points": 2,
+        "options": [
+          "حركتان",
+          "حركة واحدة",
+          "أربع حركات"
+        ],
+        "correct_option_index": 0,
+        "explanation": "مقدار الغنة في النون والميم المشددتين حركتان."
+      },
+      {
+        "id": 100308,
+        "quiz_id": 1003,
+        "question_text": "ما حروف الإدغام بغير غنة؟",
+        "points": 2,
+        "options": [
+          "ينمو",
+          "اللام والراء",
+          "الهمزة والهاء"
+        ],
+        "correct_option_index": 1,
+        "explanation": "الإدغام بغير غنة يكون في حرفين فقط هما اللام والراء."
+      },
+      {
+        "id": 100309,
+        "quiz_id": 1003,
+        "question_text": "لماذا سُمّي الإظهار حلقيًا؟",
+        "points": 2,
+        "options": [
+          "لأن حروفه تخرج من الحلق",
+          "لأنه يُكتب في أول الكلمة",
+          "لأنه خاص بالميم"
+        ],
+        "correct_option_index": 0,
+        "explanation": "سُمّي الإظهار حلقيًا لأن حروفه الستة تخرج من الحلق."
+      },
+      {
+        "id": 100310,
+        "quiz_id": 1003,
+        "question_text": "كم عدد حروف الإخفاء الحقيقي؟",
+        "points": 2,
+        "options": [
+          "6 حروف",
+          "15 حرفًا",
+          "10 حروف"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عدد حروف الإخفاء الحقيقي 15 حرفًا هي باقي حروف الهجاء بعد الإظهار والإدغام والإقلاب."
+      },
+      {
+        "id": 100311,
+        "quiz_id": 1003,
+        "question_text": "الإظهار الحلقي له ستة حروف.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: حروف الإظهار الحلقي ستة (ء، هـ، ع، ح، غ، خ)."
+      },
+      {
+        "id": 100312,
+        "quiz_id": 1003,
+        "question_text": "حروف الإدغام مجموعة في كلمة يرملون.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: حروف الإدغام ستة مجموعة في كلمة «يرملون»."
+      },
+      {
+        "id": 100313,
+        "quiz_id": 1003,
+        "question_text": "الإقلاب يكون عند حرف الباء.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: للإقلاب حرف واحد وهو الباء."
+      },
+      {
+        "id": 100314,
+        "quiz_id": 1003,
+        "question_text": "الإخفاء الحقيقي له 15 حرفًا.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: حروف الإخفاء الحقيقي 15 حرفًا."
+      },
+      {
+        "id": 100315,
+        "quiz_id": 1003,
+        "question_text": "النون المشددة ليس فيها غنة.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 1,
+        "explanation": "عبارة خاطئة: النون المشددة فيها غنة واجبة بمقدار حركتين."
+      },
+      {
+        "id": 100316,
+        "quiz_id": 1003,
+        "question_text": "الميم المشددة لها غنة بمقدار حركتين.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الميم المشددة تُغن بمقدار حركتين."
+      },
+      {
+        "id": 100317,
+        "quiz_id": 1003,
+        "question_text": "الإدغام ينقسم إلى إدغام بغنة وإدغام بغير غنة.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: ينقسم إلى إدغام بغنة (ينمو) وإدغام بغير غنة (ل، ر)."
+      },
+      {
+        "id": 100318,
+        "quiz_id": 1003,
+        "question_text": "اللحن الجلي هو الخطأ الظاهر في قراءة القرآن.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: اللحن الجلي هو الخطأ الظاهر الذي يخل بمبنى الكلمة أو معناها."
+      },
+      {
+        "id": 100319,
+        "quiz_id": 1003,
+        "question_text": "حرفا الإدغام بغير غنة هما اللام والراء.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الإدغام بغير غنة يكون مع اللام والراء."
+      },
+      {
+        "id": 100320,
+        "quiz_id": 1003,
+        "question_text": "الإظهار الحلقي يكون عند حروف الحلق.",
+        "points": 2,
+        "options": [
+          "صح",
+          "خطأ"
+        ],
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة: الإظهار الحلقي يكون عند مجيء أحد حروف الحلق الستة."
+      }
   ]
 };
 
@@ -7896,18 +7836,18 @@ function loadQuizzesList() {
     // Strictly the 3 Monthly Exams (Tafsir, Hadith, Tajweed) - Zero weekly division!
     const monthlyQuizzes = [
         { id: 1004, title: 'اختبار حفاظ القرآن الكريم والتقييم الشهري — دورة سبتمبر 2026', track: 'quran', total_questions: 'تقييم الحفظ والتجويد', total_points: 20 },
+        { id: 1003, title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين', track: 'tajweed', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' },
         { id: 1001, title: 'امتحان مسار التفسير والتدبر — ملخص الشهر الأول', track: 'tafsir', total_questions: 20, total_points: 40 },
-        { id: 1002, title: 'امتحان مسار الحديث الشريف والسنة — ملخص الشهر الأول', track: 'hadith', total_questions: 20, total_points: 40 },
-        { id: 1003, title: 'امتحان مسار أحكام التجويد ومخارج الحروف — ملخص الشهر الأول', track: 'tajweed', total_questions: 20, total_points: 40 }
+        { id: 1002, title: 'امتحان مسار الحديث الشريف والسنة — ملخص الشهر الأول', track: 'hadith', total_questions: 20, total_points: 40 }
     ];
 
     const now = new Date();
-    // Closes at 12:00 midnight tonight (end of Friday 23 October 2026)
-    const deadlineTime = new Date('2026-10-24T00:59:59+02:00');
-    const isExpired = now > deadlineTime;
+    const defaultDeadline = new Date('2026-10-24T00:59:59+02:00');
 
     container.innerHTML = monthlyQuizzes.map(q => {
         const sub = (cachedStudentSubmissions || []).find(s => s.quiz_id === q.id || (s.quiz_title || '').includes(q.title));
+        const qDeadline = q.close_date ? new Date(q.close_date) : defaultDeadline;
+        const isExpired = (Number(q.id) !== 1004) && (now > qDeadline);
 
         let statusBadge = '';
         let actionBtn = '';
@@ -8007,13 +7947,15 @@ async function startQuiz(quizId) {
 
     const isMonthly = quizId === 1001 || quizId === 1002 || quizId === 1003 || (quiz.title && quiz.title.includes('الشهري'));
 
-    // Check Date Availability for Monthly Exam (16 Oct to 19 Oct 2026)
+    // Check Date Availability for Monthly Exam
     if (isMonthly) {
         const now = new Date();
         const startWindow = new Date('2026-10-16T00:00:00');
-        const endWindow = new Date('2026-10-24T00:59:59+02:00');
+        const endWindow = (Number(quizId) === 1003)
+            ? new Date('2026-12-31T23:59:59+02:00')
+            : new Date('2026-10-24T00:59:59+02:00');
         if (now < startWindow) {
-            alert('عذراً، تبدأ فترة الامتحان الشهري يوم الجمعة 16 أكتوبر 2026.');
+            alert('عذراً، لم تبدأ فترة هذا الامتحان بعد.');
             backToQuizList();
             return;
         }
@@ -8023,7 +7965,7 @@ async function startQuiz(quizId) {
                 viewQuizReview(quizId);
                 return;
             } else {
-                alert('عذراً، انتهت فترة أداء الامتحان الشهري (أُغلق الاختبار الساعة 12:00 منتصف ليل اليوم الجمعة 23 أكتوبر 2026).');
+                alert('عذراً، انتهت فترة أداء هذا الامتحان.');
                 backToQuizList();
                 return;
             }
@@ -8032,9 +7974,9 @@ async function startQuiz(quizId) {
 
     const qTitleEl = document.getElementById('activeQuizTitle');
     const qMetaEl = document.getElementById('activeQuizMeta');
-    if (qTitleEl) qTitleEl.textContent = quiz.title;
+    if (qTitleEl) qTitleEl.textContent = (Number(quizId) === 1003) ? 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين' : quiz.title;
     if (qMetaEl) {
-        qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال) • ينتهي اليوم 23 أكتوبر الساعة 12:00 منتصف الليل';
+        qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال)';
     }
 
     const container = document.getElementById('quizQuestionsContainer');
@@ -8101,68 +8043,204 @@ async function startQuiz(quizId) {
     }
 }
 
+function isTrueFalseQuestion(options) {
+    if (!Array.isArray(options) || options.length !== 2) return false;
+    const a = String(options[0] || '').trim();
+    const b = String(options[1] || '').trim();
+    return /^(صح|صواب|صحيح)$/i.test(a) && /^(خطأ|خطا|غلط)$/i.test(b);
+}
+
+function scrollToQuizQuestion(qIdx) {
+    const card = document.getElementById('quizCard_' + qIdx);
+    if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function updateQuizProgressUI() {
+    const totalCount = activeQuizQuestions.length;
+    const answeredCount = activeQuizQuestions.filter(q => activeQuizAnswers[q.id] !== undefined).length;
+    const pct = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+    const isCompleted = (answeredCount === totalCount && totalCount > 0);
+    const totalPoints = activeQuizQuestions.reduce((acc, q) => acc + (q.points || 2), 0) || 40;
+
+    const badge = document.getElementById('quizProgressBadge');
+    if (badge) {
+        badge.textContent = `${answeredCount} / ${totalCount}`;
+        badge.className = isCompleted
+            ? 'text-xs font-black text-white bg-emerald-600 border border-emerald-700 px-3 py-1 rounded-xl shadow-xs'
+            : 'text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-xl';
+    }
+
+    const bar = document.getElementById('quizProgressBarFill');
+    if (bar) bar.style.width = `${pct}%`;
+
+    // Update quick navigator pills
+    activeQuizQuestions.forEach((q, idx) => {
+        const pill = document.getElementById('quizNavPill_' + idx);
+        if (pill) {
+            pill.classList.toggle('is-answered', activeQuizAnswers[q.id] !== undefined);
+        }
+    });
+
+    // Update end-of-questions summary card
+    const endTitle = document.getElementById('quizEndSummaryTitle');
+    const endBadge = document.getElementById('quizEndSummaryBadge');
+    if (endTitle) endTitle.textContent = `نهاية أسئلة الامتحان (${answeredCount} من ${totalCount} مُجاب)`;
+    if (endBadge) {
+        endBadge.textContent = isCompleted ? 'اكتملت جميع الإجابات' : `متبقي ${totalCount - answeredCount} أسئلة`;
+        endBadge.className = `text-[11px] font-bold px-2.5 py-0.5 rounded-md ${isCompleted ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-amber-800 bg-amber-100 border border-amber-300'}`;
+    }
+
+    // Update sticky submit button text
+    const btnSticky = document.getElementById('btnSubmitQuiz');
+    if (btnSticky) {
+        if (isCompleted) {
+            btnSticky.textContent = `إرسال الإجابات واعتماد النتيجة (${totalPoints} درجة) — اكتملت جميع الأسئلة`;
+        } else if (answeredCount > 0) {
+            btnSticky.textContent = `إرسال الإجابات واعتماد النتيجة (${answeredCount} من ${totalCount} مُجاب)`;
+        } else {
+            btnSticky.textContent = `إرسال الإجابات واعتماد النتيجة (${totalPoints} درجة)`;
+        }
+    }
+}
+
 function renderActiveQuestions() {
     const container = document.getElementById('quizQuestionsContainer');
+    const navEl = document.getElementById('quizQuestionNav');
     if (!container) return;
 
     if (activeQuizQuestions.length === 0) {
         container.innerHTML = `<div class="text-center py-8 text-slate-500 font-bold text-xs sm:text-sm">لا توجد أسئلة مضافة لهذا الاختبار حالياً.</div>`;
+        if (navEl) navEl.innerHTML = '';
         return;
     }
+
+    const totalPoints = activeQuizQuestions.reduce((acc, q) => acc + (q.points || 2), 0) || 40;
+    const letterLabels = ['أ', 'ب', 'ج', 'د'];
+
+    // Render quick question navigator pills
+    if (navEl) {
+        navEl.innerHTML = activeQuizQuestions.map((q, idx) => {
+            const answered = activeQuizAnswers[q.id] !== undefined;
+            return `<button type="button" id="quizNavPill_${idx}" onclick="scrollToQuizQuestion(${idx})" class="quiz-nav-pill ${answered ? 'is-answered' : ''}" title="انتقال للسؤال ${idx + 1}">${idx + 1}</button>`;
+        }).join('');
+    }
+
+    let renderedMcqHeader = false;
+    let renderedTfHeader = false;
+    const hasMixedTypes = activeQuizQuestions.some(q => {
+        const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options) : []);
+        return isTrueFalseQuestion(opts);
+    });
 
     container.innerHTML = activeQuizQuestions.map((q, qIdx) => {
         const options = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? JSON.parse(q.options) : []);
         const selectedIdx = activeQuizAnswers[q.id];
         const pts = q.points || 2;
+        const isTF = isTrueFalseQuestion(options);
 
-        const optionsHtml = options.map((opt, optIdx) => {
-            const isSelected = (selectedIdx === optIdx);
-            return `
-                <label onclick="selectQuizOption(${q.id}, ${optIdx})" class="flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border-2 transition cursor-pointer select-none ${isSelected ? 'bg-indigo-50/90 border-indigo-600 ring-2 ring-indigo-500/20 text-indigo-950 font-black' : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 font-medium'}">
-                    <input type="radio" name="question_${q.id}" value="${optIdx}" ${isSelected ? 'checked' : ''} class="hidden">
-                    <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white font-black text-xs' : 'border-slate-300 bg-white'}">
-                        ${isSelected ? '•' : ''}
-                    </span>
-                    <span class="text-xs sm:text-[13px] leading-relaxed flex-1">${opt}</span>
-                </label>
+        let sectionBannerHtml = '';
+        if (hasMixedTypes && !isTF && !renderedMcqHeader) {
+            renderedMcqHeader = true;
+            sectionBannerHtml = `
+                <div class="quiz-section-banner bg-[#14263d] text-white px-4 py-2.5 rounded-xl flex items-center justify-between gap-2 shadow-xs">
+                    <span class="font-black text-xs sm:text-sm">أولًا: اختيار الإجابة الصحيحة</span>
+                    <span class="text-[11px] text-emerald-300 font-bold">اختر إجابة واحدة لكل سؤال</span>
+                </div>
             `;
-        }).join('');
+        } else if (hasMixedTypes && isTF && !renderedTfHeader) {
+            renderedTfHeader = true;
+            sectionBannerHtml = `
+                <div class="quiz-section-banner bg-teal-800 text-white px-4 py-2.5 rounded-xl flex items-center justify-between gap-2 shadow-xs mt-2">
+                    <span class="font-black text-xs sm:text-sm">ثانيًا: ضع علامة (صح) أو (خطأ)</span>
+                    <span class="text-[11px] text-emerald-200 font-bold">حدّد صواب أو خطأ العبارة</span>
+                </div>
+            `;
+        }
+
+        let optionsHtml = '';
+        if (isTF) {
+            optionsHtml = `
+                <div class="quiz-tf-grid grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
+                    ${options.map((opt, optIdx) => {
+                        const isSelected = (selectedIdx === optIdx);
+                        const isTrueOpt = optIdx === 0;
+                        const activeCls = isTrueOpt
+                            ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 font-black'
+                            : 'bg-rose-50 border-rose-500 ring-2 ring-rose-500/20 text-rose-950 font-black';
+                        const badgeCls = isSelected
+                            ? (isTrueOpt ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-rose-600 text-white border-rose-600')
+                            : 'bg-slate-100 text-slate-600 border-slate-300';
+                        return `
+                            <label data-q-opt="${q.id}_${optIdx}" data-is-tf="1" data-is-true="${isTrueOpt ? '1' : '0'}" onclick="selectQuizOption(${q.id}, ${optIdx}, ${qIdx})" class="quiz-tf-card flex items-center justify-center gap-2.5 p-3 sm:p-4 rounded-xl border-2 transition cursor-pointer select-none ${isSelected ? activeCls : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 font-bold'}">
+                                <input type="radio" name="question_${q.id}" value="${optIdx}" ${isSelected ? 'checked' : ''} class="hidden">
+                                <span data-opt-badge class="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 text-sm font-black transition ${badgeCls}">
+                                    ${isTrueOpt ? '✓' : '✕'}
+                                </span>
+                                <span class="text-sm sm:text-base leading-snug">${opt}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        } else {
+            optionsHtml = `
+                <div class="space-y-2 sm:space-y-2.5 pt-1">
+                    ${options.map((opt, optIdx) => {
+                        const isSelected = (selectedIdx === optIdx);
+                        const letter = letterLabels[optIdx] || String(optIdx + 1);
+                        return `
+                            <label data-q-opt="${q.id}_${optIdx}" data-is-tf="0" onclick="selectQuizOption(${q.id}, ${optIdx}, ${qIdx})" class="quiz-option-card flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border-2 transition cursor-pointer select-none ${isSelected ? 'bg-teal-50/90 border-teal-600 ring-2 ring-teal-500/20 text-teal-950 font-black' : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 font-medium'}">
+                                <input type="radio" name="question_${q.id}" value="${optIdx}" ${isSelected ? 'checked' : ''} class="hidden">
+                                <span data-opt-badge class="w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 text-xs font-black transition ${isSelected ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-300 bg-slate-50 text-slate-600'}">
+                                    ${letter}
+                                </span>
+                                <span class="text-xs sm:text-sm leading-relaxed flex-1">${opt}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
 
         return `
-            <div class="bg-slate-50/70 p-3.5 sm:p-4 rounded-2xl border border-slate-200 space-y-2.5 shadow-2xs">
+            ${sectionBannerHtml}
+            <div id="quizCard_${qIdx}" class="quiz-question-card ${selectedIdx !== undefined ? 'is-answered' : ''} bg-slate-50/70 p-3.5 sm:p-4 lg:p-5 rounded-2xl border border-slate-200 space-y-2.5 shadow-2xs">
                 <div class="flex items-center justify-between gap-2 border-b border-slate-200/70 pb-2">
-                    <span class="text-[11px] font-black text-[#1F274B] bg-slate-200/80 px-2.5 py-0.5 rounded-lg">السؤال ${qIdx + 1} من ${activeQuizQuestions.length}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-black text-[#14263d] bg-slate-200/80 px-2.5 py-0.5 rounded-lg">السؤال ${qIdx + 1} من ${activeQuizQuestions.length}</span>
+                        <span class="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-md ${isTF ? 'bg-teal-50 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">${isTF ? 'صح / خطأ' : 'اختيار من متعدد'}</span>
+                    </div>
                     <span class="text-[10px] sm:text-[11px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">${pts} ${pts === 2 ? 'درجتان' : 'درجات'}</span>
                 </div>
-                <h5 class="text-xs sm:text-sm font-black text-slate-900 leading-relaxed pt-0.5">${q.question_text}</h5>
-                <div class="space-y-2 pt-1">
-                    ${optionsHtml}
-                </div>
+                <h5 class="text-sm sm:text-base font-black text-slate-900 leading-relaxed pt-0.5">${q.question_text}</h5>
+                ${optionsHtml}
             </div>
         `;
     }).join('');
 
-    // End-of-Questions Prominent Submit Card directly underneath the 20th question
+    // End-of-Questions Prominent Submit Card directly underneath the last question
     const answeredCount = activeQuizQuestions.filter(q => activeQuizAnswers[q.id] !== undefined).length;
     const totalCount = activeQuizQuestions.length;
     const isCompleted = (answeredCount === totalCount && totalCount > 0);
 
     const submitFooterHtml = `
-        <div class="mt-4 pt-4 pb-12 text-center space-y-3">
+        <div class="mt-4 pt-3 pb-8 text-center space-y-3">
             <div class="bg-gradient-to-b from-emerald-50/90 to-white border-2 border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-sm text-right space-y-3">
-                <div class="flex items-center justify-between gap-2 border-b border-emerald-100 pb-2">
-                    <span class="text-xs font-black text-emerald-950">
+                <div class="flex items-center justify-between gap-2 flex-wrap border-b border-emerald-100 pb-2">
+                    <span id="quizEndSummaryTitle" class="text-xs sm:text-sm font-black text-emerald-950">
                         نهاية أسئلة الامتحان (${answeredCount} من ${totalCount} مُجاب)
                     </span>
-                    <span class="text-[11px] font-bold ${isCompleted ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-amber-800 bg-amber-100 border border-amber-300'} px-2.5 py-0.5 rounded-md">
+                    <span id="quizEndSummaryBadge" class="text-[11px] font-bold ${isCompleted ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-amber-800 bg-amber-100 border border-amber-300'} px-2.5 py-0.5 rounded-md">
                         ${isCompleted ? 'اكتملت جميع الإجابات' : `متبقي ${totalCount - answeredCount} أسئلة`}
                     </span>
                 </div>
-                <p class="text-[11px] text-slate-600 leading-relaxed font-medium">
+                <p class="text-[11px] sm:text-xs text-slate-600 leading-relaxed font-medium">
                     اضغط على الزر الأخضر بالأسفل لتسليم إجاباتك واعتماد نتيجتك رسمياً في سجل درجات الأكاديمية ومراجعة التصحيح النموذجي فوراً:
                 </p>
                 <button type="button" onclick="submitActiveQuiz()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black text-xs sm:text-sm py-3.5 px-6 rounded-xl shadow-lg transition cursor-pointer text-center block">
-                    إرسال الإجابات واعتماد النتيجة (40 درجة)
+                    إرسال الإجابات واعتماد النتيجة (${totalPoints} درجة)
                 </button>
             </div>
             <button type="button" onclick="backToQuizList()" class="text-xs text-slate-500 hover:text-slate-800 underline font-bold py-1">
@@ -8172,30 +8250,49 @@ function renderActiveQuestions() {
     `;
     container.innerHTML += submitFooterHtml;
 
-    // Update sticky submit button text and real-time answered progress
-    const btnSticky = document.getElementById('btnSubmitQuiz');
-    if (btnSticky) {
-        if (isCompleted) {
-            btnSticky.textContent = 'إرسال الإجابات واعتماد النتيجة (40 درجة) - اكتملت جميع الأسئلة';
-        } else if (answeredCount > 0) {
-            btnSticky.textContent = `إرسال الإجابات واعتماد النتيجة (${answeredCount} من ${totalCount} مُجاب)`;
-        } else {
-            btnSticky.textContent = 'إرسال الإجابات واعتماد النتيجة (40 درجة)';
-        }
-    }
+    updateQuizProgressUI();
 }
 
-function selectQuizOption(questionId, optionIndex) {
-    const container = document.getElementById('quizQuestionsContainer');
-    const prevScroll = container ? container.scrollTop : 0;
+function selectQuizOption(questionId, optionIndex, qIdx) {
     activeQuizAnswers[questionId] = optionIndex;
-    renderActiveQuestions();
-    if (container) {
-        container.scrollTop = prevScroll;
-        requestAnimationFrame(() => {
-            if (container) container.scrollTop = prevScroll;
+
+    // Zero-flicker targeted DOM update for the clicked question card
+    const cardIdx = (typeof qIdx === 'number')
+        ? qIdx
+        : activeQuizQuestions.findIndex(q => Number(q.id) === Number(questionId));
+    const card = document.getElementById('quizCard_' + cardIdx);
+    if (card) {
+        card.classList.add('is-answered');
+        const labels = card.querySelectorAll('label[data-q-opt]');
+        labels.forEach((lbl, idx) => {
+            const isSelected = (idx === optionIndex);
+            const isTF = lbl.getAttribute('data-is-tf') === '1';
+            const isTrueOpt = lbl.getAttribute('data-is-true') === '1';
+            const badge = lbl.querySelector('[data-opt-badge]');
+            const radio = lbl.querySelector('input[type="radio"]');
+            if (radio) radio.checked = isSelected;
+
+            if (isTF) {
+                const activeCls = isTrueOpt
+                    ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 font-black'
+                    : 'bg-rose-50 border-rose-500 ring-2 ring-rose-500/20 text-rose-950 font-black';
+                lbl.className = `quiz-tf-card flex items-center justify-center gap-2.5 p-3 sm:p-4 rounded-xl border-2 transition cursor-pointer select-none ${isSelected ? activeCls : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 font-bold'}`;
+                if (badge) {
+                    const badgeCls = isSelected
+                        ? (isTrueOpt ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-rose-600 text-white border-rose-600')
+                        : 'bg-slate-100 text-slate-600 border-slate-300';
+                    badge.className = `w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 text-sm font-black transition ${badgeCls}`;
+                }
+            } else {
+                lbl.className = `quiz-option-card flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border-2 transition cursor-pointer select-none ${isSelected ? 'bg-teal-50/90 border-teal-600 ring-2 ring-teal-500/20 text-teal-950 font-black' : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-800 font-medium'}`;
+                if (badge) {
+                    badge.className = `w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 text-xs font-black transition ${isSelected ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-300 bg-slate-50 text-slate-600'}`;
+                }
+            }
         });
     }
+
+    updateQuizProgressUI();
 }
 
 async function submitActiveQuiz() {

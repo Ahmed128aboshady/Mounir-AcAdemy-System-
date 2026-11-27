@@ -823,18 +823,18 @@
     </div>
 
     <!-- Modal: Quizzes & Assessment System -->
-    <div id="quizzesModal" class="modal-overlay hidden p-2 sm:p-4 z-[9999]">
-        <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-3 sm:p-6 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col my-auto overflow-hidden quiz-modal-card">
-            <div class="flex justify-between items-center mb-2.5 sm:mb-4 pb-2 sm:pb-2.5 border-b border-slate-100 shrink-0">
-                <div>
-                    <h3 class="font-black text-base sm:text-lg text-slate-900" id="quizModalTitle">الامتحانات الشهرية الشاملة</h3>
-                    <p class="text-[11px] sm:text-xs text-slate-500 font-medium" id="quizModalSubtitle">ملخص الشهر الأول • 20 سؤالاً (40 درجة) • متاح اليوم الجمعة حتى 12:00 منتصف الليل</p>
+    <div id="quizzesModal" class="modal-overlay hidden p-2 sm:p-4 lg:p-6 z-[9999]">
+        <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl lg:max-w-4xl w-full p-3 sm:p-5 lg:p-6 shadow-2xl border border-slate-200 max-h-[96dvh] sm:max-h-[94dvh] flex flex-col my-auto overflow-hidden quiz-modal-card">
+            <div class="flex justify-between items-start sm:items-center gap-3 mb-2.5 sm:mb-4 pb-2.5 sm:pb-3 border-b border-slate-100 shrink-0">
+                <div class="min-w-0">
+                    <h3 class="font-black text-base sm:text-lg lg:text-xl text-slate-900 truncate" id="quizModalTitle">الامتحانات الشهرية الشاملة</h3>
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5" id="quizModalSubtitle">20 سؤالاً • 40 درجة إجمالية • تصحيح ومراجعة فورية</p>
                 </div>
-                <button onclick="closeQuizzesModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 transition cursor-pointer">&times;</button>
+                <button type="button" onclick="closeQuizzesModal()" aria-label="إغلاق نافذة الامتحان" class="text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 text-xl font-bold w-10 h-10 flex items-center justify-center rounded-xl transition cursor-pointer shrink-0">&times;</button>
             </div>
 
             <!-- Quiz Selection View (Shows Only the 3 Tracks - Zero Weekly Division) -->
-            <div id="quizSelectionView" class="space-y-3 overflow-y-auto max-h-[78vh] pr-0.5">
+            <div id="quizSelectionView" class="space-y-3 overflow-y-auto max-h-[78dvh] pr-0.5">
                 <div id="quizzesListContainer" class="space-y-3">
                     <!-- Injected via JS -->
                 </div>
@@ -842,20 +842,38 @@
 
             <!-- Quiz Active Questions View -->
             <div id="quizActiveView" class="hidden flex-col flex-1 min-h-0 space-y-2.5 sm:space-y-3 text-xs overflow-hidden">
-                <div class="bg-slate-50 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shrink-0">
-                    <strong class="text-slate-900 font-black text-xs sm:text-sm" id="activeQuizTitle">امتحان المسار</strong>
-                    <span class="text-indigo-900 bg-indigo-100 font-black text-[10px] sm:text-[11px] px-2.5 py-1 rounded-lg" id="activeQuizMeta">20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال)</span>
+                <!-- Sticky Exam Header + Progress Bar + Quick Navigator -->
+                <div class="bg-gradient-to-l from-slate-50 via-white to-emerald-50/40 p-3 sm:p-3.5 rounded-2xl border border-slate-200/90 space-y-2.5 shrink-0 shadow-2xs">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 sm:gap-3">
+                        <div class="min-w-0">
+                            <strong class="text-slate-900 font-black text-sm sm:text-base block leading-snug" id="activeQuizTitle">اختبار محققي التجويد</strong>
+                            <span class="text-teal-900 bg-teal-50 border border-teal-200/80 font-bold text-[11px] px-2.5 py-0.5 rounded-lg inline-block mt-1" id="activeQuizMeta">20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال)</span>
+                        </div>
+                        <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                            <span id="quizProgressBadge" class="text-xs font-black text-emerald-900 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-xl">0 / 20</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Progress Bar -->
+                    <div class="w-full h-2 bg-slate-200/90 rounded-full overflow-hidden">
+                        <div id="quizProgressBarFill" class="h-full bg-gradient-to-l from-emerald-500 to-teal-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Quick Question Navigator Pills (scroll on mobile, wrap neatly on tablet/desktop) -->
+                    <div id="quizQuestionNav" class="quiz-nav-strip flex items-center gap-1.5 overflow-x-auto sm:flex-wrap pb-0.5">
+                        <!-- Injected via JS -->
+                    </div>
                 </div>
 
-                <div id="quizQuestionsContainer" class="flex-1 min-h-0 space-y-3 overflow-y-auto pr-1 pl-0.5">
+                <div id="quizQuestionsContainer" class="flex-1 min-h-0 space-y-3 sm:space-y-4 overflow-y-auto pr-1 pl-0.5 scroll-smooth">
                     <!-- Injected questions -->
                 </div>
 
-                <div id="quizStickyFooter" class="quiz-sticky-footer pt-2 sm:pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2 shrink-0 bg-white">
-                    <button onclick="submitActiveQuiz()" id="btnSubmitQuiz" class="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-md transition text-xs sm:text-sm cursor-pointer">
+                <div id="quizStickyFooter" class="quiz-sticky-footer pt-2.5 sm:pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-2 shrink-0 bg-white">
+                    <button type="button" onclick="submitActiveQuiz()" id="btnSubmitQuiz" class="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl shadow-md transition text-xs sm:text-sm cursor-pointer">
                         إرسال الإجابات واعتماد النتيجة (40 درجة)
                     </button>
-                    <button onclick="backToQuizList()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl sm:rounded-2xl transition text-xs sm:text-sm cursor-pointer">
+                    <button type="button" onclick="backToQuizList()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-xl sm:rounded-2xl transition text-xs sm:text-sm cursor-pointer">
                         رجوع
                     </button>
                 </div>

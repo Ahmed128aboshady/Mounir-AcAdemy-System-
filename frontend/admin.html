@@ -5769,8 +5769,102 @@
             }
         }
 
+        function normalizeArabicDigits(val) {
+            return String(val ?? '').replace(/[٠-٩]/g, d => '0123456789'['٠١٢٣٤٥٦٧٨٩'.indexOf(d)]).trim();
+        }
+
+        function parseTajweedCorrectOption(rawVal, optA, optB, optC, optD) {
+            const norm = normalizeArabicDigits(rawVal).replace(/[ـ\u064B-\u0652]/g, '').trim();
+            const upper = norm.toUpperCase();
+            if (!norm) return 'A';
+
+            // Direct letter / number codes
+            if (upper === '1' || upper === 'A' || norm === 'أ' || norm === 'ا' || norm === 'إ' || norm === 'آ') return 'A';
+            if (upper === '2' || upper === 'B' || norm === 'ب') return 'B';
+            if (upper === '3' || upper === 'C' || norm === 'ج') return 'C';
+            if (upper === '4' || upper === 'D' || norm === 'د') return 'D';
+
+            // True / False keywords
+            const opts = [optA, optB, optC, optD].map(o => normalizeArabicDigits(o).replace(/[ـ\u064B-\u0652]/g, '').trim());
+            const isTrueWord = /^(صح|صواب|صحيح|نعم|true|t|✓|✔)$/i.test(norm);
+            const isFalseWord = /^(خطأ|خطا|غلط|لا|false|f|✕|✗)$/i.test(norm);
+            if (isTrueWord) {
+                const idx = opts.findIndex(o => /^(صح|صواب|صحيح|true)$/i.test(o));
+                return ['A', 'B', 'C', 'D'][idx >= 0 ? idx : 0];
+            }
+            if (isFalseWord) {
+                const idx = opts.findIndex(o => /^(خطأ|خطا|غلط|false)$/i.test(o));
+                return ['A', 'B', 'C', 'D'][idx >= 0 ? idx : 1];
+            }
+
+            // Match by option text (exact or contained)
+            const exactIdx = opts.findIndex(o => o && o === norm);
+            if (exactIdx >= 0) return ['A', 'B', 'C', 'D'][exactIdx];
+            const partialIdx = opts.findIndex(o => o && (o.includes(norm) || norm.includes(o)));
+            if (partialIdx >= 0) return ['A', 'B', 'C', 'D'][partialIdx];
+
+            return 'A';
+        }
+
+        function downloadTajweedExcelTemplate() {
+            if (typeof XLSX === 'undefined') {
+                alert('مكتبة Excel غير جاهزة، يرجى إعادة تحميل الصفحة.');
+                return;
+            }
+            const ansNumMap = { A: 1, B: 2, C: 3, D: 4 };
+            const sourceQuestions = (tajweedParsedQuestions && tajweedParsedQuestions.length > 0)
+                ? tajweedParsedQuestions
+                : [
+                    { question_text: 'كم عدد أحكام النون الساكنة والتنوين؟', option_a: 'حكمان', option_b: 'أربعة أحكام', option_c: 'ستة أحكام', option_d: '', correct_option: 'B', points: 2 },
+                    { question_text: 'الإظهار الحلقي له ستة حروف.', option_a: 'صح', option_b: 'خطأ', option_c: '', option_d: '', correct_option: 'A', points: 2 }
+                ];
+
+            const aoa = [
+                ['أكاديمية منير الذكية · قالب رفع أسئلة اختبار محققي التجويد (20 سؤالاً)'],
+                ['تعليمات: اكتب نص السؤال وخياراته (لأسئلة صح وخطأ اكتب صح في الخيار 1 وخطأ في الخيار 2 واترك 3 و 4 فارغين) — الإجابة الصحيحة تقبل: 1-4 أو A-D أو أ-د أو صح/خطأ'],
+                [],
+                ['م', 'نص السؤال', 'الاختيار الأول (1 / أ)', 'الاختيار الثاني (2 / ب)', 'الاختيار الثالث (3 / ج)', 'الاختيار الرابع (4 / د)', 'الإجابة الصحيحة (1-4 / أ-د / صح-خطأ)', 'درجة السؤال']
+            ];
+
+            sourceQuestions.forEach((q, idx) => {
+                aoa.push([
+                    idx + 1,
+                    q.question_text || '',
+                    q.option_a || '',
+                    q.option_b || '',
+                    q.option_c || '',
+                    q.option_d || '',
+                    ansNumMap[q.correct_option] || 1,
+                    q.points || 2
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = [{ wch: 6 }, { wch: 46 }, { wch: 24 }, { wch: 24 }, { wch: 22 }, { wch: 18 }, { wch: 26 }, { wch: 12 }];
+            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }];
+            const wb = XLSX.utils.book_new();
+            wb.Workbook = { Views: [{ RTL: true }] };
+            XLSX.utils.book_append_sheet(wb, ws, 'اختبار محققي التجويد');
+            XLSX.writeFile(wb, 'قالب_أسئلة_التجويد_الشهري.xlsx');
+
+            if (window.MonirPopup && window.MonirPopup.toast) {
+                window.MonirPopup.toast('تم تحميل قالب أسئلة التجويد الجاهز بنجاح!', 'success');
+            }
+        }
+
+        function handleTajweedExcelDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const dz = document.getElementById('tajweedExcelDropzone');
+            if (dz) dz.classList.remove('border-purple-600', 'bg-purple-100/60');
+            const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+            if (file) {
+                handleTajweedExcelUpload({ target: { files: [file] } });
+            }
+        }
+
         function handleTajweedExcelUpload(event) {
-            const file = event.target.files[0];
+            const file = event && event.target && event.target.files ? event.target.files[0] : null;
             if (!file) return;
 
             const reader = new FileReader();
@@ -5784,20 +5878,48 @@
                     const wb = XLSX.read(data, { type: 'array' });
                     const sheetName = wb.SheetNames[0];
                     const sheet = wb.Sheets[sheetName];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
                     if (!rows || rows.length < 2) {
                         alert('ملف الإكسيل فارغ أو لا يحتوي على صفوف بيانات.');
                         return;
                     }
 
-                    // Locate header row or start reading from data rows
-                    let startRowIdx = 1;
-                    for (let i = 0; i < Math.min(6, rows.length); i++) {
-                        const rowStr = (rows[i] || []).join(' ');
-                        if (rowStr.includes('نص السؤال') || rowStr.includes('السؤال') || rowStr.includes('الاختيار')) {
+                    // Auto-detect header row & column mapping
+                    let startRowIdx = 0;
+                    let colMap = { q: 1, a: 2, b: 3, c: 4, d: 5, ans: 6, pts: 7 };
+                    let headerFound = false;
+
+                    for (let i = 0; i < Math.min(10, rows.length); i++) {
+                        const row = (rows[i] || []).map(v => String(v || '').trim());
+                        const joined = row.join(' ');
+                        if (joined.includes('نص السؤال') || (joined.includes('السؤال') && (joined.includes('الاختيار') || joined.includes('الخيار') || joined.includes('الإجابة')))) {
+                            headerFound = true;
                             startRowIdx = i + 1;
+                            const findCol = (patterns, fallback) => {
+                                const idx = row.findIndex(cell => patterns.some(p => cell.includes(p)));
+                                return idx >= 0 ? idx : fallback;
+                            };
+                            const qIdx = findCol(['نص السؤال', 'السؤال'], 1);
+                            colMap = {
+                                q: qIdx,
+                                a: findCol(['الاختيار الأول', 'الخيار الأول', 'الخيار أ', 'خيار 1', '(1'], qIdx + 1),
+                                b: findCol(['الاختيار الثاني', 'الخيار الثاني', 'الخيار ب', 'خيار 2', '(2'], qIdx + 2),
+                                c: findCol(['الاختيار الثالث', 'الخيار الثالث', 'الخيار ج', 'خيار 3', '(3'], qIdx + 3),
+                                d: findCol(['الاختيار الرابع', 'الخيار الرابع', 'الخيار د', 'خيار 4', '(4'], qIdx + 4),
+                                ans: findCol(['الإجابة الصحيحة', 'الاجابة الصحيحة', 'الإجابة', 'الصحيح'], qIdx + 5),
+                                pts: findCol(['درجة', 'النقاط', 'الدرجة'], qIdx + 6)
+                            };
                             break;
+                        }
+                    }
+
+                    if (!headerFound) {
+                        // Check if col 0 is numeric index or question text
+                        const firstNonEmpty = rows.find(r => r && r.some(v => String(v || '').trim() !== ''));
+                        const firstCell = normalizeArabicDigits(firstNonEmpty ? firstNonEmpty[0] : '');
+                        if (firstCell && !/^\d+$/.test(firstCell)) {
+                            colMap = { q: 0, a: 1, b: 2, c: 3, d: 4, ans: 5, pts: 6 };
                         }
                     }
 
@@ -5806,21 +5928,25 @@
                         const r = rows[i];
                         if (!r || r.length === 0) continue;
 
-                        const qText = String(r[1] || r[0] || '').trim();
-                        if (!qText || qText.includes('تعليمات')) continue;
+                        const qText = String(r[colMap.q] ?? '').trim();
+                        if (!qText || qText.includes('تعليمات') || qText.includes('قالب رفع') || qText === 'نص السؤال') continue;
 
-                        const optA = String(r[2] || '').trim();
-                        const optB = String(r[3] || '').trim();
-                        const optC = String(r[4] || '').trim();
-                        const optD = String(r[5] || '').trim();
+                        let optA = String(r[colMap.a] ?? '').trim();
+                        let optB = String(r[colMap.b] ?? '').trim();
+                        const optC = String(r[colMap.c] ?? '').trim();
+                        const optD = String(r[colMap.d] ?? '').trim();
+                        const rawAns = String(r[colMap.ans] ?? '').trim();
 
-                        let rawCorrect = String(r[6] || '1').trim().toUpperCase();
-                        let correctCode = 'A';
-                        if (rawCorrect === '2' || rawCorrect === 'B' || rawCorrect === 'ب') correctCode = 'B';
-                        else if (rawCorrect === '3' || rawCorrect === 'C' || rawCorrect === 'ج') correctCode = 'C';
-                        else if (rawCorrect === '4' || rawCorrect === 'D' || rawCorrect === 'د') correctCode = 'D';
+                        // If True/False question omitted option_a & option_b but put صح/خطأ in answer column
+                        if (!optA && !optB && /^(صح|صواب|صحيح|خطأ|خطا|غلط|true|false)$/i.test(rawAns)) {
+                            optA = 'صح';
+                            optB = 'خطأ';
+                        }
 
-                        const pts = parseInt(r[7]) || 2;
+                        if (!optA && !optB) continue;
+
+                        const correctCode = parseTajweedCorrectOption(rawAns, optA, optB, optC, optD);
+                        const pts = parseInt(normalizeArabicDigits(r[colMap.pts])) || 2;
 
                         parsed.push({
                             num: parsed.length + 1,
@@ -5835,7 +5961,7 @@
                     }
 
                     if (parsed.length === 0) {
-                        alert('لم يتم العثور على أسئلة صالحة في الملف، يرجى التأكد من تعبئة القالب بالشكل الصحيح.');
+                        alert('لم يتم العثور على أسئلة صالحة في الملف، يرجى التأكد من تعبئة القالب بالشكل الصحيح أو تحميل القالب الجاهز أولاً.');
                         return;
                     }
 
@@ -5848,6 +5974,10 @@
                 } catch(err) {
                     console.error('Error parsing Tajweed Excel:', err);
                     alert('تعذر قراءة ملف الإكسيل: ' + (err.message || err));
+                } finally {
+                    if (event && event.target && 'value' in event.target) {
+                        event.target.value = '';
+                    }
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -5884,7 +6014,43 @@
             if (publishBar) publishBar.classList.remove('hidden');
             if (countEl) countEl.innerText = tajweedParsedQuestions.length;
 
+            const optLetterMap = { A: 'أ', B: 'ب', C: 'ج', D: 'د' };
+
+            // Mobile-first Card View (< md)
+            const mobileCardsHtml = tajweedParsedQuestions.map((q, idx) => {
+                const isTF = !q.option_c && !q.option_d && (q.option_a === 'صح' || q.option_b === 'خطأ' || q.option_b === 'غلط');
+                const opts = [
+                    { code: 'A', label: 'أ', text: q.option_a },
+                    { code: 'B', label: 'ب', text: q.option_b },
+                    { code: 'C', label: 'ج', text: q.option_c },
+                    { code: 'D', label: 'د', text: q.option_d }
+                ].filter(o => o.text);
+
+                return `
+                    <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-2xs">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">سؤال ${idx + 1}</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isTF ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">${isTF ? 'صح / خطأ' : 'اختيار من متعدد'}</span>
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">الصحيح: ${optLetterMap[q.correct_option] || q.correct_option}</span>
+                            </div>
+                        </div>
+                        <p class="font-extrabold text-slate-900 text-xs leading-relaxed">${escapeTajweedHtml(q.question_text)}</p>
+                        <div class="grid ${isTF ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5">
+                            ${opts.map(o => `
+                                <div class="px-2.5 py-1.5 rounded-lg border text-[11px] flex items-center gap-2 ${q.correct_option === o.code ? 'bg-emerald-50 border-emerald-400 text-emerald-900 font-black' : 'bg-slate-50 border-slate-200 text-slate-700'}">
+                                    <span class="w-5 h-5 rounded-full text-[10px] flex items-center justify-center shrink-0 ${q.correct_option === o.code ? 'bg-emerald-600 text-white font-black' : 'bg-slate-200 text-slate-600 font-bold'}">${o.label}</span>
+                                    <span class="leading-snug">${escapeTajweedHtml(o.text)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Tablet & Desktop Table View (md+)
             const rowsHtml = tajweedParsedQuestions.map((q, idx) => {
+                const isTF = !q.option_c && !q.option_d && (q.option_a === 'صح' || q.option_b === 'خطأ' || q.option_b === 'غلط');
                 const getOptClass = (code) => (q.correct_option === code)
                     ? 'bg-emerald-100 text-emerald-900 border-emerald-400 font-black'
                     : 'bg-slate-50 text-slate-700 border-slate-200';
@@ -5892,27 +6058,33 @@
                 return `
                     <tr class="border-b border-slate-100 hover:bg-slate-50/50">
                         <td class="text-center font-bold text-slate-500 py-2.5 px-2">${idx + 1}</td>
-                        <td class="font-extrabold text-slate-900 py-2.5 px-3">${escapeTajweedHtml(q.question_text)}</td>
-                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('A')}">${escapeTajweedHtml(q.option_a || '—')}</span></td>
-                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('B')}">${escapeTajweedHtml(q.option_b || '—')}</span></td>
-                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('C')}">${escapeTajweedHtml(q.option_c || '—')}</span></td>
-                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block truncate ${getOptClass('D')}">${escapeTajweedHtml(q.option_d || '—')}</span></td>
-                        <td class="text-center font-black py-2.5 px-2 text-emerald-700 bg-emerald-50/50">${q.correct_option}</td>
+                        <td class="font-extrabold text-slate-900 py-2.5 px-3 leading-relaxed">
+                            <div>${escapeTajweedHtml(q.question_text)}</div>
+                            <span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isTF ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-800'}">${isTF ? 'صح / خطأ' : 'اختيار من متعدد'}</span>
+                        </td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block leading-snug ${getOptClass('A')}">${escapeTajweedHtml(q.option_a || '—')}</span></td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block leading-snug ${getOptClass('B')}">${escapeTajweedHtml(q.option_b || '—')}</span></td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block leading-snug ${getOptClass('C')}">${escapeTajweedHtml(q.option_c || '—')}</span></td>
+                        <td class="py-2.5 px-2"><span class="px-2 py-1 rounded-lg border text-[11px] block leading-snug ${getOptClass('D')}">${escapeTajweedHtml(q.option_d || '—')}</span></td>
+                        <td class="text-center font-black py-2.5 px-2 text-emerald-700 bg-emerald-50/50">${optLetterMap[q.correct_option] || q.correct_option}</td>
                     </tr>
                 `;
             }).join('');
 
             container.innerHTML = `
-                <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-96">
+                <div class="md:hidden space-y-2.5 max-h-[55vh] overflow-y-auto pr-0.5">
+                    ${mobileCardsHtml}
+                </div>
+                <div class="hidden md:block overflow-x-auto border border-slate-200 rounded-xl max-h-96">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 shadow-2xs">
+                        <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 shadow-2xs z-10">
                             <tr>
                                 <th class="py-2 px-2 text-center w-10">م</th>
-                                <th class="py-2 px-3">نص السؤال</th>
-                                <th class="py-2 px-2 w-36">الخيار (1 / A)</th>
-                                <th class="py-2 px-2 w-36">الخيار (2 / B)</th>
-                                <th class="py-2 px-2 w-36">الخيار (3 / C)</th>
-                                <th class="py-2 px-2 w-36">الخيار (4 / D)</th>
+                                <th class="py-2 px-3 min-w-[200px]">نص السؤال</th>
+                                <th class="py-2 px-2 w-36">الخيار (أ)</th>
+                                <th class="py-2 px-2 w-36">الخيار (ب)</th>
+                                <th class="py-2 px-2 w-32">الخيار (ج)</th>
+                                <th class="py-2 px-2 w-28">الخيار (د)</th>
                                 <th class="py-2 px-2 text-center w-16">الصحيح</th>
                             </tr>
                         </thead>
@@ -5967,20 +6139,31 @@
                     const { error: insErr } = await client.from('quiz_questions').insert(payload);
                     if (insErr) throw insErr;
 
-                    // 3. Update Quiz 1003 metadata
+                    // 3. Update Quiz 1003 metadata while preserving saved video_url / video_title
                     const nowIso = new Date().toISOString();
-                    const descObj = {
+                    const { data: curQMeta } = await client.from('quizzes').select('description').eq('id', 1003).maybeSingle();
+                    let descObj = {};
+                    if (curQMeta && curQMeta.description) {
+                        try {
+                            descObj = (typeof curQMeta.description === 'string') ? JSON.parse(curQMeta.description) : { ...curQMeta.description };
+                        } catch(e) { descObj = {}; }
+                    }
+                    descObj = {
+                        ...descObj,
+                        track: 'tajweed',
                         is_active: true,
                         is_monthly_exam: true,
                         open_date: '2026-11-01T00:00:00+02:00',
-                        close_date: '2026-11-30T23:59:59+02:00',
+                        close_date: '2026-12-31T23:59:59+02:00',
                         questions_count: payload.length,
+                        total_questions: payload.length,
+                        total_points: payload.reduce((acc, q) => acc + (q.points || 2), 0),
                         updated_at: nowIso
                     };
 
                     await client.from('quizzes').update({
-                        title: 'امتحان أحكام التجويد والإتقان — ملخص شهر نوفمبر 2026',
-                        total_score: payload.length * 2,
+                        title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين',
+                        total_score: descObj.total_points,
                         description: JSON.stringify(descObj)
                     }).eq('id', 1003);
 
@@ -13345,14 +13528,14 @@ async function submitCompensationAttendance() {
                     </p>
 
                     <!-- Dropzone / File Picker -->
-                    <div class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/30 rounded-2xl p-5 text-center transition cursor-pointer" onclick="document.getElementById('tajweedExcelFileInput').click()">
-                        <input type="file" id="tajweedExcelFileInput" accept=".xlsx, .xls" class="hidden" onchange="handleTajweedExcelUpload(event)">
+                    <div id="tajweedExcelDropzone" class="border-2 border-dashed border-purple-300 hover:border-purple-500 bg-purple-50/30 rounded-2xl p-4 sm:p-5 text-center transition cursor-pointer" onclick="document.getElementById('tajweedExcelFileInput').click()" ondragover="event.preventDefault(); this.classList.add('border-purple-600','bg-purple-100/60')" ondragleave="this.classList.remove('border-purple-600','bg-purple-100/60')" ondrop="handleTajweedExcelDrop(event)">
+                        <input type="file" id="tajweedExcelFileInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleTajweedExcelUpload(event)">
                         <div class="flex flex-col items-center justify-center gap-2">
                             <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                             </div>
                             <div class="font-black text-slate-800 text-xs sm:text-sm">اضغط هنا لاختيار ملف Excel للأسئلة أو اسحبه هنا</div>
-                            <div class="text-[11px] text-slate-500">الملف يحتوي على الأعمدة: نص السؤال، الخيار أ، الخيار ب، الخيار ج، الخيار د، رمز الإجابة الصحيحة (A/B/C/D)</div>
+                            <div class="text-[11px] text-slate-500 leading-relaxed">يدعم الاختيار من متعدد وأسئلة (صح / خطأ) • رمز الإجابة يقبل: 1-4 أو A-D أو أ-د أو صح/خطأ</div>
                         </div>
                     </div>
 

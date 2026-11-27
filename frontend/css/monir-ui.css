@@ -206,3 +206,83 @@ body[data-monir-page="student"] #floatingCompetitionLinksContainer {
     bottom: 1.5rem;
   }
 }
+
+/* ═══ Responsive Exam & Quiz UI/UX (Mobile, Tablet, Desktop) ═══ */
+body[data-monir-page] .quiz-modal-card {
+  overscroll-behavior: contain;
+}
+body[data-monir-page] .quiz-nav-strip {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+body[data-monir-page] .quiz-nav-strip::-webkit-scrollbar {
+  display: none;
+}
+body[data-monir-page] .quiz-nav-pill {
+  min-width: 30px;
+  min-height: 30px !important;
+  height: 30px;
+  padding: 0 0.45rem;
+  border-radius: 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+body[data-monir-page] .quiz-nav-pill:hover {
+  border-color: #0f766e;
+  color: #0f766e;
+}
+body[data-monir-page] .quiz-nav-pill.is-answered {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+body[data-monir-page] .quiz-question-card {
+  scroll-margin-top: 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+body[data-monir-page] .quiz-question-card.is-answered {
+  border-color: #6ee7b7;
+  background: #f0fdf9;
+}
+body[data-monir-page] .quiz-option-card {
+  min-height: 50px !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+body[data-monir-page] .quiz-tf-card {
+  min-height: 56px !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (max-width: 639px) {
+  body[data-monir-page] .quiz-sticky-footer {
+    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+  }
+  body[data-monir-page] .quiz-modal-card {
+    border-radius: 1.125rem;
+  }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  body[data-monir-page] .quiz-option-card {
+    min-height: 52px !important;
+  }
+  body[data-monir-page] .quiz-tf-card {
+    min-height: 60px !important;
+  }
+}
+@media (min-width: 1024px) {
+  body[data-monir-page] .quiz-nav-pill {
+    min-width: 32px;
+    min-height: 32px !important;
+    height: 32px;
+  }
+}
