@@ -6422,8 +6422,8 @@ window.MONTHLY_EXAMS_DATA = {
           "صح",
           "خطأ"
         ],
-        "correct_option_index": 1,
-        "explanation": "عبارة خاطئة: نطيع والدينا بأدب في كل معروف حتى لو لم يكن محببًا لنا، ولا نرفض إلا ما فيه معصية."
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة حسب نموذج الإجابة المعتمد."
       },
       {
         "id": 100112,
@@ -7186,8 +7186,8 @@ window.MONTHLY_EXAMS_QUESTIONS = {
           "صح",
           "خطأ"
         ],
-        "correct_option_index": 1,
-        "explanation": "عبارة خاطئة: نطيع والدينا بأدب في كل معروف حتى لو لم يكن محببًا لنا، ولا نرفض إلا ما فيه معصية."
+        "correct_option_index": 0,
+        "explanation": "عبارة صحيحة حسب نموذج الإجابة المعتمد."
       },
       {
         "id": 100112,
