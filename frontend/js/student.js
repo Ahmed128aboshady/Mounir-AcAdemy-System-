@@ -5791,8 +5791,12 @@ function renderGeneralTrackView() {
 
             <!-- Monthly Comprehensive Exam ( ملخص الشهر الأول - 40 درجة ) -->
             ${(() => {
+                const stAge = getStudentAgeForExams();
+                const tafsirQuizInfo = (stAge >= 10)
+                    ? { id: 1005, title: 'اختبار التفسير «من يدلّني؟» — من 10 إلى 16 سنة', desc: 'اختبار شامل للفئة العمرية (10 – 16 سنة): 10 أسئلة اختر الإجابة الأدق + 10 أسئلة صح وخطأ.' }
+                    : { id: 1001, title: 'اختبار التفسير «من يدلّني؟» — أقل من 10 سنوات', desc: 'اختبار شامل للفئة العمرية (أقل من 10 سنوات): 10 أسئلة اختيار من متعدد + 10 أسئلة صح وخطأ.' };
                 const trackMonthlyMap = {
-                    'tafsir': { id: 1001, title: 'اختبار التفسير «من يدلني» — أقل من 10 سنوات', desc: 'اختبار شامل (10 أسئلة اختيار من متعدد + 10 أسئلة صح وخطأ) في القيم والتطبيقات التربوية من بودكاست من يدلني.' },
+                    'tafsir': tafsirQuizInfo,
                     'hadith': { id: 1002, title: 'امتحان الحديث الشريف والسنة — ملخص الشهر الأول', desc: 'امتحان شهري شامل يغطي مجالس الحديث النبوي الشريف وتطبيقاتها السلوكية والتربوية.' },
                     'tajweed': { id: 1003, title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين', desc: 'اختبار شامل (10 أسئلة اختيار من متعدد + 10 أسئلة صح وخطأ) في أحكام النون الساكنة والتنوين والنون والميم المشددتين واللحن الجلي.' }
                 };
@@ -5815,7 +5819,7 @@ function renderGeneralTrackView() {
                                 <strong class="text-sm sm:text-base font-black text-white block">${mInfo.title}</strong>
                             </div>
                             <span class="text-[11px] font-bold text-amber-200 bg-amber-950/50 px-3 py-1 rounded-xl border border-amber-400/30">
-                                ${(mInfo.id === 1001 || mInfo.id === 1003) ? 'متاح الآن للحل • تصحيح ومراجعة فورية' : 'متاح في فترة الامتحان الشهري'}
+                                ${(mInfo.id === 1001 || mInfo.id === 1003 || mInfo.id === 1005) ? 'متاح الآن للحل • تصحيح ومراجعة فورية' : 'متاح في فترة الامتحان الشهري'}
                             </span>
                         </div>
 
@@ -6278,6 +6282,14 @@ window.MONTHLY_EXAMS_DATA = {
       "course_name": "مسار القرآن الكريم والتدبر",
       "title": "اختبار محققي التجويد — أحكام النون الساكنة والتنوين",
       "description": "{\"track\": \"tajweed\", \"is_monthly_exam\": true, \"month\": 2, \"summary_text\": \"اختبار محققي التجويد: 20 سؤالاً (10 اختيار من متعدد + 10 صح وخطأ) في أحكام النون الساكنة والتنوين والنون والميم المشددتين واللحن الجلي.\", \"open_date\": \"2026-11-01T00:00:00+02:00\", \"close_date\": \"2026-12-31T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
+      "total_questions": 20,
+      "passing_score": 70
+    },
+    {
+      "id": 1005,
+      "course_name": "مسار القرآن الكريم والتدبر",
+      "title": "اختبار التفسير «من يدلّني؟» — من 10 إلى 16 سنة",
+      "description": "{\"track\": \"tafsir\", \"age_group\": \"10_to_16\", \"is_monthly_exam\": true, \"month\": 2, \"summary_text\": \"اختبار التفسير «من يدلّني؟» — الفئة العمرية من 10 إلى 16 سنة: 20 سؤالاً (10 اختر الإجابة الأدق + 10 صح وخطأ).\", \"open_date\": \"2026-11-01T00:00:00+02:00\", \"close_date\": \"2026-12-31T23:59:59+02:00\", \"total_questions\": 20, \"total_points\": 40}",
       "total_questions": 20,
       "passing_score": 70
     }
@@ -7811,9 +7823,275 @@ window.MONTHLY_EXAMS_QUESTIONS = {
         "correct_option_index": 0,
         "explanation": "عبارة صحيحة: الإظهار الحلقي يكون عند مجيء أحد حروف الحلق الستة."
       }
+  ],
+  "1005": [
+    {
+      "id": 100501,
+      "quiz_id": 1005,
+      "question_text": "أصرّ والداك على رأي تراه غير مناسب، لكنه ليس معصية ولا ضررًا واضحًا. ما التصرف الأقرب لمعنى الآيات؟",
+      "points": 2,
+      "options": [
+        "أعتبر كل اختلاف معهما ظلمًا لي.",
+        "أسمع وجهة نظرهما وأناقش بأدب، وأحافظ على الإحسان إليهما.",
+        "أنفذ كل شيء دون تفكير مهما كان."
+      ],
+      "correct_option_index": 1,
+      "explanation": "البرّ يجمع بين الحوار الهادئ بأدب والاستماع للوالدين مع الحفاظ على الإحسان إليهما."
+    },
+    {
+      "id": 100502,
+      "quiz_id": 1005,
+      "question_text": "صديقك يضغط عليك لتشارك في الغش، ويقول إن الجميع يفعل ذلك. أي رد يجمع الثبات والرفق؟",
+      "points": 2,
+      "options": [
+        "أفضحه أمام الجميع وأهينه.",
+        "أوافق حتى لا أخسره.",
+        "أرفض بهدوء، وأوضح أن انتشار الغش لا يجعله صحيحًا."
+      ],
+      "correct_option_index": 2,
+      "explanation": "الثبات على المبدأ يكون برفق ووضوح؛ فانتشار الخطأ لا يجعله صوابًا."
+    },
+    {
+      "id": 100503,
+      "quiz_id": 1005,
+      "question_text": "نشرت صفحة مشهورة حديثًا دون مصدر، وطلب منك صديقك نشره لعل الناس تنتفع. ما القرار الأصح؟",
+      "points": 2,
+      "options": [
+        "أنشره لأن النية طيبة.",
+        "أتحقق من صحته ومصدره قبل النشر، وأسأل أهل الاختصاص إن احتجت.",
+        "أرفض كل ما تنشره الصفحات المشهورة."
+      ],
+      "correct_option_index": 1,
+      "explanation": "التثبت من صحة الأخبار والأحاديث ومصادرها واجب قبل النشر، فالنية الطيبة لا تكفي لنشر غير الموثوق."
+    },
+    {
+      "id": 100504,
+      "quiz_id": 1005,
+      "question_text": "أحرزت درجة مرتفعة، وبدأ زملاؤك يطلبون منك مساعدتهم في المذاكرة. أي تصرف يعبر عن التواضع؟",
+      "points": 2,
+      "options": [
+        "أساعدهم بما أستطيع دون أن أتعالى عليهم.",
+        "أخبرهم أنني أفضل منهم.",
+        "أرفض مساعدتهم حتى يظلوا أقل مني."
+      ],
+      "correct_option_index": 0,
+      "explanation": "التواضع الحقيقي يظهر في بذل الخير ومساعدة الآخرين بلا كبر ولا منّ."
+    },
+    {
+      "id": 100505,
+      "quiz_id": 1005,
+      "question_text": "خططت للعب مباراة طويلة، وتعلم أن وقت الصلاة سيأتي خلالها. ما القرار الذي يجمع التخطيط وإقامة الصلاة؟",
+      "points": 2,
+      "options": [
+        "أترك الصلاة حتى تنتهي المباراة.",
+        "أنظم وقت المباراة بحيث أحافظ على الصلاة في وقتها.",
+        "أنتظر أن يذكرني أحد دائمًا."
+      ],
+      "correct_option_index": 1,
+      "explanation": "التخطيط الواعي يوازن بين الترفيه المباح والمحافظة على الصلاة في وقتها."
+    },
+    {
+      "id": 100506,
+      "quiz_id": 1005,
+      "question_text": "رأيت شخصًا غنيًا مشهورًا، وآخر بسيطًا أمينًا يساعد الناس. ما الاستنتاج الأكثر دقة؟",
+      "points": 2,
+      "options": [
+        "الغني أفضل بالضرورة.",
+        "البسيط أفضل عند الله قطعًا لأن ماله قليل.",
+        "لا تكفي المظاهر للحكم على منزلة الأشخاص، والله أعلم بالقلوب والأعمال."
+      ],
+      "correct_option_index": 2,
+      "explanation": "المفاضلة عند الله بالتقوى وصلاح القلوب والأعمال، وليست بالمظاهر ولا بالفقر أو الغنى وحدهما."
+    },
+    {
+      "id": 100507,
+      "quiz_id": 1005,
+      "question_text": "نصحت زميلًا بترك التنمر، لكنه استمر. ما التصرف الذي يوازن بين المسؤولية وحدودها؟",
+      "points": 2,
+      "options": [
+        "أواصل إهانته حتى يتغير.",
+        "أستمر في رفض المشاركة، وأساند المتضرر، وأطلب تدخل مسؤول عند الحاجة.",
+        "أتجاهل أذى الآخرين تمامًا."
+      ],
+      "correct_option_index": 1,
+      "explanation": "نرفض الأذى ونساند المتضرر ونستعين بالمسؤول عند الحاجة دون مقابلة الإساءة بإهانة."
+    },
+    {
+      "id": 100508,
+      "quiz_id": 1005,
+      "question_text": "ذاكرت جيدًا ولم تحصل على الدرجة التي توقعتها. أي موقف يعبّر عن التوكل؟",
+      "points": 2,
+      "options": [
+        "أراجع طريقة مذاكرتي وأطلب المساعدة وأدعو الله وأحاول مجددًا.",
+        "أعتبر أن الدعاء لم ينفع.",
+        "أتوقف عن المذاكرة لأن النتيجة بيد الله."
+      ],
+      "correct_option_index": 0,
+      "explanation": "التوكل يجمع بين تحسين الأخذ بالأسباب والدعاء والاستمرار في المحاولة بحسن ظن بالله."
+    },
+    {
+      "id": 100509,
+      "quiz_id": 1005,
+      "question_text": "اكتشفت أنك نشرت معلومة خاطئة وأثرت في الآخرين. ما الخطوة الأصح؟",
+      "points": 2,
+      "options": [
+        "أحذفها بصمت وأتظاهر أن شيئًا لم يحدث.",
+        "أوضح التصحيح لمن وصلتهم المعلومة، وأعتذر إن لزم، وأتحقق مستقبلًا.",
+        "ألوم الشخص الذي أرسلها لي فقط."
+      ],
+      "correct_option_index": 1,
+      "explanation": "تحمل المسؤولية يقتضي تصحيح الخطأ لمن وصله والاعتذار عند اللزوم والتثبت مستقبلًا."
+    },
+    {
+      "id": 100510,
+      "quiz_id": 1005,
+      "question_text": "صديقك لا يقتنع بنصيحتك رغم محاولاتك. أي عبارة تلخص حدود مسؤوليتك؟",
+      "points": 2,
+      "options": [
+        "أنا مسؤول عن إقناعه مهما كلف الأمر.",
+        "إذا لم يتغير فمعنى ذلك أنني شخص سيئ.",
+        "أنا مسؤول عن النصيحة الحكيمة وسلوكي، أما اختياره فمسؤوليته."
+      ],
+      "correct_option_index": 2,
+      "explanation": "مسؤوليتنا البلاغ والنصح بالحكمة وحسن القدوة، أما الهداية والاختيار فمسؤولية كل إنسان."
+    },
+    {
+      "id": 100511,
+      "quiz_id": 1005,
+      "question_text": "إذا رفض شخص نصيحتي، فهذا دليل قاطع على أنني لم أؤدِّ واجبي كما ينبغي.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 1,
+      "explanation": "عبارة خاطئة: قد نؤدي النصيحة بأفضل أسلوب ولا يستجيب المنصوح، فالعبرة بصدق البلاغ وحكمته."
+    },
+    {
+      "id": 100512,
+      "quiz_id": 1005,
+      "question_text": "يمكن أن أرفض معصية يطلبها مني والداي، مع الاستمرار في معاملتهما بالمعروف.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 0,
+      "explanation": "عبارة صحيحة: قال تعالى ﴿فَلَا تُطِعْهُمَا وَصَاحِبْهُمَا فِي الدُّنْيَا مَعْرُوفًا﴾."
+    },
+    {
+      "id": 100513,
+      "quiz_id": 1005,
+      "question_text": "معرفة أن الله هو خالق السماوات والأرض ينبغي أن تقود إلى عبادته وشكره، لا أن تبقى مجرد معلومة.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 0,
+      "explanation": "عبارة صحيحة: المعرفة الحقيقية بالله تثمر العبادة والشكر والعمل الصالح."
+    },
+    {
+      "id": 100514,
+      "quiz_id": 1005,
+      "question_text": "إذا كان شخص ما غنيًا، فهذا دليل كافٍ على أنه ناجح عند الله.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 1,
+      "explanation": "عبارة خاطئة: الغنى ابتلاء ورزق وليس وحده مقياسًا للمنزلة والنجاح عند الله."
+    },
+    {
+      "id": 100515,
+      "quiz_id": 1005,
+      "question_text": "قولنا إن الله يعلم ما في الصدور يعني أننا نستطيع معرفة نيات الآخرين من تصرف واحد.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 1,
+      "explanation": "عبارة خاطئة: علم ما في الصدور خاص بالله وحده، ولا يحق لنا الجزم بنيات الناس."
+    },
+    {
+      "id": 100516,
+      "quiz_id": 1005,
+      "question_text": "الصبر على الأذى يعني أن أكتم حزني وأرفض طلب المساعدة مهما كان الموقف.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 1,
+      "explanation": "عبارة خاطئة: الصبر لا يمنع التعبير الصحي عن المشاعر ولا طلب المساعدة لحماية النفس."
+    },
+    {
+      "id": 100517,
+      "quiz_id": 1005,
+      "question_text": "إذا أخطأت في حق شخص، فقد تحتاج توبتي إلى الاعتذار أو رد الحق، وليس الاستغفار وحده.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 0,
+      "explanation": "عبارة صحيحة: حقوق العباد تحتاج مع الاستغفار إلى ردّ الحق أو الاستسماح والاعتذار."
+    },
+    {
+      "id": 100518,
+      "quiz_id": 1005,
+      "question_text": "اختيار القدوة الصالحة يعني أن أتبع الشخص في كل تصرفاته حتى لو أخطأ.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 1,
+      "explanation": "عبارة خاطئة: القدوة الصالحة يُقتدى بها في الخير والصواب، ولا يُتبع أحد في الخطأ."
+    },
+    {
+      "id": 100519,
+      "quiz_id": 1005,
+      "question_text": "يمكن أن أكون واثقًا من نفسي وأفرح بنجاحي دون أن أرى نفسي أفضل من الآخرين.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 0,
+      "explanation": "عبارة صحيحة: الثقة المتوازنة والفرح بالنجاح يجتمعان مع التواضع واحترام الآخرين."
+    },
+    {
+      "id": 100520,
+      "quiz_id": 1005,
+      "question_text": "إذا لم تظهر نتيجة اجتهادي سريعًا، فهذا يعني أن جهدي ضاع ولا داعي للاستمرار.",
+      "points": 2,
+      "options": [
+        "صح",
+        "خطأ"
+      ],
+      "correct_option_index": 1,
+      "explanation": "عبارة خاطئة: الجهد الصادق لا يضيع عند الله، وكثير من الثمار يحتاج صبرًا واستمرارًا."
+    }
   ]
 };
 
+
+function getStudentAgeForExams() {
+    if (window.currentStudentAge !== undefined && window.currentStudentAge !== null && !isNaN(Number(window.currentStudentAge))) {
+        return Number(window.currentStudentAge);
+    }
+    const curSt = (window.currentStudentData && window.currentStudentData.student) || {};
+    if (curSt.age !== undefined && curSt.age !== null && !isNaN(Number(curSt.age))) {
+        return Number(curSt.age);
+    }
+    if (typeof activeUser !== 'undefined' && activeUser && activeUser.age !== undefined && !isNaN(Number(activeUser.age))) {
+        return Number(activeUser.age);
+    }
+    return 9;
+}
 
 function openQuizzesModal(targetTrackOrId) {
     const modal = document.getElementById('quizzesModal');
@@ -7884,11 +8162,16 @@ function loadQuizzesList() {
     const container = document.getElementById('quizzesListContainer');
     if (!container) return;
 
-    // Strictly the 3 Monthly Exams (Tafsir, Hadith, Tajweed) - Zero weekly division!
+    // Strictly the Monthly Exams (automatically routes Tafsir by student age: <10 -> 1001, 10-16 -> 1005)
+    const studentAgeForTafsir = getStudentAgeForExams();
+    const tafsirAgeQuiz = (studentAgeForTafsir >= 10)
+        ? { id: 1005, title: 'اختبار التفسير «من يدلّني؟» — من 10 إلى 16 سنة', track: 'tafsir', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' }
+        : { id: 1001, title: 'اختبار التفسير «من يدلّني؟» — أقل من 10 سنوات', track: 'tafsir', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' };
+
     const monthlyQuizzes = [
         { id: 1004, title: 'اختبار حفاظ القرآن الكريم والتقييم الشهري — دورة سبتمبر 2026', track: 'quran', total_questions: 'تقييم الحفظ والتجويد', total_points: 20 },
         { id: 1003, title: 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين', track: 'tajweed', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' },
-        { id: 1001, title: 'اختبار التفسير «من يدلني» — أقل من 10 سنوات', track: 'tafsir', total_questions: 20, total_points: 40, close_date: '2026-12-31T23:59:59+02:00' },
+        tafsirAgeQuiz,
         { id: 1002, title: 'امتحان مسار الحديث الشريف والسنة — ملخص الشهر الأول', track: 'hadith', total_questions: 20, total_points: 40 }
     ];
 
@@ -7996,13 +8279,13 @@ async function startQuiz(quizId) {
         quiz = { id: quizId, title: 'الامتحان الشهري الشامل' };
     }
 
-    const isMonthly = quizId === 1001 || quizId === 1002 || quizId === 1003 || (quiz.title && quiz.title.includes('الشهري'));
+    const isMonthly = quizId === 1001 || quizId === 1002 || quizId === 1003 || quizId === 1005 || (quiz.title && quiz.title.includes('الشهري'));
 
     // Check Date Availability for Monthly Exam
     if (isMonthly) {
         const now = new Date();
         const startWindow = new Date('2026-10-16T00:00:00');
-        const endWindow = (Number(quizId) === 1003 || Number(quizId) === 1001)
+        const endWindow = (Number(quizId) === 1003 || Number(quizId) === 1001 || Number(quizId) === 1005)
             ? new Date('2026-12-31T23:59:59+02:00')
             : new Date('2026-10-24T00:59:59+02:00');
         if (now < startWindow) {
@@ -8027,7 +8310,9 @@ async function startQuiz(quizId) {
     const qMetaEl = document.getElementById('activeQuizMeta');
     if (qTitleEl) qTitleEl.textContent = (Number(quizId) === 1003)
         ? 'اختبار محققي التجويد — أحكام النون الساكنة والتنوين'
-        : ((Number(quizId) === 1001) ? 'اختبار التفسير «من يدلني» — أقل من 10 سنوات' : quiz.title);
+        : ((Number(quizId) === 1005)
+            ? 'اختبار التفسير «من يدلّني؟» — من 10 إلى 16 سنة'
+            : ((Number(quizId) === 1001) ? 'اختبار التفسير «من يدلّني؟» — أقل من 10 سنوات' : quiz.title));
     if (qMetaEl) {
         qMetaEl.textContent = '20 سؤالاً • 40 درجة إجمالية (درجتان لكل سؤال)';
     }
