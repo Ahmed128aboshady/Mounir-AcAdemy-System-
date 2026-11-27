@@ -37,9 +37,9 @@
     <script src="js/student_genders.js?v=20260922_v1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase_client.js?v=20260923_v1"></script>
-    <link rel="stylesheet" href="css/monir-ui.css?v=20261119">
+    <link rel="stylesheet" href="css/monir-ui.css?v=20261127">
 </head>
-<body data-monir-page="student" class="bg-slate-50 text-slate-800 pb-28 sm:pb-20">
+<body data-monir-page="student" class="bg-slate-50 text-slate-800">
 
     <!-- Global SVG Symbol Icons (No decorative emojis, clean modern EdTech lines) -->
     <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
@@ -55,9 +55,9 @@
     </svg>
 
     <!-- Top Navigation (Reference: Topbar + Breadcrumb + User Profile) -->
-    <header class="bg-white border-b border-slate-200 py-2.5 sm:py-3 px-3 sm:px-6 sticky top-0 z-40 shadow-xs">
+    <header class="student-header bg-white border-b border-slate-200 py-2.5 sm:py-3 px-3 sm:px-6 sticky top-0 z-40 shadow-xs">
         <div class="max-w-6xl mx-auto flex justify-between items-center gap-3">
-            <div class="flex items-center gap-3 min-w-0 flex-shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
                 <a href="index.html" class="flex items-center shrink-0">
                     <img src="images/monir_logo_trans.png" alt="أكاديمية منير" class="h-8 sm:h-9 w-auto object-contain">
                 </a>
@@ -86,13 +86,13 @@
                 </div>
 
                 <!-- Support & Tickets Button -->
-                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-2.5 sm:px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1.5 shrink-0" title="الدعم والشكاوى">
+                <button onclick="openSupportModal()" class="text-xs font-bold text-slate-700 hover:text-blue-900 bg-slate-100 hover:bg-slate-200 px-2.5 sm:px-3 py-1.5 rounded-lg transition border border-slate-200 flex items-center gap-1.5 shrink-0" aria-label="الدعم والشكاوى" title="الدعم والشكاوى">
                     <svg class="w-3.5 h-3.5 text-slate-500"><use href="#user"/></svg>
                     <span class="hidden sm:inline">الدعم</span>
                 </button>
 
                 <!-- Notifications Bell -->
-                <button onclick="toggleNotifications()" class="relative p-1.5 sm:p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" title="الإشعارات">
+                <button onclick="toggleNotifications()" class="relative p-1.5 sm:p-2 text-slate-600 hover:text-blue-900 hover:bg-slate-100 rounded-lg transition border border-slate-200 flex items-center gap-1 shrink-0" aria-label="الإشعارات" title="الإشعارات">
                     <svg class="w-4 h-4 text-slate-600"><use href="#bell"/></svg>
                     <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">1</span>
                 </button>
@@ -137,7 +137,7 @@
     </div>
 
     <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
+    <main class="max-w-6xl mx-auto px-3 sm:px-6">
 
         <!-- Urgent Parent 3rd Absence Warning Banner (إنذار الغياب الثالث لولي الأمر) -->
         <div id="absenceWarningBanner" class="hidden bg-red-50 border-2 border-red-500 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 mb-4">
@@ -177,106 +177,99 @@
 
 
         <!-- ═══════════════════════════════════════════════════════════════════ -->
-        <!-- 1. Modern EdTech Profile Card (Reference: .profile + .tabs)        -->
+        <!-- Student profile and navigation -->
         <!-- ═══════════════════════════════════════════════════════════════════ -->
-        <section class="profile-card">
-            <!-- Cover with geometric concentric arcs & motivational quote -->
-            <div class="profile-cover">
-                <div class="profile-cover-text">
-                    رحلتك في طلب العلم والقرآن تبدأ بخطوة • ومستقبلك تصنعه أنت
-                </div>
-            </div>
-
-            <!-- Profile Body with Avatar & Metadata -->
+        <section class="profile-card student-profile" aria-labelledby="studentName">
             <div class="profile-body">
-                <div class="profile-avatar initials" id="profileAvatarInitials">
-                    <script>(function(){
-                        const u = window.__PRELOADED_USER__;
-                        const name = (u && (u.full_name || u.username)) || 'طالب';
-                        const parts = name.trim().split(/\s+/);
-                        document.write(parts.length >= 2 ? (parts[0][0] + ' ' + parts[1][0]) : (parts[0] ? parts[0][0] : 'ط'));
-                    })();</script>
-                </div>
-
-                <div class="flex-1 min-w-0 pt-2 sm:pt-3">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                            <h2 class="text-lg sm:text-2xl font-black text-slate-900 leading-tight flex items-center gap-2">
-                                <span id="studentName"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script></span>
-                                <span class="verified-badge" title="حساب متدرب موثق"></span>
-                            </h2>
-                            <p class="text-xs text-slate-500 font-semibold mt-0.5" id="studentTrackSubtitle">
-                                متدرب في المسار التعليمي المعتمد بالأكاديمية
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="bg-emerald-500/15 text-emerald-800 border border-emerald-400/30 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full" id="accountStatusBadge">
-                                اشتراك ساري (نشط)
-                            </span>
-                            <button type="button" onclick="openStudentLedgerModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="عرض كشف حساب الحصص وسجل الحضور والغياب والتجديدات">
-                                <span>سجل الحصص والتجديدات</span>
-                            </button>
-                            <button type="button" onclick="openHifzHistoryModal()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer text-center" title="عرض سجل الحفظ والتسميع التاريخي">
-                                <span>سجل الحفظ (History)</span>
-                            </button>
-                            <button onclick="openPaymobModal()" class="bg-[#1F274B] hover:bg-[#2D396E] text-white font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                                <span>تجديد الباقة</span>
-                            </button>
-                        </div>
+                <div class="student-identity">
+                    <div class="profile-avatar initials" id="profileAvatarInitials">
+                        <script>(function(){
+                            const u = window.__PRELOADED_USER__;
+                            const name = (u && (u.full_name || u.username)) || 'طالب';
+                            const parts = name.trim().split(/\s+/);
+                            document.write(parts.length >= 2 ? (parts[0][0] + ' ' + parts[1][0]) : (parts[0] ? parts[0][0] : 'ط'));
+                        })();</script>
                     </div>
-
-                    <!-- Metadata Row (Responsive 2x2 Micro-Grid on Mobile, Sleek Flex on Desktop) -->
-                    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 mt-3 text-xs text-slate-600">
-                        <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
-                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">رقم المتدرب:</span>
-                            <strong class="font-mono font-black text-xs sm:text-sm text-[#1F274B] text-right" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></strong>
-                        </div>
-                        <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
-                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">السن والنوع:</span>
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <strong class="text-xs sm:text-sm font-black text-slate-900" id="studentDetails">9 سنوات</strong>
-                                <span id="studentGenderLabel" class="inline-block bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-black px-1.5 py-0.5 rounded-md">طالب (ولد)</span>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
-                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">ولي الأمر:</span>
-                            <strong class="text-xs sm:text-sm font-black text-slate-900 truncate block" id="parentName">أ. ولي الأمر المعتمد</strong>
-                        </div>
-                        <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
-                            <span class="text-slate-400 font-medium text-[11px] sm:text-xs">المسارات:</span>
-                            <strong class="text-xs sm:text-sm font-black text-emerald-700 block" id="enrolledCoursesCount">1 مسار تدريبي</strong>
-                        </div>
-                        <div class="hidden md:flex items-center gap-1">
-                            <span class="text-slate-400 font-medium">الهاتف:</span>
-                            <strong class="font-mono font-bold text-slate-700" id="parentPhone">011...</strong>
-                        </div>
+                    <div class="min-w-0">
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-900 leading-tight flex items-center gap-2">
+                            <span id="studentName"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&(u.full_name||u.username))?(u.full_name||u.username):'طالب الأكاديمية');})();</script></span>
+                        </h2>
+                        <p class="text-xs text-slate-500 font-semibold mt-0.5" id="studentTrackSubtitle">
+                            متدرب في المسار التعليمي المعتمد بالأكاديمية
+                        </p>
                     </div>
                 </div>
+                <span class="bg-emerald-500/15 text-emerald-800 border border-emerald-400/30 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full" id="accountStatusBadge">
+                    اشتراك ساري (نشط)
+                </span>
             </div>
-
-            <!-- Profile Navigation Tabs (Reference: .tabs) -->
-            <div class="profile-tabs" role="tablist" aria-label="أقسام الحساب">
-                <button class="profile-tab active" role="tab" aria-selected="true" data-view="overview" onclick="setPortalView('overview')">
-                    <svg class="w-4 h-4 inline ml-1.5"><use href="#grid"/></svg>
-                    نظرة عامة
+            <div class="student-quick-actions">
+                <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
+                    <span id="bottomNavMeetIcon" class="flex items-center justify-center"><svg class="w-4 h-4"><use href="#clock"/></svg></span>
+                    <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
                 </button>
-                <button class="profile-tab" role="tab" aria-selected="false" data-view="courses" onclick="setPortalView('courses')">
-                    <svg class="w-4 h-4 inline ml-1.5"><use href="#book"/></svg>
-                    دوراتي التدريبية
-                </button>
-                <button class="profile-tab" role="tab" aria-selected="false" data-view="schedule" onclick="setPortalView('schedule')">
-                    <svg class="w-4 h-4 inline ml-1.5"><use href="#calendar"/></svg>
-                    جدول المحاضرات والبث
-                </button>
-                <button class="profile-tab" role="tab" aria-selected="false" data-view="certificates" onclick="setPortalView('certificates')">
-                    <svg class="w-4 h-4 inline ml-1.5"><use href="#award"/></svg>
-                    الشهادات والإنجازات
-                </button>
-                <button class="profile-tab" role="tab" aria-selected="false" data-view="details" onclick="setPortalView('details')">
-                    <svg class="w-4 h-4 inline ml-1.5"><use href="#user"/></svg>
-                    البيانات الشخصية
+                <button type="button" onclick="openPaymobModal()" class="student-renew-button font-extrabold text-xs py-1.5 rounded-xl transition">
+                    <span>تجديد الباقة</span>
                 </button>
             </div>
+            <details class="student-profile-details">
+                <summary>بيانات الطالب وسجلاته</summary>
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 mt-3 text-xs text-slate-600">
+                    <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
+                        <span class="text-slate-400 font-medium text-[11px] sm:text-xs">رقم المتدرب:</span>
+                        <strong class="font-mono font-black text-xs sm:text-sm text-[#1F274B] text-right" id="studentCode"><script>(function(){const u=window.__PRELOADED_USER__;document.write((u&&u.username)?u.username:'---');})();</script></strong>
+                    </div>
+                    <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
+                        <span class="text-slate-400 font-medium text-[11px] sm:text-xs">السن والنوع:</span>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <strong class="text-xs sm:text-sm font-black text-slate-900" id="studentDetails">9 سنوات</strong>
+                            <span id="studentGenderLabel" class="inline-block bg-slate-100 border border-slate-200 text-slate-700 text-[10px] font-black px-1.5 py-0.5 rounded-md">طالب (ولد)</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
+                        <span class="text-slate-400 font-medium text-[11px] sm:text-xs">ولي الأمر:</span>
+                        <strong class="text-xs sm:text-sm font-black text-slate-900 truncate block" id="parentName">أ. ولي الأمر المعتمد</strong>
+                    </div>
+                    <div class="bg-slate-50/80 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border sm:border-0 border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-right items-start sm:items-center justify-center">
+                        <span class="text-slate-400 font-medium text-[11px] sm:text-xs">المسارات:</span>
+                        <strong class="text-xs sm:text-sm font-black text-emerald-700 block" id="enrolledCoursesCount">1 مسار تدريبي</strong>
+                    </div>
+                    <div class="hidden md:flex flex-wrap items-center gap-1">
+                        <span class="text-slate-400 font-medium">الهاتف:</span>
+                        <strong class="font-mono font-bold text-slate-700" id="parentPhone">011...</strong>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <button type="button" onclick="openStudentLedgerModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs cursor-pointer" title="عرض كشف حساب الحصص وسجل الحضور والغياب والتجديدات">
+                        <span>سجل الحصص والتجديدات</span>
+                    </button>
+                    <button type="button" onclick="openHifzHistoryModal()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-extrabold text-xs px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer text-center" title="عرض سجل الحفظ والتسميع التاريخي">
+                        <span>سجل الحفظ</span>
+                    </button>
+                </div>
+            </details>
+            <nav id="mobileBottomNav" aria-label="أقسام بوابة الطالب">
+                <button type="button" class="student-nav-button active" data-view="overview" aria-current="true" onclick="setPortalView('overview', true)">
+                    <svg aria-hidden="true"><use href="#grid"/></svg>
+                    <span>الرئيسية</span>
+                </button>
+                <button type="button" class="student-nav-button" data-view="courses" onclick="setPortalView('courses', true)">
+                    <svg aria-hidden="true"><use href="#book"/></svg>
+                    <span>دوراتي</span>
+                </button>
+                <button type="button" class="student-nav-button" data-view="schedule" onclick="setPortalView('schedule', true)">
+                    <svg aria-hidden="true"><use href="#calendar"/></svg>
+                    <span>الجدول</span>
+                </button>
+                <button type="button" class="student-nav-button" data-view="certificates" onclick="setPortalView('certificates', true)">
+                    <svg aria-hidden="true"><use href="#award"/></svg>
+                    <span>الشهادات</span>
+                </button>
+                <button type="button" class="student-nav-button" data-view="details" onclick="setPortalView('details', true)">
+                    <svg aria-hidden="true"><use href="#user"/></svg>
+                    <span>حسابي</span>
+                </button>
+            </nav>
         </section>
 
         <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -295,32 +288,26 @@
             </div>
 
             <!-- Stat 2: حصص الحضور المؤكدة -->
-            <div class="kpi-stat-card cursor-pointer hover:border-emerald-300 transition" onclick="openStudentLedgerModal()" title="انقر لعرض تفاصيل سجل الحضور">
-                <div class="kpi-stat-icon" style="background:#eaf0f8;color:#2D396E">
+            <button type="button" class="kpi-stat-card cursor-pointer hover:border-emerald-300 transition" onclick="openStudentLedgerModal()">
+                <span class="kpi-stat-icon" style="background:#eaf0f8;color:#2D396E" aria-hidden="true">
                     <svg><use href="#clock"/></svg>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between">
-                        <b class="text-xl sm:text-2xl font-black text-emerald-600 block leading-tight" id="presentCount">0</b>
-                        <span class="text-[10px] text-emerald-800 bg-emerald-50 font-extrabold px-1.5 py-0.5 rounded border border-emerald-200">التفاصيل</span>
-                    </div>
-                    <span class="text-xs text-slate-500 font-bold block mt-0.5">حصة حضور مؤكدة</span>
-                </div>
-            </div>
+                </span>
+                <span class="flex-1">
+                    <b class="text-xl sm:text-2xl font-black text-emerald-600 block leading-tight" id="presentCount">0</b>
+                    <span class="text-xs text-slate-500 font-bold block mt-0.5">الحصص المحضورة</span>
+                </span>
+            </button>
 
             <!-- Stat 3: رصيد الحصص المتاح -->
-            <div class="kpi-stat-card cursor-pointer hover:border-indigo-300 transition" onclick="openStudentLedgerModal()" title="انقر لعرض كشف حساب الحصص وسجل التجديدات">
-                <div class="kpi-stat-icon" style="background:#fff4e4;color:#b68d49">
+            <button type="button" class="kpi-stat-card cursor-pointer hover:border-indigo-300 transition" onclick="openStudentLedgerModal()">
+                <span class="kpi-stat-icon" style="background:#fff4e4;color:#b68d49" aria-hidden="true">
                     <svg><use href="#award"/></svg>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between">
-                        <b class="text-xl sm:text-2xl font-black text-blue-900 block leading-tight" id="statRemainingCredits">—</b>
-                        <span class="text-[10px] text-indigo-700 bg-indigo-50 font-extrabold px-1.5 py-0.5 rounded border border-indigo-200">سجل الرصيد</span>
-                    </div>
-                    <span class="text-xs text-slate-500 font-bold block mt-0.5">حصص متبقية بالرصيد</span>
-                </div>
-            </div>
+                </span>
+                <span class="flex-1">
+                    <b class="text-xl sm:text-2xl font-black text-blue-900 block leading-tight" id="statRemainingCredits">—</b>
+                    <span class="text-xs text-slate-500 font-bold block mt-0.5">الحصص المتبقية</span>
+                </span>
+            </button>
 
             <!-- Stat 4: نسبة الانضباط والحضور -->
             <div class="kpi-stat-card">
@@ -329,7 +316,7 @@
                 </div>
                 <div>
                     <b class="text-xl sm:text-2xl font-black text-indigo-950 block leading-tight" id="statAttendanceRate">100<span class="text-sm font-bold text-slate-500">%</span></b>
-                    <span class="text-xs text-slate-500 font-bold">نسبة الحضور والالتزام</span>
+                    <span class="text-xs text-slate-500 font-bold">نسبة الحضور</span>
                 </div>
             </div>
         </section>
@@ -346,22 +333,7 @@
             <!-- ───────────────────────────────────────────────────────────── -->
             <!-- Main Content Area: Columns 1-8                                -->
             <!-- ───────────────────────────────────────────────────────────── -->
-            <div class="lg:col-span-8 space-y-5 sm:space-y-6" id="portalMainArea">
-
-                <!-- Monthly Exam Active Callout Banner -->
-                <div class="bg-gradient-to-r from-[#171D3B] via-[#1F274B] to-[#2B3564] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg border-2 border-amber-400/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase">مفتوح الآن</span>
-                            <span class="text-xs text-amber-200 font-bold">متاح للحل الآن حتى اليوم الجمعة 23 أكتوبر 2026 (12:00 منتصف الليل)</span>
-                        </div>
-                        <h4 class="text-sm sm:text-base font-black text-white">الامتحانات الشهرية الشاملة (التفسير • الحديث • التجويد)</h4>
-                        <p class="text-xs text-indigo-100 max-w-xl">20 سؤالاً لكل مسار (40 درجة إجمالية). يتم تصحيح الإجابات فورياً وعرض أخطائك والإجابات النموذجية وتثبيت النتيجة في سجلك التراكمي.</p>
-                    </div>
-                    <button type="button" onclick="openQuizzesModal()" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-6 py-3 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer shrink-0 whitespace-nowrap">
-                        <span>بدء الامتحانات الشهرية</span>
-                    </button>
-                </div>
+            <div class="lg:col-span-8" id="portalMainArea">
 
                 <!-- Track Switcher: Dual-Track Segmented Controller -->
                 <section id="dualTrackSwitcherSection" class="bg-white border-2 border-indigo-100 rounded-2xl p-2 sm:p-2.5 shadow-2xs">
@@ -522,6 +494,14 @@
                 </div>
 
                 <!-- Course Lectures & Detailed Syllabus System (#lecturesSection) -->
+                <section id="studentAssessments" class="student-assessments" aria-labelledby="studentAssessmentsTitle">
+                    <div>
+                        <h3 id="studentAssessmentsTitle">الاختبارات الشهرية</h3>
+                        <p>التفسير والحديث والتجويد</p>
+                    </div>
+                    <button type="button" onclick="openQuizzesModal()">عرض الاختبارات</button>
+                </section>
+
                 <section class="space-y-4" id="lecturesSection">
                     <div class="flex justify-between items-center">
                         <div>
@@ -666,7 +646,7 @@
             <!-- ───────────────────────────────────────────────────────────── -->
             <!-- Aside Column: Columns 9-12 (Reference: .asidegrid)            -->
             <!-- ───────────────────────────────────────────────────────────── -->
-            <div class="lg:col-span-4 space-y-5" id="portalAsideColumn">
+            <div class="lg:col-span-4" id="portalAsideColumn">
 
                 <!-- 1. Upcoming Schedule Panel (Reference: .schedule) -->
                 <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs" id="schedulePanel">
@@ -682,7 +662,7 @@
                         <!-- Populated dynamically via renderUpcomingScheduleList() -->
                     </div>
 
-                    <button type="button" onclick="setPortalView('schedule')" class="w-full mt-4 bg-slate-50 hover:bg-slate-100 text-[#1F274B] font-extrabold text-xs py-2 px-3 rounded-xl border border-slate-200 transition text-center block cursor-pointer">
+                    <button type="button" onclick="setPortalView('schedule', true)" class="w-full mt-4 bg-slate-50 hover:bg-slate-100 text-[#1F274B] font-extrabold text-xs py-2 px-3 rounded-xl border border-slate-200 transition text-center block cursor-pointer">
                         عرض كامل جدول المحاضرات والروابط ←
                     </button>
                 </section>
@@ -746,12 +726,20 @@
             </div>
         </div>
 
+        <aside id="floatingCompetitionLinksContainer" class="print:hidden">
+            <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center gap-2 bg-white hover:bg-emerald-50 text-emerald-900 font-bold text-xs px-3.5 py-2.5 rounded-xl border border-emerald-200 transition" title="اختصارات وروابط محاضرات المسابقة">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+                <span class="whitespace-nowrap">روابط المسابقة</span>
+            </a>
+        </aside>
+
         <!-- Academic Footer (Reference: .footer) -->
         <footer class="pt-6 pb-4 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500 font-medium">
             <span>© ٢٠٢٦ أكاديمية منير. جميع الحقوق محفوظة.</span>
             <span>كل يوم، خطوة أقرب نحو التميز القرآني والعلمي.</span>
         </footer>
-
     </main>
 
     <!-- Modal: Notifications List -->
@@ -1323,38 +1311,6 @@
         </div>
     </div>
 
-    <!-- Floating Competition Links Button for Students & Parents -->
-    <aside id="floatingCompetitionLinksContainer" class="fixed z-40 left-3 sm:left-6 bottom-20 sm:bottom-6 print:hidden">
-        <a href="competition-links.html" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs sm:text-sm px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all border border-emerald-500/40 cursor-pointer" title="اختصارات وروابط محاضرات المسابقة">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-200 group-hover:rotate-12 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-            </svg>
-            <span class="whitespace-nowrap">روابط المسابقة</span>
-        </a>
-    </aside>
-
-    <!-- Mobile Fixed Bottom Navigation Bar (App-like Quick Actions for Parents) -->
-    <nav id="mobileBottomNav" class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-between sm:hidden shadow-2xl safe-bottom">
-        <button type="button" onclick="setPortalView('overview'); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:text-[#1F274B] active:text-[#1F274B] py-1 px-1 rounded-xl transition cursor-pointer">
-            <svg class="w-4 h-4"><use href="#user"/></svg>
-            <span class="text-[10px] font-bold">حسابي</span>
-        </button>
-
-        <button type="button" id="bottomNavMeetBtn" onclick="joinNextDueMeet()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-emerald-700 active:scale-95 py-1 px-1 bg-emerald-50 border border-emerald-300/80 rounded-xl transition shadow-xs cursor-pointer">
-            <span id="bottomNavMeetIcon" class="flex items-center justify-center"><svg class="w-4 h-4"><use href="#clock"/></svg></span>
-            <span class="text-[10px] font-black" id="bottomNavMeetLabel">دخول الحصة</span>
-        </button>
-
-        <button type="button" onclick="openPaymobModal()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-amber-700 hover:text-amber-800 active:scale-95 py-1 px-1 rounded-xl transition cursor-pointer">
-            <svg class="w-4 h-4"><use href="#award"/></svg>
-            <span class="text-[10px] font-extrabold">تجديد</span>
-        </button>
-
-        <button type="button" onclick="openSupportModal()" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:text-blue-900 active:text-blue-900 py-1 px-1 rounded-xl transition cursor-pointer">
-            <svg class="w-4 h-4"><use href="#edit"/></svg>
-            <span class="text-[10px] font-bold">الدعم</span>
-        </button>
-    </nav>
 
     <!-- Quick Search Modal for Students inside student.html (للبحث السريع بين 771 طالباً) -->
     <div id="studentSearchModal" class="modal-overlay hidden">
@@ -1539,16 +1495,12 @@
 
     <!-- Tab View Switching Controller Script -->
     <script>
-    function setPortalView(v) {
-        document.querySelectorAll('.profile-tab').forEach(t => {
-            const isActive = (t.dataset.view === v);
-            t.classList.toggle('active', isActive);
-            t.setAttribute('aria-selected', String(isActive));
-            if (isActive && typeof t.scrollIntoView === 'function') {
-                try {
-                    t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                } catch(e) {}
-            }
+    function setPortalView(v, navigate = false) {
+        document.querySelectorAll('.student-nav-button').forEach(button => {
+            const isActive = button.dataset.view === v;
+            button.classList.toggle('active', isActive);
+            if (isActive) button.setAttribute('aria-current', 'true');
+            else button.removeAttribute('aria-current');
         });
 
         const statsOverview = document.getElementById('portalStatsOverview');
@@ -1561,6 +1513,8 @@
         const generalLecturesSection = document.getElementById('generalLecturesSection');
         const certificatesPanel = document.getElementById('certificatesPanel');
         const detailsPanel = document.getElementById('detailsPanel');
+        const assessments = document.getElementById('studentAssessments');
+        assessments.classList.toggle('hidden', v !== 'overview');
         const schedulePanel = document.getElementById('schedulePanel');
         const goalCard = document.getElementById('goalCard');
         const qrCard = document.getElementById('qrCard');
@@ -1571,7 +1525,7 @@
 
         if (v === 'overview') {
             show(statsOverview);
-            if (mainArea) mainArea.className = "lg:col-span-8 space-y-5 sm:space-y-6";
+            if (mainArea) mainArea.className = "lg:col-span-8";
             show(asideCol);
             hide(trackSwitcher);
             show(coursesSection);
@@ -1589,7 +1543,7 @@
             show(supportCard);
         } else if (v === 'courses') {
             hide(statsOverview);
-            if (mainArea) mainArea.className = "lg:col-span-12 space-y-5 sm:space-y-6";
+            if (mainArea) mainArea.className = "lg:col-span-12";
             hide(asideCol);
             show(trackSwitcher);
             hide(certificatesPanel);
@@ -1600,10 +1554,9 @@
                 if (window.currentPortalTrack === 'courses') hide(quranSection);
                 else show(quranSection);
             }
-            if (coursesSection) coursesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else if (v === 'schedule') {
             hide(statsOverview);
-            if (mainArea) mainArea.className = "lg:col-span-12 space-y-5 sm:space-y-6";
+            if (mainArea) mainArea.className = "lg:col-span-12";
             hide(asideCol);
             hide(trackSwitcher);
             hide(coursesSection);
@@ -1611,10 +1564,9 @@
             show(lecturesSection);
             hide(certificatesPanel);
             hide(detailsPanel);
-            if (lecturesSection) lecturesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else if (v === 'certificates') {
             hide(statsOverview);
-            if (mainArea) mainArea.className = "lg:col-span-12 space-y-5 sm:space-y-6";
+            if (mainArea) mainArea.className = "lg:col-span-12";
             hide(asideCol);
             hide(trackSwitcher);
             hide(coursesSection);
@@ -1623,11 +1575,10 @@
             hide(generalLecturesSection);
             show(certificatesPanel);
             hide(detailsPanel);
-            if (certificatesPanel) certificatesPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             if (typeof window.renderCertificatesPanel === 'function') window.renderCertificatesPanel();
         } else if (v === 'details') {
             hide(statsOverview);
-            if (mainArea) mainArea.className = "lg:col-span-8 space-y-5 sm:space-y-6";
+            if (mainArea) mainArea.className = "lg:col-span-8";
             show(asideCol);
             hide(trackSwitcher);
             hide(coursesSection);
@@ -1640,15 +1591,21 @@
             hide(goalCard);
             show(qrCard);
             show(supportCard);
-            if (detailsPanel) detailsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             if (typeof window.renderDetailsPanel === 'function') window.renderDetailsPanel();
+        }
+        if (navigate) {
+            if (v === 'overview') {
+                window.scrollTo({ top: 0 });
+            } else {
+                const target = { courses: coursesSection, schedule: lecturesSection, certificates: certificatesPanel, details: detailsPanel }[v];
+                target?.scrollIntoView({ block: 'start' });
+            }
         }
     }
     window.setPortalView = setPortalView;
 
     function initTabsHorizontalScroll() {
         const targets = [
-            document.querySelector('.profile-tabs'),
             document.getElementById('trackSwitcherTabsRow')
         ].filter(Boolean);
 
@@ -1727,7 +1684,7 @@
     </script>
 
     <script src="js/api_mock.js?v=20261023_open_v2"></script>
-    <script src="js/student.js?v=20261027_clean_v1"></script>
+    <script src="js/student.js?v=20261127_portal"></script>
     <script src="js/student_ledger.js?v=20261023_open_v2"></script>
 
     <!-- Confirm Classroom Entry Modal (توثيق دخول القاعة الذكية) -->
